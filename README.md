@@ -33,6 +33,9 @@ Repositorios hermanos:
 - **ETAPA 00 — Fundación y Gobierno: completada** (2 de 2 tareas aprobadas).
 - **Etapa siguiente:** ETAPA 01 — Infraestructura Local.
 - **Última tarea aprobada:** `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26).
+- **Mantenimiento actual:** `Task/002.1-Configurar-Claude-Code` — *Aprobada*;
+  su PR `Task/002.1 → main` queda pendiente de revisión del usuario y no forma
+  parte de las 41 tareas del roadmap.
 - **Próxima tarea:** `Task/003-Crear-Infraestructura-Local` — *Pendiente, no iniciada*.
 - **Tareas aprobadas:** 2 de 41 (5 %).
 - **Implementación:** **no ha comenzado**. No existe código de aplicación, ni
@@ -179,3 +182,13 @@ contenido. Estado vigente de las ramas en
 ## 8. Contribución
 
 Ver [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+## Instrucciones para Claude Code
+
+- [Guía de configuración y restauración](docs/claude/README.md)
+- [Instrucciones versionadas del proyecto](docs/claude/PROJECT_INSTRUCTIONS.md)
+
+El workspace utiliza un `CLAUDE.md` raíz no versionado que importa las
+instrucciones persistentes y versionadas de este repositorio.

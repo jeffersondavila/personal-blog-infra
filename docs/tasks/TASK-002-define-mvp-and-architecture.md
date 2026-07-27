@@ -442,6 +442,12 @@ Se corrigieron las referencias previas a "8 sin seguimiento" y "226 enlaces".
 | 8 | Vuelta a `main` y actualización de referencias. | Hecho |
 | 9 | Eliminación de la rama local de la tarea. | Hecho |
 
+> **Actualización histórica añadida en `Task/002.1`:** el PR `#2` fue
+> fusionado posteriormente por el usuario. La fila anterior conserva el estado
+> que tenía al redactarse este cierre y el head `dev` que se utilizó entonces.
+> A partir de `Task/002.1`, el flujo oficial cambia a
+> `Task/<nombre> → main`; `dev → main` deja de ser el cierre ordinario.
+
 Con esta aprobación, la **ETAPA 00 queda completada** (2 de 2 tareas) y el avance global
 pasa a **2 de 41 (5 %)**.
 

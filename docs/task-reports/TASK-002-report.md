@@ -455,6 +455,12 @@ contenido de `Task/002`.
 | Merge del pull request hacia `main` | **No ejecutado** — corresponde al usuario |
 | Vuelta a `main`, referencias actualizadas, rama local eliminada | Hecho |
 
+> **Actualización histórica añadida en `Task/002.1`:** el usuario fusionó
+> posteriormente el PR `#2`; el commit `bee3fe6` registra el merge desde
+> `jeffersondavila/dev`. La tabla conserva el estado al momento del reporte.
+> Desde `Task/002.1`, ese flujo deja de estar vigente: el PR ordinario debe ser
+> `Task/<nombre> → main`.
+
 ### Se mantiene en todos los casos
 
 - **No se creó código funcional**: ni React, ni FastAPI, ni `package.json`, ni
