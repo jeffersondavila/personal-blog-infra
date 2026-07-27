@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------------------
+# personal-blog-infra — .gitignore
+# ---------------------------------------------------------------------------
+
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+*.env
+secrets/
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+credentials
+credentials.json
+
+# Terraform (uso futuro)
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+tfplan
+*.tfplan
+
+# Datos y volúmenes locales (uso futuro)
+data/
+volumes/
+backups/
+dumps/
+*.dump
+*.sql.gz
+
+# Logs
+logs/
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores / IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporales
+tmp/
+temp/
+*.tmp
+*.bak
+*.orig
