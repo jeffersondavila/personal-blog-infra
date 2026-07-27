@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 00 |
-| **Estado** | En progreso |
+| **Estado** | **Completada** |
 | **Dependencias** | Ninguna |
 | **Tareas** | 2 |
-| **Aprobadas** | 1 |
-| **Avance** | 50 % |
+| **Aprobadas** | 2 |
+| **Avance** | 100 % |
 | **Hito que completa** | Gobierno del proyecto establecido y alcance del MVP cerrado. |
 
 ---
@@ -39,7 +39,7 @@ Preparar repositorios, documentación y seguimiento.
 
 Ficha: [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md)
 
-### `Task/002-Definir-MVP-y-Arquitectura` — *Pendiente*
+### `Task/002-Definir-MVP-y-Arquitectura` — *Aprobada* (2026-07-26)
 
 Definir requerimientos funcionales, arquitectura de software, contratos generales y
 límites del MVP.
@@ -51,16 +51,29 @@ límites del MVP.
 - Modelo conceptual de dominio (sin esquema físico).
 - Qué queda explícitamente fuera del MVP.
 
-**Depende de:** `Task/001` aprobada.
+**Depende de:** `Task/001` aprobada. ✔
+
+Ficha: [TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md)
+Documentos: [MVP_SCOPE](../product/MVP_SCOPE.md) ·
+[USER_FLOWS](../product/USER_FLOWS.md) · [CONTENT_MODEL](../product/CONTENT_MODEL.md) ·
+[software-architecture](../architecture/software-architecture.md) ·
+[api-contracts](../architecture/api-contracts.md) ·
+[non-functional-requirements](../architecture/non-functional-requirements.md) ·
+[security-boundaries](../architecture/security-boundaries.md) ·
+[open-decisions](../architecture/open-decisions.md) ·
+[ADR-004](../adr/ADR-004-modular-monolith.md) ·
+[ADR-005](../adr/ADR-005-markdown-content.md)
 
 ## Criterios de salida de la etapa
 
-- [ ] Los tres repositorios tienen README, `.gitignore`, `.editorconfig` y `CONTRIBUTING.md` coherentes.
-- [ ] El roadmap completo está registrado y es consultable.
-- [ ] Existe plantilla de tarea y definición de terminado.
-- [ ] Las decisiones fundacionales están registradas como ADR.
-- [ ] El MVP está delimitado y la arquitectura de software acordada.
-- [ ] `Task/001` y `Task/002` aprobadas por el usuario.
+- [x] Los tres repositorios tienen README, `.gitignore`, `.editorconfig` y `CONTRIBUTING.md` coherentes.
+- [x] El roadmap completo está registrado y es consultable.
+- [x] Existe plantilla de tarea y definición de terminado.
+- [x] Las decisiones fundacionales están registradas como ADR (ADR-001 a ADR-005).
+- [x] El MVP está delimitado y la arquitectura de software acordada.
+- [x] `Task/001` y `Task/002` aprobadas por el usuario (2026-07-26).
+
+**Etapa completada el 2026-07-26.**
 
 ## Fuera del alcance de la etapa
 
