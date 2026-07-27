@@ -71,8 +71,10 @@ Reglas:
 11. **Recibir aprobación**
     El usuario autoriza explícitamente (ver sección 3).
 
-12. **Integrarla según el flujo autorizado**
-    Solo entonces se ejecuta el cierre descrito en la sección 3.
+12. **Ejecutar el flujo oficial de cierre**
+    Solo entonces se ejecuta la secuencia completa de la sección 3. Claude se
+    detiene de nuevo después de crear el PR y espera la revisión del usuario
+    antes de sincronizar `main` y `dev`.
 
 ---
 
@@ -90,23 +92,59 @@ Ejemplo:
 approved: Task/001-Inicializar-Workspace-y-Roadmap
 ```
 
-Al recibirla —y **solo** entonces— se ejecuta este flujo en cada repositorio afectado:
+El flujo oficial completo, desde la preparación hasta la normalización final,
+es el siguiente en cada repositorio afectado. Los pasos 1 a 4 ocurren antes de
+la aprobación; el paso 5 desbloquea los pasos 6 a 12. Tras el paso 12, Claude
+se detiene hasta que el usuario complete el paso 13:
 
-1. **Crear commit si falta** — confirmar el trabajo pendiente en la rama `Task/*`.
-2. **Integrar la rama Task en `dev`** — merge de `Task/*` → `dev`.
-3. **Hacer push de `dev`** al remoto.
-4. **Publicar la rama Task** (`git push -u origin Task/*`).
-5. **Crear pull request hacia `main`** desde `dev`.
-6. **Volver a `main`** localmente.
-7. **Actualizar referencias** (`git fetch --prune`, sincronizar `main`).
-8. **Limpiar la rama local** `Task/*` una vez integrada.
+1. **Actualizar `dev`** y confirmar que es la base vigente.
+2. **Crear `Task/<nombre>` desde `dev`**.
+3. **Implementar y validar** únicamente el alcance autorizado.
+4. **Dejar la tarea `Lista para validación`** y detenerse.
+5. **Recibir `approved: Task/<nombre>`** del usuario.
+6. **Crear los commits pendientes** en la rama Task.
+7. **Integrar `Task/<nombre>` dentro de `dev`**.
+8. **Publicar `dev`**.
+9. **Publicar la rama `Task/<nombre>`**.
+10. **Crear el pull request `Task/<nombre> → main`**, con `main` como base y
+    la rama Task exacta como head.
+11. **Eliminar la rama Task local** desde otra rama con:
+
+    ```text
+    git branch -d Task/<nombre>
+    ```
+
+12. **Conservar la rama Task remota** mientras exista el pull request.
+13. **Esperar a que el usuario revise y fusione el PR**. Claude se detiene en
+    este punto y no fusiona hacia `main`.
+14. **Permitir que el usuario decida** si elimina la rama Task remota desde
+    GitHub.
+15. **Ejecutar `git fetch --prune origin`** después de la confirmación del
+    usuario.
+16. **Actualizar `main`** con `git pull --ff-only origin main`.
+17. **Integrar `main` dentro de `dev`** cuando sus historiales difieran.
+18. **Publicar `dev`** después de la normalización.
+19. **Confirmar que `main` y `dev` tienen el mismo contenido** y que los
+    árboles de trabajo están limpios.
+20. **Solo entonces iniciar la siguiente tarea**.
 
 Restricciones:
 
-- **No se hace merge automático hacia `main`.** El PR hacia `main` queda abierto para
-  revisión y lo cierra el usuario.
+- Está **prohibido** crear un PR `dev → main` como cierre ordinario de una tarea.
+- El pull request debe usar exactamente la rama Task como head y `main` como base.
+- **Solo el usuario puede fusionar hacia `main`.**
+- Claude no debe ejecutar `gh pr merge`.
+- La rama Task local se elimina con `git branch -d` después de publicar la rama
+  y crear el PR.
+- La rama Task remota se mantiene hasta la decisión del usuario.
+- Después de la fusión del usuario, `main → dev` normaliza los historiales que
+  difieran.
 - Sin la expresión `approved:`, no se hace commit, merge, push ni PR.
 - La aprobación es por tarea: aprobar una tarea no autoriza iniciar la siguiente.
+
+> Este flujo entra en vigor a partir de `Task/002.1-Configurar-Claude-Code`.
+> Las fichas y reportes de `Task/001` y `Task/002` conservan el flujo anterior
+> como registro histórico; no son instrucciones vigentes.
 
 ---
 
@@ -115,21 +153,24 @@ Restricciones:
 | Rama | Propósito | Origen | Destino |
 | --- | --- | --- | --- |
 | `main` | Versión estable o liberable. | — | — |
-| `dev` | Integración de tareas aprobadas. | `main` | PR → `main` |
-| `Task/<numero>-<nombre>` | Trabajo aislado de una tarea. | `dev` | merge → `dev` |
+| `dev` | Integración de tareas aprobadas y normalización posterior al PR. | `main` | Publicación directa; recibe Task y luego `main` |
+| `Task/<numero>-<nombre>` | Trabajo aislado de una tarea. | `dev` | merge → `dev` y PR → `main` |
 
 Reglas:
 
-- Nunca se trabaja directamente sobre `main` ni sobre `dev`.
+- Nunca se implementa el trabajo de una tarea directamente sobre `main` ni
+  sobre `dev`; solo se realizan las operaciones de integración y
+  normalización definidas en este workflow.
 - Una tarea que afecta a varios repositorios usa **el mismo nombre de rama** en todos.
 - No se reescribe historial publicado (`rebase`/`push --force` sobre ramas compartidas).
+- `dev` nunca es el head obligatorio ni el head ordinario del PR de cierre.
+- El PR de cierre siempre usa `Task/<numero>-<nombre>` como head y `main` como
+  base.
 
 ### Estado actual de las ramas
 
-Los tres repositorios están en `main` **sin commits** (rama no nacida). Git no permite
-crear `dev` ni `Task/*` mientras no exista al menos un commit. La creación de ramas se
-realizará durante la aprobación de `Task/001`; los pasos exactos están en
-[`../tasks/TASK-001-initial-workspace-and-roadmap.md`](../tasks/TASK-001-initial-workspace-and-roadmap.md).
+El estado real y vigente de las ramas se registra en [`STATUS.md`](STATUS.md).
+Debe verificarse con Git antes de iniciar o cerrar cualquier tarea.
 
 ---
 

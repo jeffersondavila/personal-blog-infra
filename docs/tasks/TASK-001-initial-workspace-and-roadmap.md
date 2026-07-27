@@ -231,6 +231,11 @@ git push -u origin Task/001-Inicializar-Workspace-y-Roadmap
 # 8. Volver a `main`, actualizar referencias y limpiar la rama local de la tarea
 ```
 
+> **Nota histórica añadida en `Task/002.1`:** el paso 7 conserva el plan de
+> cierre documentado entonces. El historial de Git confirma que los PR `#1`
+> reales usaron `Task/001-Inicializar-Workspace-y-Roadmap` como head, no `dev`.
+> Desde `Task/002.1`, el flujo oficial exige siempre `Task/<nombre> → main`.
+
 Ventaja de esta secuencia: `main` nace limpia, el trabajo vive en la rama `Task/*` y la
 integración hacia `main` conserva la puerta del pull request definida en
 [WORKFLOW.md](../project-management/WORKFLOW.md).
