@@ -32,7 +32,8 @@ Repositorios hermanos:
 
 - **Etapa actual:** ETAPA 00 — Fundación y Gobierno.
 - **Última tarea aprobada:** `Task/001-Inicializar-Workspace-y-Roadmap` (2026-07-26).
-- **Próxima tarea:** `Task/002-Definir-MVP-y-Arquitectura` — *Pendiente, no iniciada*.
+- **Tarea actual:** `Task/002-Definir-MVP-y-Arquitectura` — *Lista para validación*.
+- **Próxima tarea:** `Task/003-Crear-Infraestructura-Local` — *Pendiente, no iniciada*.
 - **Tareas aprobadas:** 1 de 41 (2 %).
 - **Implementación:** **no ha comenzado**. No existe código de aplicación, ni
   Docker Compose, ni Terraform, ni recursos cloud creados.
@@ -100,21 +101,48 @@ personal de bajo tráfico.
 
 ---
 
+## 4.1 Alcance del producto
+
+El alcance del MVP, los flujos de usuario y el modelo de contenido están definidos en
+[`docs/product/`](docs/product/):
+
+- [MVP_SCOPE.md](docs/product/MVP_SCOPE.md) — qué construimos y qué queda fuera.
+- [USER_FLOWS.md](docs/product/USER_FLOWS.md) — flujos públicos y administrativos.
+- [CONTENT_MODEL.md](docs/product/CONTENT_MODEL.md) — tipos de contenido (conceptual).
+
+La arquitectura de software está en
+[`docs/architecture/software-architecture.md`](docs/architecture/software-architecture.md)
+y las convenciones de API en
+[`docs/architecture/api-contracts.md`](docs/architecture/api-contracts.md).
+
+---
+
 ## 5. Dónde está el roadmap
 
 ```
 docs/
 ├── project-management/
-│   ├── ROADMAP.md               ← etapas, tareas, dependencias y avance
-│   ├── STATUS.md                ← estado vigente (fuente rápida de consulta)
-│   ├── WORKFLOW.md              ← proceso de trabajo y cierre de tareas
-│   ├── TASK_TEMPLATE.md         ← plantilla reutilizable de tarea
-│   └── DEFINITION_OF_DONE.md    ← criterios de "terminado"
-├── stages/                      ← una ficha por etapa (STAGE-00 … STAGE-12)
-├── tasks/                       ← ficha detallada de cada tarea ejecutada
-├── architecture/                ← visión general y mapeo local → nube
-├── adr/                         ← decisiones arquitectónicas
-└── task-reports/                ← reportes finales de ejecución
+│   ├── ROADMAP.md                     ← etapas, tareas, dependencias y avance
+│   ├── STATUS.md                      ← estado vigente (fuente rápida de consulta)
+│   ├── WORKFLOW.md                    ← proceso de trabajo y cierre de tareas
+│   ├── TASK_TEMPLATE.md               ← plantilla reutilizable de tarea
+│   └── DEFINITION_OF_DONE.md          ← criterios de "terminado"
+├── product/
+│   ├── MVP_SCOPE.md                   ← qué construimos y qué no
+│   ├── USER_FLOWS.md                  ← flujos públicos y administrativos
+│   └── CONTENT_MODEL.md               ← tipos de contenido (conceptual)
+├── stages/                            ← una ficha por etapa (STAGE-00 … STAGE-12)
+├── tasks/                             ← ficha detallada de cada tarea ejecutada
+├── architecture/
+│   ├── overview.md                    ← visión de conjunto
+│   ├── software-architecture.md       ← organización de backend y frontend
+│   ├── api-contracts.md               ← convenciones de API
+│   ├── non-functional-requirements.md ← 57 requisitos: seguridad, rendimiento, SEO…
+│   ├── security-boundaries.md         ← qué puede hablar con qué
+│   ├── open-decisions.md              ← decisiones diferidas
+│   └── local-to-cloud-mapping.md      ← correspondencia local → nube
+├── adr/                               ← decisiones arquitectónicas
+└── task-reports/                      ← reportes finales de ejecución
 ```
 
 ---
@@ -141,11 +169,10 @@ Estados oficiales: `Pendiente`, `En progreso`, `Lista para validación`, `Aproba
 - `dev` — integración de tareas aprobadas.
 - `Task/<numero>-<nombre>` — trabajo aislado de una tarea, creado desde `dev`.
 
-Las tres ramas existen ya en los tres repositorios. `main` contiene únicamente el commit
-inicial vacío y el trabajo de `Task/001` está integrado en `dev`; llegará a `main`
-mediante pull request, sin merge automático. Detalle en
-[`docs/tasks/TASK-001-initial-workspace-and-roadmap.md`](docs/tasks/TASK-001-initial-workspace-and-roadmap.md),
-sección *Estado de ramas*.
+`main` y `dev` existen y están publicadas en los tres repositorios, con el mismo
+contenido. Estado vigente de las ramas en
+[`docs/project-management/STATUS.md`](docs/project-management/STATUS.md), sección
+*Estado de los repositorios*.
 
 ---
 

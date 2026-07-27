@@ -39,7 +39,7 @@ Preparar repositorios, documentación y seguimiento.
 
 Ficha: [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md)
 
-### `Task/002-Definir-MVP-y-Arquitectura` — *Pendiente*
+### `Task/002-Definir-MVP-y-Arquitectura` — *Lista para validación*
 
 Definir requerimientos funcionales, arquitectura de software, contratos generales y
 límites del MVP.
@@ -51,7 +51,21 @@ límites del MVP.
 - Modelo conceptual de dominio (sin esquema físico).
 - Qué queda explícitamente fuera del MVP.
 
-**Depende de:** `Task/001` aprobada.
+**Depende de:** `Task/001` aprobada. ✔
+
+Ficha: [TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md)
+Documentos: [MVP_SCOPE](../product/MVP_SCOPE.md) ·
+[USER_FLOWS](../product/USER_FLOWS.md) · [CONTENT_MODEL](../product/CONTENT_MODEL.md) ·
+[software-architecture](../architecture/software-architecture.md) ·
+[api-contracts](../architecture/api-contracts.md) ·
+[non-functional-requirements](../architecture/non-functional-requirements.md) ·
+[security-boundaries](../architecture/security-boundaries.md) ·
+[open-decisions](../architecture/open-decisions.md) ·
+[ADR-004](../adr/ADR-004-modular-monolith.md) *(Propuesta)* ·
+[ADR-005](../adr/ADR-005-markdown-content.md) *(Propuesta)*
+
+> ADR-004 y ADR-005 están en estado **Propuesta**: serán aceptados cuando el usuario
+> apruebe `Task/002`.
 
 ## Criterios de salida de la etapa
 

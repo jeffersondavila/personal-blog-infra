@@ -43,11 +43,18 @@ documental de seguimiento y un MVP y arquitectura acordados antes de escribir c�
 **Dependencias:** ninguna.
 **Hito que completa:** *Gobierno del proyecto establecido y alcance del MVP cerrado.*
 **Ficha:** [STAGE-00-foundation.md](../stages/STAGE-00-foundation.md)
+**Documentos producidos:** [MVP_SCOPE](../product/MVP_SCOPE.md) ·
+[USER_FLOWS](../product/USER_FLOWS.md) · [CONTENT_MODEL](../product/CONTENT_MODEL.md) ·
+[software-architecture](../architecture/software-architecture.md) ·
+[api-contracts](../architecture/api-contracts.md) ·
+[non-functional-requirements](../architecture/non-functional-requirements.md) ·
+[security-boundaries](../architecture/security-boundaries.md) ·
+[open-decisions](../architecture/open-decisions.md)
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/001-Inicializar-Workspace-y-Roadmap` | Preparar repositorios, documentación y seguimiento. | infra, frontend, backend | — | **Aprobada** (2026-07-26) |
-| `Task/002-Definir-MVP-y-Arquitectura` | Definir requerimientos funcionales, arquitectura de software, contratos generales y límites del MVP. | infra | 001 | Pendiente |
+| `Task/002-Definir-MVP-y-Arquitectura` | Definir requerimientos funcionales, arquitectura de software, contratos generales y límites del MVP. | infra | 001 | **Lista para validación** |
 
 ---
 

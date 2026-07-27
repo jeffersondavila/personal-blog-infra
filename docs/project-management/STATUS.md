@@ -9,13 +9,16 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 00 — Fundación y Gobierno |
-| **Tarea actual** | Ninguna en ejecución |
-| **Estado de la tarea** | — |
+| **Tarea actual** | `Task/002-Definir-MVP-y-Arquitectura` |
+| **Estado de la tarea** | **Lista para validación** |
 | **Última tarea aprobada** | `Task/001-Inicializar-Workspace-y-Roadmap` — **Aprobada** el 2026-07-26 por jeffersondavila |
-| **Próxima tarea prevista** | `Task/002-Definir-MVP-y-Arquitectura` (Pendiente, no iniciada) |
+| **Próxima tarea prevista** | `Task/003-Crear-Infraestructura-Local` (Pendiente, no iniciada) |
 | **Avance global** | **2 %** — 1 de 41 tareas aprobadas |
-| **Bloqueos activos** | 1 — publicación en GitHub pendiente (ver *Bloqueos*) |
+| **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | 4 (R-01 cerrado) |
+
+> El avance se calcula **solo** con tareas `Aprobada`. `Task/002` está lista para
+> validación pero **no aprobada**, por lo que no suma al avance.
 
 ---
 
@@ -42,9 +45,9 @@ Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 40 |
+| Pendiente | 39 |
 | En progreso | 0 |
-| Lista para validación | 0 |
+| Lista para validación | 1 |
 | **Aprobada** | **1** |
 | Bloqueada | 0 |
 | Descartada | 0 |
@@ -53,12 +56,11 @@ Distribución por estado:
 
 ## Bloqueos
 
-| # | Tarea afectada | Motivo | Desbloqueo necesario |
-| --- | --- | --- | --- |
-| B-01 | `Task/001` — flujo de cierre, pasos de publicación | No hay credenciales de GitHub configuradas en el entorno y la sesión de trabajo no puede abrir un diálogo de autenticación. `git ls-remote origin` falla con `could not read Username for 'https://github.com'`. Por tanto **no se pudo hacer push de `main`, `dev` ni de la rama `Task/001`, ni abrir el pull request `dev` → `main`**. | El usuario debe autenticarse contra GitHub (Git Credential Manager, `gh auth login` tras instalar GitHub CLI, o un token personal) y ejecutar la secuencia de publicación documentada en el [reporte de TASK-001](../task-reports/TASK-001-report.md), sección 7. |
+*Ninguno activo.*
 
-> El bloqueo afecta únicamente a la **publicación remota**. Todo el trabajo local de
-> `Task/001` está confirmado e integrado en `dev`, y la tarea está **Aprobada**.
+| # | Tarea afectada | Motivo | Resolución | Estado |
+| --- | --- | --- | --- | --- |
+| B-01 | `Task/001` — pasos de publicación del cierre | No había credenciales de GitHub en el entorno y la sesión no podía abrir un diálogo de autenticación, por lo que no se pudo hacer push ni abrir el pull request. | El usuario instaló y autenticó **GitHub CLI** (cuenta `jeffersondavila`, HTTPS, `gh` como proveedor de credenciales de Git). Se completaron los push, se crearon y aceptaron los pull requests (`#1` en cada repositorio) y se eliminaron las ramas `Task/001` local y remotamente. | **Cerrado** (2026-07-26) |
 
 > Todo bloqueo debe registrarse aquí indicando: tarea afectada, motivo del bloqueo y
 > acción concreta necesaria para desbloquear.
@@ -82,7 +84,7 @@ Distribución por estado:
 | Tarea | Etapa | Repos | Estado |
 | --- | --- | --- | --- |
 | `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Aprobada** |
-| `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | Pendiente |
+| `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Lista para validación** |
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | Pendiente |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | Pendiente |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend | Pendiente |
@@ -127,19 +129,23 @@ Distribución por estado:
 
 ## Estado de los repositorios
 
-| Repositorio | Ramas locales | Rama activa | Commits en `dev` |
+| Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 4 (inicial vacío + documentación + aprobación + merge) |
-| `personal-blog-frontend` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 3 (inicial vacío + archivos base + merge) |
-| `personal-blog-backend` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 3 (inicial vacío + archivos base + merge) |
+| `personal-blog-infra` | `main`, `dev`, `Task/002-Definir-MVP-y-Arquitectura` | `Task/002-Definir-MVP-y-Arquitectura` | Sí |
+| `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
+| `personal-blog-backend` | `main`, `dev` | `main` | Sí |
 
-- `main` contiene únicamente el commit inicial vacío. El trabajo de `Task/001` está
-  integrado en `dev` con merge `--no-ff` y llegará a `main` mediante pull request,
-  **sin merge automático**.
-- La rama local `Task/001-Inicializar-Workspace-y-Roadmap` **se conserva** a propósito:
-  el flujo de cierre indica eliminarla tras publicarla, y la publicación está bloqueada
-  (B-01). Borrarla ahora perdería la referencia con nombre antes de existir en el remoto.
-- **Ninguna rama ha sido publicada todavía en GitHub** (B-01).
+- `main` y `dev` están **publicadas** en GitHub en los tres repositorios y contienen el
+  mismo contenido.
+- Las ramas `Task/001-Inicializar-Workspace-y-Roadmap` fueron **eliminadas** local y
+  remotamente tras integrarse mediante los pull requests `#1`.
+- Los PR de `Task/001` se integraron desde la rama `Task/001` directamente hacia `main`,
+  lo que dejó `main` y `dev` con el mismo contenido pero distintos commits de merge. Esa
+  divergencia formal se **normalizó al inicio de `Task/002`** con un merge `--no-ff` de
+  `origin/main` dentro de `dev`, publicado en los tres repositorios.
+- La rama `Task/002-Definir-MVP-y-Arquitectura` existe **solo en `personal-blog-infra`**,
+  porque la tarea únicamente modifica documentación central. **No está publicada** ni
+  tiene commits: la tarea espera validación del usuario.
 
 ---
 
@@ -148,8 +154,21 @@ Distribución por estado:
 - La **implementación del blog no ha comenzado**. No existe código React, FastAPI,
   Docker Compose ni Terraform en ningún repositorio.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
-- `Task/002` **no ha sido iniciada**.
+- `Task/002` ha definido el **alcance del MVP y la arquitectura**; sigue siendo trabajo
+  exclusivamente documental.
+- `Task/003` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) ·
-[Reporte TASK-001](../task-reports/TASK-001-report.md)
+[Reporte TASK-001](../task-reports/TASK-001-report.md) ·
+[TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md) ·
+[Reporte TASK-002](../task-reports/TASK-002-report.md)
+
+Documentos de producto y arquitectura producidos por `Task/002`:
+[MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·
+[CONTENT_MODEL](../product/CONTENT_MODEL.md) ·
+[software-architecture](../architecture/software-architecture.md) ·
+[api-contracts](../architecture/api-contracts.md) ·
+[non-functional-requirements](../architecture/non-functional-requirements.md) ·
+[security-boundaries](../architecture/security-boundaries.md) ·
+[open-decisions](../architecture/open-decisions.md)

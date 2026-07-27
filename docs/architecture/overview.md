@@ -1,7 +1,15 @@
 # Arquitectura — Visión general
 
 **Última actualización:** 2026-07-26
-**Estado:** propuesta inicial. Se cierra formalmente en `Task/002-Definir-MVP-y-Arquitectura`.
+**Estado:** vigente. Detallada en `Task/002-Definir-MVP-y-Arquitectura`.
+
+> Este documento es la **vista de conjunto**. El detalle vive en:
+> [software-architecture.md](software-architecture.md) (organización del código),
+> [api-contracts.md](api-contracts.md) (convenciones de API),
+> [non-functional-requirements.md](non-functional-requirements.md),
+> [security-boundaries.md](security-boundaries.md) y
+> [open-decisions.md](open-decisions.md).
+> El alcance del producto está en [MVP_SCOPE.md](../product/MVP_SCOPE.md).
 
 ---
 
@@ -131,13 +139,34 @@ Ver [local-to-cloud-mapping.md](local-to-cloud-mapping.md).
 
 ---
 
-## 8. Qué falta decidir
+## 8. Qué definió `Task/002`
 
-Se resuelve en `Task/002-Definir-MVP-y-Arquitectura` y en tareas posteriores:
+> `Task/002-Definir-MVP-y-Arquitectura` está **Lista para validación**, no aprobada. Lo
+> siguiente está **propuesto y documentado**; será firme cuando el usuario escriba
+> `approved: Task/002-Definir-MVP-y-Arquitectura`. ADR-004 y ADR-005 llevan estado
+> **Propuesta** por ese motivo.
 
-- Alcance exacto del MVP por sección.
-- Contratos concretos de la API pública y administrativa.
-- Mecanismo de autenticación (sesión con cookie o token).
-- Modelo conceptual detallado del dominio.
+| Tema | Documento |
+| --- | --- |
+| Alcance del MVP y lo que queda fuera | [MVP_SCOPE.md](../product/MVP_SCOPE.md) |
+| Flujos públicos y administrativos | [USER_FLOWS.md](../product/USER_FLOWS.md) |
+| Modelo conceptual de dominio | [CONTENT_MODEL.md](../product/CONTENT_MODEL.md) |
+| Organización de backend y frontend | [software-architecture.md](software-architecture.md) |
+| Convenciones de API, paginación y errores | [api-contracts.md](api-contracts.md) |
+| Requisitos no funcionales (**57** en 7 categorías) | [non-functional-requirements.md](non-functional-requirements.md) |
+| Límites de seguridad | [security-boundaries.md](security-boundaries.md) |
+| Estilo arquitectónico | [ADR-004](../adr/ADR-004-modular-monolith.md) *(Propuesta)* |
+| Formato del contenido | [ADR-005](../adr/ADR-005-markdown-content.md) *(Propuesta)* |
+
+## 9. Qué falta decidir
+
+Registro completo y vivo: [open-decisions.md](open-decisions.md) — 13 decisiones
+abiertas, cada una con la tarea en que se resuelve, la información necesaria y las partes
+del sistema afectadas. Entre las principales:
+
 - Proveedor de PostgreSQL administrado (`Task/029`).
+- Mecanismo concreto de autenticación (`Task/011`).
+- Biblioteca de componentes visuales (`Task/013`).
 - Backend de estado de Terraform (`Task/025`).
+- Dominio definitivo (`Task/035`).
+- Presupuesto mensual objetivo (`Task/027`).
