@@ -9,13 +9,13 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 00 — Fundación y Gobierno |
-| **Tarea actual** | `Task/001-Inicializar-Workspace-y-Roadmap` |
-| **Estado de la tarea** | **Lista para validación** |
-| **Última tarea aprobada** | Ninguna |
-| **Próxima tarea prevista** | `Task/002-Definir-MVP-y-Arquitectura` (Pendiente) |
-| **Avance global** | **0 %** — 0 de 41 tareas aprobadas |
-| **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 3 (ver más abajo) |
+| **Tarea actual** | Ninguna en ejecución |
+| **Estado de la tarea** | — |
+| **Última tarea aprobada** | `Task/001-Inicializar-Workspace-y-Roadmap` — **Aprobada** el 2026-07-26 por jeffersondavila |
+| **Próxima tarea prevista** | `Task/002-Definir-MVP-y-Arquitectura` (Pendiente, no iniciada) |
+| **Avance global** | **2 %** — 1 de 41 tareas aprobadas |
+| **Bloqueos activos** | 1 — publicación en GitHub pendiente (ver *Bloqueos*) |
+| **Riesgos abiertos** | 4 (R-01 cerrado) |
 
 ---
 
@@ -23,7 +23,7 @@
 
 | Etapa | Tareas | Aprobadas | Avance |
 | --- | --- | --- | --- |
-| 00 — Fundación y Gobierno | 2 | 0 | 0 % |
+| 00 — Fundación y Gobierno | 2 | 1 | 50 % |
 | 01 — Infraestructura Local | 2 | 0 | 0 % |
 | 02 — Fundaciones de las Aplicaciones | 3 | 0 | 0 % |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
@@ -36,7 +36,7 @@
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **0** | **0 %** |
+| **Total** | **41** | **1** | **2 %** |
 
 Distribución por estado:
 
@@ -44,8 +44,8 @@ Distribución por estado:
 | --- | --- |
 | Pendiente | 40 |
 | En progreso | 0 |
-| Lista para validación | 1 |
-| Aprobada | 0 |
+| Lista para validación | 0 |
+| **Aprobada** | **1** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -53,20 +53,27 @@ Distribución por estado:
 
 ## Bloqueos
 
-*Ninguno.*
+| # | Tarea afectada | Motivo | Desbloqueo necesario |
+| --- | --- | --- | --- |
+| B-01 | `Task/001` — flujo de cierre, pasos de publicación | No hay credenciales de GitHub configuradas en el entorno y la sesión de trabajo no puede abrir un diálogo de autenticación. `git ls-remote origin` falla con `could not read Username for 'https://github.com'`. Por tanto **no se pudo hacer push de `main`, `dev` ni de la rama `Task/001`, ni abrir el pull request `dev` → `main`**. | El usuario debe autenticarse contra GitHub (Git Credential Manager, `gh auth login` tras instalar GitHub CLI, o un token personal) y ejecutar la secuencia de publicación documentada en el [reporte de TASK-001](../task-reports/TASK-001-report.md), sección 7. |
+
+> El bloqueo afecta únicamente a la **publicación remota**. Todo el trabajo local de
+> `Task/001` está confirmado e integrado en `dev`, y la tarea está **Aprobada**.
 
 > Todo bloqueo debe registrarse aquí indicando: tarea afectada, motivo del bloqueo y
 > acción concreta necesaria para desbloquear.
 
 ---
 
-## Riesgos abiertos
+## Riesgos
 
 | # | Riesgo | Impacto | Mitigación prevista | Estado |
 | --- | --- | --- | --- | --- |
-| R-01 | Los tres repositorios no tienen commit inicial, por lo que `dev` y las ramas `Task/*` aún no pueden existir como referencias Git. | Medio — el flujo de ramas no puede aplicarse todavía. | Crear el commit inicial durante la aprobación de `Task/001` y derivar `dev` y `Task/001` desde él. Ver [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md). | Abierto |
-| R-02 | Costo cloud imprevisto al llegar a la Etapa 10. | Alto — gasto no planificado. | Presupuestos y alarmas obligatorios en `Task/027`, antes de cualquier despliegue; refuerzo en `Task/041`. | Abierto |
-| R-03 | La elección de PostgreSQL administrado puede condicionar el diseño de conexiones desde Lambda (pooling, límites). | Medio — retrabajo en backend. | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. | Abierto |
+| R-01 | Los tres repositorios no tenían commit inicial, por lo que `dev` y las ramas `Task/*` no podían existir como referencias Git. | Medio | **Resuelto** el 2026-07-26 durante la aprobación de `Task/001`: commit inicial vacío en `main`, `dev` creada desde `main` y `Task/001` creada desde `dev` en los tres repositorios. | **Cerrado** |
+| R-02 | Costo cloud imprevisto al llegar a la Etapa 10. | Alto | Presupuestos y alarmas obligatorios en `Task/027`, antes de cualquier despliegue; refuerzo en `Task/041`. | Abierto |
+| R-03 | La elección de PostgreSQL administrado puede condicionar el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. | Abierto |
+| R-04 | El roadmap de 41 tareas puede quedar desactualizado si el alcance cambia. | Bajo | `STATUS.md` y `ROADMAP.md` se actualizan en cada cambio de estado, como parte de la Definition of Done. | Abierto |
+| R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
 
 ---
 
@@ -74,7 +81,7 @@ Distribución por estado:
 
 | Tarea | Etapa | Repos | Estado |
 | --- | --- | --- | --- |
-| `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Lista para validación** |
+| `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Aprobada** |
 | `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | Pendiente |
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | Pendiente |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | Pendiente |
@@ -118,13 +125,30 @@ Distribución por estado:
 
 ---
 
+## Estado de los repositorios
+
+| Repositorio | Ramas locales | Rama activa | Commits en `dev` |
+| --- | --- | --- | --- |
+| `personal-blog-infra` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 4 (inicial vacío + documentación + aprobación + merge) |
+| `personal-blog-frontend` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 3 (inicial vacío + archivos base + merge) |
+| `personal-blog-backend` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 3 (inicial vacío + archivos base + merge) |
+
+- `main` contiene únicamente el commit inicial vacío. El trabajo de `Task/001` está
+  integrado en `dev` con merge `--no-ff` y llegará a `main` mediante pull request,
+  **sin merge automático**.
+- La rama local `Task/001-Inicializar-Workspace-y-Roadmap` **se conserva** a propósito:
+  el flujo de cierre indica eliminarla tras publicarla, y la publicación está bloqueada
+  (B-01). Borrarla ahora perdería la referencia con nombre antes de existir en el remoto.
+- **Ninguna rama ha sido publicada todavía en GitHub** (B-01).
+
+---
+
 ## Notas de estado
 
 - La **implementación del blog no ha comenzado**. No existe código React, FastAPI,
   Docker Compose ni Terraform en ningún repositorio.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
-- Los tres repositorios están en rama `main` **sin commits**; el remoto `origin` de
-  GitHub ya estaba configurado y se conservó sin modificaciones.
+- `Task/002` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) ·

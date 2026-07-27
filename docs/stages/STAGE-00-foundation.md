@@ -6,8 +6,8 @@
 | **Estado** | En progreso |
 | **Dependencias** | Ninguna |
 | **Tareas** | 2 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | 1 |
+| **Avance** | 50 % |
 | **Hito que completa** | Gobierno del proyecto establecido y alcance del MVP cerrado. |
 
 ---
@@ -26,7 +26,7 @@ verdad, cómo se nombran las ramas, qué significa "terminado" y quién aprueba.
 
 ## Tareas
 
-### `Task/001-Inicializar-Workspace-y-Roadmap` — *Lista para validación*
+### `Task/001-Inicializar-Workspace-y-Roadmap` — *Aprobada* (2026-07-26)
 
 Preparar repositorios, documentación y seguimiento.
 

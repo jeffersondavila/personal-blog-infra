@@ -4,8 +4,10 @@
 | --- | --- |
 | **Tarea** | `Task/001-Inicializar-Workspace-y-Roadmap` |
 | **Etapa** | ETAPA 00 — Fundación y Gobierno |
-| **Estado final** | **Lista para validación** |
-| **Fecha** | 2026-07-26 |
+| **Estado final** | **Aprobada** |
+| **Fecha de ejecución** | 2026-07-26 |
+| **Fecha de aprobación** | 2026-07-26 |
+| **Aprobado por** | jeffersondavila (usuario) |
 | **Repositorios afectados** | los tres |
 | **Ficha completa** | [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) |
 
@@ -28,15 +30,21 @@ Los tres directorios presentaban un estado idéntico:
 - `origin/main` figuraba como `[gone]`, lo cual es normal con un remoto vacío o sin
   `fetch` previo. No indica pérdida de datos.
 
-## 2. Rama activa en cada repositorio
+## 2. Ramas en cada repositorio
 
-| Repositorio | Antes | Después |
+Durante la **ejecución** no se creó ninguna rama ni ningún commit: Git no lo permitía sin
+un commit inicial y las reglas de la tarea prohibían improvisarlo.
+
+Durante la **aprobación** (2026-07-26), con la opción A autorizada por el usuario, se
+crearon en los tres repositorios:
+
+| Rama | Origen | Contenido |
 | --- | --- | --- |
-| `personal-blog-backend` | `main` (sin commits) | `main` (sin commits) — **sin cambios** |
-| `personal-blog-frontend` | `main` (sin commits) | `main` (sin commits) — **sin cambios** |
-| `personal-blog-infra` | `main` (sin commits) | `main` (sin commits) — **sin cambios** |
+| `main` | Commit inicial vacío | Solo el commit de arranque. Sin contenido de la tarea. |
+| `dev` | `main` | Trabajo de `Task/001` integrado con merge `--no-ff`. |
+| `Task/001-Inicializar-Workspace-y-Roadmap` | `dev` | Trabajo documental de la tarea. |
 
-**No se creó ninguna rama.** Motivo y solución en la sección 7.
+Rama activa final en los tres repositorios: **`main`**.
 
 ## 3. Archivos creados y modificados
 
@@ -114,25 +122,25 @@ relativas; **no la duplican**.
 ## 5. Estado actual del roadmap
 
 - **13 etapas** (00 → 12) y **41 tareas** registradas.
-- **Avance global: 0 %** — 0 de 41 tareas aprobadas.
+- **Avance global: 2 %** — 1 de 41 tareas aprobadas.
 
 | Estado | Tareas |
 | --- | --- |
-| `Lista para validación` | 1 — `Task/001` |
+| **`Aprobada`** | **1 — `Task/001`** |
 | `Pendiente` | 40 — desde `Task/002` hasta `Task/041` |
 | `En progreso` | 0 |
-| `Aprobada` | **0** |
+| `Lista para validación` | 0 |
 | `Bloqueada` | 0 |
 | `Descartada` | 0 |
 
 | Campo | Valor |
 | --- | --- |
-| Etapa actual | ETAPA 00 — Fundación y Gobierno |
-| Tarea actual | `Task/001-Inicializar-Workspace-y-Roadmap` |
-| Última tarea aprobada | Ninguna |
-| Próxima tarea prevista | `Task/002-Definir-MVP-y-Arquitectura` |
-| Bloqueos activos | 0 |
-| Riesgos abiertos | 5 (R-01 a R-05) |
+| Etapa actual | ETAPA 00 — Fundación y Gobierno (50 % — 1 de 2 tareas) |
+| Tarea actual | Ninguna en ejecución |
+| Última tarea aprobada | `Task/001-Inicializar-Workspace-y-Roadmap` (2026-07-26) |
+| Próxima tarea prevista | `Task/002-Definir-MVP-y-Arquitectura` (Pendiente, no iniciada) |
+| Bloqueos activos | 1 — B-01, publicación en GitHub pendiente |
+| Riesgos abiertos | 4 (R-02 a R-05). **R-01 cerrado.** |
 
 ## 6. Validaciones ejecutadas y resultados
 
@@ -149,30 +157,56 @@ relativas; **no la duplican**.
 
 Ningún comando destructivo fue ejecutado.
 
-## 7. Riesgos y decisiones pendientes
+## 7. Cierre de la tarea, bloqueo y riesgos
 
-### Decisión pendiente que requiere al usuario
+### 7.1 Decisión de arranque de ramas — resuelta
 
-**Cómo hacer nacer las ramas.** Los tres repositorios tienen `main` como rama **no
-nacida** (0 commits). Git no permite crear `dev` ni `Task/001-...` sin un commit de
-partida, y solo admite una rama no nacida a la vez. Conforme a las reglas de la tarea, no
-se improvisó ningún commit ni se creó ninguna rama.
+El usuario eligió la **opción A**. Ejecutada en los tres repositorios:
 
-Se proponen dos secuencias de arranque, a ejecutar **durante la aprobación**:
+```bash
+git commit --allow-empty -m "chore: commit inicial del repositorio"   # hace nacer main
+git branch dev main
+git switch -c Task/001-Inicializar-Workspace-y-Roadmap dev
+git add -A && git commit -m "docs: ..."                               # trabajo de la tarea
+git add -A && git commit -m "docs: registrar aprobacion ..."          # solo en infra
+git switch dev
+git merge --no-ff Task/001-Inicializar-Workspace-y-Roadmap
+git switch main
+```
 
-| Opción | Cómo | Consecuencia |
-| --- | --- | --- |
-| **A (recomendada)** | Commit inicial vacío en `main` → `dev` desde `main` → `Task/001` desde `dev` → confirmar el trabajo en la rama de la tarea. | `main` nace limpia y la integración hacia ella conserva la puerta del pull request. Cuesta un commit vacío. |
-| **B** | `git switch --orphan Task/001-...` → confirmar el trabajo allí → crear `dev` y `main` desde ese commit. | Sin commit vacío, pero `main` incorpora el contenido de la tarea sin pasar por pull request. |
+Riesgo **R-01 cerrado**.
 
-Comandos completos en la
-[ficha de la tarea, sección 7](../tasks/TASK-001-initial-workspace-and-roadmap.md).
+### 7.2 Bloqueo B-01 — publicación en GitHub pendiente
 
-### Riesgos abiertos
+Los pasos de publicación del flujo de cierre **no pudieron ejecutarse**:
 
-| # | Riesgo | Impacto | Mitigación |
+- Push de `main` y `dev`.
+- Publicación de la rama `Task/001-Inicializar-Workspace-y-Roadmap`.
+- Pull request `dev` → `main`.
+
+**Motivo:** el entorno no tiene credenciales de GitHub almacenadas y la sesión de trabajo
+no puede abrir un diálogo de autenticación. Comprobado con `git ls-remote origin`, que
+falla en los tres repositorios:
+
+```
+fatal: could not read Username for 'https://github.com': terminal prompts disabled
+```
+
+GitHub CLI (`gh`) tampoco está instalado, por lo que el pull request no puede crearse por
+línea de comandos.
+
+**Consecuencia:** los remotos siguen vacíos. Todo el trabajo está confirmado localmente y
+no se ha perdido nada.
+
+**Desbloqueo:** el usuario debe autenticarse contra GitHub y ejecutar la secuencia de la
+sección 8.2. La rama local `Task/001-Inicializar-Workspace-y-Roadmap` **se conservó a
+propósito**: eliminarla antes de publicarla haría perder la referencia con nombre.
+
+### 7.3 Riesgos
+
+| # | Riesgo | Impacto | Estado / Mitigación |
 | --- | --- | --- | --- |
-| R-01 | Las ramas `dev` y `Task/*` no pueden existir sin commit inicial. | Medio | Secuencia de arranque acordada en la aprobación. |
+| R-01 | Las ramas `dev` y `Task/*` no pueden existir sin commit inicial. | Medio | **Cerrado** el 2026-07-26 mediante la opción A. |
 | R-02 | Costo cloud imprevisto en la Etapa 10. | Alto | Presupuestos y alarmas obligatorios en `Task/027`, antes del primer recurso. |
 | R-03 | PostgreSQL administrado condiciona las conexiones desde Lambda. | Medio | Evaluación en `Task/029`; patrón de conexión previsto desde `Task/005`. |
 | R-04 | El roadmap puede desactualizarse si cambia el alcance. | Bajo | Actualización de `STATUS.md` y `ROADMAP.md` como parte de la Definition of Done. |
@@ -185,30 +219,69 @@ Comandos completos en la
 - Proveedor de PostgreSQL administrado → `Task/029`.
 - Mecanismo de autenticación (cookie de sesión o token) → `Task/011`.
 
-## 8. Instrucciones de validación para el usuario
+## 8. Instrucciones para el usuario
+
+### 8.1 Verificar el estado local
 
 ```powershell
 cd C:\Users\jeffe\Downloads\Blog_Personal
 
-# a) Confirmar que no hay commits y que los remotos siguen intactos
 foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog-infra')) {
   Write-Output "=== $r ==="
-  git -C $r status --porcelain -b
-  git -C $r branch --show-current
-  git -C $r remote -v
-  git -C $r rev-list --all --count   # debe imprimir 0
+  git -C $r branch -vv          # main, dev y Task/001
+  git -C $r log --oneline --graph --all
+  git -C $r status --porcelain  # debe estar vacio
 }
-
-# b) Listar los 38 archivos creados
-Get-ChildItem -Recurse -File . | Where-Object { $_.FullName -notmatch '\\\.git\\' } |
-  ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\','') }
-
-# c) Comprobar que no hay código de aplicación
-Get-ChildItem -Recurse -File . -Include *.py,*.ts,*.tsx,*.jsx,*.tf,package.json,docker-compose*.yml |
-  Where-Object { $_.FullName -notmatch '\\\.git\\' }   # no debe devolver nada
 ```
 
-Orden de lectura sugerido:
+### 8.2 Completar la publicación (desbloquea B-01)
+
+Primero, autenticarse contra GitHub **una sola vez**, por cualquiera de estas vías:
+
+```powershell
+# Opcion 1: GitHub CLI (requiere instalarlo)
+winget install --id GitHub.cli
+gh auth login
+
+# Opcion 2: forzar el dialogo de Git Credential Manager con una operacion de lectura
+git -C personal-blog-infra ls-remote origin
+```
+
+Después, en **cada uno de los tres repositorios**:
+
+```powershell
+foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog-infra')) {
+  Write-Output "=== $r ==="
+  git -C $r push -u origin main          # establece la rama por defecto en el remoto
+  git -C $r push -u origin dev
+  git -C $r push -u origin Task/001-Inicializar-Workspace-y-Roadmap
+}
+```
+
+Crear el pull request `dev` → `main` en cada repositorio, **sin hacer merge**:
+
+```powershell
+# Con GitHub CLI
+foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog-infra')) {
+  gh pr create --repo "jeffersondavila/$r" --base main --head dev `
+    --title "Task/001 - Inicializar Workspace y Roadmap" `
+    --body "Integra el trabajo aprobado de Task/001. No hacer merge automatico."
+}
+```
+
+O desde la web, en cada repositorio:
+`https://github.com/jeffersondavila/<repo>/compare/main...dev`
+
+Finalmente, una vez publicada la rama de la tarea, limpiar la rama local:
+
+```powershell
+foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog-infra')) {
+  git -C $r fetch --prune origin
+  git -C $r branch -d Task/001-Inicializar-Workspace-y-Roadmap
+}
+```
+
+### 8.3 Orden de lectura sugerido
 
 1. `personal-blog-infra/docs/project-management/STATUS.md`
 2. `personal-blog-infra/docs/project-management/ROADMAP.md`
@@ -216,34 +289,50 @@ Orden de lectura sugerido:
 4. `personal-blog-infra/docs/adr/ADR-001-local-first.md`, `ADR-002`, `ADR-003`
 5. `personal-blog-infra/docs/architecture/local-to-cloud-mapping.md`
 6. Los tres `README.md`
-7. [Sección 7 de la ficha](../tasks/TASK-001-initial-workspace-and-roadmap.md) — para
-   elegir entre la opción A y la B de arranque de ramas.
+7. [Sección 7 de la ficha](../tasks/TASK-001-initial-workspace-and-roadmap.md) — historia
+   del arranque de ramas.
 
 ## 9. Próxima tarea propuesta
 
 **`Task/002-Definir-MVP-y-Arquitectura`** — definir requerimientos funcionales,
 arquitectura de software, contratos generales y límites del MVP.
 
-No se inicia hasta que `Task/001` sea aprobada.
+**No ha sido iniciada.** Queda en estado `Pendiente` a la espera de instrucción del
+usuario.
 
-## 10. Confirmación de límites respetados
+## 10. Estado final
 
-Durante la ejecución de esta tarea:
+### Durante la ejecución de la tarea (antes de la aprobación)
 
-- ❌ **No se hizo ningún commit.** Los tres repositorios siguen con 0 commits.
-- ❌ **No se hizo ningún merge.**
-- ❌ **No se hizo ningún push.**
-- ❌ **No se creó ningún pull request.**
-- ❌ **No se creó ninguna rama.**
-- ❌ **No se creó ni modificó ningún remoto.**
-- ❌ **No se creó ningún recurso cloud** ni ninguna cuenta en AWS, Cloudflare, GitHub ni
-  ningún otro proveedor.
-- ❌ **No se implementó** React, FastAPI, PostgreSQL, MinIO, Portainer, Docker Compose,
+- No se hizo commit, merge, push ni pull request.
+- No se creó ninguna rama ni se modificó ningún remoto.
+- No se marcó ninguna tarea como `Aprobada`.
+
+### Durante el cierre (tras `approved: Task/001-Inicializar-Workspace-y-Roadmap`)
+
+| Acción | Estado |
+| --- | --- |
+| Commit inicial vacío en `main` ×3 | Hecho |
+| Ramas `dev` y `Task/001` creadas ×3 | Hecho |
+| Trabajo documental confirmado en la rama de la tarea ×3 | Hecho |
+| Aprobación registrada en la documentación | Hecho |
+| Merge `--no-ff` de `Task/001` en `dev` ×3 | Hecho |
+| Vuelta a `main` ×3 | Hecho |
+| Push de `main`, `dev` y `Task/001` | **Bloqueado — B-01** |
+| Pull request `dev` → `main` | **Bloqueado — B-01** |
+| Merge del pull request hacia `main` | **No ejecutado, por diseño** |
+| Eliminación de la rama local `Task/001` | Diferida hasta publicarla |
+
+### Se mantiene en todos los casos
+
+- **No se creó ningún recurso cloud** ni ninguna cuenta en AWS, Cloudflare ni ningún otro
+  proveedor.
+- **No se implementó** React, FastAPI, PostgreSQL, MinIO, Portainer, Docker Compose,
   Terraform, GitHub Actions, autenticación, APIs ni modelos de base de datos.
-- ❌ **No se eliminó ni sobrescribió** contenido preexistente.
-- ❌ **No se agregó ningún secreto.**
-- ❌ **No se avanzó a `Task/002`.**
-- ❌ **Ninguna tarea quedó `Aprobada`.**
-- ✅ Todo el trabajo se realizó dentro de `C:\Users\jeffe\Downloads\Blog_Personal`.
-- ✅ `Task/001` queda **Lista para validación**, a la espera de
-  `approved: Task/001-Inicializar-Workspace-y-Roadmap`.
+- **No se eliminó ni sobrescribió** contenido preexistente.
+- **No se agregó ningún secreto.**
+- **No se hizo merge hacia `main`.**
+- **No se avanzó a `Task/002`.**
+- Todo el trabajo se realizó dentro de `C:\Users\jeffe\Downloads\Blog_Personal`.
+- `Task/001` queda **Aprobada** (2026-07-26, por jeffersondavila), con la publicación
+  remota pendiente por el bloqueo B-01.

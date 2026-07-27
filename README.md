@@ -31,8 +31,9 @@ Repositorios hermanos:
 ## 2. Estado actual del proyecto
 
 - **Etapa actual:** ETAPA 00 — Fundación y Gobierno.
-- **Tarea actual:** `Task/001-Inicializar-Workspace-y-Roadmap` — *Lista para validación*.
-- **Tareas aprobadas:** 0 de 41 (0 %).
+- **Última tarea aprobada:** `Task/001-Inicializar-Workspace-y-Roadmap` (2026-07-26).
+- **Próxima tarea:** `Task/002-Definir-MVP-y-Arquitectura` — *Pendiente, no iniciada*.
+- **Tareas aprobadas:** 1 de 41 (2 %).
 - **Implementación:** **no ha comenzado**. No existe código de aplicación, ni
   Docker Compose, ni Terraform, ni recursos cloud creados.
 
@@ -140,10 +141,11 @@ Estados oficiales: `Pendiente`, `En progreso`, `Lista para validación`, `Aproba
 - `dev` — integración de tareas aprobadas.
 - `Task/<numero>-<nombre>` — trabajo aislado de una tarea, creado desde `dev`.
 
-Estado actual de las ramas: ver
+Las tres ramas existen ya en los tres repositorios. `main` contiene únicamente el commit
+inicial vacío y el trabajo de `Task/001` está integrado en `dev`; llegará a `main`
+mediante pull request, sin merge automático. Detalle en
 [`docs/tasks/TASK-001-initial-workspace-and-roadmap.md`](docs/tasks/TASK-001-initial-workspace-and-roadmap.md),
-sección *Estado de ramas*. En este momento el repositorio **no tiene commits**, por lo
-que `dev` y la rama `Task/001` todavía no pueden existir como referencias Git.
+sección *Estado de ramas*.
 
 ---
 

@@ -4,7 +4,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
 
 - **Última actualización:** 2026-07-26
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md))
-- **Avance global:** **0 %** (0 de 41 tareas aprobadas)
+- **Avance global:** **2 %** (1 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -18,7 +18,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 
 | # | Etapa | Tareas | Aprobadas | Avance | Estado | Depende de |
 | --- | --- | --- | --- | --- | --- | --- |
-| 00 | Fundación y Gobierno | 2 | 0 | 0 % | En progreso | — |
+| 00 | Fundación y Gobierno | 2 | 1 | 50 % | En progreso | — |
 | 01 | Infraestructura Local | 2 | 0 | 0 % | Pendiente | 00 |
 | 02 | Fundaciones de las Aplicaciones | 3 | 0 | 0 % | Pendiente | 01 |
 | 03 | Dominio y Backend | 5 | 0 | 0 % | Pendiente | 02 |
@@ -31,7 +31,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **0** | **0 %** | | |
+| | **Total** | **41** | **1** | **2 %** | | |
 
 ---
 
@@ -46,7 +46,7 @@ documental de seguimiento y un MVP y arquitectura acordados antes de escribir c�
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/001-Inicializar-Workspace-y-Roadmap` | Preparar repositorios, documentación y seguimiento. | infra, frontend, backend | — | **Lista para validación** |
+| `Task/001-Inicializar-Workspace-y-Roadmap` | Preparar repositorios, documentación y seguimiento. | infra, frontend, backend | — | **Aprobada** (2026-07-26) |
 | `Task/002-Definir-MVP-y-Arquitectura` | Definir requerimientos funcionales, arquitectura de software, contratos generales y límites del MVP. | infra | 001 | Pendiente |
 
 ---
@@ -260,6 +260,6 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `0 / 41 = 0 %`.
+Actualmente: `1 / 41 = 2 %`.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

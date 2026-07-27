@@ -56,4 +56,4 @@ Ejemplo: `TASK-001-report.md`.
 
 | Tarea | Reporte | Estado |
 | --- | --- | --- |
-| `Task/001-Inicializar-Workspace-y-Roadmap` | [TASK-001-report.md](TASK-001-report.md) | Lista para validación |
+| `Task/001-Inicializar-Workspace-y-Roadmap` | [TASK-001-report.md](TASK-001-report.md) | Aprobada (2026-07-26) |
