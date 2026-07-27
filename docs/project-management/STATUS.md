@@ -8,14 +8,16 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 00 — Fundación y Gobierno |
+| **Etapa actual** | ETAPA 01 — Infraestructura Local (siguiente). ETAPA 00 **completada** |
 | **Tarea actual** | Ninguna en ejecución |
 | **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/001-Inicializar-Workspace-y-Roadmap` — **Aprobada** el 2026-07-26 por jeffersondavila |
-| **Próxima tarea prevista** | `Task/002-Definir-MVP-y-Arquitectura` (Pendiente, no iniciada) |
-| **Avance global** | **2 %** — 1 de 41 tareas aprobadas |
-| **Bloqueos activos** | 1 — publicación en GitHub pendiente (ver *Bloqueos*) |
-| **Riesgos abiertos** | 4 (R-01 cerrado) |
+| **Última tarea aprobada** | `Task/002-Definir-MVP-y-Arquitectura` — **Aprobada** el 2026-07-26 por jeffersondavila |
+| **Próxima tarea prevista** | `Task/003-Crear-Infraestructura-Local` (Pendiente, no iniciada) |
+| **Avance global** | **5 %** — 2 de 41 tareas aprobadas |
+| **Bloqueos activos** | 0 |
+| **Riesgos abiertos** | 6 (R-01 cerrado) |
+
+> El avance se calcula **solo** con tareas `Aprobada`.
 
 ---
 
@@ -23,7 +25,7 @@
 
 | Etapa | Tareas | Aprobadas | Avance |
 | --- | --- | --- | --- |
-| 00 — Fundación y Gobierno | 2 | 1 | 50 % |
+| 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 0 | 0 % |
 | 02 — Fundaciones de las Aplicaciones | 3 | 0 | 0 % |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
@@ -36,16 +38,16 @@
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **1** | **2 %** |
+| **Total** | **41** | **2** | **5 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 40 |
+| Pendiente | 39 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **1** |
+| **Aprobada** | **2** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -53,12 +55,11 @@ Distribución por estado:
 
 ## Bloqueos
 
-| # | Tarea afectada | Motivo | Desbloqueo necesario |
-| --- | --- | --- | --- |
-| B-01 | `Task/001` — flujo de cierre, pasos de publicación | No hay credenciales de GitHub configuradas en el entorno y la sesión de trabajo no puede abrir un diálogo de autenticación. `git ls-remote origin` falla con `could not read Username for 'https://github.com'`. Por tanto **no se pudo hacer push de `main`, `dev` ni de la rama `Task/001`, ni abrir el pull request `dev` → `main`**. | El usuario debe autenticarse contra GitHub (Git Credential Manager, `gh auth login` tras instalar GitHub CLI, o un token personal) y ejecutar la secuencia de publicación documentada en el [reporte de TASK-001](../task-reports/TASK-001-report.md), sección 7. |
+*Ninguno activo.*
 
-> El bloqueo afecta únicamente a la **publicación remota**. Todo el trabajo local de
-> `Task/001` está confirmado e integrado en `dev`, y la tarea está **Aprobada**.
+| # | Tarea afectada | Motivo | Resolución | Estado |
+| --- | --- | --- | --- | --- |
+| B-01 | `Task/001` — pasos de publicación del cierre | No había credenciales de GitHub en el entorno y la sesión no podía abrir un diálogo de autenticación, por lo que no se pudo hacer push ni abrir el pull request. | El usuario instaló y autenticó **GitHub CLI** (cuenta `jeffersondavila`, HTTPS, `gh` como proveedor de credenciales de Git). Se completaron los push, se crearon y aceptaron los pull requests (`#1` en cada repositorio) y se eliminaron las ramas `Task/001` local y remotamente. | **Cerrado** (2026-07-26) |
 
 > Todo bloqueo debe registrarse aquí indicando: tarea afectada, motivo del bloqueo y
 > acción concreta necesaria para desbloquear.
@@ -74,6 +75,8 @@ Distribución por estado:
 | R-03 | La elección de PostgreSQL administrado puede condicionar el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. | Abierto |
 | R-04 | El roadmap de 41 tareas puede quedar desactualizado si el alcance cambia. | Bajo | `STATUS.md` y `ROADMAP.md` se actualizan en cada cambio de estado, como parte de la Definition of Done. | Abierto |
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
+| R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
+| R-07 | El render de Markdown en el cliente puede resultar insuficiente para SEO. | Medio | Metadatos, Open Graph, canonical, sitemap y datos estructurados en `Task/016`; si no basta, se reconsidera [ADR-005](../adr/ADR-005-markdown-content.md). | Abierto |
 
 ---
 
@@ -82,7 +85,7 @@ Distribución por estado:
 | Tarea | Etapa | Repos | Estado |
 | --- | --- | --- | --- |
 | `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Aprobada** |
-| `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | Pendiente |
+| `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Aprobada** |
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | Pendiente |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | Pendiente |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend | Pendiente |
@@ -127,19 +130,25 @@ Distribución por estado:
 
 ## Estado de los repositorios
 
-| Repositorio | Ramas locales | Rama activa | Commits en `dev` |
+| Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 4 (inicial vacío + documentación + aprobación + merge) |
-| `personal-blog-frontend` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 3 (inicial vacío + archivos base + merge) |
-| `personal-blog-backend` | `main`, `dev`, `Task/001-Inicializar-Workspace-y-Roadmap` | `main` | 3 (inicial vacío + archivos base + merge) |
+| `personal-blog-infra` | `main`, `dev` | `main` | Ver nota |
+| `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
+| `personal-blog-backend` | `main`, `dev` | `main` | Sí |
 
-- `main` contiene únicamente el commit inicial vacío. El trabajo de `Task/001` está
-  integrado en `dev` con merge `--no-ff` y llegará a `main` mediante pull request,
-  **sin merge automático**.
-- La rama local `Task/001-Inicializar-Workspace-y-Roadmap` **se conserva** a propósito:
-  el flujo de cierre indica eliminarla tras publicarla, y la publicación está bloqueada
-  (B-01). Borrarla ahora perdería la referencia con nombre antes de existir en el remoto.
-- **Ninguna rama ha sido publicada todavía en GitHub** (B-01).
+- `main` y `dev` están **publicadas** en GitHub en los tres repositorios y contienen el
+  mismo contenido.
+- Las ramas `Task/001-Inicializar-Workspace-y-Roadmap` fueron **eliminadas** local y
+  remotamente tras integrarse mediante los pull requests `#1`.
+- Los PR de `Task/001` se integraron desde la rama `Task/001` directamente hacia `main`,
+  lo que dejó `main` y `dev` con el mismo contenido pero distintos commits de merge. Esa
+  divergencia formal se **normalizó al inicio de `Task/002`** con un merge `--no-ff` de
+  `origin/main` dentro de `dev`, publicado en los tres repositorios.
+- `Task/002` se ejecutó **solo en `personal-blog-infra`**, porque únicamente modificaba
+  documentación central. Tras su aprobación, la rama `Task/002-Definir-MVP-y-Arquitectura`
+  se integró en `dev` con merge `--no-ff`, se publicó y se eliminó localmente. En
+  `personal-blog-infra`, `dev` está **por delante de `main`** hasta que se acepte el pull
+  request abierto hacia `main`; frontend y backend siguen sincronizados.
 
 ---
 
@@ -148,8 +157,22 @@ Distribución por estado:
 - La **implementación del blog no ha comenzado**. No existe código React, FastAPI,
   Docker Compose ni Terraform en ningún repositorio.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
-- `Task/002` **no ha sido iniciada**.
+- `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
+  ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
+- ADR-001 a ADR-005 están todos en estado **Aceptada**.
+- `Task/003` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) ·
-[Reporte TASK-001](../task-reports/TASK-001-report.md)
+[Reporte TASK-001](../task-reports/TASK-001-report.md) ·
+[TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md) ·
+[Reporte TASK-002](../task-reports/TASK-002-report.md)
+
+Documentos de producto y arquitectura producidos por `Task/002`:
+[MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·
+[CONTENT_MODEL](../product/CONTENT_MODEL.md) ·
+[software-architecture](../architecture/software-architecture.md) ·
+[api-contracts](../architecture/api-contracts.md) ·
+[non-functional-requirements](../architecture/non-functional-requirements.md) ·
+[security-boundaries](../architecture/security-boundaries.md) ·
+[open-decisions](../architecture/open-decisions.md)

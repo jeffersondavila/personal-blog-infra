@@ -168,16 +168,16 @@ requests, pushes, creación de remotos y avanzar a `Task/002`.
 
 En cada uno de los tres repositorios:
 
-| Rama | Contenido |
+| Rama | Estado final |
 | --- | --- |
-| `main` | Solo el commit inicial vacío. Recibirá el trabajo mediante pull request, sin merge automático. |
-| `dev` | Trabajo de `Task/001` integrado con merge `--no-ff`. |
-| `Task/001-Inicializar-Workspace-y-Roadmap` | Conservada localmente hasta poder publicarse (bloqueo B-01). |
+| `main` | Contiene el trabajo de `Task/001`, integrado mediante pull request aceptado por el usuario. Publicada. |
+| `dev` | Trabajo de `Task/001` integrado con merge `--no-ff`. Publicada. |
+| `Task/001-Inicializar-Workspace-y-Roadmap` | **Eliminada** local y remotamente tras integrarse. |
 
-> **Publicación pendiente.** El push de `main`, `dev` y la rama de la tarea, así como el
-> pull request `dev` → `main`, no pudieron ejecutarse por falta de credenciales de
-> GitHub en el entorno. Registrado como bloqueo **B-01** en
-> [STATUS.md](../project-management/STATUS.md).
+> **Publicación completada.** El push y el pull request quedaron temporalmente bloqueados
+> por falta de credenciales de GitHub en el entorno (bloqueo **B-01**). El usuario instaló
+> y autenticó GitHub CLI, completó los push y aceptó los pull requests (`#1` en cada
+> repositorio). **B-01 cerrado.**
 
 ### 7.1 Situación técnica encontrada (histórico)
 
@@ -402,12 +402,13 @@ En los tres repositorios:
 | 4 | Trabajo documental confirmado en la rama de la tarea. | Hecho |
 | 5 | Documentación de aprobación actualizada y confirmada. | Hecho |
 | 6 | Rama de la tarea integrada en `dev` con merge `--no-ff`. | Hecho |
-| 7 | Push de `main` y `dev` al remoto. | **Bloqueado (B-01)** |
-| 8 | Publicación de la rama de la tarea. | **Bloqueado (B-01)** |
-| 9 | Pull request `dev` → `main`, sin merge. | **Bloqueado (B-01)** |
+| 7 | Push de `main` y `dev` al remoto. | Hecho (tras cerrar B-01) |
+| 8 | Publicación de la rama de la tarea. | Hecho (tras cerrar B-01) |
+| 9 | Pull request hacia `main`, sin merge automático. | Hecho — `#1` en cada repositorio, **aceptado por el usuario** |
 | 10 | Vuelta a `main`. | Hecho |
-| 11 | Eliminación de la rama local de la tarea. | **Diferido** hasta completar el paso 8 |
+| 11 | Eliminación de la rama de la tarea. | Hecho, local y remotamente |
 
-`Task/002-Definir-MVP-y-Arquitectura` **no fue iniciada**.
+`Task/002-Definir-MVP-y-Arquitectura` **no fue iniciada durante esta tarea**; se inició
+después por instrucción del usuario.
 
 Resultado detallado: [reporte de la tarea](../task-reports/TASK-001-report.md).

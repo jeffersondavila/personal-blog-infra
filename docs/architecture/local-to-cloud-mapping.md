@@ -2,6 +2,11 @@
 
 **Última actualización:** 2026-07-26
 
+> Consistente con la arquitectura definida en `Task/002`. Ver
+> [software-architecture.md](software-architecture.md) para la organización interna del
+> código y [security-boundaries.md](security-boundaries.md) para las comunicaciones
+> permitidas entre componentes.
+
 Cada responsabilidad del sistema tiene una implementación local y una implementación
 prevista en la nube. El objetivo es que **el código de aplicación no cambie** al pasar
 de una a otra: lo que cambia es la configuración y el adaptador.

@@ -176,9 +176,29 @@ git switch main
 
 Riesgo **R-01 cerrado**.
 
-### 7.2 Bloqueo B-01 — publicación en GitHub pendiente
+### 7.2 Bloqueo B-01 — publicación en GitHub — **CERRADO**
 
-Los pasos de publicación del flujo de cierre **no pudieron ejecutarse**:
+> **Nota de cierre (registrada durante `Task/002`).**
+> El bloqueo descrito abajo **ocurrió realmente** y se conserva como registro histórico.
+> Posteriormente el usuario lo resolvió: instaló y autenticó GitHub CLI (cuenta
+> `jeffersondavila`, protocolo HTTPS, `gh` configurado como proveedor de credenciales de
+> Git), y con ello se completó el cierre de la tarea:
+>
+> - Se hizo **push** de `main`, `dev` y `Task/001-Inicializar-Workspace-y-Roadmap` en los
+>   tres repositorios.
+> - Se crearon y **aceptaron** los pull requests (`#1` en cada repositorio), integrando el
+>   trabajo de `Task/001` en `main`.
+> - `main` quedó actualizada con todo el contenido de la tarea.
+> - Las ramas `Task/001-Inicializar-Workspace-y-Roadmap` se **eliminaron** local y
+>   remotamente en los tres repositorios.
+>
+> **Bloqueo B-01: cerrado.** Los remotos ya no están vacíos. La secuencia manual de la
+> sección 8.2 ya no es necesaria y se conserva únicamente como referencia de lo que se
+> ejecutó.
+
+#### Descripción histórica del bloqueo
+
+Durante la sesión de cierre, los pasos de publicación **no pudieron ejecutarse**:
 
 - Push de `main` y `dev`.
 - Publicación de la rama `Task/001-Inicializar-Workspace-y-Roadmap`.
@@ -192,15 +212,17 @@ falla en los tres repositorios:
 fatal: could not read Username for 'https://github.com': terminal prompts disabled
 ```
 
-GitHub CLI (`gh`) tampoco está instalado, por lo que el pull request no puede crearse por
-línea de comandos.
+GitHub CLI (`gh`) tampoco estaba instalado en ese momento, por lo que el pull request no
+podía crearse por línea de comandos.
 
-**Consecuencia:** los remotos siguen vacíos. Todo el trabajo está confirmado localmente y
-no se ha perdido nada.
+**Consecuencia en ese momento:** los remotos seguían vacíos. Todo el trabajo estaba
+confirmado localmente y no se perdió nada. La rama local
+`Task/001-Inicializar-Workspace-y-Roadmap` se conservó a propósito, porque eliminarla
+antes de publicarla habría hecho perder la referencia con nombre.
 
-**Desbloqueo:** el usuario debe autenticarse contra GitHub y ejecutar la secuencia de la
-sección 8.2. La rama local `Task/001-Inicializar-Workspace-y-Roadmap` **se conservó a
-propósito**: eliminarla antes de publicarla haría perder la referencia con nombre.
+**Desbloqueo aplicado:** el usuario instaló y autenticó GitHub CLI, completó los push,
+aceptó los pull requests y eliminó las ramas de la tarea. Ver la nota de cierre al inicio
+de esta sección.
 
 ### 7.3 Riesgos
 
@@ -234,7 +256,10 @@ foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog
 }
 ```
 
-### 8.2 Completar la publicación (desbloquea B-01)
+### 8.2 Completar la publicación (desbloquea B-01) — **ya ejecutado**
+
+> Esta secuencia **ya fue completada** por el usuario. Se conserva como registro de lo
+> que se hizo para cerrar B-01, no como acción pendiente.
 
 Primero, autenticarse contra GitHub **una sola vez**, por cualquiera de estas vías:
 
@@ -297,8 +322,8 @@ foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog
 **`Task/002-Definir-MVP-y-Arquitectura`** — definir requerimientos funcionales,
 arquitectura de software, contratos generales y límites del MVP.
 
-**No ha sido iniciada.** Queda en estado `Pendiente` a la espera de instrucción del
-usuario.
+Iniciada posteriormente por instrucción del usuario. Ver
+[TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md).
 
 ## 10. Estado final
 
@@ -318,10 +343,23 @@ usuario.
 | Aprobación registrada en la documentación | Hecho |
 | Merge `--no-ff` de `Task/001` en `dev` ×3 | Hecho |
 | Vuelta a `main` ×3 | Hecho |
-| Push de `main`, `dev` y `Task/001` | **Bloqueado — B-01** |
-| Pull request `dev` → `main` | **Bloqueado — B-01** |
-| Merge del pull request hacia `main` | **No ejecutado, por diseño** |
-| Eliminación de la rama local `Task/001` | Diferida hasta publicarla |
+| Push de `main`, `dev` y `Task/001` | Bloqueado en su momento (B-01) → **completado tras autenticar GitHub CLI** |
+| Pull request hacia `main` | Bloqueado en su momento (B-01) → **creado y aceptado** (`#1` en cada repositorio) |
+| Merge del pull request hacia `main` | **Ejecutado por el usuario**, nunca de forma automática |
+| Eliminación de la rama `Task/001` | **Hecha** local y remotamente en los tres repositorios |
+
+### Estado remoto resultante
+
+| Repositorio | `main` | `dev` | PR |
+| --- | --- | --- | --- |
+| `personal-blog-infra` | `8fd61ea` | publicada | `#1` aceptado |
+| `personal-blog-frontend` | `144a401` | publicada | `#1` aceptado |
+| `personal-blog-backend` | `76c09f5` | publicada | `#1` aceptado |
+
+Los pull requests se integraron desde la rama `Task/001` directamente hacia `main`. Como
+consecuencia, `main` y `dev` quedaron con **el mismo contenido pero distintos commits de
+merge**. Esa divergencia formal se normalizó al inicio de `Task/002` con un merge
+`--no-ff` de `origin/main` dentro de `dev` en los tres repositorios.
 
 ### Se mantiene en todos los casos
 
@@ -331,8 +369,9 @@ usuario.
   Terraform, GitHub Actions, autenticación, APIs ni modelos de base de datos.
 - **No se eliminó ni sobrescribió** contenido preexistente.
 - **No se agregó ningún secreto.**
-- **No se hizo merge hacia `main`.**
-- **No se avanzó a `Task/002`.**
+- **Ningún merge hacia `main` se hizo de forma automática**: el único merge a `main` lo
+  aceptó el usuario a través del pull request.
+- **No se avanzó a `Task/002`** durante esta tarea.
 - Todo el trabajo se realizó dentro de `C:\Users\jeffe\Downloads\Blog_Personal`.
-- `Task/001` queda **Aprobada** (2026-07-26, por jeffersondavila), con la publicación
-  remota pendiente por el bloqueo B-01.
+- `Task/001` queda **Aprobada** (2026-07-26, por jeffersondavila), **publicada e integrada
+  en `main`** en los tres repositorios. Bloqueo **B-01 cerrado**.
