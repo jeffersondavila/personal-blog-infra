@@ -4,8 +4,10 @@
 | --- | --- |
 | **Tarea** | `Task/002-Definir-MVP-y-Arquitectura` |
 | **Etapa** | ETAPA 00 — Fundación y Gobierno |
-| **Estado final** | **Lista para validación** |
-| **Fecha** | 2026-07-26 |
+| **Estado final** | **Aprobada** |
+| **Fecha de ejecución** | 2026-07-26 |
+| **Fecha de aprobación** | 2026-07-26 |
+| **Aprobado por** | jeffersondavila (usuario) |
 | **Repositorios afectados** | `personal-blog-infra` (documentación); frontend y backend solo en la sincronización de ramas |
 | **Ficha completa** | [TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md) |
 
@@ -221,9 +223,9 @@ Docker considerado privilegiado).
 
 ## 10. ADR creados
 
-> **Ambos están en estado `Propuesta — pendiente de aprobación de Task/002`, no
-> `Aceptada`.** Las decisiones están documentadas pero no son firmes: pasarán a
-> *Aceptada* cuando el usuario escriba `approved: Task/002-Definir-MVP-y-Arquitectura`.
+> Se crearon en estado `Propuesta — pendiente de aprobación de Task/002` y pasaron a
+> **`Aceptada`** el 2026-07-26, cuando el usuario aprobó la tarea con
+> `approved: Task/002-Definir-MVP-y-Arquitectura`.
 
 | ADR | Decisión | Puntos clave |
 | --- | --- | --- |
@@ -425,21 +427,43 @@ Se corrigieron las referencias previas a "8 sin seguimiento" y "226 enlaces".
 **`Task/003-Crear-Infraestructura-Local`** — Docker Compose, PostgreSQL, MinIO, Portainer,
 redes, volúmenes y healthchecks.
 
-**No ha sido iniciada.** Requiere la aprobación de `Task/002`.
+**No ha sido iniciada.**
 
-## 17. Confirmación de límites respetados
+## 17. Estado final
 
-- **No se hizo commit de `Task/002`.** Los cambios están en el árbol de trabajo, sin
-  confirmar.
-- **No se hizo merge de `Task/002`.**
-- **No se hizo push de `Task/002`.** La rama existe solo localmente.
-- **No se creó pull request de `Task/002`.**
+### Durante la ejecución de la tarea (antes de la aprobación)
+
+- No se hizo commit, merge, push ni pull request de `Task/002`.
+- No se marcó ninguna tarea como `Aprobada`.
+- ADR-004 y ADR-005 se mantuvieron en estado `Propuesta`.
+
+Única excepción autorizada en esa fase: el push de la sincronización `main` → `dev` en los
+tres repositorios, solicitado explícitamente como mantenimiento previo. No incluía ningún
+contenido de `Task/002`.
+
+### Durante el cierre (tras `approved: Task/002-Definir-MVP-y-Arquitectura`)
+
+| Acción | Estado |
+| --- | --- |
+| Trabajo documental confirmado en la rama de la tarea | Hecho |
+| ADR-004 y ADR-005 promovidos a **Aceptada** | Hecho |
+| Documentación de aprobación actualizada y confirmada | Hecho |
+| Merge `--no-ff` de `Task/002` en `dev` | Hecho |
+| Push de `dev` | Hecho |
+| Publicación de la rama de la tarea | Hecho |
+| Pull request `dev` → `main` | Abierto, **sin merge** |
+| Merge del pull request hacia `main` | **No ejecutado** — corresponde al usuario |
+| Vuelta a `main`, referencias actualizadas, rama local eliminada | Hecho |
+
+### Se mantiene en todos los casos
+
 - **No se creó código funcional**: ni React, ni FastAPI, ni `package.json`, ni
   `pyproject.toml`, ni migraciones, ni SQL, ni `Dockerfile`, ni Docker Compose, ni
   Terraform, ni workflows.
 - **No se levantó** PostgreSQL, MinIO ni Portainer.
 - **No se creó ningún recurso cloud** ni ninguna cuenta.
-- **No se eligió el proveedor de PostgreSQL cloud** ni ninguna otra decisión diferida.
+- **No se eligió el proveedor de PostgreSQL cloud** ni ninguna otra decisión diferida:
+  las 13 siguen abiertas.
 - **No se implementó autenticación** ni se decidió su mecanismo.
 - **No se creó especificación OpenAPI completa.**
 - **No se diseñó visualmente la interfaz.**
@@ -447,9 +471,5 @@ redes, volúmenes y healthchecks.
 - **No se inició `Task/003`.**
 - Todo el trabajo se realizó dentro de `C:\Users\jeffe\Downloads\Blog_Personal`.
 
-**Excepción autorizada:** el push de la sincronización `main` → `dev` en los tres
-repositorios, solicitado explícitamente como mantenimiento previo (paso 7 de la
-preparación de ramas). No incluye ningún contenido de `Task/002`.
-
-`Task/002` queda **Lista para validación**, a la espera de
-`approved: Task/002-Definir-MVP-y-Arquitectura`.
+`Task/002` queda **Aprobada** (2026-07-26, por jeffersondavila). Con ella, la **ETAPA 00
+está completada** y el avance global pasa a **2 de 41 (5 %)**.

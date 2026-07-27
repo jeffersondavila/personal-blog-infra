@@ -181,7 +181,10 @@ ADR.
 
 ## Decisiones no diferidas
 
-### Aceptadas (aprobadas por el usuario en `Task/001`)
+Todas están **aceptadas**: aprobadas explícitamente por el usuario. Para evitar reabrir lo
+cerrado:
+
+### Aprobadas en `Task/001` (2026-07-26)
 
 | Decisión | Dónde |
 | --- | --- |
@@ -189,16 +192,12 @@ ADR.
 | Tres repositorios separados | [ADR-002](../adr/ADR-002-three-repositories.md) |
 | Nube serverless de bajo costo; exclusión de EC2, ECS, EKS, ECR, ALB y NAT Gateway | [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) |
 
-### Propuestas en `Task/002` — pendientes de aprobación
+### Aprobadas en `Task/002` (2026-07-26)
 
-> `Task/002-Definir-MVP-y-Arquitectura` está **Lista para validación**, no aprobada. Las
-> decisiones siguientes están **propuestas y documentadas**, y pasarán a ser firmes
-> cuando el usuario escriba `approved: Task/002-Definir-MVP-y-Arquitectura`.
-
-| Decisión propuesta | Dónde |
+| Decisión | Dónde |
 | --- | --- |
-| Monolito modular con Clean Architecture pragmática; sin microservicios | [ADR-004](../adr/ADR-004-modular-monolith.md) *(Propuesta)* |
-| Contenido principal en Markdown, sanitizado al renderizar | [ADR-005](../adr/ADR-005-markdown-content.md) *(Propuesta)* |
+| Monolito modular con Clean Architecture pragmática; sin microservicios | [ADR-004](../adr/ADR-004-modular-monolith.md) |
+| Contenido principal en Markdown, sanitizado al renderizar | [ADR-005](../adr/ADR-005-markdown-content.md) |
 | Alcance del MVP y lo que queda fuera | [MVP_SCOPE.md](../product/MVP_SCOPE.md) |
 | Convenciones de API, paginación y modelo de error | [api-contracts.md](api-contracts.md) |
 | Interfaz `ObjectStorage` con implementaciones por entorno | [software-architecture.md](software-architecture.md) |

@@ -2,16 +2,13 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Estado** | **Propuesta — pendiente de aprobación de `Task/002`** |
+| **Estado** | **Aceptada** |
 | **Fecha** | 2026-07-26 |
-| **Tarea** | `Task/002-Definir-MVP-y-Arquitectura` (Lista para validación) |
+| **Fecha de aceptación** | 2026-07-26 |
+| **Tarea** | `Task/002-Definir-MVP-y-Arquitectura` (**Aprobada**) |
+| **Aprobada por** | jeffersondavila |
 | **Reemplaza a** | — |
 | **Reemplazada por** | — |
-
-> **Esta decisión está propuesta y documentada, no aceptada.** Pasará a estado *Aceptada*
-> cuando el usuario apruebe la tarea escribiendo
-> `approved: Task/002-Definir-MVP-y-Arquitectura`. Hasta entonces no debe tratarse como
-> una decisión firme.
 
 ---
 

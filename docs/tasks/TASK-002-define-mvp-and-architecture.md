@@ -5,11 +5,13 @@
 | **Identificador** | `Task/002-Definir-MVP-y-Arquitectura` |
 | **Nombre** | Definir MVP y Arquitectura |
 | **Etapa** | ETAPA 00 — Fundación y Gobierno |
-| **Estado** | **Lista para validación** |
+| **Estado** | **Aprobada** |
 | **Repositorios involucrados** | `personal-blog-infra` (únicamente) |
 | **Dependencias** | `Task/001-Inicializar-Workspace-y-Roadmap` — **Aprobada** ✔ |
 | **Rama** | `Task/002-Definir-MVP-y-Arquitectura`, creada desde `dev` en `personal-blog-infra` |
 | **Fecha de inicio** | 2026-07-26 |
+| **Fecha de aprobación** | 2026-07-26 |
+| **Aprobado por** | jeffersondavila |
 | **Última actualización** | 2026-07-26 |
 
 ---
@@ -197,12 +199,12 @@ que nunca sucedió.
 | 16 | Requisitos no funcionales documentados. | Cumplido — `non-functional-requirements.md` (**57 requisitos** en 7 categorías) |
 | 17 | Límites de seguridad documentados. | Cumplido — `security-boundaries.md` (11 componentes) |
 | 18 | Decisiones diferidas registradas. | Cumplido — `open-decisions.md` (13) |
-| 19 | ADR-004 y ADR-005 existen. | Cumplido — ambos en estado **Propuesta**, pendientes de la aprobación de `Task/002` |
+| 19 | ADR-004 y ADR-005 existen. | Cumplido — creados en estado **Propuesta** y promovidos a **Aceptada** al aprobarse la tarea |
 | 20 | No se implementó código funcional. | Cumplido — verificado por búsqueda |
 | 21 | No se creó ningún recurso cloud. | Cumplido |
 | 22 | No se agregó ningún secreto. | Cumplido — verificado por búsqueda |
 | 23 | Todos los enlaces relativos resuelven. | Cumplido — 252 enlaces, 0 rotos |
-| 24 | `Task/002` queda `Lista para validación`, nunca `Aprobada`. | Cumplido |
+| 24 | `Task/002` quedó `Lista para validación` al terminar la ejecución, nunca marcada `Aprobada` de forma automática. | Cumplido — aprobada después por el usuario el 2026-07-26 |
 | 25 | No se inició `Task/003`. | Cumplido |
 
 ---
@@ -266,12 +268,11 @@ Get-ChildItem -Recurse -File . -Include *.py,*.ts,*.tsx,*.jsx,*.tf,*.tfvars,`
 
 ## 12. Decisiones tomadas y decisiones respetadas como diferidas
 
-### Propuestas en esta tarea
+### Tomadas en esta tarea
 
-> **Ninguna es firme todavía.** `Task/002` está `Lista para validación`; estas decisiones
-> están **propuestas y documentadas**, y pasarán a ser aceptadas cuando el usuario escriba
-> `approved: Task/002-Definir-MVP-y-Arquitectura`. ADR-004 y ADR-005 llevan estado
-> **Propuesta** por ese motivo.
+> **Aceptadas el 2026-07-26**, al aprobar el usuario la tarea con
+> `approved: Task/002-Definir-MVP-y-Arquitectura`. ADR-004 y ADR-005 pasaron de
+> *Propuesta* a **Aceptada** en ese momento.
 
 | Decisión | Registro |
 | --- | --- |
@@ -422,9 +423,28 @@ Se corrigieron las referencias previas a "8 sin seguimiento" y "226 enlaces".
 
 | Campo | Valor |
 | --- | --- |
-| **Fecha de aprobación** | *(pendiente)* |
-| **Aprobado por** | *(pendiente — solo el usuario)* |
+| **Estado** | **Aprobada** |
+| **Fecha de aprobación** | 2026-07-26 |
+| **Aprobado por** | jeffersondavila (usuario) |
 | **Expresión de aprobación** | `approved: Task/002-Definir-MVP-y-Arquitectura` |
 
-> Esta tarea está **Lista para validación**. No está aprobada y no puede marcarse como
-> aprobada sin autorización explícita del usuario.
+### Flujo de cierre ejecutado
+
+| # | Paso | Resultado |
+| --- | --- | --- |
+| 1 | Trabajo documental confirmado en la rama de la tarea. | Hecho |
+| 2 | ADR-004 y ADR-005 promovidos de *Propuesta* a **Aceptada**. | Hecho |
+| 3 | Documentación de aprobación actualizada y confirmada. | Hecho |
+| 4 | Rama de la tarea integrada en `dev` con merge `--no-ff`. | Hecho |
+| 5 | Push de `dev`. | Hecho |
+| 6 | Publicación de la rama de la tarea. | Hecho |
+| 7 | Pull request `dev` → `main`, **sin merge automático**. | Hecho — abierto para revisión |
+| 8 | Vuelta a `main` y actualización de referencias. | Hecho |
+| 9 | Eliminación de la rama local de la tarea. | Hecho |
+
+Con esta aprobación, la **ETAPA 00 queda completada** (2 de 2 tareas) y el avance global
+pasa a **2 de 41 (5 %)**.
+
+`Task/003-Crear-Infraestructura-Local` **no fue iniciada**.
+
+Resultado detallado: [reporte de la tarea](../task-reports/TASK-002-report.md).

@@ -4,7 +4,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
 
 - **Última actualización:** 2026-07-26
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md))
-- **Avance global:** **2 %** (1 de 41 tareas aprobadas)
+- **Avance global:** **5 %** (2 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -18,8 +18,8 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 
 | # | Etapa | Tareas | Aprobadas | Avance | Estado | Depende de |
 | --- | --- | --- | --- | --- | --- | --- |
-| 00 | Fundación y Gobierno | 2 | 1 | 50 % | En progreso | — |
-| 01 | Infraestructura Local | 2 | 0 | 0 % | Pendiente | 00 |
+| 00 | Fundación y Gobierno | 2 | 2 | 100 % | **Completada** | — |
+| 01 | Infraestructura Local | 2 | 0 | 0 % | **Siguiente** | 00 ✔ |
 | 02 | Fundaciones de las Aplicaciones | 3 | 0 | 0 % | Pendiente | 01 |
 | 03 | Dominio y Backend | 5 | 0 | 0 % | Pendiente | 02 |
 | 04 | Experiencia del Usuario | 3 | 0 | 0 % | Pendiente | 03 |
@@ -31,7 +31,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **1** | **2 %** | | |
+| | **Total** | **41** | **2** | **5 %** | | |
 
 ---
 
@@ -41,7 +41,8 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 documental de seguimiento y un MVP y arquitectura acordados antes de escribir código.
 
 **Dependencias:** ninguna.
-**Hito que completa:** *Gobierno del proyecto establecido y alcance del MVP cerrado.*
+**Hito que completa:** *Gobierno del proyecto establecido y alcance del MVP cerrado.* ✔
+**Completada:** 2026-07-26.
 **Ficha:** [STAGE-00-foundation.md](../stages/STAGE-00-foundation.md)
 **Documentos producidos:** [MVP_SCOPE](../product/MVP_SCOPE.md) ·
 [USER_FLOWS](../product/USER_FLOWS.md) · [CONTENT_MODEL](../product/CONTENT_MODEL.md) ·
@@ -54,7 +55,7 @@ documental de seguimiento y un MVP y arquitectura acordados antes de escribir c�
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/001-Inicializar-Workspace-y-Roadmap` | Preparar repositorios, documentación y seguimiento. | infra, frontend, backend | — | **Aprobada** (2026-07-26) |
-| `Task/002-Definir-MVP-y-Arquitectura` | Definir requerimientos funcionales, arquitectura de software, contratos generales y límites del MVP. | infra | 001 | **Lista para validación** |
+| `Task/002-Definir-MVP-y-Arquitectura` | Definir requerimientos funcionales, arquitectura de software, contratos generales y límites del MVP. | infra | 001 | **Aprobada** (2026-07-26) |
 
 ---
 
@@ -267,6 +268,6 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `1 / 41 = 2 %`.
+Actualmente: `2 / 41 = 5 %`.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

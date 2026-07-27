@@ -8,17 +8,16 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 00 — Fundación y Gobierno |
-| **Tarea actual** | `Task/002-Definir-MVP-y-Arquitectura` |
-| **Estado de la tarea** | **Lista para validación** |
-| **Última tarea aprobada** | `Task/001-Inicializar-Workspace-y-Roadmap` — **Aprobada** el 2026-07-26 por jeffersondavila |
+| **Etapa actual** | ETAPA 01 — Infraestructura Local (siguiente). ETAPA 00 **completada** |
+| **Tarea actual** | Ninguna en ejecución |
+| **Estado de la tarea** | — |
+| **Última tarea aprobada** | `Task/002-Definir-MVP-y-Arquitectura` — **Aprobada** el 2026-07-26 por jeffersondavila |
 | **Próxima tarea prevista** | `Task/003-Crear-Infraestructura-Local` (Pendiente, no iniciada) |
-| **Avance global** | **2 %** — 1 de 41 tareas aprobadas |
+| **Avance global** | **5 %** — 2 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 4 (R-01 cerrado) |
+| **Riesgos abiertos** | 6 (R-01 cerrado) |
 
-> El avance se calcula **solo** con tareas `Aprobada`. `Task/002` está lista para
-> validación pero **no aprobada**, por lo que no suma al avance.
+> El avance se calcula **solo** con tareas `Aprobada`.
 
 ---
 
@@ -26,7 +25,7 @@
 
 | Etapa | Tareas | Aprobadas | Avance |
 | --- | --- | --- | --- |
-| 00 — Fundación y Gobierno | 2 | 1 | 50 % |
+| 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 0 | 0 % |
 | 02 — Fundaciones de las Aplicaciones | 3 | 0 | 0 % |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
@@ -39,7 +38,7 @@
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **1** | **2 %** |
+| **Total** | **41** | **2** | **5 %** |
 
 Distribución por estado:
 
@@ -47,8 +46,8 @@ Distribución por estado:
 | --- | --- |
 | Pendiente | 39 |
 | En progreso | 0 |
-| Lista para validación | 1 |
-| **Aprobada** | **1** |
+| Lista para validación | 0 |
+| **Aprobada** | **2** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -76,6 +75,8 @@ Distribución por estado:
 | R-03 | La elección de PostgreSQL administrado puede condicionar el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. | Abierto |
 | R-04 | El roadmap de 41 tareas puede quedar desactualizado si el alcance cambia. | Bajo | `STATUS.md` y `ROADMAP.md` se actualizan en cada cambio de estado, como parte de la Definition of Done. | Abierto |
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
+| R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
+| R-07 | El render de Markdown en el cliente puede resultar insuficiente para SEO. | Medio | Metadatos, Open Graph, canonical, sitemap y datos estructurados en `Task/016`; si no basta, se reconsidera [ADR-005](../adr/ADR-005-markdown-content.md). | Abierto |
 
 ---
 
@@ -84,7 +85,7 @@ Distribución por estado:
 | Tarea | Etapa | Repos | Estado |
 | --- | --- | --- | --- |
 | `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Aprobada** |
-| `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Lista para validación** |
+| `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Aprobada** |
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | Pendiente |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | Pendiente |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend | Pendiente |
@@ -131,7 +132,7 @@ Distribución por estado:
 
 | Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `Task/002-Definir-MVP-y-Arquitectura` | `Task/002-Definir-MVP-y-Arquitectura` | Sí |
+| `personal-blog-infra` | `main`, `dev` | `main` | Ver nota |
 | `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
 | `personal-blog-backend` | `main`, `dev` | `main` | Sí |
 
@@ -143,9 +144,11 @@ Distribución por estado:
   lo que dejó `main` y `dev` con el mismo contenido pero distintos commits de merge. Esa
   divergencia formal se **normalizó al inicio de `Task/002`** con un merge `--no-ff` de
   `origin/main` dentro de `dev`, publicado en los tres repositorios.
-- La rama `Task/002-Definir-MVP-y-Arquitectura` existe **solo en `personal-blog-infra`**,
-  porque la tarea únicamente modifica documentación central. **No está publicada** ni
-  tiene commits: la tarea espera validación del usuario.
+- `Task/002` se ejecutó **solo en `personal-blog-infra`**, porque únicamente modificaba
+  documentación central. Tras su aprobación, la rama `Task/002-Definir-MVP-y-Arquitectura`
+  se integró en `dev` con merge `--no-ff`, se publicó y se eliminó localmente. En
+  `personal-blog-infra`, `dev` está **por delante de `main`** hasta que se acepte el pull
+  request abierto hacia `main`; frontend y backend siguen sincronizados.
 
 ---
 
@@ -154,8 +157,9 @@ Distribución por estado:
 - La **implementación del blog no ha comenzado**. No existe código React, FastAPI,
   Docker Compose ni Terraform en ningún repositorio.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
-- `Task/002` ha definido el **alcance del MVP y la arquitectura**; sigue siendo trabajo
-  exclusivamente documental.
+- `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
+  ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
+- ADR-001 a ADR-005 están todos en estado **Aceptada**.
 - `Task/003` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·

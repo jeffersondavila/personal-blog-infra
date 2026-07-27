@@ -30,11 +30,11 @@ Repositorios hermanos:
 
 ## 2. Estado actual del proyecto
 
-- **Etapa actual:** ETAPA 00 — Fundación y Gobierno.
-- **Última tarea aprobada:** `Task/001-Inicializar-Workspace-y-Roadmap` (2026-07-26).
-- **Tarea actual:** `Task/002-Definir-MVP-y-Arquitectura` — *Lista para validación*.
+- **ETAPA 00 — Fundación y Gobierno: completada** (2 de 2 tareas aprobadas).
+- **Etapa siguiente:** ETAPA 01 — Infraestructura Local.
+- **Última tarea aprobada:** `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26).
 - **Próxima tarea:** `Task/003-Crear-Infraestructura-Local` — *Pendiente, no iniciada*.
-- **Tareas aprobadas:** 1 de 41 (2 %).
+- **Tareas aprobadas:** 2 de 41 (5 %).
 - **Implementación:** **no ha comenzado**. No existe código de aplicación, ni
   Docker Compose, ni Terraform, ni recursos cloud creados.
 

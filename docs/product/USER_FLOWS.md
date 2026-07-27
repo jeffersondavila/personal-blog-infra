@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Estado** | Propuesta de `Task/002-Definir-MVP-y-Arquitectura` — Lista para validación |
+| **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
 | **Fecha** | 2026-07-26 |
 
 Describe **qué puede hacer cada tipo de usuario** y en qué orden. Es la fuente que

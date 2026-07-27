@@ -141,10 +141,8 @@ Ver [local-to-cloud-mapping.md](local-to-cloud-mapping.md).
 
 ## 8. Qué definió `Task/002`
 
-> `Task/002-Definir-MVP-y-Arquitectura` está **Lista para validación**, no aprobada. Lo
-> siguiente está **propuesto y documentado**; será firme cuando el usuario escriba
-> `approved: Task/002-Definir-MVP-y-Arquitectura`. ADR-004 y ADR-005 llevan estado
-> **Propuesta** por ese motivo.
+> `Task/002-Definir-MVP-y-Arquitectura` fue **aprobada** el 2026-07-26. Lo siguiente es
+> decisión firme del proyecto.
 
 | Tema | Documento |
 | --- | --- |
@@ -155,8 +153,8 @@ Ver [local-to-cloud-mapping.md](local-to-cloud-mapping.md).
 | Convenciones de API, paginación y errores | [api-contracts.md](api-contracts.md) |
 | Requisitos no funcionales (**57** en 7 categorías) | [non-functional-requirements.md](non-functional-requirements.md) |
 | Límites de seguridad | [security-boundaries.md](security-boundaries.md) |
-| Estilo arquitectónico | [ADR-004](../adr/ADR-004-modular-monolith.md) *(Propuesta)* |
-| Formato del contenido | [ADR-005](../adr/ADR-005-markdown-content.md) *(Propuesta)* |
+| Estilo arquitectónico | [ADR-004](../adr/ADR-004-modular-monolith.md) |
+| Formato del contenido | [ADR-005](../adr/ADR-005-markdown-content.md) |
 
 ## 9. Qué falta decidir
 
