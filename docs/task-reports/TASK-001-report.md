@@ -204,6 +204,10 @@ Durante la sesión de cierre, los pasos de publicación **no pudieron ejecutarse
 - Publicación de la rama `Task/001-Inicializar-Workspace-y-Roadmap`.
 - Pull request `dev` → `main`.
 
+> Esta lista conserva el plan que estaba bloqueado en ese momento. El cierre
+> real posterior usó `Task/001-Inicializar-Workspace-y-Roadmap → main`, como
+> confirma el historial de Git y la nota de cierre de este reporte.
+
 **Motivo:** el entorno no tiene credenciales de GitHub almacenadas y la sesión de trabajo
 no puede abrir un diálogo de autenticación. Comprobado con `git ls-remote origin`, que
 falla en los tres repositorios:
@@ -260,6 +264,11 @@ foreach ($r in @('personal-blog-backend','personal-blog-frontend','personal-blog
 
 > Esta secuencia **ya fue completada** por el usuario. Se conserva como registro de lo
 > que se hizo para cerrar B-01, no como acción pendiente.
+>
+> **No es el workflow vigente.** Los comandos siguientes reflejan el
+> procedimiento planteado durante `Task/001`; desde `Task/002.1`, el PR de
+> cierre debe ser `Task/<nombre> → main` y está prohibido usar `dev → main`
+> como cierre ordinario.
 
 Primero, autenticarse contra GitHub **una sola vez**, por cualquiera de estas vías:
 

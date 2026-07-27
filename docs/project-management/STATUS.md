@@ -9,15 +9,40 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 01 — Infraestructura Local (siguiente). ETAPA 00 **completada** |
-| **Tarea actual** | Ninguna en ejecución |
-| **Estado de la tarea** | — |
+| **Tarea actual** | `Task/002.1-Configurar-Claude-Code` — mantenimiento de gobierno aprobado, pendiente de revisión en `main` |
+| **Estado de la tarea** | **Aprobada** — cierre autorizado el 2026-07-26 |
 | **Última tarea aprobada** | `Task/002-Definir-MVP-y-Arquitectura` — **Aprobada** el 2026-07-26 por jeffersondavila |
+| **Último mantenimiento aprobado** | `Task/002.1-Configurar-Claude-Code` — **Aprobada** el 2026-07-26 por jeffersondavila |
 | **Próxima tarea prevista** | `Task/003-Crear-Infraestructura-Local` (Pendiente, no iniciada) |
 | **Avance global** | **5 %** — 2 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | 6 (R-01 cerrado) |
 
 > El avance se calcula **solo** con tareas `Aprobada`.
+
+---
+
+## Mantenimiento de gobierno
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/002.1-Configurar-Claude-Code` |
+| **Tipo** | Mantenimiento de gobierno |
+| **Estado** | **Aprobada** |
+| **Fecha de aprobación** | 2026-07-26 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/002.1-Configurar-Claude-Code` |
+| **Rama de cierre** | `Task/002.1-Configurar-Claude-Code` |
+| **Pull request** | `Task/002.1-Configurar-Claude-Code → main`, pendiente de revisión y fusión del usuario |
+| **Roadmap** | No cuenta dentro de las 41 tareas |
+| **Avance global** | Permanece en **2 de 41**, aproximadamente **5 %** |
+| **Siguiente tarea del roadmap** | `Task/003-Crear-Infraestructura-Local` — **Pendiente**, no iniciada |
+| **Bloqueos activos** | Ninguno |
+
+La aprobación de este mantenimiento no modifica el conteo del roadmap. La rama
+Task local se elimina después de publicarla y crear el PR; la rama remota se
+conserva hasta la decisión del usuario. `Task/003` no puede iniciarse hasta que
+el usuario fusione el PR y se complete la normalización posterior `main → dev`.
 
 ---
 
@@ -50,6 +75,9 @@ Distribución por estado:
 | **Aprobada** | **2** |
 | Bloqueada | 0 |
 | Descartada | 0 |
+
+> Esta distribución incluye únicamente las 41 tareas del roadmap. La tarea de
+> mantenimiento `Task/002.1` se registra por separado.
 
 ---
 
@@ -132,23 +160,29 @@ Distribución por estado:
 
 | Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev` | `main` | Ver nota |
+| `personal-blog-infra` | `main`, `dev`, `Task/002.1-Configurar-Claude-Code` (remota durante el PR) | `main` tras completar el cierre local | No; `dev` contiene Task/002.1 mientras el PR espera al usuario |
 | `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
 | `personal-blog-backend` | `main`, `dev` | `main` | Sí |
 
-- `main` y `dev` están **publicadas** en GitHub en los tres repositorios y contienen el
-  mismo contenido.
+- `main` y `dev` están **publicadas** en GitHub en los tres repositorios y
+  contienen el mismo contenido.
 - Las ramas `Task/001-Inicializar-Workspace-y-Roadmap` fueron **eliminadas** local y
   remotamente tras integrarse mediante los pull requests `#1`.
 - Los PR de `Task/001` se integraron desde la rama `Task/001` directamente hacia `main`,
   lo que dejó `main` y `dev` con el mismo contenido pero distintos commits de merge. Esa
   divergencia formal se **normalizó al inicio de `Task/002`** con un merge `--no-ff` de
   `origin/main` dentro de `dev`, publicado en los tres repositorios.
-- `Task/002` se ejecutó **solo en `personal-blog-infra`**, porque únicamente modificaba
-  documentación central. Tras su aprobación, la rama `Task/002-Definir-MVP-y-Arquitectura`
-  se integró en `dev` con merge `--no-ff`, se publicó y se eliminó localmente. En
-  `personal-blog-infra`, `dev` está **por delante de `main`** hasta que se acepte el pull
-  request abierto hacia `main`; frontend y backend siguen sincronizados.
+- `Task/002` se ejecutó **solo en `personal-blog-infra`**. Tras su aprobación se
+  integró en `dev`; el PR `#2` histórico usó `dev → main`, fue fusionado por el
+  usuario y después se normalizó `dev`.
+- A partir de `Task/002.1`, el flujo vigente cambia: cada PR de cierre debe usar
+  `Task/<nombre> → main`; `dev → main` deja de ser el flujo ordinario.
+- `Task/002.1-Configurar-Claude-Code` fue aprobada explícitamente por el usuario.
+  Su cierre integra el trabajo en `dev`, publica la rama Task y abre el PR
+  `Task/002.1-Configurar-Claude-Code → main` sin fusionarlo.
+- La rama Task local se elimina con `git branch -d` después de crear el PR. La
+  rama remota se conserva mientras el PR espera la decisión del usuario.
+- Frontend y backend no tienen una rama `Task/002.1` y permanecen intactos.
 
 ---
 
@@ -160,6 +194,8 @@ Distribución por estado:
 - `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
   ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
 - ADR-001 a ADR-005 están todos en estado **Aceptada**.
+- `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno,
+  está **Aprobada** y no forma parte de las 41 tareas del roadmap.
 - `Task/003` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
