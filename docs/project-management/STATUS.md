@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-07-26
+**Última actualización:** 2026-07-29
 
 ---
 
@@ -8,17 +8,44 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 01 — Infraestructura Local (siguiente). ETAPA 00 **completada** |
-| **Tarea actual** | `Task/002.1-Configurar-Claude-Code` — mantenimiento de gobierno aprobado, pendiente de revisión en `main` |
-| **Estado de la tarea** | **Aprobada** — cierre autorizado el 2026-07-26 |
-| **Última tarea aprobada** | `Task/002-Definir-MVP-y-Arquitectura` — **Aprobada** el 2026-07-26 por jeffersondavila |
-| **Último mantenimiento aprobado** | `Task/002.1-Configurar-Claude-Code` — **Aprobada** el 2026-07-26 por jeffersondavila |
-| **Próxima tarea prevista** | `Task/003-Crear-Infraestructura-Local` (Pendiente, no iniciada) |
-| **Avance global** | **5 %** — 2 de 41 tareas aprobadas |
+| **Etapa actual** | ETAPA 01 — Infraestructura Local (**en curso**, 1 de 2). ETAPA 00 **completada** |
+| **Tarea actual** | `Task/003-Crear-Infraestructura-Local` — cerrada; PR pendiente de revisión en `main` |
+| **Estado de la tarea** | **Aprobada** — cierre autorizado el 2026-07-29 |
+| **Última tarea aprobada** | `Task/003-Crear-Infraestructura-Local` — **Aprobada** el 2026-07-29 por jeffersondavila |
+| **Último mantenimiento aprobado** | `Task/002.1-Configurar-Claude-Code` — **Aprobada** el 2026-07-26; PR `#3` fusionado por el usuario |
+| **Próxima tarea prevista** | `Task/004-Backups-y-Recuperacion-Local` (Pendiente, no iniciada) |
+| **Avance global** | **7 %** — 3 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 6 (R-01 cerrado) |
+| **Riesgos abiertos** | 9 (R-01 cerrado) |
 
 > El avance se calcula **solo** con tareas `Aprobada`.
+
+---
+
+## Última tarea cerrada
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/003-Crear-Infraestructura-Local` |
+| **Etapa** | ETAPA 01 — Infraestructura Local |
+| **Estado** | **Aprobada** |
+| **Fecha de inicio** | 2026-07-28 |
+| **Fecha de aprobación** | 2026-07-29 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/003-Crear-Infraestructura-Local` |
+| **Repositorios afectados** | `personal-blog-infra` (únicamente) |
+| **Rama de cierre** | `Task/003-Crear-Infraestructura-Local`, creada desde `dev` |
+| **Alcance entregado** | Docker Compose con PostgreSQL, MinIO y Portainer CE; dos redes; tres volúmenes nombrados; healthchecks; `.env.example`; runbook de operación |
+| **Integración en `dev`** | Merge `--no-ff`, publicado |
+| **Pull request** | `Task/003-Crear-Infraestructura-Local → main` — **abierto, sin fusionar**. Pendiente de revisión y decisión del usuario |
+| **Rama Task** | Local **eliminada** con `git branch -d`; remota **conservada** mientras exista el PR |
+| **Decisión promovida** | **D-05 → Resuelta**: Traefik v3 como reverse proxy local, a implementar en `Task/007` |
+| **Ficha** | [TASK-003](../tasks/TASK-003-create-local-infrastructure.md) |
+| **Reporte** | [TASK-003-report](../task-reports/TASK-003-report.md) |
+| **Runbook producido** | [local-environment.md](../runbooks/local-environment.md) — **Vigente** |
+
+`Task/004` **no puede iniciarse** hasta que el usuario fusione el PR y se complete la
+normalización posterior `main → dev`.
 
 ---
 
@@ -28,21 +55,20 @@
 | --- | --- |
 | **Tarea** | `Task/002.1-Configurar-Claude-Code` |
 | **Tipo** | Mantenimiento de gobierno |
-| **Estado** | **Aprobada** |
+| **Estado** | **Aprobada y cerrada** |
 | **Fecha de aprobación** | 2026-07-26 |
 | **Aprobado por** | jeffersondavila (usuario) |
 | **Expresión de aprobación** | `approved: Task/002.1-Configurar-Claude-Code` |
 | **Rama de cierre** | `Task/002.1-Configurar-Claude-Code` |
-| **Pull request** | `Task/002.1-Configurar-Claude-Code → main`, pendiente de revisión y fusión del usuario |
+| **Pull request** | `Task/002.1-Configurar-Claude-Code → main` — **fusionado** por el usuario (commit `dbb41aa`) |
+| **Normalización posterior** | `main` integrada en `dev` mediante el merge `cca847c`; ambas ramas con contenido idéntico |
+| **Rama Task** | Eliminada local y remotamente |
 | **Roadmap** | No cuenta dentro de las 41 tareas |
 | **Avance global** | Permanece en **2 de 41**, aproximadamente **5 %** |
-| **Siguiente tarea del roadmap** | `Task/003-Crear-Infraestructura-Local` — **Pendiente**, no iniciada |
 | **Bloqueos activos** | Ninguno |
 
-La aprobación de este mantenimiento no modifica el conteo del roadmap. La rama
-Task local se elimina después de publicarla y crear el PR; la rama remota se
-conserva hasta la decisión del usuario. `Task/003` no puede iniciarse hasta que
-el usuario fusione el PR y se complete la normalización posterior `main → dev`.
+La aprobación de este mantenimiento no modificó el conteo del roadmap. La
+normalización `main → dev` se completó, lo que habilitó el inicio de `Task/003`.
 
 ---
 
@@ -51,7 +77,7 @@ el usuario fusione el PR y se complete la normalización posterior `main → dev
 | Etapa | Tareas | Aprobadas | Avance |
 | --- | --- | --- | --- |
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
-| 01 — Infraestructura Local | 2 | 0 | 0 % |
+| 01 — Infraestructura Local | 2 | 1 | **50 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 0 | 0 % |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
@@ -63,16 +89,16 @@ el usuario fusione el PR y se complete la normalización posterior `main → dev
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **2** | **5 %** |
+| **Total** | **41** | **3** | **7 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 39 |
+| Pendiente | 38 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **2** |
+| **Aprobada** | **3** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -105,6 +131,9 @@ Distribución por estado:
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
 | R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
 | R-07 | El render de Markdown en el cliente puede resultar insuficiente para SEO. | Medio | Metadatos, Open Graph, canonical, sitemap y datos estructurados en `Task/016`; si no basta, se reconsidera [ADR-005](../adr/ADR-005-markdown-content.md). | Abierto |
+| R-08 | El entorno local no tiene copia de seguridad: `docker compose down -v` destruye la base de datos y los objetos de MinIO sin recuperación posible. | Alto | `Task/004-Backups-y-Recuperacion-Local` es la tarea inmediatamente siguiente. Mientras tanto, el [runbook](../runbooks/local-environment.md) marca `-v` como destructivo. | Abierto |
+| R-09 | Portainer tiene acceso al socket del daemon de Docker y conserva **capacidad administrativa sobre el host**: puede crear, detener, eliminar y modificar contenedores, redes y volúmenes de este y de cualquier otro proyecto de la máquina. El montaje `:ro` protege el **archivo** del socket pero **no** convierte la Docker API en solo lectura, y la separación de redes **no** limita las acciones enviadas por el daemon. Agravante: conviven dos instancias de Portainer sobre el mismo daemon. | **Medio** | El riesgo se acepta únicamente porque Portainer es **local**, se publica en **`127.0.0.1`** y exige **autenticación propia**. **Regla vigente: no exponerlo nunca** a la red local ni a internet. Un control real de solo lectura exigiría un **socket proxy** o una política de autorización adicional, fuera del alcance de `Task/003`; se propone evaluarlo en `Task/018`. Detalle: [runbook §2.1](../runbooks/local-environment.md). | Abierto |
+| R-10 | Las etiquetas de imagen fijadas envejecen y acumulan vulnerabilidades sin corregir. | Medio | Escaneo de imágenes en `Task/018-Endurecimiento-de-Seguridad`; validación del Compose en cada cambio en `Task/021-CI-Infraestructura`. | Abierto |
 
 ---
 
@@ -114,7 +143,7 @@ Distribución por estado:
 | --- | --- | --- | --- |
 | `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Aprobada** |
 | `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Aprobada** |
-| `Task/003-Crear-Infraestructura-Local` | 01 | infra | Pendiente |
+| `Task/003-Crear-Infraestructura-Local` | 01 | infra | **Aprobada** |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | Pendiente |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend | Pendiente |
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend | Pendiente |
@@ -160,7 +189,7 @@ Distribución por estado:
 
 | Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `Task/002.1-Configurar-Claude-Code` (remota durante el PR) | `main` tras completar el cierre local | No; `dev` contiene Task/002.1 mientras el PR espera al usuario |
+| `personal-blog-infra` | `main`, `dev`, `Task/003-Crear-Infraestructura-Local` (remota durante el PR) | `main` tras completar el cierre local | No; `dev` contiene `Task/003` mientras el PR espera al usuario |
 | `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
 | `personal-blog-backend` | `main`, `dev` | `main` | Sí |
 
@@ -178,31 +207,45 @@ Distribución por estado:
 - A partir de `Task/002.1`, el flujo vigente cambia: cada PR de cierre debe usar
   `Task/<nombre> → main`; `dev → main` deja de ser el flujo ordinario.
 - `Task/002.1-Configurar-Claude-Code` fue aprobada explícitamente por el usuario.
-  Su cierre integra el trabajo en `dev`, publica la rama Task y abre el PR
-  `Task/002.1-Configurar-Claude-Code → main` sin fusionarlo.
-- La rama Task local se elimina con `git branch -d` después de crear el PR. La
-  rama remota se conserva mientras el PR espera la decisión del usuario.
-- Frontend y backend no tienen una rama `Task/002.1` y permanecen intactos.
+  Su PR `#3` fue **fusionado** por el usuario (commit `dbb41aa`) y la rama Task se
+  eliminó local y remotamente. La normalización posterior integró `main` en `dev`
+  mediante el merge `cca847c`.
+- `Task/003-Crear-Infraestructura-Local` se creó desde `dev` **solo en
+  `personal-blog-infra`**: la tarea no modifica frontend ni backend.
+- `Task/003` fue **aprobada** el 2026-07-29. Su cierre integró el trabajo en `dev` con
+  merge `--no-ff`, publicó la rama Task y abrió el PR
+  `Task/003-Crear-Infraestructura-Local → main` **sin fusionarlo**. La rama Task local se
+  eliminó con `git branch -d`; la remota se conserva mientras el PR espera al usuario.
+- Frontend y backend permanecen en `main` con el árbol limpio y sin rama `Task/003`.
 
 ---
 
 ## Notas de estado
 
-- La **implementación del blog no ha comenzado**. No existe código React, FastAPI,
-  Docker Compose ni Terraform en ningún repositorio.
+- **La implementación del blog no ha comenzado.** No existe código React ni FastAPI en
+  ningún repositorio.
+- **`Task/003` produjo el primer artefacto ejecutable del proyecto:** un
+  `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE, **aprobado** e integrado en
+  `dev`.
+- **No existe Terraform** en ningún repositorio.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
 - `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
   ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
-- ADR-001 a ADR-005 están todos en estado **Aceptada**.
-- `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno,
-  está **Aprobada** y no forma parte de las 41 tareas del roadmap.
-- `Task/003` **no ha sido iniciada**.
+- ADR-001 a ADR-005 están todos en estado **Aceptada**. `Task/003` **no creó ningún ADR
+  nuevo**: su única decisión, D-05, es local y reversible y quedó **Resuelta** con
+  **Traefik v3** al aprobarse la tarea.
+- **Decisiones diferidas: 12 abiertas** (eran 13; D-05 resuelta el 2026-07-29).
+- `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno, está **Aprobada** y
+  cerrada, y no forma parte de las 41 tareas del roadmap.
+- `Task/004` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) ·
 [Reporte TASK-001](../task-reports/TASK-001-report.md) ·
 [TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md) ·
-[Reporte TASK-002](../task-reports/TASK-002-report.md)
+[Reporte TASK-002](../task-reports/TASK-002-report.md) ·
+[TASK-003](../tasks/TASK-003-create-local-infrastructure.md) ·
+[Reporte TASK-003](../task-reports/TASK-003-report.md)
 
 Documentos de producto y arquitectura producidos por `Task/002`:
 [MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·

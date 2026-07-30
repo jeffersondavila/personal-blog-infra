@@ -1,0 +1,155 @@
+# ---------------------------------------------------------------------------
+# personal-blog-infra — Entorno local (Task/003-Crear-Infraestructura-Local)
+#
+# Servicios: PostgreSQL, MinIO y Portainer CE.
+# Uso exclusivamente local. Ningun servicio de este archivo se despliega en la
+# nube (ver docs/adr/ADR-001-local-first.md y docs/adr/ADR-003-serverless-low-cost-cloud.md).
+#
+# Requiere un archivo .env en esta misma carpeta. Copialo de .env.example.
+# Operacion completa: docs/runbooks/local-environment.md
+# ---------------------------------------------------------------------------
+
+name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}
+
+services:
+
+  # -------------------------------------------------------------------------
+  # PostgreSQL — persistencia relacional del blog.
+  # Solo debe ser alcanzable desde el backend (red blog-data) y desde la
+  # maquina local a traves del puerto publicado en la interfaz de loopback.
+  # -------------------------------------------------------------------------
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Evita que un cambio de locale del host altere el ordenamiento.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      TZ: ${TZ}
+      PGTZ: ${TZ}
+    ports:
+      - "${LOCAL_BIND_ADDRESS}:${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - blog-data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -h 127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    stop_grace_period: 30s
+
+  # -------------------------------------------------------------------------
+  # MinIO — almacenamiento de objetos compatible con la API de Amazon S3.
+  # Equivalente local de S3. El acceso desde el backend se hara siempre a
+  # traves de la interfaz ObjectStorage (Task/010).
+  # -------------------------------------------------------------------------
+  minio:
+    image: minio/minio:${MINIO_VERSION}
+    container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      # La consola se publica solo en loopback; nunca en una interfaz externa.
+      MINIO_BROWSER_REDIRECT_URL: http://localhost:${MINIO_CONSOLE_HOST_PORT}
+      TZ: ${TZ}
+    ports:
+      - "${LOCAL_BIND_ADDRESS}:${MINIO_API_HOST_PORT}:9000"
+      - "${LOCAL_BIND_ADDRESS}:${MINIO_CONSOLE_HOST_PORT}:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - blog-data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 30s
+
+  # -------------------------------------------------------------------------
+  # Portainer CE — supervision de Docker en local.
+  #
+  # Reglas vigentes (docs/architecture/security-boundaries.md, seccion 4):
+  #   - Solo local. Nunca se expone a internet ni a la red compartida.
+  #   - No forma parte del panel administrativo del blog.
+  #   - No administra contenido del blog.
+  #   - El acceso al socket de Docker es privilegiado y se trata como tal.
+  #
+  # ADVERTENCIA DE PRIVILEGIO
+  #
+  # Portainer tiene acceso al daemon de Docker a traves de su socket. Eso le
+  # da capacidad ADMINISTRATIVA sobre el host: puede crear, detener, eliminar
+  # y modificar contenedores, redes y volumenes, incluidos los de este
+  # proyecto y los de cualquier otro proyecto de la maquina.
+  #
+  # Vive en una red propia, aislada de blog-data, para impedir la comunicacion
+  # DIRECTA por red con PostgreSQL y MinIO. Esa separacion NO limita lo que
+  # Portainer puede hacer a traves del daemon: las acciones enviadas por la
+  # Docker API no atraviesan la red de datos.
+  #
+  # El riesgo se acepta unicamente porque Portainer es local, se publica en
+  # 127.0.0.1 y exige autenticacion propia. Un control real de "solo lectura"
+  # sobre la API exigiria un socket proxy o una politica de autorizacion
+  # adicional, fuera del alcance de Task/003.
+  # -------------------------------------------------------------------------
+  portainer:
+    image: portainer/portainer-ce:${PORTAINER_VERSION}
+    container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-portainer
+    restart: unless-stopped
+    ports:
+      - "${LOCAL_BIND_ADDRESS}:${PORTAINER_HTTPS_HOST_PORT}:9443"
+    volumes:
+      # `:ro` aplica al ARCHIVO del socket dentro del contenedor: impide
+      # sobrescribirlo o borrarlo. NO convierte la Docker API en una API de
+      # solo lectura ni restringe los metodos que pueden enviarse por ella.
+      # Portainer conserva capacidad administrativa sobre el daemon.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data
+    networks:
+      - blog-management
+    # Sin healthcheck a proposito: la imagen portainer-ce es distroless
+    # (su unico binario es /portainer, sin shell ni cliente HTTP), por lo que
+    # no hay ningun comando ejecutable dentro del contenedor con el que
+    # sondearla. Se verifica desde el host abriendo la consola HTTPS.
+    stop_grace_period: 30s
+
+# ---------------------------------------------------------------------------
+# Redes
+# ---------------------------------------------------------------------------
+networks:
+  # Datos del blog: PostgreSQL y MinIO. El backend se unira en Task/007.
+  blog-data:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-data
+    driver: bridge
+
+  # Herramientas de infraestructura. Aislada de los datos a proposito: impide
+  # que Portainer alcance PostgreSQL o MinIO por red. No limita lo que pueda
+  # hacer sobre esos contenedores a traves del daemon de Docker.
+  blog-management:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-management
+    driver: bridge
+
+# ---------------------------------------------------------------------------
+# Volumenes nombrados
+#
+# Los datos viven en volumenes gestionados por Docker, no en bind mounts:
+# sobreviven a `docker compose down` y evitan los problemas de permisos y
+# rendimiento de los bind mounts en Windows.
+# `docker compose down -v` SI los elimina: ver el runbook antes de usarlo.
+# ---------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_postgres_data
+  minio_data:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_minio_data
+  portainer_data:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_portainer_data
