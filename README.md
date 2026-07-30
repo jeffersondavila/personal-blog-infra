@@ -17,7 +17,7 @@ de la infraestructura local y cloud.
 | Flujo de trabajo y Definition of Done | Migraciones de base de datos |
 | ADR (decisiones arquitectónicas) | Componentes de UI |
 | Diagramas y mapeo local → nube | Lógica de negocio del blog |
-| Docker Compose del entorno local *(futuro)* | Tests unitarios de frontend/backend |
+| Docker Compose del entorno local | Tests unitarios de frontend/backend |
 | Terraform de la nube *(futuro)* | Secretos, credenciales o `.env` reales |
 | Runbooks de despliegue y recuperación *(futuro)* | Artefactos compilados |
 
@@ -31,15 +31,21 @@ Repositorios hermanos:
 ## 2. Estado actual del proyecto
 
 - **ETAPA 00 — Fundación y Gobierno: completada** (2 de 2 tareas aprobadas).
-- **Etapa siguiente:** ETAPA 01 — Infraestructura Local.
-- **Última tarea aprobada:** `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26).
-- **Mantenimiento actual:** `Task/002.1-Configurar-Claude-Code` — *Aprobada*;
-  su PR `Task/002.1 → main` queda pendiente de revisión del usuario y no forma
-  parte de las 41 tareas del roadmap.
-- **Próxima tarea:** `Task/003-Crear-Infraestructura-Local` — *Pendiente, no iniciada*.
-- **Tareas aprobadas:** 2 de 41 (5 %).
-- **Implementación:** **no ha comenzado**. No existe código de aplicación, ni
-  Docker Compose, ni Terraform, ni recursos cloud creados.
+- **Etapa actual:** ETAPA 01 — Infraestructura Local, **en curso** (1 de 2).
+- **Última tarea aprobada:** `Task/003-Crear-Infraestructura-Local` (2026-07-29). Su PR
+  `Task/003 → main` queda pendiente de revisión y fusión del usuario.
+- **Próxima tarea:** `Task/004-Backups-y-Recuperacion-Local` — *Pendiente, no iniciada*.
+- **Tareas aprobadas:** 3 de 41 (7 %).
+
+Estado de la implementación:
+
+| Área | Estado |
+| --- | --- |
+| **Infraestructura local** | **Comenzada** con `Task/003`, aprobada: existe `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE. |
+| **Backend** (FastAPI) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/005`. |
+| **Frontend** (React) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/006`. |
+| **Terraform e infraestructura cloud** | **No existen.** Sin archivos `.tf`. Empieza en `Task/025`. |
+| **Recursos cloud y cuentas** | **Ninguno creado.** Etapas 09 y 10. |
 
 Consulta siempre [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md)
 para el estado vigente.
@@ -57,7 +63,7 @@ cualquier cuenta o recurso en la nube (ver [ADR-001](docs/adr/ADR-001-local-firs
 | Backend | FastAPI (Python) |
 | Base de datos | PostgreSQL en contenedor |
 | Almacenamiento de objetos | MinIO (compatible con S3) |
-| Entrada HTTP | Reverse proxy local |
+| Entrada HTTP | Traefik v3 como reverse proxy local (`Task/007`) |
 | Orquestación | Docker Compose |
 | Supervisión de contenedores | Portainer CE (**solo local**) |
 | Integración continua | GitHub Actions |
@@ -69,6 +75,38 @@ de Docker: ver contenedores, logs, healthchecks, volúmenes y redes durante el
 desarrollo y la validación local.
 
 **Portainer no se despliega en producción** y no forma parte de la arquitectura cloud.
+
+> **Advertencia de privilegio.** Portainer accede al socket del daemon de Docker y
+> conserva **capacidad administrativa sobre el host**: puede administrar contenedores,
+> redes y volúmenes de este y de cualquier otro proyecto de la máquina. El montaje `:ro`
+> del socket protege el **archivo**, pero **no** convierte la Docker API en solo lectura,
+> y la separación de redes tampoco limita esas acciones. El riesgo se acepta únicamente
+> porque es local, se publica en `127.0.0.1` y exige autenticación propia.
+> **No lo expongas a la red local ni a internet.** Detalle:
+> [runbook §2.1](docs/runbooks/local-environment.md).
+
+### Levantar el entorno local
+
+Entregado por `Task/003`, **aprobado** el 2026-07-29:
+
+```powershell
+Copy-Item .env.example .env     # solo la primera vez
+docker compose up -d
+docker compose ps
+```
+
+| Servicio | Acceso local |
+| --- | --- |
+| PostgreSQL | `127.0.0.1:55432` |
+| MinIO — API S3 | `http://127.0.0.1:9000` |
+| MinIO — consola | `http://127.0.0.1:9001` |
+| Portainer | `https://127.0.0.1:9444` |
+
+Todos los puertos se publican **solo en la interfaz de loopback**. Operación completa,
+verificación y diagnóstico: [docs/runbooks/local-environment.md](docs/runbooks/local-environment.md).
+
+> El entorno **todavía no tiene copia de seguridad**: `docker compose down -v` destruye
+> la base de datos y los objetos. El respaldo se define en `Task/004`.
 
 ---
 
@@ -123,7 +161,11 @@ y las convenciones de API en
 ## 5. Dónde está el roadmap
 
 ```
+docker-compose.yml                     ← entorno local: PostgreSQL, MinIO, Portainer
+.env.example                           ← variables del entorno local (valores ficticios)
 docs/
+├── runbooks/
+│   └── local-environment.md           ← arranque, parada, verificación, diagnóstico
 ├── project-management/
 │   ├── ROADMAP.md                     ← etapas, tareas, dependencias y avance
 │   ├── STATUS.md                      ← estado vigente (fuente rápida de consulta)
@@ -172,8 +214,9 @@ Estados oficiales: `Pendiente`, `En progreso`, `Lista para validación`, `Aproba
 - `dev` — integración de tareas aprobadas.
 - `Task/<numero>-<nombre>` — trabajo aislado de una tarea, creado desde `dev`.
 
-`main` y `dev` existen y están publicadas en los tres repositorios, con el mismo
-contenido. Estado vigente de las ramas en
+`main` y `dev` existen y están publicadas en los tres repositorios. En
+`personal-blog-infra`, `dev` contiene además `Task/003` mientras su pull request hacia
+`main` espera la decisión del usuario. Estado vigente de las ramas en
 [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md), sección
 *Estado de los repositorios*.
 
