@@ -34,13 +34,20 @@ terraform.rc
 tfplan
 *.tfplan
 
-# Datos y volúmenes locales (uso futuro)
+# Datos y volúmenes locales
 data/
 volumes/
 backups/
 dumps/
 *.dump
 *.sql.gz
+
+# Conjuntos de respaldo locales (Task/004)
+# Contienen datos reales del blog y la configuración de Portainer, incluidos
+# hashes de autenticación. NUNCA se versionan.
+local-backups/
+*.tar.gz
+!docs/**/*.tar.gz.example
 
 # Logs
 logs/
