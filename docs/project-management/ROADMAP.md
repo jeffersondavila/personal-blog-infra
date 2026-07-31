@@ -2,9 +2,9 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-07-26
+- **Última actualización:** 2026-07-29
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md))
-- **Avance global:** **5 %** (2 de 41 tareas aprobadas)
+- **Avance global:** **7 %** (3 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -19,7 +19,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | # | Etapa | Tareas | Aprobadas | Avance | Estado | Depende de |
 | --- | --- | --- | --- | --- | --- | --- |
 | 00 | Fundación y Gobierno | 2 | 2 | 100 % | **Completada** | — |
-| 01 | Infraestructura Local | 2 | 0 | 0 % | **Siguiente** | 00 ✔ |
+| 01 | Infraestructura Local | 2 | 1 | **50 %** | **En curso** | 00 ✔ |
 | 02 | Fundaciones de las Aplicaciones | 3 | 0 | 0 % | Pendiente | 01 |
 | 03 | Dominio y Backend | 5 | 0 | 0 % | Pendiente | 02 |
 | 04 | Experiencia del Usuario | 3 | 0 | 0 % | Pendiente | 03 |
@@ -31,7 +31,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **2** | **5 %** | | |
+| | **Total** | **41** | **3** | **7 %** | | |
 
 ---
 
@@ -67,10 +67,13 @@ persistentes y capacidad de respaldo y recuperación.
 **Dependencias:** Etapa 00.
 **Hito que completa:** *Entorno local reproducible y recuperable.*
 **Ficha:** [STAGE-01-local-infrastructure.md](../stages/STAGE-01-local-infrastructure.md)
+**Documentos producidos hasta ahora:** [local-environment.md](../runbooks/local-environment.md)
+**Decisiones resueltas:** D-05 — **Traefik v3** como reverse proxy local, a implementar en
+`Task/007` (ver [open-decisions.md](../architecture/open-decisions.md)).
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/003-Crear-Infraestructura-Local` | Docker Compose. PostgreSQL. MinIO. Portainer. Redes. Volúmenes. Healthchecks. | infra | 002 | Pendiente |
+| `Task/003-Crear-Infraestructura-Local` | Docker Compose. PostgreSQL. MinIO. Portainer. Redes. Volúmenes. Healthchecks. | infra | 002 | **Aprobada** (2026-07-29) |
 | `Task/004-Backups-y-Recuperacion-Local` | Backup y restauración de PostgreSQL. Persistencia de MinIO. Respaldo de Portainer. Reconstrucción del entorno. | infra | 003 | Pendiente |
 
 ---
@@ -268,6 +271,6 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `2 / 41 = 5 %`.
+Actualmente: `3 / 41 = 7 %`.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

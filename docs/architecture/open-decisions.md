@@ -3,8 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Fecha** | 2026-07-26 |
-| **Decisiones abiertas** | 13 |
+| **Última actualización** | 2026-07-29 (`Task/003`) |
+| **Decisiones abiertas** | **12** — D-05 **resuelta** el 2026-07-29 |
+| **Decisiones resueltas** | 1 (D-05) |
 
 Registro explícito de lo que **todavía no está decidido**, cuándo debe decidirse, qué
 información hará falta y qué se ve afectado.
@@ -26,7 +27,7 @@ ADR.
 | D-02 | Mecanismo concreto de autenticación | `Task/011` | Abierta |
 | D-03 | Biblioteca de componentes visuales | `Task/013` | Abierta |
 | D-04 | Editor Markdown | `Task/015` | Abierta |
-| D-05 | Reverse proxy local concreto | `Task/003` | Abierta |
+| D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
 | D-06 | Backend de estado de Terraform | `Task/025` | Abierta |
 | D-07 | Dominio definitivo | `Task/035` | Abierta |
 | D-08 | Estrategia definitiva de CDN para medios | `Task/030` | Abierta |
@@ -90,14 +91,44 @@ ADR.
 - **Restricción ya fijada:** el backend almacena Markdown original y el render se
   sanitiza (ver [ADR-005](../adr/ADR-005-markdown-content.md)).
 
-## D-05 — Reverse proxy local concreto
+## D-05 — Reverse proxy local concreto — **RESUELTA**
 
-- **Se resuelve en:** `Task/003-Crear-Infraestructura-Local`
+- **Resuelta en:** `Task/003-Crear-Infraestructura-Local`
+- **Estado:** **Resuelta** el 2026-07-29, al aprobar el usuario `Task/003` con
+  `approved: Task/003-Crear-Infraestructura-Local`.
+- **Decisión: Traefik v3.**
+- **Se implementa en:** `Task/007-Integracion-Local`. `Task/003` eligió la tecnología pero
+  **no despliega el servicio**: la Etapa 01 deja el reverse proxy con aplicaciones reales
+  para la Etapa 02, y en `Task/003` no existe todavía ninguna aplicación a la que enrutar.
 - **Información necesaria:** simplicidad de configuración; soporte de rutas para sitio y
   API; comportamiento equivalente al de API Gateway; peso de la imagen; healthchecks.
 - **Afecta a:** Docker Compose (`Task/003`), integración local (`Task/007`), paridad con
   producción (`Task/022`).
-- **Por qué se difiere:** es una decisión local y reversible; no condiciona la nube.
+- **Por qué se difirió:** era una decisión local y reversible; no condiciona la nube.
+- **ADR:** ninguno. Por ser local y reversible no exige registro arquitectónico.
+
+### Decisión: Traefik v3
+
+`Task/003` levantó PostgreSQL, MinIO y Portainer, pero **no desplegó el reverse proxy**:
+la Etapa 01 deja el proxy con aplicaciones reales para la Etapa 02, y en esa tarea no
+existía todavía ninguna aplicación a la que enrutar. Se eligió la tecnología; el servicio
+se implementa en `Task/007-Integracion-Local`.
+
+| Criterio | Traefik v3 | Nginx | Caddy |
+| --- | --- | --- | --- |
+| Simplicidad de configuración | Descubre los servicios por etiquetas del propio Compose. | Exige mantener `nginx.conf` sincronizado a mano con el Compose. | Configuración breve, en archivo aparte. |
+| Rutas de sitio y de API | Por prefijo de ruta y por host, mediante etiquetas. | Soportado. | Soportado. |
+| Equivalencia con API Gateway HTTP API | Alta: enrutado por ruta y middlewares de CORS y límite de tasa, las mismas capacidades previstas en `Task/033`. | Media: CORS a mano. | Media. |
+| Peso de la imagen | ~200 MB | ~50 MB | ~50 MB |
+| Healthchecks | `traefik healthcheck` incluido en la imagen. | Requiere `curl` o `wget` en la imagen. | Endpoint propio. |
+
+**Compensación aceptada:** Traefik pesa unas cuatro veces más que las alternativas. Se
+acepta porque elimina la duplicación de la topología entre el Compose y un archivo de
+configuración paralelo, que es la fuente habitual de desajustes en un entorno local que
+cambia con frecuencia.
+
+**Aceptada** el 2026-07-29 por el usuario, junto con la aprobación de `Task/003`.
+No requiere ADR: es una decisión local y reversible.
 
 ## D-06 — Backend de estado de Terraform
 
@@ -191,6 +222,12 @@ cerrado:
 | Estrategia local-first | [ADR-001](../adr/ADR-001-local-first.md) |
 | Tres repositorios separados | [ADR-002](../adr/ADR-002-three-repositories.md) |
 | Nube serverless de bajo costo; exclusión de EC2, ECS, EKS, ECR, ALB y NAT Gateway | [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) |
+
+### Aprobadas en `Task/003` (2026-07-29)
+
+| Decisión | Dónde |
+| --- | --- |
+| **Traefik v3** como reverse proxy local (D-05), a implementar en `Task/007` | D-05, en este documento |
 
 ### Aprobadas en `Task/002` (2026-07-26)
 
