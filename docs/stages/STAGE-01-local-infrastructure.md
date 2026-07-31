@@ -3,13 +3,14 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 01 |
-| **Estado** | **En curso** |
+| **Estado** | **Completada** |
 | **Dependencias** | [ETAPA 00](STAGE-00-foundation.md) |
 | **Tareas** | 2 |
-| **Aprobadas** | 1 |
-| **Avance** | **50 %** |
-| **Hito que completa** | Entorno local reproducible y recuperable. |
-| **Última actualización** | 2026-07-29 |
+| **Aprobadas** | 2 |
+| **Avance** | **100 %** |
+| **Hito que completa** | Entorno local reproducible y recuperable. ✔ |
+| **Completada** | 2026-07-31 |
+| **Última actualización** | 2026-07-31 |
 
 ---
 
@@ -50,15 +51,29 @@ consumen. Y un entorno que no se puede reconstruir ni restaurar no es un entorno
 implementa en `Task/007-Integracion-Local`. Ver
 [open-decisions.md](../architecture/open-decisions.md).
 
-### `Task/004-Backups-y-Recuperacion-Local` — *Pendiente*
+### `Task/004-Backups-y-Recuperacion-Local` — **Aprobada** (2026-07-31)
 
-- Backup y restauración de PostgreSQL.
-- Verificación de persistencia de MinIO.
-- Respaldo de la configuración de Portainer.
-- Procedimiento de reconstrucción completa del entorno desde cero.
+- [x] Backup y restauración de PostgreSQL con `pg_dump` / `pg_restore`, en caliente.
+- [x] Copia del **contenido** de los objetos de MinIO, verificada por SHA-256.
+- [x] Copia de los **metadatos y tags** de cada objeto, reaplicados y verificados al
+      restaurar. El **historial de versiones** queda fuera del alcance y se detecta.
+- [x] Registro de la **configuración de cada bucket**, sin reaplicarla al restaurar.
+- [x] Respaldo del volumen de datos y configuración de Portainer.
+- [x] Conjunto de respaldo por fecha, con manifiesto y checksums SHA-256.
+- [x] Prueba de restauración en un entorno temporal **aislado** del principal.
+- [x] Procedimiento de reconstrucción completa del entorno desde cero.
+- [x] Política manual mínima de retención.
 
-**Depende de:** `Task/003`.
+**Depende de:** `Task/003` — Aprobada ✔.
 **Repositorio:** `personal-blog-infra`.
+**Ficha:** [TASK-004](../tasks/TASK-004-local-backups-and-recovery.md) ·
+**Reporte:** [TASK-004-report](../task-reports/TASK-004-report.md) ·
+**Runbook:** [local-backup-and-recovery.md](../runbooks/local-backup-and-recovery.md) ·
+**Scripts:** [scripts/backup/](../../scripts/backup/README.md)
+
+> La copia es **externa a los volúmenes de Docker**: `Task/003` demostró que los datos
+> sobreviven a `docker compose down`, y `Task/004` demuestra que sobreviven a
+> `docker compose down -v`, que sí destruye los volúmenes.
 
 ## Criterios de salida de la etapa
 
@@ -72,14 +87,18 @@ implementa en `Task/007-Integracion-Local`. Ver
       administrativa sobre el host. Ver R-09 en
       [STATUS](../project-management/STATUS.md) y el
       [runbook §2.1](../runbooks/local-environment.md).
-- [ ] Existe un backup restaurable de PostgreSQL, verificado. — **`Task/004`.**
-- [ ] Existe un runbook de reconstrucción del entorno. — parcial: `Task/003` entrega
-      [local-environment.md](../runbooks/local-environment.md) con arranque, parada,
-      verificación, diagnóstico y reconstrucción **sin recuperación de datos**. La
-      recuperación es de `Task/004`.
+- [x] Existe un backup restaurable de PostgreSQL, verificado. — `Task/004`: volcado
+      `pg_dump` custom, checksums SHA-256 y **restauración probada** en instancia temporal
+      aislada, con el dato de verificación recuperado íntegro.
+- [x] Existe un runbook de reconstrucción del entorno. — `Task/003` entrega
+      [local-environment.md](../runbooks/local-environment.md) (arranque, parada,
+      verificación, diagnóstico) y `Task/004`
+      [local-backup-and-recovery.md](../runbooks/local-backup-and-recovery.md)
+      (respaldo, verificación y **recuperación tras pérdida total**).
 
-> Los cuatro primeros criterios quedaron **confirmados** con la aprobación de `Task/003`
-> el 2026-07-29. La etapa cierra cuando se apruebe `Task/004`.
+> Los cuatro primeros criterios quedaron confirmados con la aprobación de `Task/003`
+> (2026-07-29) y los dos últimos con la de `Task/004` (2026-07-31). **Los seis criterios
+> de salida están cumplidos: la ETAPA 01 queda COMPLETADA** con 2 de 2 tareas aprobadas.
 
 ## Fuera del alcance de la etapa
 
@@ -93,11 +112,29 @@ implementa en `Task/007-Integracion-Local`. Ver
 | Riesgo | Mitigación | Estado |
 | --- | --- | --- |
 | Puertos locales en conflicto con otros proyectos. | Puertos configurables por `.env`, documentados. En `Task/003` se materializó: otro proyecto ya ocupaba `5432` y `9443`, y se eligieron `55432` y `9444`. | **Materializado y mitigado** |
-| Pérdida de datos al recrear contenedores. | Volúmenes nombrados, verificados en `Task/003`; backup verificado en `Task/004`. | Mitigado a medias — ver R-08 en [STATUS](../project-management/STATUS.md) |
+| Pérdida de datos al recrear contenedores. | Volúmenes nombrados, verificados en `Task/003`; backup externo con restauración demostrada en `Task/004`. | **Mitigado** — R-08 cerrado; queda R-11 (el backup es manual) |
 | Credenciales de desarrollo filtradas al repositorio. | `.env` ignorado por `.gitignore`; solo `.env.example` con valores ficticios `change-me-*`. Verificado en `Task/003`. | Mitigado |
 | Imágenes fijadas que envejecen y acumulan vulnerabilidades. | Escaneo en `Task/018`; validación del Compose en CI en `Task/021`. | Abierto — R-10 |
 | Portainer conserva capacidad administrativa sobre el daemon de Docker. | Aceptado por ser local, publicado en `127.0.0.1` y autenticado. No exponerlo nunca. Socket proxy a evaluar en `Task/018`. | Abierto — R-09 |
 
+## Resultado de la etapa
+
+Con `Task/003` y `Task/004` aprobadas, el proyecto dispone de un **entorno local
+reproducible y recuperable**:
+
+| Entregable | Dónde |
+| --- | --- |
+| Docker Compose con PostgreSQL, MinIO y Portainer CE | [`docker-compose.yml`](../../docker-compose.yml) |
+| Variables documentadas con valores ficticios | [`.env.example`](../../.env.example) |
+| Operación del entorno | [local-environment.md](../runbooks/local-environment.md) |
+| Respaldo, verificación y recuperación | [local-backup-and-recovery.md](../runbooks/local-backup-and-recovery.md) |
+| Scripts de backup y restauración | [scripts/backup/](../../scripts/backup/README.md) |
+
+Decisión resuelta en la etapa: **D-05 — Traefik v3** como reverse proxy local, a
+implementar en `Task/007`.
+
 ## Siguiente etapa
 
-[ETAPA 02 — Fundaciones de las Aplicaciones](STAGE-02-application-foundations.md)
+[ETAPA 02 — Fundaciones de las Aplicaciones](STAGE-02-application-foundations.md), que
+empieza con `Task/005-Fundacion-Backend-FastAPI`: el **primer código de aplicación** del
+proyecto, en `personal-blog-backend`.
