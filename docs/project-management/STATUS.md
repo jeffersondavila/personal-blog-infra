@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-07-29
+**Última actualización:** 2026-07-31
 
 ---
 
@@ -8,15 +8,15 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 01 — Infraestructura Local (**en curso**, 1 de 2). ETAPA 00 **completada** |
-| **Tarea actual** | `Task/003-Crear-Infraestructura-Local` — cerrada; PR pendiente de revisión en `main` |
-| **Estado de la tarea** | **Aprobada** — cierre autorizado el 2026-07-29 |
-| **Última tarea aprobada** | `Task/003-Crear-Infraestructura-Local` — **Aprobada** el 2026-07-29 por jeffersondavila |
+| **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones (siguiente). ETAPAS 00 y 01 **completadas** |
+| **Tarea actual** | `Task/004-Backups-y-Recuperacion-Local` — cerrada; PR pendiente de revisión en `main` |
+| **Estado de la tarea** | **Aprobada** — cierre autorizado el 2026-07-31 |
+| **Última tarea aprobada** | `Task/004-Backups-y-Recuperacion-Local` — **Aprobada** el 2026-07-31 por jeffersondavila |
 | **Último mantenimiento aprobado** | `Task/002.1-Configurar-Claude-Code` — **Aprobada** el 2026-07-26; PR `#3` fusionado por el usuario |
-| **Próxima tarea prevista** | `Task/004-Backups-y-Recuperacion-Local` (Pendiente, no iniciada) |
-| **Avance global** | **7 %** — 3 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/005-Fundacion-Backend-FastAPI` (Pendiente, no iniciada) |
+| **Avance global** | **10 %** — 4 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 9 (R-01 cerrado) |
+| **Riesgos abiertos** | 11 (R-01 y **R-08** cerrados) |
 
 > El avance se calcula **solo** con tareas `Aprobada`.
 
@@ -26,26 +26,45 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Tarea** | `Task/003-Crear-Infraestructura-Local` |
+| **Tarea** | `Task/004-Backups-y-Recuperacion-Local` |
 | **Etapa** | ETAPA 01 — Infraestructura Local |
 | **Estado** | **Aprobada** |
-| **Fecha de inicio** | 2026-07-28 |
-| **Fecha de aprobación** | 2026-07-29 |
+| **Fecha de inicio** | 2026-07-31 |
+| **Fecha de aprobación** | 2026-07-31 |
 | **Aprobado por** | jeffersondavila (usuario) |
-| **Expresión de aprobación** | `approved: Task/003-Crear-Infraestructura-Local` |
+| **Expresión de aprobación** | `approved: Task/004-Backups-y-Recuperacion-Local` |
 | **Repositorios afectados** | `personal-blog-infra` (únicamente) |
-| **Rama de cierre** | `Task/003-Crear-Infraestructura-Local`, creada desde `dev` |
-| **Alcance entregado** | Docker Compose con PostgreSQL, MinIO y Portainer CE; dos redes; tres volúmenes nombrados; healthchecks; `.env.example`; runbook de operación |
+| **Rama de cierre** | `Task/004-Backups-y-Recuperacion-Local`, creada desde `dev` |
+| **Alcance entregado** | 5 scripts PowerShell de backup, verificación, restauración aislada y limpieza; conjunto de respaldo con manifiesto y checksums SHA-256; inventario de **metadatos y tags** de MinIO y de **configuración de buckets**; runbook de backup y recuperación; `local-backups/` ignorado por Git |
+| **Prueba de restauración** | **Ejecutada y superada** en entorno temporal aislado: PostgreSQL, MinIO (contenido, metadatos y tags) y Portainer |
+| **Alcance en MinIO** | Versión **actual** de cada objeto: contenido, metadatos y tags. El **historial de versiones** queda fuera del alcance y la **configuración de los buckets** se registra pero no se reaplica; el script lo detecta y aborta salvo `-AllowPartial` |
 | **Integración en `dev`** | Merge `--no-ff`, publicado |
-| **Pull request** | `Task/003-Crear-Infraestructura-Local → main` — **abierto, sin fusionar**. Pendiente de revisión y decisión del usuario |
+| **Pull request** | `Task/004-Backups-y-Recuperacion-Local → main` — **abierto, sin fusionar**. Pendiente de revisión y decisión del usuario |
 | **Rama Task** | Local **eliminada** con `git branch -d`; remota **conservada** mientras exista el PR |
-| **Decisión promovida** | **D-05 → Resuelta**: Traefik v3 como reverse proxy local, a implementar en `Task/007` |
-| **Ficha** | [TASK-003](../tasks/TASK-003-create-local-infrastructure.md) |
-| **Reporte** | [TASK-003-report](../task-reports/TASK-003-report.md) |
-| **Runbook producido** | [local-environment.md](../runbooks/local-environment.md) — **Vigente** |
+| **Riesgo cerrado** | **R-08** — el entorno local ya tiene copia externa a los volúmenes, verificada y restaurable |
+| **Ficha** | [TASK-004](../tasks/TASK-004-local-backups-and-recovery.md) |
+| **Reporte** | [TASK-004-report](../task-reports/TASK-004-report.md) |
+| **Runbook producido** | [local-backup-and-recovery.md](../runbooks/local-backup-and-recovery.md) — **Vigente** |
 
-`Task/004` **no puede iniciarse** hasta que el usuario fusione el PR y se complete la
+Con esta aprobación **la ETAPA 01 queda completada** (2 de 2 tareas).
+
+`Task/005` **no puede iniciarse** hasta que el usuario fusione el PR y se complete la
 normalización posterior `main → dev`.
+
+---
+
+## Tarea aprobada anterior
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/003-Crear-Infraestructura-Local` |
+| **Estado** | **Aprobada y cerrada** |
+| **Fecha de aprobación** | 2026-07-29 |
+| **Pull request** | `Task/003-Crear-Infraestructura-Local → main` (`#4`) — **fusionado** el 2026-07-31, commit `966db01` |
+| **Normalización posterior** | `main` integrada en `dev` mediante el merge `708a71e` |
+| **Rama Task** | Eliminada local y remotamente |
+| **Decisión promovida** | **D-05 → Resuelta**: Traefik v3 como reverse proxy local, a implementar en `Task/007` |
+| **Runbook producido** | [local-environment.md](../runbooks/local-environment.md) — **Vigente** |
 
 ---
 
@@ -77,7 +96,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | Etapa | Tareas | Aprobadas | Avance |
 | --- | --- | --- | --- |
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
-| 01 — Infraestructura Local | 2 | 1 | **50 %** |
+| 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 0 | 0 % |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
@@ -89,16 +108,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **3** | **7 %** |
+| **Total** | **41** | **4** | **10 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 38 |
+| Pendiente | 37 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **3** |
+| **Aprobada** | **4** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -131,7 +150,10 @@ Distribución por estado:
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
 | R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
 | R-07 | El render de Markdown en el cliente puede resultar insuficiente para SEO. | Medio | Metadatos, Open Graph, canonical, sitemap y datos estructurados en `Task/016`; si no basta, se reconsidera [ADR-005](../adr/ADR-005-markdown-content.md). | Abierto |
-| R-08 | El entorno local no tiene copia de seguridad: `docker compose down -v` destruye la base de datos y los objetos de MinIO sin recuperación posible. | Alto | `Task/004-Backups-y-Recuperacion-Local` es la tarea inmediatamente siguiente. Mientras tanto, el [runbook](../runbooks/local-environment.md) marca `-v` como destructivo. | Abierto |
+| R-08 | El entorno local no tiene copia de seguridad: `docker compose down -v` destruye la base de datos y los objetos de MinIO sin recuperación posible. | Alto | **Resuelto** por `Task/004`, aprobada el 2026-07-31: existe un procedimiento de respaldo con integridad verificada por SHA-256 y **restauración demostrada** en entorno aislado para los tres servicios, incluidos metadatos y tags de MinIO. Ver [runbook de backup](../runbooks/local-backup-and-recovery.md). Queda el riesgo residual **R-11**. | **Cerrado** (2026-07-31) |
+| R-11 | El backup es **manual**: si nadie lo ejecuta, se pierde todo lo hecho desde la última copia. | Medio | Política de retención en el [runbook](../runbooks/local-backup-and-recovery.md) §11, que exige backup antes de toda operación destructiva. La automatización programada queda fuera del alcance de `Task/004`. | Abierto |
+| R-12 | Los artefactos de respaldo son sensibles —incluyen los hashes de autenticación de Portainer— y se guardan **sin cifrar** en el equipo. | Medio | `local-backups/` ignorado por Git y documentado como sensible en el runbook, en `scripts/backup/README.md` y en el `.gitignore`. El cifrado queda fuera del alcance; se revisará en `Task/018`. | Abierto |
+| R-13 | La copia de Portainer exige detener su contenedor: una interrupción anómala podría dejarlo parado. | Bajo | El arranque está dentro de un bloque `finally`: se ejecuta aunque la copia falle. Si aun así quedara parado, `docker start personal-blog-local-portainer` lo resuelve. | Abierto |
 | R-09 | Portainer tiene acceso al socket del daemon de Docker y conserva **capacidad administrativa sobre el host**: puede crear, detener, eliminar y modificar contenedores, redes y volúmenes de este y de cualquier otro proyecto de la máquina. El montaje `:ro` protege el **archivo** del socket pero **no** convierte la Docker API en solo lectura, y la separación de redes **no** limita las acciones enviadas por el daemon. Agravante: conviven dos instancias de Portainer sobre el mismo daemon. | **Medio** | El riesgo se acepta únicamente porque Portainer es **local**, se publica en **`127.0.0.1`** y exige **autenticación propia**. **Regla vigente: no exponerlo nunca** a la red local ni a internet. Un control real de solo lectura exigiría un **socket proxy** o una política de autorización adicional, fuera del alcance de `Task/003`; se propone evaluarlo en `Task/018`. Detalle: [runbook §2.1](../runbooks/local-environment.md). | Abierto |
 | R-10 | Las etiquetas de imagen fijadas envejecen y acumulan vulnerabilidades sin corregir. | Medio | Escaneo de imágenes en `Task/018-Endurecimiento-de-Seguridad`; validación del Compose en cada cambio en `Task/021-CI-Infraestructura`. | Abierto |
 
@@ -144,7 +166,7 @@ Distribución por estado:
 | `Task/001-Inicializar-Workspace-y-Roadmap` | 00 | infra, frontend, backend | **Aprobada** |
 | `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Aprobada** |
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | **Aprobada** |
-| `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | Pendiente |
+| `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | **Aprobada** |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend | Pendiente |
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend | Pendiente |
 | `Task/007-Integracion-Local` | 02 | infra, frontend, backend | Pendiente |
@@ -189,7 +211,7 @@ Distribución por estado:
 
 | Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `Task/003-Crear-Infraestructura-Local` (remota durante el PR) | `main` tras completar el cierre local | No; `dev` contiene `Task/003` mientras el PR espera al usuario |
+| `personal-blog-infra` | `main`, `dev`, `Task/004-Backups-y-Recuperacion-Local` (remota durante el PR) | `main` tras completar el cierre local | No; `dev` contiene `Task/004` mientras el PR espera al usuario |
 | `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
 | `personal-blog-backend` | `main`, `dev` | `main` | Sí |
 
@@ -212,11 +234,15 @@ Distribución por estado:
   mediante el merge `cca847c`.
 - `Task/003-Crear-Infraestructura-Local` se creó desde `dev` **solo en
   `personal-blog-infra`**: la tarea no modifica frontend ni backend.
-- `Task/003` fue **aprobada** el 2026-07-29. Su cierre integró el trabajo en `dev` con
-  merge `--no-ff`, publicó la rama Task y abrió el PR
-  `Task/003-Crear-Infraestructura-Local → main` **sin fusionarlo**. La rama Task local se
-  eliminó con `git branch -d`; la remota se conserva mientras el PR espera al usuario.
-- Frontend y backend permanecen en `main` con el árbol limpio y sin rama `Task/003`.
+- `Task/003` fue **aprobada** el 2026-07-29. Su PR `#4` fue **fusionado** por el usuario el
+  2026-07-31 (commit `966db01`), la rama Task se eliminó local y remotamente, y la
+  normalización posterior integró `main` en `dev` mediante el merge `708a71e`.
+- `Task/004-Backups-y-Recuperacion-Local` se creó desde `dev` **solo en
+  `personal-blog-infra`**: la tarea no modifica frontend ni backend. Fue **aprobada** el
+  2026-07-31; su cierre la integró en `dev` con merge `--no-ff`, publicó la rama Task y
+  abrió el PR `Task/004 → main` **sin fusionarlo**. La rama Task local se eliminó con
+  `git branch -d`; la remota se conserva mientras el PR espera al usuario.
+- Frontend y backend permanecen en `main` con el árbol limpio y sin rama `Task/004`.
 
 ---
 
@@ -225,19 +251,30 @@ Distribución por estado:
 - **La implementación del blog no ha comenzado.** No existe código React ni FastAPI en
   ningún repositorio.
 - **`Task/003` produjo el primer artefacto ejecutable del proyecto:** un
-  `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE, **aprobado** e integrado en
-  `dev`.
+  `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE, **aprobado** y fusionado en
+  `main`.
+- **`Task/004` añade el respaldo y la recuperación local:** 5 scripts PowerShell y un
+  runbook, **aprobados**. La restauración se **probó realmente** en un entorno temporal
+  aislado y los tres servicios se recuperaron con sus datos íntegros. En MinIO se
+  verifican **contenido, metadatos y tags** de la versión actual de cada objeto; el
+  historial de versiones queda fuera del alcance y se detecta explícitamente.
+- Con `Task/004`, la **ETAPA 01 queda completada** (2 de 2 tareas) y el avance global
+  pasa a **4 de 41 (10 %)**.
+- **Ningún backup real se versiona:** `local-backups/` está ignorado por Git.
 - **No existe Terraform** en ningún repositorio.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
 - `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
   ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
-- ADR-001 a ADR-005 están todos en estado **Aceptada**. `Task/003` **no creó ningún ADR
-  nuevo**: su única decisión, D-05, es local y reversible y quedó **Resuelta** con
-  **Traefik v3** al aprobarse la tarea.
+- ADR-001 a ADR-005 están todos en estado **Aceptada**. Ni `Task/003` ni `Task/004`
+  crearon ADR nuevos: sus decisiones son de implementación local y reversibles. D-05
+  quedó **Resuelta** con **Traefik v3** al aprobarse `Task/003`.
 - **Decisiones diferidas: 12 abiertas** (eran 13; D-05 resuelta el 2026-07-29).
 - `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno, está **Aprobada** y
   cerrada, y no forma parte de las 41 tareas del roadmap.
-- `Task/004` **no ha sido iniciada**.
+- La **ETAPA 01 está completada** (2 de 2 tareas aprobadas). La siguiente es la
+  **ETAPA 02 — Fundaciones de las Aplicaciones**, que empieza con `Task/005` en
+  `personal-blog-backend`: será el **primer código de aplicación** del proyecto.
+- `Task/005` **no ha sido iniciada**.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) ·
@@ -245,7 +282,9 @@ Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-002](../tasks/TASK-002-define-mvp-and-architecture.md) ·
 [Reporte TASK-002](../task-reports/TASK-002-report.md) ·
 [TASK-003](../tasks/TASK-003-create-local-infrastructure.md) ·
-[Reporte TASK-003](../task-reports/TASK-003-report.md)
+[Reporte TASK-003](../task-reports/TASK-003-report.md) ·
+[TASK-004](../tasks/TASK-004-local-backups-and-recovery.md) ·
+[Reporte TASK-004](../task-reports/TASK-004-report.md)
 
 Documentos de producto y arquitectura producidos por `Task/002`:
 [MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·

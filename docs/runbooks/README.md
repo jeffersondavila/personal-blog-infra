@@ -33,10 +33,10 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 | Runbook | Entorno | Estado |
 | --- | --- | --- |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |
+| [local-backup-and-recovery.md](local-backup-and-recovery.md) | Local (backup y recuperación) | **Vigente** — aprobado en `Task/004` (2026-07-31) |
 
 Pendientes según el roadmap:
 
 | Runbook previsto | Tarea |
 | --- | --- |
-| Backup y recuperación local | `Task/004-Backups-y-Recuperacion-Local` |
 | Despliegue, rollback y destrucción en la nube | `Task/026-Runbooks-de-Despliegue` |
