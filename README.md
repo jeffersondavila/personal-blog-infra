@@ -31,17 +31,19 @@ Repositorios hermanos:
 ## 2. Estado actual del proyecto
 
 - **ETAPA 00 — Fundación y Gobierno: completada** (2 de 2 tareas aprobadas).
-- **Etapa actual:** ETAPA 01 — Infraestructura Local, **en curso** (1 de 2).
-- **Última tarea aprobada:** `Task/003-Crear-Infraestructura-Local` (2026-07-29). Su PR
-  `Task/003 → main` queda pendiente de revisión y fusión del usuario.
-- **Próxima tarea:** `Task/004-Backups-y-Recuperacion-Local` — *Pendiente, no iniciada*.
-- **Tareas aprobadas:** 3 de 41 (7 %).
+- **ETAPA 01 — Infraestructura Local: completada** (2 de 2 tareas aprobadas).
+- **Etapa siguiente:** ETAPA 02 — Fundaciones de las Aplicaciones.
+- **Última tarea aprobada:** `Task/004-Backups-y-Recuperacion-Local` (2026-07-31). Su PR
+  `Task/004 → main` queda pendiente de revisión y fusión del usuario.
+- **Próxima tarea:** `Task/005-Fundacion-Backend-FastAPI` — *Pendiente, no iniciada*.
+  Será el **primer código de aplicación** del proyecto.
+- **Tareas aprobadas:** 4 de 41 (10 %).
 
 Estado de la implementación:
 
 | Área | Estado |
 | --- | --- |
-| **Infraestructura local** | **Comenzada** con `Task/003`, aprobada: existe `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE. |
+| **Infraestructura local** | **Completa y respaldada.** `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE (`Task/003`), más respaldo y recuperación verificados (`Task/004`). |
 | **Backend** (FastAPI) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/005`. |
 | **Frontend** (React) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/006`. |
 | **Terraform e infraestructura cloud** | **No existen.** Sin archivos `.tf`. Empieza en `Task/025`. |
@@ -105,8 +107,28 @@ docker compose ps
 Todos los puertos se publican **solo en la interfaz de loopback**. Operación completa,
 verificación y diagnóstico: [docs/runbooks/local-environment.md](docs/runbooks/local-environment.md).
 
-> El entorno **todavía no tiene copia de seguridad**: `docker compose down -v` destruye
-> la base de datos y los objetos. El respaldo se define en `Task/004`.
+### Respaldo del entorno local
+
+Entregado por `Task/004`, **aprobado** el 2026-07-31:
+
+```powershell
+cd scripts\backup
+.\New-LocalBackup.ps1              # crear el backup
+.\Test-LocalBackup.ps1             # verificar su integridad
+.\Restore-LocalBackupTest.ps1      # probar la restauracion en aislamiento
+```
+
+Respalda PostgreSQL, MinIO y Portainer a archivos **externos a los volúmenes de Docker**,
+con manifiesto y checksums SHA-256 por ejecución. En MinIO cubre el **contenido, los
+metadatos y los tags** de la versión actual de cada objeto; el historial de versiones
+queda fuera del alcance y el script lo detecta en lugar de ignorarlo. Procedimiento
+completo y recuperación paso a paso:
+[docs/runbooks/local-backup-and-recovery.md](docs/runbooks/local-backup-and-recovery.md) ·
+Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
+
+> **`docker compose down -v` destruye la base de datos y los objetos.** Haz un backup
+> antes. Los conjuntos se guardan en `local-backups/`, que está **ignorado por Git** y
+> contiene información sensible: no los versiones ni los compartas.
 
 ---
 
@@ -163,9 +185,12 @@ y las convenciones de API en
 ```
 docker-compose.yml                     ← entorno local: PostgreSQL, MinIO, Portainer
 .env.example                           ← variables del entorno local (valores ficticios)
+scripts/
+└── backup/                            ← respaldo, verificación y restauración local
 docs/
 ├── runbooks/
-│   └── local-environment.md           ← arranque, parada, verificación, diagnóstico
+│   ├── local-environment.md           ← arranque, parada, verificación, diagnóstico
+│   └── local-backup-and-recovery.md   ← respaldo y recuperación
 ├── project-management/
 │   ├── ROADMAP.md                     ← etapas, tareas, dependencias y avance
 │   ├── STATUS.md                      ← estado vigente (fuente rápida de consulta)
@@ -215,7 +240,7 @@ Estados oficiales: `Pendiente`, `En progreso`, `Lista para validación`, `Aproba
 - `Task/<numero>-<nombre>` — trabajo aislado de una tarea, creado desde `dev`.
 
 `main` y `dev` existen y están publicadas en los tres repositorios. En
-`personal-blog-infra`, `dev` contiene además `Task/003` mientras su pull request hacia
+`personal-blog-infra`, `dev` contiene además `Task/004` mientras su pull request hacia
 `main` espera la decisión del usuario. Estado vigente de las ramas en
 [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md), sección
 *Estado de los repositorios*.
