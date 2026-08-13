@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-07-31
+**Última actualización:** 2026-08-12
 
 ---
 
@@ -8,21 +8,52 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones (siguiente). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | `Task/004-Backups-y-Recuperacion-Local` — cerrada; PR pendiente de revisión en `main` |
-| **Estado de la tarea** | **Aprobada** — cierre autorizado el 2026-07-31 |
-| **Última tarea aprobada** | `Task/004-Backups-y-Recuperacion-Local` — **Aprobada** el 2026-07-31 por jeffersondavila |
+| **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005` cerrada; `Task/006` **no iniciada** |
+| **Estado de la tarea** | — |
+| **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `Task/005 → main` **abierto, sin fusionar** en backend e infra |
 | **Último mantenimiento aprobado** | `Task/002.1-Configurar-Claude-Code` — **Aprobada** el 2026-07-26; PR `#3` fusionado por el usuario |
-| **Próxima tarea prevista** | `Task/005-Fundacion-Backend-FastAPI` (Pendiente, no iniciada) |
-| **Avance global** | **10 %** — 4 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, no iniciada; **espera** la fusión del PR y la normalización `main → dev`) |
+| **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 11 (R-01 y **R-08** cerrados) |
+| **Riesgos abiertos** | 14 (R-01 y **R-08** cerrados) |
 
-> El avance se calcula **solo** con tareas `Aprobada`.
+> El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
+> por el usuario el 2026-08-12.
 
 ---
 
-## Última tarea cerrada
+## Última tarea aprobada
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/005-Fundacion-Backend-FastAPI` |
+| **Etapa** | ETAPA 02 — Fundaciones de las Aplicaciones |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-01 |
+| **Fecha de aprobación** | 2026-08-12 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005-Fundacion-Backend-FastAPI` |
+| **Repositorios afectados** | `personal-blog-backend` (implementación) · `personal-blog-infra` (gobierno documental) |
+| **Ramas** | `Task/005-Fundacion-Backend-FastAPI` en ambos repositorios, creadas desde `dev`. **Publicadas en el cierre.** |
+| **Alcance entregado** | Proyecto FastAPI con Python 3.12; estructura de monolito modular; configuración tipada fail-fast; log JSON **con marcas de tiempo UTC explícitas**; manejo centralizado de errores; `GET /health`; OpenAPI; SQLAlchemy 2 con psycopg 3; Alembic con migración fundacional; 69 pruebas; `ruff`, `mypy` *strict*; `Dockerfile` construido **sin cache** y ejecutado |
+| **Primer código de aplicación** | Sí: es el primer código ejecutable de `personal-blog-backend` |
+| **Validaciones** | 38 ejecutadas. 69 pruebas superadas y 1 omitida con motivo, **`pytest -W error` con 0 warnings y sin filtros**, cobertura 99 %, lint, formato y tipado sin errores, imagen construida con `--no-cache`, contenedor `healthy`, ciclo `upgrade`/`downgrade`/reaplicación verificado contra PostgreSQL real, logs UTC comprobados en Windows y en Docker |
+| **Correcciones del 2026-08-11** | Revisión previa a la aprobación: **UTC real** en el log (antes dependía del sistema operativo), **advertencia de `TestClient` resuelta** sustituyendo `httpx` por `httpx2` en desarrollo, **rectificada** la afirmación errónea sobre la rotación de la contraseña de PostgreSQL en **R-16**, y confirmada la coherencia del `Dockerfile` con **R-14** |
+| **Entorno local** | **Intacto.** No se ejecutó ninguna operación destructiva; los 3 volúmenes principales siguen presentes |
+| **Integración en `dev`** | Merge `--no-ff` en ambos repositorios, publicado |
+| **Pull request** | `Task/005-Fundacion-Backend-FastAPI → main` en **backend** e **infra** — **abiertos, sin fusionar**. La fusión es responsabilidad del usuario |
+| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Riesgos nuevos** | **R-14**, **R-15** y **R-16**, los tres **abiertos** |
+| **Ficha** | [TASK-005](../tasks/TASK-005-fastapi-backend-foundation.md) |
+| **Reporte** | [TASK-005-report](../task-reports/TASK-005-report.md) |
+
+Con esta aprobación el avance global pasa a **5 de 41 (12 %)** y la **ETAPA 02** queda en
+**1 de 3** tareas aprobadas.
+
+---
+
+## Tarea aprobada anterior
 
 | Campo | Valor |
 | --- | --- |
@@ -39,8 +70,9 @@
 | **Prueba de restauración** | **Ejecutada y superada** en entorno temporal aislado: PostgreSQL, MinIO (contenido, metadatos y tags) y Portainer |
 | **Alcance en MinIO** | Versión **actual** de cada objeto: contenido, metadatos y tags. El **historial de versiones** queda fuera del alcance y la **configuración de los buckets** se registra pero no se reaplica; el script lo detecta y aborta salvo `-AllowPartial` |
 | **Integración en `dev`** | Merge `--no-ff`, publicado |
-| **Pull request** | `Task/004-Backups-y-Recuperacion-Local → main` — **abierto, sin fusionar**. Pendiente de revisión y decisión del usuario |
-| **Rama Task** | Local **eliminada** con `git branch -d`; remota **conservada** mientras exista el PR |
+| **Pull request** | `Task/004-Backups-y-Recuperacion-Local → main` (`#5`) — **fusionado** por el usuario el 2026-07-31, commit `c86d47e` |
+| **Normalización posterior** | `main` integrada en `dev` mediante el merge `5f09e22` el 2026-08-01, al iniciar `Task/005` |
+| **Rama Task** | Eliminada **local y remotamente** |
 | **Riesgo cerrado** | **R-08** — el entorno local ya tiene copia externa a los volúmenes, verificada y restaurable |
 | **Ficha** | [TASK-004](../tasks/TASK-004-local-backups-and-recovery.md) |
 | **Reporte** | [TASK-004-report](../task-reports/TASK-004-report.md) |
@@ -48,12 +80,12 @@
 
 Con esta aprobación **la ETAPA 01 queda completada** (2 de 2 tareas).
 
-`Task/005` **no puede iniciarse** hasta que el usuario fusione el PR y se complete la
-normalización posterior `main → dev`.
+El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se completó el
+2026-08-01, lo que habilitó el inicio de `Task/005`.
 
 ---
 
-## Tarea aprobada anterior
+## Tareas aprobadas previas
 
 | Campo | Valor |
 | --- | --- |
@@ -97,7 +129,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | --- | --- | --- | --- |
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
-| 02 — Fundaciones de las Aplicaciones | 3 | 0 | 0 % |
+| 02 — Fundaciones de las Aplicaciones | 3 | 1 | **33 %** — **en curso** |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
@@ -108,16 +140,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **4** | **10 %** |
+| **Total** | **41** | **5** | **12 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 37 |
+| Pendiente | 36 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **4** |
+| **Aprobada** | **5** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -156,6 +188,9 @@ Distribución por estado:
 | R-13 | La copia de Portainer exige detener su contenedor: una interrupción anómala podría dejarlo parado. | Bajo | El arranque está dentro de un bloque `finally`: se ejecuta aunque la copia falle. Si aun así quedara parado, `docker start personal-blog-local-portainer` lo resuelve. | Abierto |
 | R-09 | Portainer tiene acceso al socket del daemon de Docker y conserva **capacidad administrativa sobre el host**: puede crear, detener, eliminar y modificar contenedores, redes y volúmenes de este y de cualquier otro proyecto de la máquina. El montaje `:ro` protege el **archivo** del socket pero **no** convierte la Docker API en solo lectura, y la separación de redes **no** limita las acciones enviadas por el daemon. Agravante: conviven dos instancias de Portainer sobre el mismo daemon. | **Medio** | El riesgo se acepta únicamente porque Portainer es **local**, se publica en **`127.0.0.1`** y exige **autenticación propia**. **Regla vigente: no exponerlo nunca** a la red local ni a internet. Un control real de solo lectura exigiría un **socket proxy** o una política de autorización adicional, fuera del alcance de `Task/003`; se propone evaluarlo en `Task/018`. Detalle: [runbook §2.1](../runbooks/local-environment.md). | Abierto |
 | R-10 | Las etiquetas de imagen fijadas envejecen y acumulan vulnerabilidades sin corregir. | Medio | Escaneo de imágenes en `Task/018-Endurecimiento-de-Seguridad`; validación del Compose en cada cambio en `Task/021-CI-Infraestructura`. | Abierto |
+| R-14 | Las dependencias **transitivas** del backend no están bloqueadas: dos instalaciones en fechas distintas pueden traer versiones indirectas distintas. **Comprobado el 2026-08-11:** la imagen resolvió `starlette 1.6.0` y el entorno de Windows, instalado el 2026-08-01, tiene `starlette 1.3.1`. | Medio | Las dependencias directas están fijadas con `==` en `pyproject.toml` y `requirements.txt`, y `pip check` forma parte de las validaciones. Mientras el riesgo siga abierto, el `Dockerfile` instala con `pip install -r requirements.txt`, **sin `--require-hashes` ni `--no-deps`**, que serían incoherentes con un archivo sin hashes y sin transitivas. El bloqueo completo con hashes, resuelto en Linux, se añade en `Task/020-CI-Backend`. | Abierto (`Task/005`) |
+| R-15 | La imagen base del backend (`python:3.12.13-slim`) envejece y acumula vulnerabilidades sin corregir. | Medio | Misma naturaleza que R-10. Escaneo de la imagen en `Task/018` y verificación en CI en `Task/020`. | Abierto (`Task/005`) |
+| R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
 
 ---
 
@@ -167,7 +202,7 @@ Distribución por estado:
 | `Task/002-Definir-MVP-y-Arquitectura` | 00 | infra | **Aprobada** |
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | **Aprobada** |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | **Aprobada** |
-| `Task/005-Fundacion-Backend-FastAPI` | 02 | backend | Pendiente |
+| `Task/005-Fundacion-Backend-FastAPI` | 02 | backend, infra (documentación) | **Aprobada** |
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend | Pendiente |
 | `Task/007-Integracion-Local` | 02 | infra, frontend, backend | Pendiente |
 | `Task/008-Modelo-de-Datos` | 03 | backend | Pendiente |
@@ -211,9 +246,9 @@ Distribución por estado:
 
 | Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `Task/004-Backups-y-Recuperacion-Local` (remota durante el PR) | `main` tras completar el cierre local | No; `dev` contiene `Task/004` mientras el PR espera al usuario |
+| `personal-blog-infra` | `main`, `dev`, `origin/Task/005-Fundacion-Backend-FastAPI` (**remota**, con PR abierto) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR |
 | `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
-| `personal-blog-backend` | `main`, `dev` | `main` | Sí |
+| `personal-blog-backend` | `main`, `dev`, `origin/Task/005-Fundacion-Backend-FastAPI` (**remota**, con PR abierto) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR |
 
 - `main` y `dev` están **publicadas** en GitHub en los tres repositorios y
   contienen el mismo contenido.
@@ -240,16 +275,40 @@ Distribución por estado:
 - `Task/004-Backups-y-Recuperacion-Local` se creó desde `dev` **solo en
   `personal-blog-infra`**: la tarea no modifica frontend ni backend. Fue **aprobada** el
   2026-07-31; su cierre la integró en `dev` con merge `--no-ff`, publicó la rama Task y
-  abrió el PR `Task/004 → main` **sin fusionarlo**. La rama Task local se eliminó con
-  `git branch -d`; la remota se conserva mientras el PR espera al usuario.
-- Frontend y backend permanecen en `main` con el árbol limpio y sin rama `Task/004`.
+  abrió el PR `Task/004 → main`. El usuario **fusionó** ese PR (`#5`, commit `c86d47e`) y
+  eliminó la rama remota. La rama Task ya no existe ni local ni remotamente.
+- La **normalización posterior** se ejecutó el 2026-08-01: `main` se integró en `dev` con el
+  merge `5f09e22` y se publicó. `dev` y `main` tienen ahora el mismo contenido y el commit
+  de `main` forma parte del historial de `dev`.
+- `Task/005-Fundacion-Backend-FastAPI` se creó el 2026-08-01 desde `dev` en
+  **`personal-blog-backend`** (implementación) y en **`personal-blog-infra`** (solo
+  documentación de gobierno). Fue **aprobada** el 2026-08-12; su cierre creó los commits,
+  integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el
+  pull request `Task/005 → main` en cada repositorio. **Los PR siguen abiertos**: fusionarlos
+  es responsabilidad del usuario. La rama Task local se eliminó con `git branch -d`.
+- **No se creó rama `Task/005` en `personal-blog-frontend`**: la tarea no lo modifica. El
+  frontend permanece en `main`, con el árbol limpio.
+- **Normalización pendiente:** cuando el usuario fusione los PR, hay que integrar `main` en
+  `dev` en backend e infra antes de iniciar `Task/006`.
 
 ---
 
 ## Notas de estado
 
-- **La implementación del blog no ha comenzado.** No existe código React ni FastAPI en
-  ningún repositorio.
+- **`Task/005` produce el primer código de aplicación del proyecto:** `personal-blog-backend`
+  ya contiene una aplicación FastAPI que arranca, expone `/health` y OpenAPI, se conecta al
+  PostgreSQL local y gestiona su esquema con Alembic. Está **`Aprobada`** desde el
+  2026-08-12. **No existe todavía código React.**
+- **Correcciones del 2026-08-11, en la misma rama y sin commit:** el log emite ahora UTC
+  explícito —antes el formato dependía del sistema operativo— con 9 pruebas deterministas
+  comprobadas en Windows y en Docker; la advertencia de `starlette.testclient` se resolvió
+  cambiando `httpx` por `httpx2` en las dependencias de desarrollo, sin silenciar nada en
+  `pyproject.toml`, de modo que `pytest -W error` termina con **0 warnings y sin ningún
+  filtro** en los dos entornos; se rectificó la afirmación errónea de que rotar la contraseña de
+  PostgreSQL obliga a recrear su volumen; y se verificó que el `Dockerfile` es coherente con
+  **R-14**. **El avance global no cambia.**
+- **La funcionalidad del blog sigue sin empezar:** no hay modelo de datos, ni endpoints de
+  contenido, ni autenticación. Llegan a partir de `Task/008`.
 - **`Task/003` produjo el primer artefacto ejecutable del proyecto:** un
   `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE, **aprobado** y fusionado en
   `main`.
@@ -271,10 +330,16 @@ Distribución por estado:
 - **Decisiones diferidas: 12 abiertas** (eran 13; D-05 resuelta el 2026-07-29).
 - `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno, está **Aprobada** y
   cerrada, y no forma parte de las 41 tareas del roadmap.
-- La **ETAPA 01 está completada** (2 de 2 tareas aprobadas). La siguiente es la
-  **ETAPA 02 — Fundaciones de las Aplicaciones**, que empieza con `Task/005` en
-  `personal-blog-backend`: será el **primer código de aplicación** del proyecto.
-- `Task/005` **no ha sido iniciada**.
+- La **ETAPA 01 está completada** (2 de 2 tareas aprobadas). La **ETAPA 02 — Fundaciones de
+  las Aplicaciones** está **en curso**: **1 de 3** tareas aprobadas, tras la aprobación de
+  `Task/005`.
+- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/006` no puede
+  empezar hasta que el usuario fusione el PR de `Task/005` y se complete la normalización
+  `main → dev`.
+- **Ningún secreto nuevo se ha versionado.** Se detectó, en cambio, que el `.env` local
+  conserva las contraseñas de ejemplo publicadas: riesgo **R-16**, a decisión del usuario.
+  Rotar la contraseña de PostgreSQL **no destruye datos**: se hace con `ALTER ROLE` sobre el
+  rol existente, sin recrear el volumen. La rotación **no se ejecutó** en `Task/005`.
 
 Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-001](../tasks/TASK-001-initial-workspace-and-roadmap.md) ·
@@ -284,7 +349,9 @@ Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-003](../tasks/TASK-003-create-local-infrastructure.md) ·
 [Reporte TASK-003](../task-reports/TASK-003-report.md) ·
 [TASK-004](../tasks/TASK-004-local-backups-and-recovery.md) ·
-[Reporte TASK-004](../task-reports/TASK-004-report.md)
+[Reporte TASK-004](../task-reports/TASK-004-report.md) ·
+[TASK-005](../tasks/TASK-005-fastapi-backend-foundation.md) ·
+[Reporte TASK-005](../task-reports/TASK-005-report.md)
 
 Documentos de producto y arquitectura producidos por `Task/002`:
 [MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·
