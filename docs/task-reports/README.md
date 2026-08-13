@@ -60,3 +60,4 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/002-Definir-MVP-y-Arquitectura` | [TASK-002-report.md](TASK-002-report.md) | Aprobada (2026-07-26) |
 | `Task/003-Crear-Infraestructura-Local` | [TASK-003-report.md](TASK-003-report.md) | Aprobada (2026-07-29) |
 | `Task/004-Backups-y-Recuperacion-Local` | [TASK-004-report.md](TASK-004-report.md) | Aprobada (2026-07-31) |
+| `Task/005-Fundacion-Backend-FastAPI` | [TASK-005-report.md](TASK-005-report.md) | Aprobada (2026-08-12) |
