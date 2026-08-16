@@ -1,7 +1,7 @@
 ﻿# Correspondencia local → nube
 
-**Última actualización:** 2026-08-15 (`Task/005.3` — PostgreSQL de producción en VPS,
-**propuesta**)
+**Última actualización:** 2026-08-16 (`Task/005.5` — alineación posterior a la auditoría;
+la capa de datos en VPS de `Task/005.3` está **aprobada** y **vigente**)
 
 > Consistente con la arquitectura definida en `Task/002`. Ver
 > [software-architecture.md](software-architecture.md) para la organización interna del
@@ -90,6 +90,17 @@ MinIO expone la API de S3, así que el mismo cliente sirve para ambos. Todo acce
 por la interfaz `ObjectStorage` (`Task/010`), con una implementación por entorno.
 En ambos casos el acceso a archivos privados usa URLs prefirmadas.
 
+**Reparto de responsabilidades** (aclarado en `Task/005.5`):
+
+| Qué | Owner |
+| --- | --- |
+| Interfaz `ObjectStorage`, `MinIOStorage` y **el código de `S3Storage`**, con pruebas de contrato comunes a ambas implementaciones | **`Task/010`** — sin AWS real |
+| Bucket, políticas, CORS, *lifecycle*, expiración de URLs prefirmadas y **validación de `S3Storage` contra S3 real** | **`Task/030`** |
+| *Wiring* productivo: variables/SSM que hacen que la Lambda use `S3Storage` | **`Task/032`** |
+
+**Regla vigente:** la base de datos y el Markdown persisten **la clave del objeto**, nunca
+una URL prefirmada — que expira. La URL de acceso se genera en el momento de servir.
+
 ### Administración Docker
 Portainer CE es exclusivamente local: sirve para inspeccionar contenedores, logs,
 healthchecks, volúmenes y redes durante el desarrollo y la validación.
@@ -113,8 +124,8 @@ procesos residentes en producción; toda tarea periódica debe modelarse como in
 Docker Compose describe el entorno local de aplicación; Terraform describe el cloud. No se
 comparte definición entre ambos, pero sí la nomenclatura de recursos y variables.
 
-**Matiz añadido en `Task/005.2`:** entre esos dos mundos se propone el *AWS Local Parity
-Lab*, donde **Terraform sí es la misma definición** que la de producción, apuntada a un
+**Matiz añadido en `Task/005.2`** (**aprobada**)**:** entre esos dos mundos se añade el
+*AWS Local Parity Lab*, donde **Terraform sí es la misma definición** que la de producción, apuntada a un
 destino local. Regla de portabilidad: **una sola definición, un solo grafo de recursos**;
 las diferencias se confinan a provider, endpoints, credenciales, región, backend, nombres,
 dominios y capacidad ([aws-local-parity.md](aws-local-parity.md) §4).
@@ -146,7 +157,7 @@ añade en la Etapa 11, usando OIDC para acceder a AWS sin credenciales permanent
 | 10 | **`SecureString` no se cifra** en el SSM emulado. | `Task/031` — ningún secreto real en el laboratorio |
 | 11 | El arranque en frío del laboratorio **no es comparable** con el de AWS. | `Task/032` (**D-12**) — medir solo en AWS real |
 | 12 | El laboratorio no emula dominios personalizados ni TLS gestionado. | `Task/035`, `Task/040` — **AWS-only** |
-| 13 | **La base de datos de producción no está en AWS**: el laboratorio de paridad no la reproduce y, en la arquitectura propuesta, **CloudWatch no observa el VPS por defecto** —requeriría una integración o agente explícito, no decidido aquí. | `Task/029`, `Task/017` |
+| 13 | **La base de datos de producción no está en AWS**: el laboratorio de paridad no la reproduce y, en la arquitectura vigente, **CloudWatch no observa el VPS por defecto** —requeriría una integración o agente explícito, **no decidido**. `Task/017` es observabilidad **local** y **no** es owner de esto; `Task/031` es **solo AWS**. | `Task/029` (baseline del VPS) · `Task/040` (validación) |
 | 14 | **La base de datos deja de estar en la misma región que el cómputo**: cada consulta paga el RTT `Lambda ↔ VPS`. | `Task/029` — RTT **medido**, no estimado |
 | 15 | En producción, **la operación del host es del proyecto**: parcheo, backups y restore ya no los resuelve un proveedor. | `Task/029`, `Task/026` |
 

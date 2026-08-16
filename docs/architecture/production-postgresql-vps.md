@@ -335,6 +335,26 @@ El tramo **Lambda → PgBouncer** atraviesa Internet. Baseline arquitectónico:
 | 3 | **Autenticación fuerte.** |
 | 4 | **Secretos fuera del código** y fuera de Git. |
 
+### 10.0 Ciclo de vida del certificado — *ownership*, añadido en `Task/005.5`
+
+Declarar «TLS obligatorio» **no basta**: un certificado tiene un ciclo de vida, y su
+caducidad **deja el sitio sin base de datos**. `Task/029` es propietaria de resolverlo por
+completo:
+
+| Aspecto | Qué debe quedar definido |
+| --- | --- |
+| **Emisión** | Quién emite el certificado y mediante qué procedimiento |
+| ***Hostname*** | Con qué nombre se presenta PgBouncer, y que **ese** nombre sea el que valide el cliente |
+| **CA** | Autoridad certificadora usada, y cómo confía en ella la Lambda |
+| **Instalación** | Dónde viven certificado y clave en el host, y con qué permisos |
+| **Renovación** | Procedimiento, automatización si la hay, y quién comprueba que ocurrió |
+| **Caducidad** | **Alerta anticipada**, dentro del *baseline* de observabilidad |
+| **Confianza desde Lambda** | Verificación real de que el cliente **valida** y no solo cifra |
+
+**No se elige ahora** ACME, proveedor ni tipo de certificado: se decide en `Task/029`, con
+el proveedor de VPS ya seleccionado. **`Task/040`** valida vigencia y confianza reales
+**desde la Lambda**, antes del lanzamiento.
+
 ### 10.1 SCRAM-SHA-256
 
 Queda registrado como **mecanismo preferente de autenticación** de PostgreSQL y PgBouncer
@@ -546,8 +566,28 @@ flowchart LR
     PG[("PostgreSQL")] --> D["pg_dump"] --> C["compresión"] --> E["cifrado"] --> S["almacenamiento externo"] --> R["retención"]
 ```
 
-**Amazon S3** es el destino natural: ya forma parte de la arquitectura, ya estará
-gestionado por Terraform y ya tendrá credenciales y políticas definidas.
+**Amazon S3** es el destino natural: ya forma parte de la arquitectura y estará gestionado
+por Terraform.
+
+#### Reparto de responsabilidades — precisado en `Task/005.5`
+
+La cadena `PostgreSQL → dump → cifrado → almacenamiento off-host → restore` atraviesa
+varias tareas. Sin un reparto explícito, `Task/029` acababa exigiendo como evidencia un
+bucket que **todavía no existe** —lo crea `Task/030`—:
+
+| Eslabón | Owner |
+| --- | --- |
+| Mecanismo de backup: `pg_dump`, compresión, **cifrado**, programación | `Task/029` |
+| **Retención**, RPO y RTO iniciales | `Task/029` (**D-10**) |
+| **Restore demostrado** contra un destino off-host disponible en ese momento | `Task/029` |
+| **Bucket/prefijo de destino**, política, permisos y retención definitiva | `Task/030` |
+| **Identidad con la que el VPS escribe en AWS** | **D-16**: decide `Task/029`, materializa `Task/030` |
+| **Notificación de fallo del backup** | `Task/029`, dentro del *baseline* de observabilidad |
+| **Backup reciente y restore vigente** antes del lanzamiento | `Task/040` |
+
+> **Aclaración necesaria.** La frase «S3 ya tendrá credenciales y políticas definidas» era
+> optimista: `Task/028` resuelve **GitHub Actions → AWS**, que **no** entrega credenciales a
+> un host externo. Cómo se autentica el VPS es **D-16**, y sigue **abierta**.
 
 **No se implementan scripts todavía** y **no se fija frecuencia ni retención definitiva**
 en `Task/005.3`. Corresponde a `Task/029` y a los runbooks posteriores.
@@ -578,6 +618,30 @@ Prioridad correcta: **backup correcto → restore probado → procedimiento repr
 PITR mal operado es peor que un `pg_dump` diario que sí se sabe restaurar.
 
 `Task/029` determinará si PITR aporta suficiente valor frente a su complejidad operativa.
+
+### 15.3.1 Observabilidad del VPS — *ownership*, añadido en `Task/005.5`
+
+El monitoreo aparecía en la lista de responsabilidades asumidas (§5) **sin propietario**, y
+algunos documentos apuntaban a `Task/017`. Es incorrecto: `Task/017-Observabilidad-Local`
+cubre el **entorno local**, y `Task/031-Desplegar-SSM-y-CloudWatch` cubre **solo AWS**.
+**CloudWatch no observa un host externo por defecto.**
+
+| Regla vigente |
+| --- |
+| **`Task/029` define y configura el *baseline*** de observabilidad del VPS |
+| **`Task/040` verifica que opera de verdad** antes del lanzamiento |
+| **`Task/017` no es owner de esto.** `Task/031` tampoco |
+
+*Baseline* mínimo que `Task/029` debe dejar cubierto:
+
+`uptime` del host · **CPU** · **RAM** · **espacio en disco** (R-32) · estado de
+**PostgreSQL** · estado de **PgBouncer** · **fallo del backup** · **caducidad del
+certificado** (§10.0).
+
+> **No se decide aquí la herramienta.** En particular, **no se adopta CloudWatch Agent por
+> omisión**: instalar un agente AWS en el VPS es una decisión con costo, superficie y
+> credenciales propias —relacionada con **D-16**— y corresponde a `Task/029`, con las
+> alternativas sobre la mesa.
 
 ### 15.4 Disponibilidad — SPOF aceptado conscientemente
 
@@ -631,7 +695,7 @@ relacionados comparten riesgo cuando su mitigación es la misma.
 | **R-29** | **Single point of failure.** Un solo VPS: si cae el host, el blog pierde su base de datos y queda sin contenido dinámico hasta la recuperación manual. | Medio | **Aceptado conscientemente** (§15.4). Mitigado con backups off-host, restore probado, infraestructura reproducible y runbook de recuperación. No se introduce HA: su costo y complejidad no se justifican para un blog personal. | `Task/029`, `Task/026` |
 | **R-30** | **Nueva superficie de ataque expuesta a Internet:** PgBouncer publicado y SSH en el host, más software (SO, PostgreSQL, PgBouncer) que envejece y acumula vulnerabilidades sin parchear. Un compromiso del VPS implica **exposición de los datos**. | **Alto** | Firewall *deny-by-default*; SSH solo por llave, sin contraseña; servicios mínimos; **PostgreSQL nunca público** (§9); TLS obligatorio y autenticación fuerte (§10); política de actualizaciones y parcheo definida en `Task/029`. Prohibido apoyarse en *security through obscurity* (§9.1). | `Task/029`, `Task/018` |
 | **R-31** | **Backup inexistente, corrupto o no restaurable.** El fallo silencioso clásico: existe un archivo, nadie lo ha restaurado nunca y el día del incidente no sirve. | **Alto** | Regla obligatoria: **un backup no está validado hasta haberse restaurado** (§15.2). Verificación de integridad, restore en entorno controlado y procedimiento documentado. Mismo estándar que ya alcanzó `Task/004` en local. | `Task/029`, `Task/026` |
-| **R-32** | **Pérdida del VPS o del disco**, o **agotamiento de recursos**: disco lleno que detiene PostgreSQL, memoria o CPU insuficientes. Un disco lleno puede además impedir el propio backup. | **Alto** | Backups **fuera del host** (§15.1) — una copia que solo vive en el VPS no protege de esto. Monitoreo de espacio en disco y de recursos con alertas; dimensionamiento y política de crecimiento en `Task/029`. | `Task/029`, `Task/017` |
+| **R-32** | **Pérdida del VPS o del disco**, o **agotamiento de recursos**: disco lleno que detiene PostgreSQL, memoria o CPU insuficientes. Un disco lleno puede además impedir el propio backup. | **Alto** | Backups **fuera del host** (§15.1) — una copia que solo vive en el VPS no protege de esto. Monitoreo de espacio en disco y de recursos con alertas; dimensionamiento y política de crecimiento en `Task/029`. **Owner corregido en `Task/005.5`:** `Task/017` es observabilidad **local** y no cubre el VPS. | `Task/029`, `Task/040` |
 | **R-33** | **Agotamiento de conexiones**: una ráfaga de concurrencia de Lambda supera `max_connections` de PostgreSQL y las peticiones empiezan a fallar. Es la materialización de **R-03** en esta topología. | Medio | **PgBouncer** con pool limitado (§8) más **Reserved Concurrency** de Lambda aguas arriba (§12.2). Los tres números —concurrencia, pool y `max_connections`— se derivan de **pruebas**, no de intuición. | `Task/029`, `Task/032` |
 | **R-34** | **Latencia `Lambda ↔ VPS`.** La base de datos deja de estar en la misma región que el cómputo; cada consulta paga el RTT y una petición HTTP suele hacer varias. | Medio | Selección de región del VPS teniendo en cuenta la región AWS, con **RTT medido**, no estimado (§12.3). Regla explícita: no elegir un VPS lejano por ahorrar poco al mes. | `Task/029`, `Task/040` |
 | **R-35** | **Error humano de operación.** Sin consola administrada que ponga barreras, un comando equivocado puede borrar datos, exponer un puerto o dejar el servicio caído. | Medio | Infraestructura reproducible con Terraform; runbooks escritos para cada operación (`Task/026`); backups off-host como red de seguridad; principio ya vigente en el proyecto de no ejecutar operaciones destructivas sin autorización explícita. | `Task/026`, `Task/029` |
@@ -674,6 +738,9 @@ Cambiar de destino es un cambio de configuración e infraestructura, no de códi
 | Sin NAT Gateway por esta decisión | Si PITR aporta valor → `Task/029` |
 | Terraform multi-provider | Backend de estado de Terraform → `Task/025` / **D-06** |
 | SPOF aceptado en la primera versión | Límites exactos de Lambda → `Task/032` / **D-12** |
+| Que el certificado tiene un ciclo de vida con owner (§10.0) | Emisor, CA y método concretos → `Task/029` |
+| Que el VPS necesita observabilidad propia (§15.3.1) | Herramienta y si se usa agente → `Task/029` |
+| Que los backups salen a un destino externo | **Con qué identidad** escribe el VPS en AWS → **D-16**, `Task/029` |
 
 > **No confundir la decisión de modelo con la selección de proveedor.** Este documento
 > resuelve la primera; `Task/029` resuelve la segunda.

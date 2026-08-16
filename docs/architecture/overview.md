@@ -135,7 +135,10 @@ Estrategia completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente** 
    abstracciones (`ObjectStorage`), no con MinIO ni con S3 directamente.
 3. **Costo como restricción de diseño.** Sin servicios de costo fijo mensual.
 4. **Configuración fuera del código.** `.env` en local, SSM Parameter Store en la nube.
-5. **Sin credenciales permanentes.** GitHub Actions accede a AWS mediante OIDC.
+5. **Sin credenciales permanentes donde esté demostrado.** GitHub Actions accede a AWS
+   mediante OIDC (`Task/028`). **No es todavía una propiedad global**: cómo se autentica el
+   **VPS** hacia AWS para sus backups sigue abierto (**D-16**, `Task/029`), y Cloudflare y
+   el proveedor del VPS pueden exigir otro mecanismo (`Task/039`).
 6. **Contenido primero.** El modelo de datos y la API pública se diseñan para el
    contenido que el blog realmente publicará.
 7. **Reproducibilidad.** El entorno completo se reconstruye desde cero siguiendo un
@@ -185,13 +188,15 @@ Ver [local-to-cloud-mapping.md](local-to-cloud-mapping.md).
 
 ## 9. Qué falta decidir
 
-Registro completo y vivo: [open-decisions.md](open-decisions.md) — **12 decisiones
-abiertas** (D-05 resuelta el 2026-07-29 y **D-14 el 2026-08-15**), cada una con la tarea en
-que se resuelve, la información necesaria y las partes del sistema afectadas. Entre las
-principales:
+Registro completo y vivo: [open-decisions.md](open-decisions.md) — **13 decisiones
+abiertas** (**D-05** resuelta el 2026-07-29; **D-14** y **D-01** el 2026-08-15), cada una
+con la tarea en que se resuelve, la información necesaria y las partes del sistema
+afectadas. Entre las principales:
 
 - Proveedor de VPS para la base de datos de producción (**D-01**, `Task/029`). El **modelo**
-  —autogestionado en VPS— lo propone `Task/005.3`.
+  —autogestionado en VPS— lo **resolvió** `Task/005.3`, **aprobada** el 2026-08-15.
+- **Topología lógica de dominios** y política de cookies/CORS (**D-15**, `Task/011`).
+- **Identidad del VPS hacia AWS** para los backups (**D-16**, decisión en `Task/029`).
 - Mecanismo concreto de autenticación (`Task/011`).
 - Biblioteca de componentes visuales (`Task/013`).
 - Backend de estado de Terraform (`Task/025`).

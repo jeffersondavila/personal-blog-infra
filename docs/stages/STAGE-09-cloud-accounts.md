@@ -60,33 +60,70 @@ Debe cubrir, como mínimo:
 | **Selección** | Comparar proveedores con **precios actuales** · seleccionar VPS, región y tamaño · CPU, RAM, almacenamiento · IPv4/IPv6 · tráfico y *egress* · snapshots · **RTT medido** hacia la región AWS · costo total |
 | **Base de datos** | Distribución del host · versión de PostgreSQL · persistencia · *filesystem* y volumen · `max_connections` |
 | **Conexiones** | PgBouncer · `pool_mode` · tamaños de pool · *tuning* · relación con la concurrencia reservada de Lambda |
-| **Seguridad** | TLS · SCRAM-SHA-256 · evaluación de mTLS · firewall *deny-by-default* · SSH por llave · usuarios · *hardening* |
-| **Operación** | Backups **fuera del host** · restore **probado** · almacenamiento externo · retención · RPO · RTO · monitoreo y alertas · espacio en disco · actualizaciones y parcheo · rollback · recuperación |
+| **Seguridad** | TLS · **ciclo de vida del certificado de PgBouncer**: emisión, CA, *hostname*, instalación, renovación y confianza desde el cliente · SCRAM-SHA-256 · evaluación de mTLS · firewall *deny-by-default* · SSH por llave · usuarios · *hardening* |
+| **Operación** | Backups **fuera del host** · restore **probado** · almacenamiento externo · retención · RPO · RTO · **baseline de observabilidad del VPS** · espacio en disco · actualizaciones y parcheo · rollback · recuperación |
+| **Identidad** | **D-16** — con qué mecanismo escribirá el VPS sus backups en AWS, y bajo qué restricciones de seguridad |
 | **IaC** | Soporte de Terraform del proveedor · documentación operacional |
 
 Resultado registrado como ADR o como actualización del ADR vigente.
 
 **Depende de:** `Task/027`. **Repositorio:** `personal-blog-infra`.
 
+#### Qué `Task/029` **define y prepara**, y qué **no puede validar todavía**
+
+> Corregido en `Task/005.5`. La versión anterior exigía como criterio de salida evidencia
+> que **solo puede existir después** de `Task/030` (S3) y `Task/032` (Lambda). Una tarea no
+> puede depender de recursos que se crean más tarde.
+
+| Materia | `Task/029` entrega | Se valida de verdad en |
+| --- | --- | --- |
+| **Backup off-host** | Mecanismo completo —dump, cifrado, retención— y **restore demostrado** contra un destino externo **disponible en ese momento** | `Task/030` fija S3 como destino definitivo · `Task/040` valida la cadena completa |
+| **Identidad hacia AWS** | **Decisión D-16** y sus restricciones de seguridad. **No** se crea el principal | `Task/030` lo materializa |
+| **RTT `Lambda ↔ VPS`** | RTT **medido** hacia la región AWS objetivo, con método reproducible y registrado — criterio de selección, no estimación | `Task/032` y `Task/040`, con la Lambda real |
+| **Concurrencia y pool** | Números **derivados y justificados**: `max_connections`, pool de PgBouncer y la *Reserved Concurrency* que se pedirá | `Task/032` la aplica · `Task/040` la valida bajo carga real |
+| **Observabilidad del VPS** | *Baseline* configurado: uptime, CPU, RAM, disco, PostgreSQL, PgBouncer, fallo de backup y caducidad de certificado | `Task/040` verifica que opera de verdad |
+| **Certificado TLS** | Emitido, instalado, con renovación definida y confianza verificada desde un cliente | `Task/040` lo valida **desde la Lambda real** |
+
+**No se decide aquí** el mecanismo concreto de identidad —clave de larga vida, IAM Roles
+Anywhere u otro—: **D-16** sigue **abierta** hasta `Task/029`. Y **`Task/028` no la
+resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un host externo.
+
 ## Criterios de salida de la etapa
 
 - [ ] MFA activo en la cuenta raíz de AWS y en Cloudflare.
 - [ ] La cuenta raíz de AWS no se usa para operar; existe un usuario/rol administrativo.
 - [ ] Presupuesto mensual definido con alertas por umbral.
-- [ ] GitHub Actions asume un rol AWS vía OIDC; no hay claves de acceso de larga vida.
+- [ ] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
+      **en GitHub**. Esta afirmación se limita a GitHub Actions: **no** describe todavía
+      cómo el VPS accederá a AWS (**D-16**).
 - [ ] El rol tiene permisos mínimos para el despliegue previsto.
 - [ ] **Proveedor de VPS seleccionado**, con costo, región y límites documentados, usando
       **precios verificados en el momento de la selección**.
-- [ ] El **RTT `Lambda ↔ VPS`** está **medido**, no estimado.
+- [ ] El **RTT hacia la región AWS objetivo** está **medido**, no estimado, con método
+      reproducible registrado. El RTT definitivo `Lambda → PgBouncer` se mide en `Task/032`.
 - [ ] La estrategia de conexión desde Lambda está definida: **PgBouncer**, tamaños de pool y
-      `max_connections` coherentes entre sí.
+      `max_connections` coherentes entre sí, y la *Reserved Concurrency* que se solicitará
+      a `Task/032`.
 - [ ] **PostgreSQL no es alcanzable desde Internet**; solo PgBouncer está expuesto.
-- [ ] La conexión `Lambda → PgBouncer` usa **TLS con validación de certificado**.
-- [ ] Existe una estrategia de **backup fuera del host** y un **restore demostrado**.
+- [ ] La conexión `Lambda → PgBouncer` usa **TLS con validación de certificado**, y el
+      **ciclo de vida del certificado** —emisión, CA, *hostname*, renovación, caducidad—
+      está definido y operativo.
+- [ ] Existe una estrategia de **backup fuera del host** y un **restore demostrado** contra
+      un destino disponible en ese momento. El destino **definitivo en S3** lo materializa
+      `Task/030`.
+- [ ] **D-16 resuelta**: está decidido con qué mecanismo el VPS escribirá en AWS y bajo qué
+      restricciones. Su **materialización** es de `Task/030`.
+- [ ] Existe un ***baseline* de observabilidad del VPS** configurado —uptime, CPU, RAM,
+      disco, PostgreSQL, PgBouncer, fallo de backup, caducidad de certificado—. `Task/017`
+      es local y `Task/031` es solo AWS: **ninguna de las dos cubre esto**.
 - [ ] Ninguna credencial de producción está versionada.
 
 ## Fuera del alcance de la etapa
 
+- **Crear el bucket S3 de backups, su política y el principal de acceso del VPS**: es de
+  `Task/030`. Aquí solo se **decide** el mecanismo (**D-16**).
+- **Medir el RTT desde la Lambda real** y fijar la *Reserved Concurrency*: `Task/032`.
+- **Validar la cadena backup → S3 → restore de extremo a extremo**: `Task/040`.
 - Desplegar recursos de aplicación (Etapa 10).
 - Automatizar despliegues (Etapa 11).
 - Conectar la Lambda a una VPC o introducir NAT Gateway por esta decisión: excluido por

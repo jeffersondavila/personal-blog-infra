@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-15
+**Última actualización:** 2026-08-16
 
 ---
 
@@ -9,15 +9,16 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.4` **aprobada** y cerrada; `Task/006` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.5` **aprobada** y cerrada; `Task/006` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
-| **Último mantenimiento aprobado** | `Task/005.4-Corregir-Base-Ramas-Task-Main` — **Aprobada** el 2026-08-15; PR `Task/005.4 → main` **abierto, sin fusionar**. **Primera tarea creada desde `main`.** No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` — **Aprobada** el 2026-08-15; PR `#9` **fusionado**, merge `181c634`, normalizado |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión del PR de `Task/005.4` y la normalización `main → dev`). **Nacerá desde `main`** |
+| **Último mantenimiento aprobado** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` — **Aprobada** el 2026-08-16; PR `Task/005.5 → main` **abierto, sin fusionar** en los **tres** repositorios. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.4-Corregir-Base-Ramas-Task-Main` — **Aprobada** el 2026-08-15; PR **`#10` fusionado** el 2026-08-16 (merge `cc90b96`) y **normalizado**. **Primera tarea creada desde `main`** |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión de los PR de `Task/005.5` y la normalización `main → dev`). **Nacerá desde `main`** |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **33** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15) |
+| **Decisiones abiertas** | **13** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5` |
 
 > El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
 > por el usuario el 2026-08-12.
@@ -102,7 +103,49 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 
 ---
 
-## Último mantenimiento aprobado
+## Último mantenimiento aprobado — `Task/005.5`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` |
+| **Tipo** | **Mantenimiento de gobierno, planificación y arquitectura documental** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-16 |
+| **Fecha de aprobación** | 2026-08-16 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.5-Alinear-Planificacion-Tras-Auditoria` |
+| **Repositorios afectados** | `personal-blog-infra`, `personal-blog-backend`, `personal-blog-frontend` — **solo documentación** |
+| **Rama** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` en los tres repositorios |
+| **Rama base** | **`main`** en los tres. SHA base: infra `cc90b96` · backend `db6ab18` · frontend `144a401`. Verificado `HEAD == main` en los tres |
+| **Origen** | Dos auditorías independientes del proyecto. **Sus hallazgos no se aceptaron como autoridad automática**: cada uno se reprodujo contra el repositorio antes de decidir |
+| **Objetivo** | Eliminar contradicciones entre repositorios, corregir dependencias invertidas, asignar propietarios ausentes y propagar decisiones ya aprobadas |
+| **Corrección principal de workflow** | Backend y frontend seguían ordenando crear ramas Task **desde `dev`**, contradiciendo el invariante de `Task/005.4`. **6 reglas operativas corregidas** |
+| **Correcciones de secuencia** | `Task/025` pasa a depender también de **`Task/024`** · `Task/029` deja de exigir evidencia que solo existe tras `Task/030`/`Task/032` · `Task/021` deja de prometer Terraform inexistente · la topología de dominios deja de depender de `Task/035` |
+| **Propietarios asignados** | `S3Storage` · backup productivo · identidad del VPS hacia AWS · certificado TLS · observabilidad del VPS · migraciones en producción · medios públicos · credenciales CI multi-provider |
+| **Decisiones nuevas** | **D-15** (topología lógica de dominios, `Task/011`) y **D-16** (identidad del VPS hacia AWS, `Task/029`). Ambas **abiertas** |
+| **ADR** | **Ninguno nuevo.** No apareció ninguna decisión arquitectónica independiente: se corrigieron *ownership* y secuencia, no arquitectura |
+| **Arquitectura** | **Sin cambios.** Cloudflare Pages, API Gateway, Lambda, S3, SSM, IAM, CloudWatch, PgBouncer, PostgreSQL en VPS, Terraform, Floci y `ObjectStorage` siguen exactamente igual |
+| **Implementación** | **Ninguna.** 0 código funcional, 0 Terraform, 0 Compose, 0 recursos cloud, 0 VPS, 0 GitHub Actions |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. **41 identificadores intactos**, sin renumerar. Avance global y ETAPA 02 **sin cambios** |
+| **Imagen de arquitectura** | `images/Infraestructura.png` **intacta**. Se corrigieron los textos que aún la trataban como autoridad canónica de producción |
+| **Integración en `dev`** | Merge `--no-ff` en los **tres** repositorios, publicado |
+| **Pull request** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria → main` — **abierto, sin fusionar** en `personal-blog-infra`, `personal-blog-backend` y `personal-blog-frontend`. La fusión es responsabilidad del usuario |
+| **Rama Task** | Eliminada **localmente** con `git branch -d` en los tres; **conservada en `origin`** mientras el PR siga abierto |
+| **Ficha** | [TASK-005.5](../tasks/TASK-005.5-align-planning-after-audit.md) |
+| **Reporte** | [TASK-005.5-report](../task-reports/TASK-005.5-report.md) |
+
+La aprobación de este mantenimiento **no modifica el conteo del roadmap**: el avance global
+permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
+
+Con ella quedan **vigentes**: el invariante de ramas aplicado a **los tres repositorios**,
+el **mapa de responsabilidades transversales** del ROADMAP, la dependencia
+`Task/025 → Task/024`, la separación entre lo que `Task/029` **define** y lo que solo puede
+**validarse** más tarde, y las decisiones **D-15** y **D-16**, ambas **abiertas**.
+`Task/006` sigue **Pendiente y no iniciada**.
+
+---
+
+## Mantenimiento aprobado anterior — `Task/005.4`
 
 | Campo | Valor |
 | --- | --- |
@@ -124,8 +167,9 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 | **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
 | **Historial de tareas anteriores** | **No se reescribe.** `Task/002`–`Task/005.3` nacieron de `dev` por la regla incorrecta; sus fichas y reportes se conservan como registro histórico |
 | **Integración en `dev`** | Merge `--no-ff`, publicado |
-| **Pull request** | `Task/005.4-Corregir-Base-Ramas-Task-Main → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
-| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Pull request** | `Task/005.4-Corregir-Base-Ramas-Task-Main → main` (**`#10`**) — **FUSIONADO** por el usuario. Merge commit **`cc90b96`**, `mergedAt = 2026-08-16T04:20:19Z` (UTC) |
+| **Normalización posterior** | **Completada.** `main` = `cc90b96`; `main` integrada en `dev` (`f2eb330`, `Merge branch 'main' into dev`), publicado. `git diff main dev` **vacío** y `main` es **ancestro de `dev`**. Verificado el 2026-08-16 al iniciar `Task/005.5` |
+| **Rama Task** | Eliminada **local y remotamente**. `git ls-remote --heads origin "Task/*"` **no devuelve nada** |
 | **Ficha** | [TASK-005.4](../tasks/TASK-005.4-correct-task-branch-base-main.md) |
 | **Reporte** | [TASK-005.4-report](../task-reports/TASK-005.4-report.md) |
 
@@ -135,6 +179,13 @@ permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
 Con ella, el **invariante de ramas** queda **vigente y de cumplimiento obligatorio**:
 **toda rama `Task/<...>` nace desde `main` actualizado y limpio; `dev` nunca es base de una
 Task.** `Task/006` sigue **Pendiente y no iniciada**, y **nacerá desde `main`**.
+
+> **Corrección de alcance registrada en `Task/005.5`.** `Task/005.4` corrigió el invariante
+> **solo en `personal-blog-infra` y en el `CLAUDE.md` raíz**. `personal-blog-backend` y
+> `personal-blog-frontend` conservaban en su `README.md` y su `CONTRIBUTING.md` la regla
+> antigua —*«creado desde `dev`»*—, que seguía siendo **instrucción operativa vigente** en
+> esos repositorios. `Task/005.5` cierra ese hueco: **0 reglas operativas** ordenan ya crear
+> una Task desde `dev` en ninguno de los tres repositorios.
 
 ---
 
@@ -322,7 +373,7 @@ Distribución por estado:
 | --- | --- | --- | --- | --- |
 | R-01 | Los tres repositorios no tenían commit inicial, por lo que `dev` y las ramas `Task/*` no podían existir como referencias Git. | Medio | **Resuelto** el 2026-07-26 durante la aprobación de `Task/001`: commit inicial vacío en `main`, `dev` creada desde `main` y `Task/001` creada desde `dev` en los tres repositorios. | **Cerrado** |
 | R-02 | Costo cloud imprevisto al llegar a la Etapa 10. | Alto | Presupuestos y alarmas obligatorios en `Task/027`, antes de cualquier despliegue; refuerzo en `Task/041`. | Abierto |
-| R-03 | La elección de la base de datos de producción condiciona el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. **Actualización propuesta el 2026-08-15 (`Task/005.3`):** con PostgreSQL en un VPS, la mitigación concreta pasa a ser **PgBouncer** con pool limitado más *Reserved Concurrency* de Lambda; ver **R-33**. | Abierto |
+| R-03 | La elección de la base de datos de producción condiciona el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. **Actualización vigente desde el 2026-08-15 (`Task/005.3`, aprobada):** con PostgreSQL en un VPS, la mitigación concreta es **PgBouncer** con pool limitado más *Reserved Concurrency* de Lambda, aplicada en `Task/032`; ver **R-33**. | Abierto |
 | R-04 | El roadmap de 41 tareas puede quedar desactualizado si el alcance cambia. | Bajo | `STATUS.md` y `ROADMAP.md` se actualizan en cada cambio de estado, como parte de la Definition of Done. | Abierto |
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
 | R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
@@ -370,7 +421,7 @@ Distribución por estado:
 | R-29 | ***Single point of failure*.** Un solo VPS: si cae el host, el blog pierde su base de datos y queda sin contenido dinámico hasta la recuperación manual. | Medio | **Aceptado conscientemente.** Mitigado con backups fuera del host, restore probado, infraestructura reproducible y runbook de recuperación. **No se introduce alta disponibilidad**: su costo y complejidad no se justifican para un blog personal. | `Task/029`, `Task/026` | **Abierto** |
 | R-30 | **Nueva superficie de ataque expuesta a Internet:** PgBouncer publicado y SSH en el host, más software —SO, PostgreSQL, PgBouncer— que envejece y acumula vulnerabilidades sin parchear. **El compromiso del VPS implica exposición de todos los datos del blog.** | **Alto** | Firewall *deny-by-default*; SSH solo por llave; servicios mínimos; **PostgreSQL nunca público**; TLS obligatorio con validación de certificado y **SCRAM-SHA-256**; política de parcheo definida en `Task/029`. Prohibido apoyarse en *security through obscurity*. Ver [security-boundaries](../architecture/security-boundaries.md) §9. | `Task/029`, `Task/018` | **Abierto** |
 | R-31 | **Backup inexistente, corrupto o no restaurable.** El fallo silencioso clásico: existe un archivo, nadie lo ha restaurado nunca y el día del incidente no sirve. | **Alto** | Regla obligatoria: **un backup no está validado hasta haberse restaurado**. Verificación de integridad, restore en entorno controlado y procedimiento documentado — mismo estándar que `Task/004` alcanzó en local. | `Task/029`, `Task/026` | **Abierto** |
-| R-32 | **Pérdida del VPS o del disco**, o **agotamiento de recursos**: un disco lleno detiene PostgreSQL y puede impedir el propio backup. | **Alto** | Backups **fuera del host** — una copia que solo vive en el VPS no protege de esto. Monitoreo de espacio y de recursos con alertas; dimensionamiento y política de crecimiento en `Task/029`. | `Task/029`, `Task/017` | **Abierto** |
+| R-32 | **Pérdida del VPS o del disco**, o **agotamiento de recursos**: un disco lleno detiene PostgreSQL y puede impedir el propio backup. | **Alto** | Backups **fuera del host** — una copia que solo vive en el VPS no protege de esto. Monitoreo de espacio y de recursos con alertas; dimensionamiento y política de crecimiento en `Task/029`. **Owner corregido en `Task/005.5`:** `Task/017` es observabilidad **local** y no cubre el VPS; el *baseline* lo construye `Task/029` y lo verifica `Task/040`. | `Task/029`, `Task/040` | **Abierto** |
 | R-33 | **Agotamiento de conexiones**: una ráfaga de concurrencia de Lambda supera `max_connections` de PostgreSQL. Es la materialización de **R-03** en esta topología. | Medio | **PgBouncer** con pool limitado más ***Reserved Concurrency*** de Lambda aguas arriba. Los tres números —concurrencia, pool y `max_connections`— se derivan de **pruebas**, no de intuición. | `Task/029`, `Task/032` | **Abierto** |
 | R-34 | **Latencia `Lambda ↔ VPS`.** La base de datos deja de estar en la misma región que el cómputo; cada consulta paga el RTT y una petición HTTP suele hacer varias. | Medio | Selección de región del VPS teniendo en cuenta la región AWS, con **RTT medido**, no estimado. Regla explícita: no elegir un VPS lejano por ahorrar poco al mes. | `Task/029`, `Task/040` | **Abierto** |
 | R-35 | **Error humano de operación.** Sin consola administrada que ponga barreras, un comando equivocado puede borrar datos, exponer un puerto o dejar el servicio caído. | Medio | Infraestructura reproducible con Terraform; runbooks escritos para cada operación; backups fuera del host como red de seguridad; regla vigente de no ejecutar operaciones destructivas sin autorización explícita. | `Task/026`, `Task/029` | **Abierto** |
@@ -427,13 +478,17 @@ Distribución por estado:
 
 ## Estado de los repositorios
 
-Estado verificado el **2026-08-15**.
+Estado tras el cierre aprobado de `Task/005.5`, el **2026-08-16**.
 
 | Repositorio | Ramas locales | Ramas remotas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.4-Corregir-Base-Ramas-Task-Main` (**con PR abierto**) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR de `Task/005.4` |
-| `personal-blog-frontend` | `main` (`144a401`), `dev` (`8823cc3`) | `main`, `dev` | `main` | Sí — sin cambios |
-| `personal-blog-backend` | `main` (`db6ab18`), `dev` (`ce4f1bc`) | `main`, `dev` | `main` | Sí — normalizadas el 2026-08-13 con el merge `ce4f1bc` |
+| `personal-blog-infra` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.5-Alinear-Planificacion-Tras-Auditoria` (**con PR abierto**) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR |
+| `personal-blog-frontend` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.5-Alinear-Planificacion-Tras-Auditoria` (**con PR abierto**) | `main` | **No todavía** — se normaliza tras la fusión |
+| `personal-blog-backend` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.5-Alinear-Planificacion-Tras-Auditoria` (**con PR abierto**) | `main` | **No todavía** — se normaliza tras la fusión |
+
+Las tres ramas `Task/005.5` se crearon **desde `main`**, con `HEAD == main` verificado
+inmediatamente después. Los tres pull request son **`Task/005.5 → main`**; **ninguno es
+`dev → main`** y **ninguno fue fusionado por Claude**.
 
 - `main` y `dev` están **publicadas** en GitHub en los tres repositorios y
   contienen el mismo contenido.
@@ -528,9 +583,22 @@ Estado verificado el **2026-08-15**.
   al crearla, `HEAD == main == 181c634`, distinto de `dev` (`9dfbc10`). Es mantenimiento de
   gobierno: **no cuenta** en las 41 tareas y **no altera el avance**. Fue **aprobada** el
   2026-08-15; su cierre creó el commit, integró la rama en `dev` con merge `--no-ff`, publicó
-  `dev` y la rama Task, y abrió el pull request `Task/005.4 → main`, que **sigue abierto**.
-  La rama Task local se eliminó con `git branch -d`; la remota se conserva mientras el PR
-  siga abierto.
+  `dev` y la rama Task, y abrió el pull request `Task/005.4 → main` (**`#10`**).
+- **PR `#10` fusionado y normalización completada (2026-08-16).** El usuario fusionó
+  `Task/005.4 → main` (merge commit **`cc90b96`**, `mergedAt = 2026-08-16T04:20:19Z` UTC) y
+  eliminó la rama remota. Verificado con `gh pr view 10` —devuelve `MERGED`— y con
+  `git ls-remote --heads origin "Task/*"`, que **no devuelve ninguna rama**. `main` está
+  integrada en `dev` (`f2eb330`): `git diff main dev` **vacío** y `main` **ancestro de
+  `dev`**.
+- `Task/005.5-Alinear-Planificacion-Tras-Auditoria` se creó el 2026-08-16 **desde `main`**
+  en **los tres repositorios** —infra (`cc90b96`), backend (`db6ab18`) y frontend
+  (`144a401`)—, con `HEAD == main` verificado en cada uno. Es la **segunda tarea creada
+  desde `main`** y la primera que aplica el invariante en los tres repositorios a la vez.
+  Es mantenimiento de gobierno y planificación: **no cuenta** en las 41 tareas y **no altera
+  el avance**. Fue **aprobada** el 2026-08-16; su cierre creó el commit en cada repositorio,
+  integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el
+  pull request `Task/005.5 → main` en los tres. **Los tres PR siguen abiertos**: fusionarlos
+  es responsabilidad del usuario. La rama Task local se eliminó con `git branch -d`.
 
 ---
 
@@ -592,7 +660,9 @@ Estado verificado el **2026-08-15**.
   una Lambda ya dentro de una VPC necesita salida IPv4 a Internet.
 - **`ADR-006` está `Aceptada`** desde el 2026-08-15, al aprobarse `Task/005.2`. Es el sexto
   ADR del proyecto y el primero sobre estrategia de infraestructura.
-- **Decisiones diferidas: 11 abiertas.** Resueltas: **D-05** (2026-07-29, Traefik v3),
+- **Decisiones diferidas: 13 abiertas** desde `Task/005.5`, que añadió **D-15** —topología
+  lógica de dominios, `Task/011`— y **D-16** —identidad del VPS hacia AWS, `Task/029`—.
+  Resueltas: **D-05** (2026-07-29, Traefik v3),
   **D-14** (2026-08-15, **Floci** como laboratorio AWS local) y **D-01** (2026-08-15,
   PostgreSQL **autogestionado en VPS externo**). **D-01 se resolvió solo en cuanto al
   *modelo***: la selección de **proveedor, región y tamaño sigue pendiente** en `Task/029`.
@@ -624,9 +694,20 @@ Estado verificado el **2026-08-15**.
   tareas anteriores **no se reescribe**. Detalle:
   [WORKFLOW.md](WORKFLOW.md) §2.1.
 - `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1`,
-  `Task/005.2` y `Task/005.3` están aprobadas, fusionadas y normalizadas; `Task/005.4` está
-  **aprobada** con su PR **abierto**. `Task/006` no empieza hasta que el usuario fusione ese
-  PR y se complete la normalización `main → dev`, y **nacerá desde `main`**.
+  `Task/005.2`, `Task/005.3` y **`Task/005.4`** están aprobadas, fusionadas y normalizadas.
+  `Task/005.5` está **aprobada** con sus **tres PR abiertos**. `Task/006` **no empieza** hasta
+  que el usuario los fusione y se complete la normalización `main → dev`, y **nacerá desde
+  `main`**.
+- **Alineación posterior a la auditoría (`Task/005.5`, 2026-08-16, aprobada).**
+  Se reprodujeron los hallazgos de dos auditorías independientes contra el repositorio, y se
+  corrigieron los que se sostuvieron: la regla de ramas en backend y frontend, el estado
+  documental de ADR-006 y ADR-007, el conteo de decisiones, la dependencia de `Task/025`
+  respecto a `Task/024`, los *gates* de `Task/029` que exigían recursos futuros, el
+  Terraform prometido en `Task/021`, la topología de dominios diferida hasta `Task/035`, y
+  los propietarios ausentes de `S3Storage`, backup, identidad del VPS, certificado TLS,
+  observabilidad del VPS, migraciones productivas, medios públicos y credenciales CI
+  multi-provider. **No se creó ningún ADR nuevo, no se renumeró ninguna tarea y la
+  arquitectura no cambió.** Decisiones nuevas: **D-15** y **D-16**, ambas **abiertas**.
 - **El backend se desarrollará test-first a partir de `Task/008`.** `Task/005.1` formaliza la
   regla **RED → GREEN → REFACTOR** en
   [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md), con matriz de casos previa,
@@ -655,15 +736,17 @@ Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-005.3](../tasks/TASK-005.3-define-production-postgresql-vps.md) ·
 [Reporte TASK-005.3](../task-reports/TASK-005.3-report.md) ·
 [TASK-005.4](../tasks/TASK-005.4-correct-task-branch-base-main.md) ·
-[Reporte TASK-005.4](../task-reports/TASK-005.4-report.md)
+[Reporte TASK-005.4](../task-reports/TASK-005.4-report.md) ·
+[TASK-005.5](../tasks/TASK-005.5-align-planning-after-audit.md) ·
+[Reporte TASK-005.5](../task-reports/TASK-005.5-report.md)
 
 Estrategia de infraestructura local aprobada en `Task/005.2`:
 [aws-local-parity](../architecture/aws-local-parity.md) (**Vigente**) ·
 [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**)
 
 Capa de datos de producción aprobada en `Task/005.3`:
-[production-postgresql-vps](../architecture/production-postgresql-vps.md) ·
-[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Propuesta**)
+[production-postgresql-vps](../architecture/production-postgresql-vps.md) (**Vigente**) ·
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**)
 
 Documentos de producto y arquitectura producidos por `Task/002`:
 [MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·

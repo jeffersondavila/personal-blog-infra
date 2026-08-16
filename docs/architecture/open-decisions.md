@@ -3,8 +3,8 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-08-15 (`Task/005.3` — **D-01 resuelta** en cuanto al modelo) |
-| **Decisiones abiertas** | **11** — D-05, D-14 y D-01 **resueltas** |
+| **Última actualización** | 2026-08-16 (`Task/005.5` — **D-15** y **D-16** añadidas; **D-02** y **D-07** reformuladas) |
+| **Decisiones abiertas** | **13** — D-05, D-14 y D-01 **resueltas** |
 | **Decisiones resueltas** | **3** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15) |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
@@ -33,14 +33,16 @@ ADR.
 | D-04 | Editor Markdown | `Task/015` | Abierta |
 | D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
 | D-06 | Backend de estado de Terraform | `Task/025` | Abierta |
-| D-07 | Dominio definitivo | `Task/035` | Abierta |
-| D-08 | Estrategia definitiva de CDN para medios | `Task/030` | Abierta |
+| D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
+| D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | Abierta |
 | D-09 | Herramienta concreta de rate limiting | `Task/011` | Abierta |
 | D-10 | Estrategia de backups cloud | `Task/029` | Abierta |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
 | D-12 | Límites exactos de Lambda | `Task/032` | Abierta |
 | D-13 | Presupuesto mensual objetivo | `Task/027` | Abierta |
 | D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
+| D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | Abierta |
+| D-16 | **Mecanismo de identidad del VPS hacia AWS** para los backups | `Task/029` (decide) · `Task/030` (materializa) | Abierta |
 
 ---
 
@@ -120,13 +122,17 @@ D-01 responde **qué modelo**, no **con qué proveedor**. Siguen pendientes y se
   cierre de sesión; auditoría; secretos fuera de Git.
 - **Qué queda por decidir:** cookie de sesión frente a *access/refresh token*; duración
   de la sesión; estrategia CSRF; algoritmo concreto de hash.
-- **Información necesaria:** si el frontend y el API compartirán dominio raíz en
-  producción (determina la viabilidad de cookies), comportamiento de las cookies a través
-  de API Gateway, requisitos de expiración deseados.
+- **Información necesaria:** la **topología lógica de dominios** (**D-15**, que se resuelve
+  en esta misma tarea), comportamiento de las cookies a través de API Gateway, requisitos
+  de expiración deseados.
 - **Afecta a:** frontend del panel (`Task/015`), API administrativa (`Task/012`), CORS
   (`Task/018`), DNS (`Task/035`).
-- **Por qué se difiere:** depende de la topología de dominios, que se define en
-  `Task/035`.
+- **Por qué se difiere:** exige tener ya el modelo de datos y el administrador (`Task/008`).
+- **Corregido en `Task/005.5`.** Antes decía *«depende de la topología de dominios, que se
+  define en `Task/035`»*. Eso era una **dependencia invertida**: D-02 se resuelve en
+  `Task/011` y `Task/035` ocurre veinticuatro tareas después. La topología **lógica** pasa a
+  ser **D-15**, resuelta en `Task/011`; `Task/035` conserva el **dominio concreto y el DNS**
+  (**D-07**).
 
 ## D-03 — Biblioteca de componentes visuales
 
@@ -204,16 +210,27 @@ No requiere ADR: es una decisión local y reversible.
   producción. La decisión sigue perteneciendo íntegramente a `Task/025`. Detalle:
   [aws-local-parity.md](aws-local-parity.md) §4.5.
 
-## D-07 — Dominio definitivo
+## D-07 — Dominio concreto y DNS
+
+> **Reformulada en `Task/005.5`.** Antes se llamaba *«dominio definitivo»* y arrastraba
+> implícitamente la **topología**, que hace falta mucho antes. La topología lógica es ahora
+> **D-15** (`Task/011`); D-07 conserva **únicamente** lo que de verdad depende del usuario y
+> del gasto.
 
 - **Se resuelve en:** `Task/035-Configurar-DNS`
+- **Qué decide:** el **nombre concreto** del dominio, su compra, los registros DNS, los
+  subdominios reales y los certificados públicos.
+- **Qué NO decide:** si el sitio y el API comparten *site*, si las cookies son
+  *first-party* o *cross-site*, y qué política CORS se aplica. Todo eso es **D-15** y se
+  decide en `Task/011`, **antes**.
 - **Información necesaria:** dominio disponible y elegido por el usuario; costo anual;
-  subdominios necesarios (`www`, `api`, `media`).
+  subdominios necesarios (`www`, `api`, `media`) **según la topología ya fijada en D-15**.
 - **Afecta a:** CORS (`Task/018`), Cloudflare Pages (`Task/034`), canonical URL y SEO
-  (`Task/016`), estrategia de cookies (D-02).
-- **Por qué se difiere:** es una decisión del usuario, con costo asociado.
+  (`Task/016`), costo (`Task/041`).
+- **Por qué se difiere:** es una decisión del usuario, con costo asociado. **Diferir el
+  nombre no obliga a diferir la topología**, y esa confusión era el defecto corregido.
 
-## D-08 — Estrategia definitiva de CDN para medios
+## D-08 — Estrategia definitiva de CDN y de acceso a medios públicos
 
 - **Se resuelve en:** `Task/030-Desplegar-Amazon-S3`
 - **Información necesaria:** volumen y peso reales de las imágenes; costo de
@@ -223,6 +240,25 @@ No requiere ADR: es una decisión local y reversible.
   (`Task/030`).
 - **Tensión conocida:** las URLs prefirmadas expiran, lo que complica el cacheo en CDN.
   Hay que equilibrar privacidad y rendimiento.
+
+### Alcance ampliado en `Task/005.5` — contenido público con bucket privado
+
+El contenido del blog es **público**, pero el bucket es **privado** y las URLs prefirmadas
+**caducan**. Esa combinación tiene consecuencias que no estaban asignadas a nadie. D-08
+debe resolver, además de la CDN:
+
+| Pregunta |
+| --- |
+| Si existe una **URL pública estable** para los medios del contenido publicado, y por qué vía |
+| Cómo se genera la URL de acceso en cada caso: publicado frente a borrador |
+| **Semántica de caché** de esas URLs, y su compatibilidad con un CDN |
+| Qué URL usa **`og:image`**, que un *crawler* debe poder leer sin autenticación y sin que caduque |
+
+**Regla que NO espera a D-08 y ya está vigente:** *nunca se persiste una URL prefirmada como
+dato canónico*. La base de datos guarda `object_key`
+([CONTENT_MODEL](../product/CONTENT_MODEL.md) §3.7) y **el Markdown del contenido guarda una
+referencia estable, nunca una URL con expiración**. Propietarios: `Task/010` (persistencia y
+generación), `Task/012` (gestión de imágenes del contenido), `Task/016` (`og:image`).
 
 ## D-09 — Herramienta concreta de rate limiting
 
@@ -250,6 +286,16 @@ No requiere ADR: es una decisión local y reversible.
   **el restore debe demostrarse**. **PITR** y *WAL archiving* quedan como evaluación futura,
   nunca por delante de tener un backup correcto y un restore probado. Detalle:
   [production-postgresql-vps.md](production-postgresql-vps.md) §15.
+- **Reparto aclarado en `Task/005.5`.** La cadena completa tiene tres propietarios y ninguno
+  exige recursos que aún no existan:
+
+  | Tramo | Owner |
+  | --- | --- |
+  | Mecanismo, cifrado, retención, RPO/RTO y **restore demostrado** off-host | `Task/029` |
+  | **Destino S3**, política, permisos, retención definitiva y el principal de **D-16** | `Task/030` |
+  | **Backup reciente y restore vigente** verificados antes del lanzamiento | `Task/040` |
+
+  Con qué **identidad** escribe el VPS en S3 es **D-16**, no parte de esta decisión.
 
 ## D-11 — Retención exacta de CloudWatch
 
@@ -322,6 +368,67 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 - **ADR:** [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada** el
   2026-08-15. Por ser una decisión estructural de infraestructura, sí exige registro
   arquitectónico.
+
+## D-15 — Topología lógica de dominios y política de cookies/CORS
+
+> **Añadida en `Task/005.5`** (2026-08-16). No es una decisión nueva del proyecto: es la
+> **mitad temprana de D-07**, que estaba diferida hasta `Task/035` pese a que `Task/011`,
+> `Task/016` y `Task/018` la necesitan antes. Separarla **elimina una dependencia
+> invertida** sin adelantar ningún gasto.
+
+- **Se resuelve en:** `Task/011-Autenticacion-Administrativa`
+- **Qué decide:** si el sitio público y el API viven en el **mismo *site*** —dominio raíz
+  compartido, API en subdominio— o en **dominios separados**; si las cookies serán
+  ***first-party*** o ***cross-site***; y la **política CORS** que se deriva de ello.
+- **Qué NO decide:** el **nombre comercial** del dominio, su compra, el DNS y los
+  certificados. Eso es **D-07**, en `Task/035`.
+- **Información necesaria:** viabilidad de cookies a través de API Gateway; requisitos de
+  sesión de D-02; restricciones de Cloudflare Pages; implicaciones de `SameSite` y CSRF.
+- **Afecta a:** mecanismo de autenticación (**D-02**, `Task/011`), API administrativa
+  (`Task/012`), canonical y SEO (`Task/016`), CORS efectivo (`Task/018`), Cloudflare Pages
+  (`Task/034`), DNS (`Task/035`).
+- **Por qué debe resolverse aquí:** es el **primer punto del roadmap donde la respuesta es
+  obligatoria**. Elegir entre cookie de sesión y *token* sin saber si habrá dominio
+  compartido es elegir a ciegas, y rehacerlo después toca autenticación, CORS y frontend.
+- **Restricción:** se decide la **forma**, con nombres de ejemplo. **No se compra ni se
+  reserva ningún dominio** en `Task/011`.
+
+## D-16 — Mecanismo de identidad del VPS hacia AWS
+
+> **Añadida en `Task/005.5`** (2026-08-16), a partir de un hueco real detectado por la
+> auditoría: **`Task/028` cubre GitHub OIDC → AWS y eso no da credenciales a un host
+> externo.** El VPS debe escribir sus backups en S3 y **nadie era propietario de cómo se
+> autentica**.
+
+- **Se decide en:** `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`
+- **Se materializa en:** `Task/030-Desplegar-Amazon-S3` — principal, política y destino
+- **Se valida en:** `Task/040-Validacion-Final-Produccion`
+- **Pregunta:** ¿con qué identidad escribe el VPS en S3, sin que eso se convierta en una
+  credencial de larga vida, con permisos amplios y sin rotación?
+
+**Opciones que `Task/029` deberá comparar** —ninguna está elegida—:
+
+| Opción | A favor | En contra |
+| --- | --- | --- |
+| Clave de acceso IAM de larga vida, muy acotada | Simple; funciona en cualquier VPS | Credencial permanente en el host: si el VPS se compromete, se compromete también |
+| **IAM Roles Anywhere** con certificado | Credenciales temporales, sin clave estática | Exige PKI y rotación de certificados: complejidad operativa real |
+| Empuje desde AWS en lugar de desde el VPS | Evita dar credenciales AWS al host | Invierte el flujo; puede exigir exponer más el VPS |
+
+- **Restricciones de seguridad que la decisión debe respetar:** permiso mínimo —**escritura
+  sobre un prefijo concreto**, sin lectura ni borrado del resto—; **rotación definida**;
+  ninguna credencial versionada; y el compromiso del VPS **no debe** implicar el compromiso
+  de la cuenta AWS.
+- **Información necesaria:** distribución y capacidades del VPS ya elegido; soporte real de
+  la opción en ese host; costo operativo de la rotación.
+- **Afecta a:** backups (**D-10**, `Task/029`), bucket y políticas (`Task/030`), límites de
+  seguridad ([security-boundaries](security-boundaries.md) §9, regla V-12), validación final
+  (`Task/040`).
+- **Por qué no se resuelve ahora:** depende del proveedor de VPS, que **todavía no está
+  seleccionado**. Elegir el mecanismo antes que el host sería inventarlo.
+
+> **Corolario de redacción.** Mientras D-16 siga abierta, **no debe afirmarse «sin
+> credenciales permanentes» como propiedad global del proyecto**. La afirmación
+> verificada se limita a **GitHub Actions → AWS** (`Task/028`).
 
 ---
 
