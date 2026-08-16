@@ -15,7 +15,7 @@
 > conservan sus identificadores y nombres**: no se añadió, eliminó ni renumeró ninguna, y
 > el roadmap sigue teniendo **41 tareas**. Estrategia completa:
 > [aws-local-parity.md](../architecture/aws-local-parity.md) ·
-> [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Propuesta**.
+> [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada** ✔ (2026-08-15).
 
 ---
 
@@ -72,7 +72,19 @@ hablando con AWS real. **Cero recursos AWS reales.**
 
 Aquí se resuelve **D-06** (backend de estado de Terraform), no antes.
 
-**Depende de:** `Task/022`. **Repositorio:** `personal-blog-infra`.
+Además, **`Task/025` amplía el workflow de CI creado en `Task/021`** con `terraform fmt`
+y `terraform validate`: son sus primeros archivos `.tf` y por tanto la primera vez que
+esas verificaciones tienen algo real que comprobar.
+
+**Depende de:** `Task/022` **y `Task/024`**. **Repositorio:** `personal-blog-infra`.
+
+> **Por qué también de `Task/024`** (corregido en `Task/005.5`). Los criterios de esta
+> tarea exigen aplicar y ejercitar **Lambda + API Gateway v2** contra el destino local.
+> Eso necesita un **artefacto desplegable real**, que produce `Task/024` —y que a su vez
+> depende del adaptador de `Task/023`—. Con la dependencia anterior, `Task/025` podía
+> declararse lista sin que existiera nunca el artefacto que sus propios criterios
+> ejercitan. La [matriz de paridad](../architecture/aws-local-parity.md) §7 ya reflejaba
+> esta realidad: la fila **Lambda** se valida en `Task/024`, `Task/025` → `Task/032`.
 
 ### `Task/026-Runbooks-de-Despliegue` — *Pendiente*
 

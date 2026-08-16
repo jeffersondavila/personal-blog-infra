@@ -38,8 +38,17 @@ Ruff, MyPy, Pytest, verificación de migraciones, build de imagen Docker y escan
 
 ### `Task/021-CI-Infraestructura` — *Pendiente*
 
-`docker compose config`, validación de scripts, `terraform fmt` y `terraform validate`,
-y escaneo de secretos.
+`docker compose config`, validación de scripts y escaneo de secretos.
+
+> **Corrección de `Task/005.5`.** Esta tarea pertenece a la ETAPA 06 y **no existe todavía
+> ningún archivo Terraform**: el primero lo crea `Task/025`, en la ETAPA 08. Declarar aquí
+> `terraform fmt` y `terraform validate` produciría **checks permanentemente en verde por
+> no tener nada que validar**, que es peor que no tenerlos: aparentan cobertura.
+>
+> Regla vigente: `Task/021` configura el CI de infraestructura **para los artefactos que
+> existen en ese momento**, y **`Task/025` es responsable de ampliarlo** con `terraform
+> fmt -check` y `terraform validate` cuando cree la IaC. Ese *ownership* futuro es
+> explícito, no implícito.
 
 **Depende de:** `Task/018`. **Repositorio:** `personal-blog-infra`.
 
@@ -51,6 +60,8 @@ y escaneo de secretos.
 - [ ] Ningún secreto aparece en los logs de CI.
 - [ ] El tiempo de ejecución de cada workflow está documentado y es razonable.
 - [ ] El escaneo de secretos cubre todo el historial disponible.
+- [ ] **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica
+      todavía, se declara explícitamente con la tarea que la incorporará.
 
 ## Fuera del alcance de la etapa
 

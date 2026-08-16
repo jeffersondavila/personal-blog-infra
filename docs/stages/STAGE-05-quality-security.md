@@ -28,6 +28,31 @@ baratos de aplicar aquí, antes de exponer el sitio en internet, que después.
 
 Metadatos, Open Graph, sitemap, `robots.txt`, optimización de carga y accesibilidad.
 
+#### SEO de una SPA: verificación, no suposición
+
+> Precisión añadida en `Task/005.5`. **Una SPA de React con metadatos inyectados en el
+> cliente no demuestra por sí sola** que el SEO funcione ni que las vistas previas sociales
+> se rendericen: muchos *crawlers* de redes sociales **no ejecutan JavaScript**. Tampoco es
+> motivo para cambiar el *stack* ahora: [ADR-005](../adr/ADR-005-markdown-content.md) y la
+> elección de Vite siguen vigentes y **no se replantean sin evidencia**.
+
+`Task/016` debe convertirse en una **validación comprobable**, con evidencia registrada:
+
+| # | Qué se comprueba |
+| --- | --- |
+| 1 | `title` y `description` **propios y correctos por URL**, no heredados de la ruta inicial |
+| 2 | `canonical` correcto en cada página pública |
+| 3 | **Open Graph** completo, incluido `og:image` con **URL estable y no expirable** |
+| 4 | **Acceso directo por URL profunda** —no navegando desde la portada— devuelve la página correcta |
+| 5 | Lo que **recibe un *crawler***, comprobado con una herramienta real de inspección o de vista previa social |
+| 6 | `sitemap.xml` y `robots.txt` generados y accesibles |
+
+**Criterio de reconsideración.** Si esas comprobaciones **no** se satisfacen con
+*rendering* en cliente, `Task/016` debe **registrar la limitación y abrir la
+reconsideración de la estrategia de *rendering*** —prerender, SSG o SSR— como decisión
+nueva con su ADR. **Esa reconsideración no se resuelve aquí**: `Task/005.5` no cambia el
+*stack*, solo exige que la tarea sepa reconocer el fallo en lugar de darlo por bueno.
+
 **Depende de:** `Task/014`, `Task/015`.
 **Repositorios:** `personal-blog-frontend`, `personal-blog-backend`.
 
@@ -35,6 +60,11 @@ Metadatos, Open Graph, sitemap, `robots.txt`, optimización de carga y accesibil
 
 Logs en JSON, correlation ID por petición, healthchecks, auditoría y diagnóstico a
 través de Portainer.
+
+> **Alcance exclusivamente local** (aclarado en `Task/005.5`). `Task/017` **no es
+> propietaria del monitoreo del VPS de producción**: ese *baseline* lo construye
+> `Task/029` y lo valida `Task/040`. `Task/031` cubre **solo** AWS. Ningún documento
+> vigente debe apuntar el monitoreo del VPS a esta tarea.
 
 **Depende de:** `Task/014`, `Task/015`.
 **Repositorios:** `personal-blog-backend`, `personal-blog-infra`.
@@ -49,7 +79,10 @@ seguridad, validación de archivos subidos y refuerzo de autenticación.
 
 ## Criterios de salida de la etapa
 
-- [ ] Cada página pública tiene título, descripción y Open Graph propios.
+- [ ] Cada página pública tiene título, descripción, `canonical` y Open Graph propios,
+      **verificados por URL directa y con una herramienta de inspección real**, no
+      asumidos por estar el código escrito.
+- [ ] `og:image` usa una **URL estable**, nunca una URL prefirmada que expira.
 - [ ] `sitemap.xml` y `robots.txt` se generan correctamente.
 - [ ] Navegación por teclado y contraste verificados en las páginas principales.
 - [ ] Los logs son JSON y llevan correlation ID rastreable extremo a extremo.
@@ -64,6 +97,9 @@ seguridad, validación de archivos subidos y refuerzo de autenticación.
 
 - Automatización de estas verificaciones en CI (Etapa 06).
 - Observabilidad cloud con CloudWatch (Etapa 10).
+- **Monitoreo del VPS de producción** (`Task/029`, validado en `Task/040`).
+- **Cambiar la estrategia de *rendering*** del frontend: `Task/016` solo puede **abrir** la
+  reconsideración con evidencia; resolverla exige un ADR propio.
 - Protección de costos (Etapa 12).
 
 ## Riesgos conocidos
