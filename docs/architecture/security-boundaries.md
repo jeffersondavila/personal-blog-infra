@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 |
+| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) |
 
 Identifica los **componentes** del sistema, qué comunicaciones entre ellos están
 permitidas y cuáles están explícitamente prohibidas.
@@ -29,6 +29,7 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-09 | **Portainer** | Local, privilegiado | **Solo local.** Acceso al socket de Docker. |
 | C-10 | **GitHub Actions** | CI/CD | Ejecuta código; accede a la nube con credenciales temporales. |
 | C-11 | **Servicios AWS** | Nube | Lambda, API Gateway, S3, SSM, CloudWatch. |
+| C-12 | **Emulador AWS local** (`Task/005.2`) | Local, **privilegiado** | **Solo local.** Acceso al socket de Docker, igual que C-09. **Nunca contiene datos ni credenciales reales.** Ver §8. |
 
 > **C-03 y C-04 no son límites de seguridad.** Ocultar un botón no protege nada: la
 > autorización se decide siempre en C-06.
@@ -53,6 +54,9 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-11 Lambda | C-11 SSM Parameter Store | Sí | Lectura de configuración, permisos mínimos. |
 | C-11 Lambda | C-11 CloudWatch | Sí | Escritura de logs. |
 | C-09 Portainer | Docker local | Sí | **Solo en la máquina local.** |
+| Terraform local | C-12 Emulador AWS local | Sí | Solo con endpoint local explícito y credenciales ficticias (§8). |
+| AWS CLI / SDK local | C-12 Emulador AWS local | Sí | Solo con `--endpoint-url` / `AWS_ENDPOINT_URL` explícito. |
+| C-12 Emulador AWS local | Docker local | Sí | **Solo en la máquina local.** Privilegio de nivel host (§8). |
 
 ---
 
@@ -72,6 +76,10 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-10 GitHub Actions | `terraform destroy` | Ninguna automatización destruye infraestructura (`Task/039`). |
 | C-11 Lambda | Recursos fuera de su rol | Permisos mínimos, acotados a lo que necesita. |
 | Cualquiera | Secretos en Git | Ningún secreto se versiona, en ningún repositorio. |
+| Internet o LAN | C-12 Emulador AWS local | **Nunca expuesto.** Ni el puerto 4566 ni sus rangos auxiliares (§8). |
+| Credenciales AWS **reales** | C-12 Emulador AWS local | Prohibido: expone una credencial real a un servicio local que no la necesita ni la protege. |
+| Secretos **reales** | C-12 SSM emulado | El `SecureString` del emulador **no cifra**. Solo valores ficticios. |
+| Herramienta apuntada al laboratorio | C-11 Servicios AWS reales | Prohibido por accidente: exige guardas *fail-closed* antes de `apply` y `destroy` (§8.2). |
 
 ---
 
@@ -110,6 +118,9 @@ de **nivel host**, no de nivel aplicación.
 | Logs | Filtración de secretos | Lista de campos a redactar | `Task/017` |
 | CI/CD | Robo de credenciales | OIDC con roles temporales, secretos enmascarados | `Task/028`, `Task/038` |
 | Bucket de objetos | Exposición pública accidental | Bloqueo de acceso público y verificación explícita | `Task/030` |
+| **Emulador AWS local** | Control del socket de Docker ⇒ control del host | Solo local, nunca expuesto, versión fijada (§8) | `Task/025`, `Task/018` |
+| **Endpoint del emulador (4566)** | Exposición a LAN o a internet | Publicación restringida a `127.0.0.1`; verificación en los runbooks | `Task/025`, `Task/026` |
+| **Herramientas de IaC** | Actuar sobre **AWS real** por falta de endpoint | Guardas *fail-closed* antes de `apply` y `destroy` (§8.2) | `Task/025`, `Task/026` |
 
 ---
 
@@ -123,6 +134,8 @@ de **nivel host**, no de nivel aplicación.
 6. **Los errores no enseñan de más**: ni trazas, ni existencia de recursos no visibles.
 7. **Todo lo administrativo deja rastro** en auditoría.
 8. **Portainer es local y privilegiado**, nunca parte del producto.
+9. **Toda herramienta con acceso al socket de Docker es privilegio de nivel host**, se
+   llame como se llame. Su compromiso es un incidente de host, no de aplicación.
 
 ---
 
@@ -138,3 +151,65 @@ de **nivel host**, no de nivel aplicación.
 | Política IAM de la Lambda y del rol OIDC | `Task/028`, `Task/032` |
 | Política del bucket y expiración de URLs prefirmadas | `Task/030` |
 | Campos a redactar en los logs | `Task/017` |
+| Guardas *fail-closed* del laboratorio local y su verificación | `Task/025`, `Task/026` |
+| Revisión del *networking* de Docker del laboratorio | `Task/025` |
+
+---
+
+## 8. Emulador AWS local (C-12) — reglas explícitas
+
+> **Estado: Vigente** ✔ — aprobado en `Task/005.2` el 2026-08-15. Estrategia completa:
+> [aws-local-parity.md](aws-local-parity.md) ·
+> [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada**.
+
+El *AWS Local Parity Lab* introduce un componente con **el mismo nivel de privilegio que
+Portainer**, y por la misma razón: **necesita el socket del demonio de Docker** para
+ejecutar las funciones Lambda en contenedores reales.
+
+Quien controla el socket de Docker **controla el equipo**: puede crear, modificar y
+destruir contenedores, redes y volúmenes de cualquier proyecto de la máquina —incluidos los
+volúmenes de PostgreSQL y MinIO del entorno local del blog. Esto **agrava R-09**: pasa a
+haber más de un componente con capacidad administrativa sobre el mismo demonio.
+
+### 8.1 Controles obligatorios
+
+| # | Regla | Detalle |
+| --- | --- | --- |
+| S-01 | **Publicación solo en `127.0.0.1`** | Cuando el host necesite alcanzar el endpoint, se publica únicamente en loopback. |
+| S-02 | **Nunca exponer el puerto 4566 a internet** | Sin excepciones, en ningún entorno. |
+| S-03 | **Evitar exposición innecesaria a la LAN** | Tampoco los rangos auxiliares (proxies de base de datos, motores de búsqueda). |
+| S-04 | **Credenciales ficticias, exclusivamente locales** | Su valor es público por diseño; no protegen nada y no deben aparentar lo contrario. |
+| S-05 | **Nunca usar credenciales AWS reales contra el emulador** | Prohibido sin excepción. |
+| S-06 | **Ningún secreto se versiona** | Regla ya vigente, sin cambios. |
+| S-07 | **Ningún secreto real en el SSM emulado** | Su `SecureString` **no cifra** el valor. Solo datos ficticios. |
+| S-08 | **El control de Docker es privilegio de host** | Mismo tratamiento que Portainer (§4). |
+| S-09 | **Revisar el *networking* de Docker antes de implementar** | Redes, alias y DNS embebido se revisan en `Task/025`. |
+| S-10 | **Versión fijada, nunca `latest` ni `nightly`** | Una etiqueta móvil en infraestructura reproducible es un defecto. |
+| S-11 | **Actualizar es un cambio de infraestructura** | Se revisa el CHANGELOG y se revalida la matriz de paridad. |
+
+### 8.2 Protección contra AWS real accidental — *fail-closed*
+
+> **Un comando pensado para el laboratorio no debe poder terminar hablando con AWS real por
+> olvidar un endpoint.**
+
+Es el fallo más caro posible: un `apply` —o peor, un `destroy`— que resuelve contra AWS de
+verdad. La implementación futura **debe** incluir guardas que **fallen cerrado**:
+
+| # | Guarda |
+| --- | --- |
+| G-01 | **Entorno explícito** (`local` \| `production`). Sin declaración, no se ejecuta nada. |
+| G-02 | **Endpoint explícito.** Para el destino local, su ausencia **aborta**; nunca se continúa con un valor por omisión. |
+| G-03 | **Verificación de cuenta**: comprobar que el *account id* observado es el ficticio esperado. |
+| G-04 | **Rechazo de credenciales con forma de credencial real** en el flujo local. |
+| G-05 | **Validación del destino previa a `apply` y `destroy`**, como paso bloqueante, no como aviso posterior. |
+
+**Ninguna se implementa en `Task/005.2`.** Son requisito para `Task/025` (guardas técnicas)
+y `Task/026` (procedimiento escrito que las ejerce), y son coherentes con la prohibición ya
+vigente de que **ninguna automatización ejecute `terraform destroy`** (§3).
+
+### 8.3 Qué NO cambia
+
+- El emulador **no forma parte del producto** ni del camino de la petición en producción.
+- **No se despliega en la nube**, en ninguna forma.
+- **No sustituye** a Portainer, ni a MinIO, ni a PostgreSQL local.
+- **No relaja** ninguna regla existente de este documento.

@@ -62,6 +62,7 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/004-Backups-y-Recuperacion-Local` | [TASK-004-report.md](TASK-004-report.md) | Aprobada (2026-07-31) |
 | `Task/005-Fundacion-Backend-FastAPI` | [TASK-005-report.md](TASK-005-report.md) | Aprobada (2026-08-12) |
 | `Task/005.1-Formalizar-TDD-Backend` *(mantenimiento)* | [TASK-005.1-report.md](TASK-005.1-report.md) | Aprobada (2026-08-13) |
+| `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` *(mantenimiento)* | [TASK-005.2-report.md](TASK-005.2-report.md) | Aprobada (2026-08-15) |
 
-> Las tareas de **mantenimiento** llevan sufijo (`005.1`) y **no cuentan** dentro de las 41
-> tareas del roadmap.
+> Las tareas de **mantenimiento** llevan sufijo (`005.1`, `005.2`) y **no cuentan** dentro
+> de las 41 tareas del roadmap.

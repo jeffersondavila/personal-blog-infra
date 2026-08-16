@@ -1,6 +1,6 @@
 # Correspondencia local → nube
 
-**Última actualización:** 2026-07-26
+**Última actualización:** 2026-08-15 (`Task/005.2` — columna *AWS Local Parity Lab*)
 
 > Consistente con la arquitectura definida en `Task/002`. Ver
 > [software-architecture.md](software-architecture.md) para la organización interna del
@@ -11,24 +11,37 @@ Cada responsabilidad del sistema tiene una implementación local y una implement
 prevista en la nube. El objetivo es que **el código de aplicación no cambie** al pasar
 de una a otra: lo que cambia es la configuración y el adaptador.
 
+Desde `Task/005.2` (**aprobada** el 2026-08-15) existe además un **tercer entorno**, el
+**AWS Local Parity Lab**: un laboratorio local de infraestructura que permite ejecutar la
+misma definición de Terraform contra un emulador AWS, sin cuenta y sin costo. **No
+sustituye al entorno local de desarrollo** y **no es autoridad sobre el comportamiento de
+AWS**. Estrategia completa y límites de fidelidad:
+[aws-local-parity.md](aws-local-parity.md) — **Vigente** ·
+[ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada**.
+
 ---
 
 ## Tabla de correspondencia
 
-| Responsabilidad | Local | Nube inicial |
-| --- | --- | --- |
-| Frontend | React + Vite | Cloudflare Pages |
-| Backend | FastAPI local/Docker | AWS Lambda |
-| Entrada HTTP | Reverse proxy | API Gateway HTTP API |
-| Base de datos | PostgreSQL Docker | PostgreSQL administrado |
-| Archivos | MinIO | Amazon S3 |
-| Administración Docker | Portainer | No se despliega |
-| Configuración | `.env` | SSM Parameter Store |
-| Logs | Docker y Portainer | CloudWatch |
-| Ejecución | Docker Compose | Serverless |
-| Infraestructura | Docker Compose | Terraform |
-| Integración continua | GitHub Actions | GitHub Actions |
-| Despliegue | No aplica todavía | GitHub Actions + Terraform |
+| Responsabilidad | Local (desarrollo) | AWS Local Parity Lab | Nube inicial |
+| --- | --- | --- | --- |
+| Frontend | React + Vite | No aplica | Cloudflare Pages |
+| Backend | FastAPI local/Docker | Lambda emulada ejecutando el mismo FastAPI | AWS Lambda |
+| Entrada HTTP | Reverse proxy | API Gateway v2 emulado | API Gateway HTTP API |
+| Base de datos | PostgreSQL Docker | Fuera del alcance inicial (**D-01**) | PostgreSQL administrado |
+| Archivos | MinIO | S3 emulado | Amazon S3 |
+| Administración Docker | Portainer | No aplica | No se despliega |
+| Configuración | `.env` | SSM emulado (**sin cifrado real**) | SSM Parameter Store |
+| Logs | Docker y Portainer | CloudWatch Logs emulado | CloudWatch |
+| Permisos | No aplica | IAM emulado — **crea, no autoriza** | IAM |
+| Ejecución | Docker Compose | Emulador AWS local | Serverless |
+| Infraestructura | Docker Compose | **Terraform** (misma definición) | **Terraform** (misma definición) |
+| Integración continua | GitHub Actions | GitHub Actions + emulador efímero (`Task/039`) | GitHub Actions |
+| Despliegue | No aplica todavía | `apply`/`destroy` local (`Task/025`) | GitHub Actions + Terraform |
+
+> La estrategia del laboratorio está **aprobada**, pero **nada de esa columna está probado
+> todavía**: se implementa en `Task/025`. El grado real de paridad de cada fila se registra
+> en la [matriz de paridad](aws-local-parity.md) §7, que hoy está entera en `No evaluada`.
 
 ---
 
@@ -78,8 +91,14 @@ Docker Compose local frente a ejecución serverless en la nube. Implicación: no
 procesos residentes en producción; toda tarea periódica debe modelarse como invocación.
 
 ### Infraestructura
-Docker Compose describe el entorno local; Terraform describe el cloud. No se comparte
-definición entre ambos, pero sí la nomenclatura de recursos y variables.
+Docker Compose describe el entorno local de aplicación; Terraform describe el cloud. No se
+comparte definición entre ambos, pero sí la nomenclatura de recursos y variables.
+
+**Matiz añadido en `Task/005.2`:** entre esos dos mundos se propone el *AWS Local Parity
+Lab*, donde **Terraform sí es la misma definición** que la de producción, apuntada a un
+destino local. Regla de portabilidad: **una sola definición, un solo grafo de recursos**;
+las diferencias se confinan a provider, endpoints, credenciales, región, backend, nombres,
+dominios y capacidad ([aws-local-parity.md](aws-local-parity.md) §4).
 
 ### Integración continua
 GitHub Actions en ambos casos, con los mismos workflows de calidad. El despliegue se
@@ -99,6 +118,10 @@ añade en la Etapa 11, usando OIDC para acceder a AWS sin credenciales permanent
 | 6 | CloudWatch cobra por ingesta y retención de logs. | `Task/031`, `Task/041` |
 | 7 | El límite de conexiones de PostgreSQL administrado suele ser bajo. | `Task/029` |
 | 8 | No hay equivalente de Portainer en producción. | Diagnóstico por CloudWatch (`Task/031`) |
+| 9 | **El laboratorio local no aplica políticas IAM**: un rol puede validarse en local y ser incorrecto en AWS. | `Task/028`, `Task/032` — **AWS-only** |
+| 10 | **`SecureString` no se cifra** en el SSM emulado. | `Task/031` — ningún secreto real en el laboratorio |
+| 11 | El arranque en frío del laboratorio **no es comparable** con el de AWS. | `Task/032` (**D-12**) — medir solo en AWS real |
+| 12 | El laboratorio no emula dominios personalizados ni TLS gestionado. | `Task/035`, `Task/040` — **AWS-only** |
 
 ---
 

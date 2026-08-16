@@ -149,6 +149,23 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 Detalle y justificación: [ADR-003](docs/adr/ADR-003-serverless-low-cost-cloud.md) y
 [docs/architecture/local-to-cloud-mapping.md](docs/architecture/local-to-cloud-mapping.md).
 
+La arquitectura objetivo está representada en el diagrama versionado
+[`images/Infraestructura.png`](images/Infraestructura.png).
+
+### AWS Local Parity — laboratorio local de infraestructura
+
+Antes de crear un solo recurso real, la infraestructura se desarrolla, se aprende, se
+provisiona y se destruye **localmente**: la misma definición de Terraform se aplica contra
+un emulador AWS local, sin cuenta y sin costo. **No sustituye** al entorno local de
+desarrollo (Docker Compose, PostgreSQL, MinIO, Portainer) y **AWS real sigue siendo la
+autoridad final**.
+
+Estrategia completa:
+[`docs/architecture/aws-local-parity.md`](docs/architecture/aws-local-parity.md) ·
+[ADR-006](docs/adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada** (2026-08-15).
+
+La estrategia está aprobada; **la implementación llega en `Task/025`**.
+
 ### Servicios que NO usaremos inicialmente
 
 - Amazon EC2
@@ -210,7 +227,8 @@ docs/
 │   ├── non-functional-requirements.md ← 57 requisitos: seguridad, rendimiento, SEO…
 │   ├── security-boundaries.md         ← qué puede hablar con qué
 │   ├── open-decisions.md              ← decisiones diferidas
-│   └── local-to-cloud-mapping.md      ← correspondencia local → nube
+│   ├── local-to-cloud-mapping.md      ← correspondencia local → nube
+│   └── aws-local-parity.md            ← estrategia de IaC local (AWS Local Parity)
 ├── adr/                               ← decisiones arquitectónicas
 └── task-reports/                      ← reportes finales de ejecución
 ```
