@@ -22,9 +22,15 @@ estos criterios:
 | 8 | **Registra decisiones importantes.** | Sección *Decisiones técnicas*; ADR si la decisión es estructural. |
 | 9 | **Registra riesgos y deuda pendiente.** | Secciones *Riesgos* y *Deuda técnica pendiente*; riesgos vivos replicados en `STATUS.md`. |
 | 10 | **No rompe tareas aprobadas anteriormente.** | Las validaciones de tareas previas siguen pasando. |
+| 11 | **La rama Task nació de `main`.** | `git rev-parse HEAD` coincidía con `git rev-parse main` al crearla, y el SHA base queda registrado en la ficha. |
 
 Si un criterio **no aplica** a la tarea, debe declararse explícitamente con su
 justificación (por ejemplo: "criterio 4 no aplica: tarea exclusivamente documental").
+
+> **Criterio 11 — higiene Git mínima.** La única base permitida de una rama `Task/*` es
+> **`main`**; `dev` **nunca** lo es. Motivo y procedimiento completo:
+> [`WORKFLOW.md`](WORKFLOW.md) §2.1. Aquí solo se comprueba el hecho, no se duplica el
+> flujo.
 
 ---
 
@@ -42,6 +48,8 @@ justificación (por ejemplo: "criterio 4 no aplica: tarea exclusivamente documen
 - Recibida la autorización, se ejecuta el flujo de cierre definido en
   [`WORKFLOW.md`](WORKFLOW.md), sección 3.
 - Sin esa expresión no se hace commit, merge, push ni pull request.
+- **Antes de crear el pull request** debe comprobarse que su **base es `main`** y su
+  **head es exactamente la rama `Task/<...>`**. Nunca `dev → main`.
 
 ---
 

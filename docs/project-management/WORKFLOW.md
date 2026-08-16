@@ -2,6 +2,16 @@
 
 Define cómo se selecciona, ejecuta, valida, aprueba e integra cada tarea del proyecto.
 
+> ## ⚠️ Invariante crítico de ramas
+>
+> **Toda rama `Task/<...>` nace SIEMPRE desde `main` actualizado y limpio.**
+>
+> **`dev` NUNCA es la rama base de una Task.** `dev` es exclusivamente rama de
+> integración.
+>
+> Corregido el 2026-08-15 en `Task/005.4-Corregir-Base-Ramas-Task-Main`. Hasta esa fecha
+> este documento indicaba `dev` como base, lo que era incorrecto: ver §2.1.
+
 ---
 
 ## 1. Estados oficiales de una tarea
@@ -34,13 +44,32 @@ Reglas:
    Todas las tareas de las que depende deben estar `Aprobada`.
    Si alguna no lo está, la tarea no puede iniciarse.
 
-3. **Crear la rama Task desde `dev`**
+3. **Crear la rama Task desde `main`**
+   ```
+   git fetch --prune origin
+   git switch main
+   git pull --ff-only origin main
+
+   # Validar ANTES de crear la rama
+   git status --porcelain        # debe estar vacio
+   git rev-parse main
+   git rev-parse origin/main     # deben coincidir
+
+   git switch -c Task/<numero>-<nombre>
+
+   # Validar INMEDIATAMENTE despues
+   git rev-parse HEAD
+   git rev-parse main            # deben coincidir
+   ```
+   Si la tarea afecta a varios repositorios, se crea **la misma rama** en cada uno,
+   **siempre desde `main`**.
+
+   **Prohibido**, en cualquier forma equivalente:
+
    ```
    git switch dev
-   git pull --ff-only            # si hay remoto y seguimiento
-   git switch -c Task/<numero>-<nombre>
+   git switch -c Task/<numero>-<nombre>     # ❌ NUNCA
    ```
-   Si la tarea afecta a varios repositorios, se crea **la misma rama** en cada uno.
 
 4. **Marcarla `En progreso`**
    Actualizar `STATUS.md` y `ROADMAP.md`.
@@ -78,6 +107,76 @@ Reglas:
 
 ---
 
+## 2.1 Ciclo oficial de ramas
+
+```
+A. INICIO
+   origin/main
+       ↓
+   main actualizado y limpio
+       ↓
+   Task/<nombre>
+
+B. DESARROLLO
+   trabajo únicamente en Task/<nombre>
+
+C. APROBACIÓN
+   el usuario escribe:  approved: Task/<nombre>
+
+D. CIERRE
+   commit en Task/<nombre>
+
+E. INTEGRACIÓN
+   Task/<nombre> ──merge --no-ff──► dev
+   push dev
+
+F. PUBLICACIÓN
+   push Task/<nombre>
+
+G. PULL REQUEST
+   Task/<nombre> ──► main
+
+H. USUARIO
+   revisa y fusiona el PR manualmente
+   decide si elimina la rama remota
+
+I. NORMALIZACIÓN
+   fetch --prune
+   main actualizado
+   main ──merge --no-ff──► dev
+   push dev
+
+J. SIGUIENTE TASK
+   main actualizado
+       ↓
+   Task/<siguiente>
+```
+
+**`dev` nunca es la rama base de una Task.**
+
+### Por qué la base es `main` y no `dev`
+
+`dev` contiene **commits de integración** —los merges de tareas anteriores y las
+normalizaciones `main → dev`— que **no deben formar parte de la ascendencia de una tarea
+nueva**.
+
+Si una Task nace desde `dev`, el pull request `Task → main` puede **heredar historial
+exclusivo de integración de `dev`**, ajeno a la tarea.
+
+Crear cada Task desde `main` garantiza que:
+
+- el pull request contiene **únicamente** la tarea correspondiente;
+- la ascendencia del trabajo parte de la **rama estable**;
+- `dev` conserva su función **exclusivamente integradora**;
+- los commits de integración de `dev` **no contaminan** futuras Task.
+
+> **Antecedente.** Hasta el 2026-08-15 este documento indicaba `dev` como base, y las
+> tareas `Task/002` a `Task/005.3` se crearon así. **Su historial no se reescribe**: la
+> corrección aplica hacia adelante, desde
+> `Task/005.4-Corregir-Base-Ramas-Task-Main`, que es la primera creada desde `main`.
+
+---
+
 ## 3. Aprobación y cierre
 
 La expresión exacta que autoriza el cierre de una tarea es:
@@ -97,8 +196,9 @@ es el siguiente en cada repositorio afectado. Los pasos 1 a 4 ocurren antes de
 la aprobación; el paso 5 desbloquea los pasos 6 a 12. Tras el paso 12, Claude
 se detiene hasta que el usuario complete el paso 13:
 
-1. **Actualizar `dev`** y confirmar que es la base vigente.
-2. **Crear `Task/<nombre>` desde `dev`**.
+1. **Actualizar `main`** con `fetch --prune` y `pull --ff-only`, y confirmar que
+   `main == origin/main` y que el árbol está limpio.
+2. **Crear `Task/<nombre>` desde `main`**, verificando que `HEAD == main` justo después.
 3. **Implementar y validar** únicamente el alcance autorizado.
 4. **Dejar la tarea `Lista para validación`** y detenerse.
 5. **Recibir `approved: Task/<nombre>`** del usuario.
@@ -152,20 +252,27 @@ Restricciones:
 
 | Rama | Propósito | Origen | Destino |
 | --- | --- | --- | --- |
-| `main` | Versión estable o liberable. | — | — |
-| `dev` | Integración de tareas aprobadas y normalización posterior al PR. | `main` | Publicación directa; recibe Task y luego `main` |
-| `Task/<numero>-<nombre>` | Trabajo aislado de una tarea. | `dev` | merge → `dev` y PR → `main` |
+| `main` | Versión estable o liberable. **Única base permitida de las ramas Task.** | — | — |
+| `dev` | **Solo integración** de tareas aprobadas y normalización posterior al PR. | `main` | Publicación directa; recibe Task y luego `main` |
+| `Task/<numero>-<nombre>` | Trabajo aislado de una tarea. | **`main`** | merge → `dev` y PR → `main` |
 
 Reglas:
 
+- **`main` es la única rama base para crear `Task/*`.**
+- **`dev` NUNCA es base de una Task.** `dev` es exclusivamente rama de integración.
 - Nunca se implementa el trabajo de una tarea directamente sobre `main` ni
   sobre `dev`; solo se realizan las operaciones de integración y
   normalización definidas en este workflow.
-- Una tarea que afecta a varios repositorios usa **el mismo nombre de rama** en todos.
+- Una tarea que afecta a varios repositorios usa **el mismo nombre de rama** en todos, y
+  **todas nacen de `main`**.
 - No se reescribe historial publicado (`rebase`/`push --force` sobre ramas compartidas).
 - `dev` nunca es el head obligatorio ni el head ordinario del PR de cierre.
 - El PR de cierre siempre usa `Task/<numero>-<nombre>` como head y `main` como
   base.
+- Una tarea aprobada **se integra en `dev`**; el PR sale **directamente de la rama Task
+  hacia `main`**. Nunca se crea un PR `dev → main`.
+- Tras la fusión manual del usuario, **`main` se integra de nuevo en `dev`** para
+  normalizar, y la siguiente Task vuelve a nacer de `main`.
 
 ### Estado actual de las ramas
 
