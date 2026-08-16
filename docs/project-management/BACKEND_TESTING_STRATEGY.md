@@ -1,0 +1,390 @@
+# BACKEND TESTING STRATEGY — Práctica test-first del backend
+
+Fuente de verdad **única y completa** de cómo se prueba `personal-blog-backend`.
+
+[`PROJECT_INSTRUCTIONS.md`](../claude/PROJECT_INSTRUCTIONS.md),
+[`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md), [`TASK_TEMPLATE.md`](TASK_TEMPLATE.md),
+[`ROADMAP.md`](ROADMAP.md) y la [ETAPA 03](../stages/STAGE-03-domain-and-backend.md)
+**referencian** este documento en lugar de repetirlo. Si algo de aquí entra en conflicto con
+otro documento, **manda este** en materia de pruebas del backend.
+
+- **Estado:** Vigente
+- **Creado por:** `Task/005.1-Formalizar-TDD-Backend` (mantenimiento)
+- **Aplica desde:** `Task/008-Modelo-de-Datos`
+
+---
+
+## 1. Por qué existe
+
+`Task/005` dejó el backend con estructura, configuración, logging, errores y acceso a datos,
+pero **sin una sola regla de negocio**. A partir de `Task/008` empieza el dominio real: es el
+momento exacto de fijar cómo se prueba, antes de que exista código sobre el que sea caro
+cambiar de práctica.
+
+Las pruebas de este proyecto no son un trámite de cobertura. Cumplen cinco funciones:
+
+| Función | Qué significa |
+| --- | --- |
+| **Especificación ejecutable** | El test dice qué debe hacer el sistema, antes que el código. |
+| **Red de regresión** | Un comportamiento acordado no puede romperse en silencio. |
+| **Contrato de comportamiento** | Define qué es observable y qué es detalle interno. |
+| **Límite para los agentes** | Un agente de programación no puede redefinir el comportamiento acordado por su cuenta. |
+| **Documentación técnica del dominio** | El nombre del test explica la regla de negocio. |
+
+---
+
+## 2. La regla central
+
+> **Test-first law.** Todo comportamiento funcional **nuevo** del backend empieza por una
+> prueba que **falla**. El ciclo obligatorio es **RED → GREEN → REFACTOR**.
+
+No se acepta escribir la implementación primero y las pruebas después para alcanzar un
+porcentaje. Una suite escrita a posteriori documenta lo que el código **hace**; una suite
+escrita antes documenta lo que el código **debe hacer**. Solo la segunda detecta que la
+implementación está equivocada.
+
+---
+
+## 3. Dónde es obligatorio
+
+TDD es **obligatorio** para comportamiento nuevo en:
+
+| Área | Incluye |
+| --- | --- |
+| **Dominio** | Invariantes, entidades, *value objects*, transiciones de estado, validaciones de negocio. |
+| **Reglas de contenido** | Publicación, borrador, archivado y sus transiciones. |
+| **Aplicación** | Casos de uso, servicios de aplicación, orquestación, decisiones de permisos. |
+| **API pública** | Contratos HTTP, búsquedas, paginación, filtros, exposición exclusiva de contenido publicado. |
+| **API administrativa** | CRUD, publicación, gestión de medios. |
+| **Persistencia** | Repositorios, consultas, constraints, transacciones. |
+| **Seguridad** | Autenticación, autorización, auditoría, reglas verificables de seguridad. |
+| **Almacenamiento** | Interfaz `ObjectStorage` y sus implementaciones (MinIO, S3-compatible). |
+| **Errores funcionales** | Códigos, modelo común de error, ausencia de filtraciones. |
+
+Aplica de forma especialmente estricta a **`Task/008` … `Task/012`**, que construyen el
+backend funcional real.
+
+---
+
+## 4. Excepciones razonables
+
+TDD estricto **no** se impone artificialmente a:
+
+- Documentación y archivos declarativos.
+- `Dockerfile`, Compose, Terraform.
+- *Wiring* trivial y configuración sin lógica.
+- Cambios puramente mecánicos (renombrados, formato, movimientos de archivos).
+- Scripts triviales.
+- Migraciones estructurales, donde la prueba correcta es una **validación de integración**
+  (`upgrade`, `downgrade`, reaplicación contra PostgreSQL real) y no un test unitario.
+
+> **Una excepción a TDD no es una excepción a validar.** Todo cambio sigue necesitando la
+> verificación apropiada a su naturaleza, y esa verificación se registra en el reporte de la
+> tarea.
+
+---
+
+## 5. Ciclo obligatorio por comportamiento
+
+### 5.1 ESPECIFICAR — antes de tocar la implementación
+
+1. Leer el criterio de aceptación de la ficha.
+2. Identificar el **comportamiento observable** (no la implementación).
+3. Construir la **matriz de casos** (§6).
+4. Identificar las **invariantes** que nunca pueden romperse.
+5. Identificar el **happy path**.
+6. Identificar los **edge cases**.
+7. Identificar los **errores** esperados y su contrato.
+8. Identificar las **condiciones de seguridad**.
+9. Decidir **qué capa** debe demostrar cada comportamiento (§7 y §8).
+
+### 5.2 RED
+
+1. Escribir **primero** el test.
+2. Ejecutarlo.
+3. Confirmar que **falla**.
+4. Confirmar que falla **por la razón esperada** — no por un `ImportError`, un *typo* ni una
+   fixture ausente.
+
+> **Evidencia obligatoria.** El reporte de la tarea conserva la salida de RED: el nombre del
+> test y el motivo del fallo.
+
+> **Señal de alarma.** Un test que **ya pasa** antes de implementar no demuestra el ciclo: o
+> el comportamiento ya existía, o el test no comprueba lo que dice comprobar. Debe
+> investigarse y explicarse antes de continuar.
+
+### 5.3 GREEN
+
+1. Implementar la **mínima solución suficiente**.
+2. No añadir comportamiento futuro que nadie ha pedido.
+3. Ejecutar el test.
+4. Confirmar GREEN.
+
+### 5.4 REFACTOR
+
+1. Mejorar el diseño.
+2. Eliminar duplicación.
+3. Mejorar nombres.
+4. Mantener los límites arquitectónicos de [ADR-004](../adr/ADR-004-modular-monolith.md).
+5. **No cambiar el comportamiento observable.**
+
+Después del refactor se ejecutan **de nuevo** todas las pruebas afectadas, más la suite
+completa antes de cerrar la tarea.
+
+Si el refactor no hace falta, se declara explícitamente: *"refactor no necesario, el diseño
+resultante ya es el mínimo razonable"*.
+
+---
+
+## 6. Matriz de comportamiento
+
+Toda funcionalidad no trivial **empieza** por su matriz. No se programa la funcionalidad
+hasta que la matriz tiene cobertura suficiente.
+
+| Caso | Entrada | Precondición | Resultado esperado | Capa |
+| --- | --- | --- | --- | --- |
+| Happy path | … | … | … | dominio |
+| Edge | … | … | … | aplicación |
+| Error | … | … | … | HTTP |
+| Seguridad | … | … | … | integración |
+
+La matriz vive en la **ficha de la tarea**, en la sección *TDD / Plan test-first*
+([`TASK_TEMPLATE.md`](TASK_TEMPLATE.md) §7).
+
+---
+
+## 7. Pirámide de pruebas
+
+```
+                 pocas
+            E2E / HTTP
+          integracion real
+      casos de uso / aplicacion
+     dominio e invariantes
+                 muchas
+```
+
+**No se fijan proporciones numéricas**: un porcentaje inventado empuja a escribir pruebas
+para cuadrar una estadística. La intención es:
+
+- **Muchas** pruebas de dominio, rápidas y sin infraestructura.
+- **Suficientes** pruebas de aplicación sobre la orquestación.
+- **Integración real** donde la tecnología concreta importa.
+- **Pocas** pruebas E2E, caras y lentas, reservadas a los recorridos críticos.
+
+---
+
+## 8. Tipos de prueba del backend
+
+### 8.1 Unitarias / dominio
+
+**Para:** reglas puras, invariantes, *value objects*, transiciones de estado, validaciones.
+
+**Deben:** ser rápidas, no necesitar base de datos, no depender de FastAPI y no depender de
+Docker. Si una prueba de dominio necesita alguna de esas tres cosas, el diseño está
+filtrando infraestructura hacia el dominio.
+
+### 8.2 Casos de uso
+
+**Para:** orquestación, uso de repositorios abstractos, decisiones de aplicación y permisos
+funcionales.
+
+Mocks o *fakes* **solo en límites claros** (repositorio, almacenamiento, reloj).
+
+### 8.3 PostgreSQL real
+
+Se usa **PostgreSQL real** cuando el comportamiento depende de: SQL, constraints, índices,
+transacciones, consultas, o de la semántica específica de PostgreSQL.
+
+> **Prohibido sustituir PostgreSQL por SQLite para aparentar integración.** Una prueba contra
+> otro motor no demuestra el comportamiento del motor que se usa en producción; demuestra el
+> de SQLite.
+
+El entorno local ya provee ese PostgreSQL
+([runbook](../runbooks/local-environment.md)). Las pruebas de integración se **omiten con
+motivo explícito** si no está disponible, nunca se declaran superadas sin ejecutarse.
+
+### 8.4 HTTP / FastAPI
+
+**Valida:** códigos HTTP, contrato JSON, modelo común de error, paginación, filtros,
+autenticación y autorización, no exposición de contenido no publicado y ausencia de
+filtraciones de datos internos.
+
+### 8.5 ObjectStorage
+
+Primero, **el contrato** de la interfaz. Después, la integración: MinIO local, otro
+S3-compatible y, más adelante, S3 real. El orden importa: el contrato es lo que permite
+cambiar de implementación sin reescribir el dominio.
+
+### 8.6 Seguridad
+
+Se incluyen **deliberadamente** casos negativos:
+
+- Usuario no autenticado y usuario sin permisos.
+- Contenido inexistente y contenido no publicado.
+- Identificadores inválidos o malformados.
+- Entradas maliciosas.
+- Filtración de datos en respuestas de error.
+- Duplicados.
+- *Race conditions* cuando sean relevantes.
+
+Un endpoint protegido no está probado hasta que existe una prueba que demuestra que
+**rechaza** al no autorizado.
+
+---
+
+## 9. Protección de los tests
+
+> **Una implementación incorrecta NO se resuelve modificando el test para que pase.**
+
+Los tests representan el comportamiento acordado. Un test **solo** puede modificarse cuando:
+
+1. El requisito cambió.
+2. El test contradice explícitamente la documentación vigente.
+3. El test contiene un error **demostrado**.
+4. El comportamiento esperado fue redefinido por una **decisión documentada**.
+
+Cuando se detecte una contradicción entre **requisito**, **arquitectura** y **test**, hay que
+**detenerse y documentarla** antes de cambiar ninguna expectativa. La contradicción es
+información valiosa: resolverla en silencio la destruye.
+
+**Está prohibido:**
+
+- Reducir *asserts* solo para obtener GREEN.
+- Borrar edge cases porque fallan.
+- Marcar pruebas como `skip` sin justificación registrada.
+- Usar `xfail` para ocultar un defecto.
+- Mockear tanto que el comportamiento real deje de probarse.
+- Cambiar los datos esperados para acomodar una implementación incorrecta.
+
+Esta sección aplica **por igual** a las personas y a los agentes de programación.
+
+---
+
+## 10. Mocks: solo en los límites
+
+- Mock **solo en boundaries**: repositorios, almacenamiento, reloj, servicios externos.
+- **No** mockear los internals de la unidad que se está probando.
+- Preferir un **fake simple** cuando exprese mejor el contrato que un mock con expectativas.
+- Para PostgreSQL: integración real cuando el comportamiento depende de PostgreSQL (§8.3).
+- Para almacenamiento: contrato **más** integración.
+- Los tests **no** deben acoplarse a detalles privados: si un cambio interno sin efecto
+  observable rompe la suite, la suite está mal acoplada.
+
+---
+
+## 11. Regresión
+
+> **No bug fix without regression test.**
+
+Todo defecto corregido sigue esta secuencia:
+
+1. **Reproducirlo** con una prueba que **falla**.
+2. Corregirlo.
+3. **Dejar esa prueba permanentemente** en la suite.
+
+La única excepción es una imposibilidad técnica, que debe quedar **documentada** en el
+reporte de la tarea con su motivo.
+
+---
+
+## 12. Cobertura
+
+> **Coverage is a signal, not the specification.**
+
+La cobertura mide qué líneas se ejecutaron, no si el comportamiento es correcto. Un 100 % con
+*asserts* triviales no prueba nada.
+
+**No se acepta:**
+
+- Tests sin *asserts* útiles.
+- Tests triviales creados solo para subir el porcentaje.
+- Exclusiones de cobertura sin justificación.
+
+**Sí se exige:** para comportamiento de negocio nuevo, **todo branch significativo** debe
+estar cubierto por un caso explícito de la matriz.
+
+> **Umbral en CI.** Este documento **no** fija un porcentaje mínimo: la política definitiva de
+> CI corresponde a `Task/020-CI-Backend`. Hasta entonces la cobertura se registra e
+> interpreta, no se convierte en una puerta automática.
+
+---
+
+## 13. Property-based testing
+
+Cuando una regla tenga un espacio de entrada amplio, podrá incorporarse **Hypothesis** u otra
+herramienta *property-based*. Candidatos naturales: generación de *slugs*, paginación,
+normalización de texto, límites numéricos, serialización, sanitización e invariantes de
+estado.
+
+Dos límites:
+
+- **La dependencia no se añade en esta tarea.** Se incorporará en la tarea que realmente la
+  necesite, con su justificación.
+- **No usarla por obligación.** Cuando unos pocos ejemplos explícitos expresan mejor la
+  regla, los ejemplos explícitos son la respuesta correcta.
+
+---
+
+## 14. Nomenclatura y estructura
+
+### 14.1 Estructura objetivo
+
+```
+tests/
+├── unit/          dominio e invariantes
+├── integration/   PostgreSQL real, MinIO
+├── contract/      contratos HTTP y de ObjectStorage
+└── conftest.py
+```
+
+> **No se reorganizan ahora los tests de `Task/005`.** Esa tarea está aprobada y su estructura
+> actual (`tests/` con `tests/integration/`) funciona. La estructura evolucionará cuando
+> `Task/008` aporte volumen suficiente para que la separación sea útil, no por estética.
+
+### 14.2 Nombres
+
+El nombre de una prueba describe **el comportamiento**, no un número:
+
+```python
+# Bien: se lee como la regla de negocio
+def test_no_se_puede_publicar_un_articulo_sin_contenido() -> None: ...
+
+# Mal: no dice nada sobre qué se espera
+def test_post_7() -> None: ...
+```
+
+Un fallo en CI debe ser comprensible **por su nombre**, sin abrir el archivo.
+
+---
+
+## 15. Evidencia exigida en cada tarea backend funcional
+
+El reporte de la tarea debe contener:
+
+| Evidencia | Detalle |
+| --- | --- |
+| **Matriz de casos** | Con la capa asignada a cada caso. |
+| **RED** | Test escrito primero, ejecutado, fallando por la razón esperada. |
+| **GREEN** | El mismo test en verde tras la implementación mínima. |
+| **REFACTOR** | Ejecutado, o declarado innecesario con su razón. |
+| **Suite completa** | Resultado real, incluidos fallos y omisiones con su motivo. |
+| **Integración** | Ejecutada contra PostgreSQL real cuando aplique. |
+| **Casos negativos y de seguridad** | Presentes cuando la funcionalidad los admita. |
+| **Warnings** | Cero warnings no documentados. |
+
+---
+
+## 16. Documentos relacionados
+
+- [`PROJECT_INSTRUCTIONS.md`](../claude/PROJECT_INSTRUCTIONS.md) — resumen operativo de la
+  regla para cada sesión de Claude Code.
+- [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) — cuándo una tarea backend funcional puede
+  marcarse `Lista para validación`.
+- [`TASK_TEMPLATE.md`](TASK_TEMPLATE.md) — sección *TDD / Plan test-first* de cada ficha.
+- [`WORKFLOW.md`](WORKFLOW.md) — ciclo de vida y aprobación de las tareas.
+- [ETAPA 03](../stages/STAGE-03-domain-and-backend.md) — dónde empieza a aplicarse de verdad.
+- [ADR-004](../adr/ADR-004-modular-monolith.md) — límites arquitectónicos que el refactor no
+  puede romper.
+- [`non-functional-requirements.md`](../architecture/non-functional-requirements.md) —
+  requisitos M-01 a M-06 sobre mantenibilidad y pruebas.

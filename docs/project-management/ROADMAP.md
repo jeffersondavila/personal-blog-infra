@@ -12,6 +12,10 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > El porcentaje de avance se calcula **solo** con tareas en estado `Aprobada`.
 > Ninguna tarea puede marcarse `Aprobada` sin autorización explícita del usuario.
 
+> **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`, …) son
+> mantenimiento de gobierno: **no forman parte de estas 41** y **no alteran el avance**. Su
+> estado se registra en [`STATUS.md`](STATUS.md).
+
 ---
 
 ## Resumen de etapas
@@ -108,13 +112,18 @@ con almacenamiento de archivos y autenticación.
 **Hito que completa:** *Backend funcionalmente completo para el MVP.*
 **Ficha:** [STAGE-03-domain-and-backend.md](../stages/STAGE-03-domain-and-backend.md)
 
+> **Test-first obligatorio en toda la etapa.** `Task/008` a `Task/012` construyen el backend
+> funcional: cada comportamiento nuevo empieza por una prueba que falla
+> (**RED → GREEN → REFACTOR**), con matriz de casos previa y evidencia registrada en el
+> reporte. Regla completa: [`BACKEND_TESTING_STRATEGY.md`](BACKEND_TESTING_STRATEGY.md).
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/008-Modelo-de-Datos` | Perfil. Artículos. Reviews de libros. Videos. Proyectos. Etiquetas. Medios. Administrador. Auditoría. | backend | 007 | Pendiente |
-| `Task/009-API-Publica` | Consultas públicas. Paginación. Filtros. Búsqueda. Contenido publicado. | backend | 008 | Pendiente |
-| `Task/010-Almacenamiento-Compatible-S3` | Interfaz `ObjectStorage`. MinIO local. Adaptador futuro para Amazon S3. Imágenes y miniaturas. | backend | 008 | Pendiente |
-| `Task/011-Autenticacion-Administrativa` | Login. Sesiones o tokens. Protección de endpoints. Rate limiting. Auditoría. | backend | 008 | Pendiente |
-| `Task/012-API-Administrativa` | CRUD. Borradores. Publicación. Archivado. Gestión de imágenes. | backend | 009, 010, 011 | Pendiente |
+| `Task/008-Modelo-de-Datos` | Perfil. Artículos. Reviews de libros. Videos. Proyectos. Etiquetas. Medios. Administrador. Auditoría. **Test-first**: invariantes y transiciones; migraciones validadas con integración real. | backend | 007 | Pendiente |
+| `Task/009-API-Publica` | Consultas públicas. Paginación. Filtros. Búsqueda. Contenido publicado. **Test-first**: contrato HTTP y el caso negativo de contenido no publicado. | backend | 008 | Pendiente |
+| `Task/010-Almacenamiento-Compatible-S3` | Interfaz `ObjectStorage`. MinIO local. Adaptador futuro para Amazon S3. Imágenes y miniaturas. **Test-first**: contrato primero, después integración con MinIO. | backend | 008 | Pendiente |
+| `Task/011-Autenticacion-Administrativa` | Login. Sesiones o tokens. Protección de endpoints. Rate limiting. Auditoría. **Test-first**: casos negativos de acceso dentro del alcance. | backend | 008 | Pendiente |
+| `Task/012-API-Administrativa` | CRUD. Borradores. Publicación. Archivado. Gestión de imágenes. **Test-first**: matriz de transiciones antes del caso de uso. | backend | 009, 010, 011 | Pendiente |
 
 ---
 

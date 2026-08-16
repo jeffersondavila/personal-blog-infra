@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-12
+**Última actualización:** 2026-08-13
 
 ---
 
@@ -9,14 +9,14 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005` cerrada; `Task/006` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.1` **aprobada** y cerrada; `Task/005.2` y `Task/006` **no iniciadas** |
 | **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `Task/005 → main` **abierto, sin fusionar** en backend e infra |
-| **Último mantenimiento aprobado** | `Task/002.1-Configurar-Claude-Code` — **Aprobada** el 2026-07-26; PR `#3` fusionado por el usuario |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, no iniciada; **espera** la fusión del PR y la normalización `main → dev`) |
+| **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
+| **Último mantenimiento aprobado** | `Task/005.1-Formalizar-TDD-Backend` — **Aprobada** el 2026-08-13; PR `Task/005.1 → main` **abierto, sin fusionar**. No cuenta en las 41 tareas |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, no iniciada). Antes se cerrará el mantenimiento `Task/005.2-Documentar-Estrategia-Floci-IaC-Local`, **no iniciado** |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 14 (R-01 y **R-08** cerrados) |
+| **Riesgos abiertos** | 16 (R-01 y **R-08** cerrados; **R-17** y **R-18** nuevos) |
 
 > El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
 > por el usuario el 2026-08-12.
@@ -42,8 +42,9 @@
 | **Correcciones del 2026-08-11** | Revisión previa a la aprobación: **UTC real** en el log (antes dependía del sistema operativo), **advertencia de `TestClient` resuelta** sustituyendo `httpx` por `httpx2` en desarrollo, **rectificada** la afirmación errónea sobre la rotación de la contraseña de PostgreSQL en **R-16**, y confirmada la coherencia del `Dockerfile` con **R-14** |
 | **Entorno local** | **Intacto.** No se ejecutó ninguna operación destructiva; los 3 volúmenes principales siguen presentes |
 | **Integración en `dev`** | Merge `--no-ff` en ambos repositorios, publicado |
-| **Pull request** | `Task/005-Fundacion-Backend-FastAPI → main` en **backend** e **infra** — **abiertos, sin fusionar**. La fusión es responsabilidad del usuario |
-| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Pull request** | `Task/005 → main`: **`#2`** en backend (merge `db6ab18`) y **`#6`** en infra (merge `af8a04c`) — **fusionados por el usuario** el 2026-08-13 |
+| **Normalización posterior** | Completada el 2026-08-13: `main` integrada en `dev` con merge `--no-ff` en ambos repositorios y publicada. `dev` = `ce4f1bc` (backend) y `5efd5e0` (infra) |
+| **Rama Task** | Eliminada **local y remotamente**. La local con `git branch -d`; la remota, por el usuario desde GitHub |
 | **Riesgos nuevos** | **R-14**, **R-15** y **R-16**, los tres **abiertos** |
 | **Ficha** | [TASK-005](../tasks/TASK-005-fastapi-backend-foundation.md) |
 | **Reporte** | [TASK-005-report](../task-reports/TASK-005-report.md) |
@@ -100,7 +101,41 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 
 ---
 
-## Mantenimiento de gobierno
+## Último mantenimiento aprobado
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/005.1-Formalizar-TDD-Backend` |
+| **Tipo** | Mantenimiento de gobierno documental |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-13 |
+| **Fecha de aprobación** | 2026-08-13 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.1-Formalizar-TDD-Backend` |
+| **Repositorios afectados** | `personal-blog-infra` **únicamente** |
+| **Rama** | `Task/005.1-Formalizar-TDD-Backend`, creada desde `dev`. **Publicada en el cierre** |
+| **Alcance entregado** | Práctica **test-first** obligatoria del backend: documento canónico [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md); ley compacta en `PROJECT_INSTRUCTIONS.md` §14; criterios **B-1 a B-12** en la Definition of Done; sección *TDD / Plan test-first* en la plantilla de tareas; política reflejada en ROADMAP y ETAPA 03 para `Task/008`–`Task/012` |
+| **Regla central** | **RED → GREEN → REFACTOR**, con matriz de casos previa y evidencia de RED y GREEN en el reporte de cada tarea de backend funcional |
+| **Código modificado** | **Ninguno.** 0 cambios en backend y frontend, 0 dependencias nuevas |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
+| **Riesgos nuevos** | **R-17** y **R-18** |
+| **Asset versionado en el cierre** | `images/Infraestructura.png` — diagrama de la arquitectura objetivo inicial, **preexistente**, agregado por el usuario el 2026-07-26 y autorizado explícitamente para versionarse en este cierre. **No es un entregable de la tarea** y no se modificó |
+| **Integración en `dev`** | Merge `--no-ff`, publicado |
+| **Pull request** | `Task/005.1-Formalizar-TDD-Backend → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
+| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Ficha** | [TASK-005.1](../tasks/TASK-005.1-formalize-backend-tdd.md) |
+| **Reporte** | [TASK-005.1-report](../task-reports/TASK-005.1-report.md) |
+
+La aprobación de este mantenimiento **no modifica el conteo del roadmap**: el avance global
+permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
+
+`Task/005.2-Documentar-Estrategia-Floci-IaC-Local` queda **Pendiente y no iniciada**: no
+comienza hasta que el usuario fusione el PR de `Task/005.1` y se complete la normalización
+`main → dev`.
+
+---
+
+## Mantenimiento de gobierno anterior
 
 | Campo | Valor |
 | --- | --- |
@@ -190,6 +225,8 @@ Distribución por estado:
 | R-10 | Las etiquetas de imagen fijadas envejecen y acumulan vulnerabilidades sin corregir. | Medio | Escaneo de imágenes en `Task/018-Endurecimiento-de-Seguridad`; validación del Compose en cada cambio en `Task/021-CI-Infraestructura`. | Abierto |
 | R-14 | Las dependencias **transitivas** del backend no están bloqueadas: dos instalaciones en fechas distintas pueden traer versiones indirectas distintas. **Comprobado el 2026-08-11:** la imagen resolvió `starlette 1.6.0` y el entorno de Windows, instalado el 2026-08-01, tiene `starlette 1.3.1`. | Medio | Las dependencias directas están fijadas con `==` en `pyproject.toml` y `requirements.txt`, y `pip check` forma parte de las validaciones. Mientras el riesgo siga abierto, el `Dockerfile` instala con `pip install -r requirements.txt`, **sin `--require-hashes` ni `--no-deps`**, que serían incoherentes con un archivo sin hashes y sin transitivas. El bloqueo completo con hashes, resuelto en Linux, se añade en `Task/020-CI-Backend`. | Abierto (`Task/005`) |
 | R-15 | La imagen base del backend (`python:3.12.13-slim`) envejece y acumula vulnerabilidades sin corregir. | Medio | Misma naturaleza que R-10. Escaneo de la imagen en `Task/018` y verificación en CI en `Task/020`. | Abierto (`Task/005`) |
+| R-17 | Una práctica escrita puede no aplicarse: el ciclo **RED → GREEN** es fácil de saltarse si nadie exige la evidencia, y las pruebas acabarían escribiéndose después del código. | Medio | La evidencia de RED y GREEN es un **criterio de la Definition of Done** (B-2 y B-3), no una recomendación: sin ella la tarea no puede marcarse `Lista para validación`. `Task/020-CI-Backend` podrá reforzarlo automáticamente. Detectado en `Task/005.1`. | Abierto |
+| R-18 | El coste de escribir primero la prueba puede empujar a **matrices superficiales** que aparenten cumplimiento sin cubrir edge cases ni casos negativos. | Bajo | La matriz obligatoria exige explícitamente edge cases, errores y seguridad ([BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md) §6), y la revisión del usuario es el control final. Detectado en `Task/005.1`. | Abierto |
 | R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
 
 ---
@@ -246,9 +283,9 @@ Distribución por estado:
 
 | Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `origin/Task/005-Fundacion-Backend-FastAPI` (**remota**, con PR abierto) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR |
+| `personal-blog-infra` | `main`, `dev`, `origin/Task/005.1-Formalizar-TDD-Backend` (**remota**, con PR abierto) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR de `Task/005.1` |
 | `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
-| `personal-blog-backend` | `main`, `dev`, `origin/Task/005-Fundacion-Backend-FastAPI` (**remota**, con PR abierto) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR |
+| `personal-blog-backend` | `main`, `dev` | `main` | Sí — normalizadas el 2026-08-13 con el merge `ce4f1bc` |
 
 - `main` y `dev` están **publicadas** en GitHub en los tres repositorios y
   contienen el mismo contenido.
@@ -288,8 +325,19 @@ Distribución por estado:
   es responsabilidad del usuario. La rama Task local se eliminó con `git branch -d`.
 - **No se creó rama `Task/005` en `personal-blog-frontend`**: la tarea no lo modifica. El
   frontend permanece en `main`, con el árbol limpio.
-- **Normalización pendiente:** cuando el usuario fusione los PR, hay que integrar `main` en
-  `dev` en backend e infra antes de iniciar `Task/006`.
+- **Normalización completada el 2026-08-13.** El usuario fusionó los PR `#2` (backend, merge
+  `db6ab18`) y `#6` (infra, merge `af8a04c`) y eliminó las ramas remotas. Después se integró
+  `main` en `dev` con merge `--no-ff` en ambos repositorios y se publicó: `main` y `dev`
+  tienen el mismo contenido y el commit de merge de `main` forma parte del historial de `dev`.
+- `Task/005.1-Formalizar-TDD-Backend` se creó el 2026-08-13 desde `dev` **solo en
+  `personal-blog-infra`**. Es mantenimiento documental, **no cuenta** en las 41 tareas y no
+  modifica ningún otro repositorio. Fue **aprobada** el 2026-08-13; su cierre creó el commit,
+  integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el
+  pull request `Task/005.1 → main`, que **sigue abierto**. La rama Task local se eliminó con
+  `git branch -d`.
+- El diagrama `images/Infraestructura.png`, **preexistente y agregado por el usuario**, se
+  versionó durante ese cierre con su autorización explícita. No es un entregable de
+  `Task/005.1` y no se modificó. **Versionar un diagrama no crea ningún recurso cloud.**
 
 ---
 
@@ -333,9 +381,14 @@ Distribución por estado:
 - La **ETAPA 01 está completada** (2 de 2 tareas aprobadas). La **ETAPA 02 — Fundaciones de
   las Aplicaciones** está **en curso**: **1 de 3** tareas aprobadas, tras la aprobación de
   `Task/005`.
-- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/006` no puede
-  empezar hasta que el usuario fusione el PR de `Task/005` y se complete la normalización
-  `main → dev`.
+- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. La normalización
+  posterior a `Task/005` ya está completa; antes de `Task/006` se cerrarán los mantenimientos
+  `Task/005.1` y `Task/005.2`.
+- **El backend se desarrollará test-first a partir de `Task/008`.** `Task/005.1` formaliza la
+  regla **RED → GREEN → REFACTOR** en
+  [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md), con matriz de casos previa,
+  evidencia obligatoria y protección explícita de los tests frente a implementaciones
+  incorrectas. Es mantenimiento: **no altera el avance**.
 - **Ningún secreto nuevo se ha versionado.** Se detectó, en cambio, que el `.env` local
   conserva las contraseñas de ejemplo publicadas: riesgo **R-16**, a decisión del usuario.
   Rotar la contraseña de PostgreSQL **no destruye datos**: se hace con `ALTER ROLE` sobre el
