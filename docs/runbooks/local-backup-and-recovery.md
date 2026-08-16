@@ -489,7 +489,7 @@ nadie lo decida es más peligroso que acumular unos megabytes.
 | Backups del backend y del frontend | No existen todavía (`Task/005`, `Task/006`). |
 | Backup del esquema de la aplicación | No hay esquema hasta `Task/008`; el procedimiento ya lo cubrirá automáticamente. |
 | Restauración a un punto en el tiempo | Requeriría WAL archiving; desproporcionado para un entorno local. |
-| Backups de PostgreSQL administrado en la nube | `Task/029`, decisión D-10. |
+| Backups de PostgreSQL de producción en el VPS, **fuera del host** y con restore probado | `Task/029`, decisión D-10. Ver [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) §15. |
 
 Nada de esto se ignora en silencio: el script **detecta** las configuraciones que no sabe
 restaurar y **aborta** salvo que se le pase `-AllowPartial`, en cuyo caso marca el

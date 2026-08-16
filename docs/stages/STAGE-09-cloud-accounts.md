@@ -40,12 +40,33 @@ permanentes** almacenadas en GitHub.
 
 **Depende de:** `Task/027`.
 
-### `Task/029-Seleccionar-PostgreSQL-Administrado` — *Pendiente*
+### `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` — *Pendiente*
 
-Evaluación de opciones por costo, TLS, backups, pooling de conexiones y compatibilidad
-con Lambda. Resultado registrado como ADR.
+> **Alcance redefinido el 2026-08-15** por `Task/005.3` (mantenimiento). El **identificador
+> `029` no cambia**; cambian el nombre y el alcance. Antes se llamaba
+> `Task/029-Seleccionar-PostgreSQL-Administrado` y daba por supuesto un servicio
+> administrado. Estrategia:
+> [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) ·
+> [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**.
 
-**Depende de:** `Task/027`.
+Selección y preparación del **VPS externo** que alojará el PostgreSQL de producción, con
+**PgBouncer** delante, **PostgreSQL privado** y conexión **TLS** desde la Lambda, que
+permanece en AWS.
+
+Debe cubrir, como mínimo:
+
+| Bloque | Contenido |
+| --- | --- |
+| **Selección** | Comparar proveedores con **precios actuales** · seleccionar VPS, región y tamaño · CPU, RAM, almacenamiento · IPv4/IPv6 · tráfico y *egress* · snapshots · **RTT medido** hacia la región AWS · costo total |
+| **Base de datos** | Distribución del host · versión de PostgreSQL · persistencia · *filesystem* y volumen · `max_connections` |
+| **Conexiones** | PgBouncer · `pool_mode` · tamaños de pool · *tuning* · relación con la concurrencia reservada de Lambda |
+| **Seguridad** | TLS · SCRAM-SHA-256 · evaluación de mTLS · firewall *deny-by-default* · SSH por llave · usuarios · *hardening* |
+| **Operación** | Backups **fuera del host** · restore **probado** · almacenamiento externo · retención · RPO · RTO · monitoreo y alertas · espacio en disco · actualizaciones y parcheo · rollback · recuperación |
+| **IaC** | Soporte de Terraform del proveedor · documentación operacional |
+
+Resultado registrado como ADR o como actualización del ADR vigente.
+
+**Depende de:** `Task/027`. **Repositorio:** `personal-blog-infra`.
 
 ## Criterios de salida de la etapa
 
@@ -54,13 +75,25 @@ con Lambda. Resultado registrado como ADR.
 - [ ] Presupuesto mensual definido con alertas por umbral.
 - [ ] GitHub Actions asume un rol AWS vía OIDC; no hay claves de acceso de larga vida.
 - [ ] El rol tiene permisos mínimos para el despliegue previsto.
-- [ ] Proveedor de PostgreSQL seleccionado, con costo y límites documentados en un ADR.
-- [ ] La estrategia de conexión desde Lambda está definida.
+- [ ] **Proveedor de VPS seleccionado**, con costo, región y límites documentados, usando
+      **precios verificados en el momento de la selección**.
+- [ ] El **RTT `Lambda ↔ VPS`** está **medido**, no estimado.
+- [ ] La estrategia de conexión desde Lambda está definida: **PgBouncer**, tamaños de pool y
+      `max_connections` coherentes entre sí.
+- [ ] **PostgreSQL no es alcanzable desde Internet**; solo PgBouncer está expuesto.
+- [ ] La conexión `Lambda → PgBouncer` usa **TLS con validación de certificado**.
+- [ ] Existe una estrategia de **backup fuera del host** y un **restore demostrado**.
+- [ ] Ninguna credencial de producción está versionada.
 
 ## Fuera del alcance de la etapa
 
 - Desplegar recursos de aplicación (Etapa 10).
 - Automatizar despliegues (Etapa 11).
+- Conectar la Lambda a una VPC o introducir NAT Gateway por esta decisión: excluido por
+  [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) salvo requisito real y decisión
+  separada.
+- Alta disponibilidad, réplicas o *failover* automático: el SPOF de un solo VPS se acepta
+  conscientemente en la primera versión.
 
 ## Riesgos conocidos
 
@@ -69,7 +102,10 @@ con Lambda. Resultado registrado como ADR.
 | Costo inesperado desde el primer día. | Presupuesto y alarmas creados antes que cualquier recurso. |
 | Credenciales de larga vida filtradas. | OIDC con roles temporales; ninguna clave estática. |
 | Rol OIDC con permisos excesivos. | Permisos mínimos, acotados por repositorio y rama. |
-| Agotamiento de conexiones de PostgreSQL desde Lambda. | Pooling o proxy de conexiones evaluado en `Task/029`. |
+| Agotamiento de conexiones de PostgreSQL desde Lambda (**R-03**, **R-33**). | **PgBouncer** con pool limitado más *Reserved Concurrency* de Lambda; los números salen de pruebas, no de intuición. |
+| **El VPS añade superficie de ataque** expuesta a Internet (**R-30**). | Firewall *deny-by-default*, SSH por llave, PostgreSQL privado, TLS obligatorio, parcheo. |
+| **Backup no restaurable** (**R-31**). | Un backup no está validado hasta haberse restaurado; la prueba es criterio de salida. |
+| **Elegir un VPS lejano por ahorrar poco** y pagar latencia en cada consulta (**R-34**). | RTT **medido** como criterio de selección, no el precio en solitario. |
 
 ## Siguiente etapa
 

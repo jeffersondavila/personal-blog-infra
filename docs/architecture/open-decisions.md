@@ -3,9 +3,13 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-08-15 (`Task/005.2` — **D-14 añadida y resuelta**) |
-| **Decisiones abiertas** | **12** — D-05 y D-14 **resueltas** |
-| **Decisiones resueltas** | **2** — D-05 (2026-07-29) y **D-14** (2026-08-15) |
+| **Última actualización** | 2026-08-15 (`Task/005.3` — **D-01 resuelta** en cuanto al modelo) |
+| **Decisiones abiertas** | **11** — D-05, D-14 y D-01 **resueltas** |
+| **Decisiones resueltas** | **3** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15) |
+
+> **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
+> **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
+> `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`.
 
 Registro explícito de lo que **todavía no está decidido**, cuándo debe decidirse, qué
 información hará falta y qué se ve afectado.
@@ -23,7 +27,7 @@ ADR.
 
 | # | Decisión | Se resuelve en | Estado |
 | --- | --- | --- | --- |
-| D-01 | Proveedor concreto de PostgreSQL administrado | `Task/029` | Abierta |
+| D-01 | Modelo de PostgreSQL de producción | `Task/005.3` (modelo) · `Task/029` (proveedor) | **Resuelta** (2026-08-15) — **autogestionado en VPS externo**. Proveedor pendiente en `Task/029` |
 | D-02 | Mecanismo concreto de autenticación | `Task/011` | Abierta |
 | D-03 | Biblioteca de componentes visuales | `Task/013` | Abierta |
 | D-04 | Editor Markdown | `Task/015` | Abierta |
@@ -40,25 +44,72 @@ ADR.
 
 ---
 
-## D-01 — Proveedor concreto de PostgreSQL administrado
+## D-01 — Modelo de PostgreSQL de producción — **RESUELTA**
 
-- **Se resuelve en:** `Task/029-Seleccionar-PostgreSQL-Administrado`
-- **Información necesaria:** costo mensual real de las opciones; soporte TLS; política de
-  backups y restauración; límite de conexiones concurrentes; disponibilidad de pooling o
-  proxy de conexiones; latencia hacia la región de la Lambda; comportamiento con
-  conexiones efímeras.
+> **Estado: Resuelta** el 2026-08-15, al aprobar el usuario
+> `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` con la expresión exacta requerida por
+> [WORKFLOW.md](../project-management/WORKFLOW.md). **Resuelve el *modelo*, no el
+> proveedor.**
+
+### Formulación original y por qué cambió
+
+La decisión se planteó en `Task/002` como *«proveedor concreto de PostgreSQL
+administrado»*, dando por supuesto el **modelo administrado**. `Task/005.3` cuestiona
+precisamente ese supuesto: en una arquitectura serverless que escala a cero, una base de
+datos administrada pasa a ser el componente que **domina la factura**, y además elimina el
+aprendizaje operacional que el proyecto busca.
+
+La decisión se separa por tanto en dos, que no deben confundirse:
+
+| | Pregunta | Se resuelve en | Estado |
+| --- | --- | --- | --- |
+| **Modelo** | ¿Administrado o autogestionado? | **`Task/005.3`** | **Resuelta** (2026-08-15) |
+| **Proveedor** | ¿Qué VPS, qué región, qué tamaño? | **`Task/029`** | **Pendiente** |
+
+### Decisión
+
+> **PostgreSQL de producción será autogestionado en un VPS externo**, con **PgBouncer**
+> como punto de entrada, **PostgreSQL privado** y conexión **TLS** desde Lambda, que
+> permanece en AWS.
+
+- **Motivación principal:** **costo**. Evitar que PostgreSQL domine la factura mensual de
+  un blog personal de tráfico bajo.
+- **Motivaciones secundarias:** aprendizaje operacional real (Linux, PostgreSQL, seguridad,
+  backups, recuperación), mayor control sobre versión y *tuning*, y **conservar la
+  arquitectura AWS serverless** íntegra.
+- **ADR:** [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**.
+- **Documento canónico:** [production-postgresql-vps.md](production-postgresql-vps.md) —
+  **Vigente**.
+
+### Qué sigue pendiente pese a estar D-01 resuelta
+
+D-01 responde **qué modelo**, no **con qué proveedor**. Siguen pendientes y se resuelven en
+`Task/029-Preparar-PostgreSQL-Produccion-en-VPS`:
+
+| Pendiente |
+| --- |
+| Proveedor de VPS concreto, con **precios actuales** |
+| Región, y su RTT real hacia la región AWS |
+| Tamaño: CPU, RAM, almacenamiento y tipo de disco |
+| Versión de PostgreSQL y distribución del host |
+| `pool_mode`, tamaños de pool y `max_connections` |
+| Si se adopta **mTLS** además de TLS |
+| Frecuencia y retención de backups (**D-10**) |
+| Si **PITR** aporta valor frente a su complejidad |
+| Provider de Terraform del VPS |
+
+- **Información necesaria para `Task/029`:** costo mensual real y costos ocultos; RAM, CPU y
+  almacenamiento; tráfico incluido y *egress*; snapshots del proveedor; IPv4/IPv6; región y
+  **RTT medido**; SLA y reputación; provider de Terraform mantenido.
 - **Afecta a:** el patrón de conexión del backend (`Task/005`), el esquema y las
-  migraciones (`Task/008`), la configuración de la Lambda (`Task/032`), el costo total
-  (`Task/041`).
-- **Por qué se difiere:** es el **único componente con costo fijo** de la arquitectura y
-  el principal riesgo técnico (agotamiento de conexiones desde Lambda). Decidirlo antes de
-  conocer el patrón de acceso real sería adivinar.
-- **Riesgo asociado:** R-03.
-- **Aclaración añadida el 2026-08-15 (`Task/005.2`):** **sigue abierta y no la afecta la
-  estrategia de paridad local.** Que un emulador soporte RDS **no es un criterio de
-  arquitectura de datos**. Si `Task/029` elige AWS RDS PostgreSQL, se **evaluará** después
-  su emulación local como paridad adicional; si elige un proveedor externo, **no** se usará
-  RDS local solo por imitar a AWS. Detalle:
+  migraciones (`Task/008`), la configuración de la Lambda (`Task/032`), los backups
+  (**D-10**), el costo total (`Task/041`).
+- **Riesgos asociados:** **R-03** (agotamiento de conexiones, ahora mitigado por PgBouncer)
+  y los nuevos **R-29** a **R-35**.
+- **Nota sobre `Task/005.2`:** la aclaración de que *«la disponibilidad de un emulador no es
+  un criterio de arquitectura de datos»* **sigue siendo válida y se cumple**. La decisión no
+  se toma por lo que Floci soporte: se toma por costo y por aprendizaje, y su consecuencia
+  es que **RDS deja de ser el destino de producción**. Ver
   [aws-local-parity.md](aws-local-parity.md) §8.
 
 ## D-02 — Mecanismo concreto de autenticación
@@ -186,12 +237,19 @@ No requiere ADR: es una decisión local y reversible.
 
 ## D-10 — Estrategia de backups cloud
 
-- **Se resuelve en:** `Task/029-Seleccionar-PostgreSQL-Administrado`
-- **Información necesaria:** qué backups incluye el proveedor elegido; retención; costo
-  de retención adicional; procedimiento y tiempo de restauración; si S3 necesita
-  versionado.
+- **Se resuelve en:** `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`
+- **Información necesaria:** qué backups y snapshots incluye el proveedor elegido;
+  retención; costo de retención adicional; procedimiento y tiempo de restauración; si S3
+  necesita versionado.
 - **Afecta a:** selección de proveedor (D-01), runbooks (`Task/026`), costo (`Task/041`).
 - **Criterio ya fijado:** un backup que nunca se ha restaurado no cuenta como backup.
+- **Alcance ampliado el 2026-08-15 (`Task/005.3`, aprobada):** al pasar PostgreSQL a un VPS
+  autogestionado, **el proyecto asume la responsabilidad completa** del backup y del
+  restore; ya no hay proveedor que los resuelva. Se añaden dos criterios firmes: **el backup
+  debe salir del VPS** —una copia que solo vive en el mismo host no protege de perderlo— y
+  **el restore debe demostrarse**. **PITR** y *WAL archiving* quedan como evaluación futura,
+  nunca por delante de tener un backup correcto y un restore probado. Detalle:
+  [production-postgresql-vps.md](production-postgresql-vps.md) §15.
 
 ## D-11 — Retención exacta de CloudWatch
 
@@ -252,7 +310,7 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 | Qué servicios resultan realmente validables en local | `Task/025`, con la matriz de paridad |
 | Configuración de red y DNS del laboratorio | `Task/025` |
 | Procedimientos operativos del laboratorio | `Task/026` |
-| **Proveedor de PostgreSQL administrado** (**D-01**) | `Task/029` — **sin relación con esta decisión** |
+| **Proveedor de la base de datos de producción** (**D-01**) | `Task/029` — **sin relación con esta decisión** |
 | Integración del laboratorio en CI | `Task/039` |
 
 - **Afecta a:** ETAPA 08 (`Task/023`–`Task/026`), ETAPA 10 (reutilización de módulos),
@@ -292,6 +350,15 @@ cerrado:
 | --- | --- |
 | **Floci** como laboratorio AWS local para validar la IaC (D-14), con AWS real como autoridad final | [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) · [aws-local-parity.md](aws-local-parity.md) |
 | Terraform como fuente de verdad, **una sola definición** para local y AWS, sin duplicar módulos | [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) |
+
+### Aprobadas en `Task/005.3` (2026-08-15)
+
+| Decisión | Dónde |
+| --- | --- |
+| **PostgreSQL de producción autogestionado en VPS externo** (D-01, modelo), con **PgBouncer** delante y **PostgreSQL privado**, manteniendo FastAPI en AWS Lambda | [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) · [production-postgresql-vps.md](production-postgresql-vps.md) |
+| **TLS obligatorio** en `Lambda → PgBouncer`, con **SCRAM-SHA-256** preferente y **mTLS** opcional | [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) |
+| **Backups fuera del host** y **restore probado** como reglas obligatorias | [production-postgresql-vps.md](production-postgresql-vps.md) §15 |
+| **La Lambda permanece fuera de VPC**; no se introduce NAT Gateway por esta decisión | [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) |
 
 ### Aprobadas en `Task/002` (2026-07-26)
 
