@@ -111,8 +111,10 @@ emulador no tenga paridad suficiente**.
 - Crear cuentas AWS o Cloudflare (Etapa 09).
 - `terraform apply` **contra AWS real** (Etapa 10).
 - Configurar DNS (Etapa 10).
-- Resolver **D-01**, el proveedor de PostgreSQL administrado (`Task/029`). Que el emulador
-  soporte RDS **no** decide esa elección.
+- Seleccionar el proveedor de VPS de la base de datos de producción (`Task/029`, **D-01**).
+  Que el emulador soporte RDS **no** decide nada: desde
+  [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**) **RDS ya no es
+  el destino de producción**, y `Task/025` **no debe crear recursos RDS**.
 - Verificar el **mínimo privilegio** de las políticas IAM: es **AWS-only**, porque el
   emulador no aplica políticas por omisión.
 - Dimensionar la Lambda a partir de mediciones locales: el arranque en frío del laboratorio

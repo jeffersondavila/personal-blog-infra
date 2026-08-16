@@ -1,4 +1,4 @@
-# personal-blog-infra
+﻿# personal-blog-infra
 
 Repositorio de **infraestructura, planificación y gobierno** del proyecto Blog Personal.
 
@@ -140,7 +140,7 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 | Entrada HTTP | Amazon API Gateway (HTTP API) |
 | Backend | AWS Lambda ejecutando FastAPI |
 | Archivos e imágenes | Amazon S3 |
-| Base de datos | PostgreSQL administrado |
+| Base de datos | **PostgreSQL autogestionado en VPS externo**, con PgBouncer delante |
 | Configuración | AWS SSM Parameter Store |
 | Logs y métricas | Amazon CloudWatch (retención y uso limitados) |
 | CI/CD | GitHub Actions |
@@ -149,8 +149,26 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 Detalle y justificación: [ADR-003](docs/adr/ADR-003-serverless-low-cost-cloud.md) y
 [docs/architecture/local-to-cloud-mapping.md](docs/architecture/local-to-cloud-mapping.md).
 
-La arquitectura objetivo está representada en el diagrama versionado
-[`images/Infraestructura.png`](images/Infraestructura.png).
+> El diagrama versionado [`images/Infraestructura.png`](images/Infraestructura.png)
+> representa la **arquitectura objetivo inicial, anterior a `Task/005.3`**, cuando la base de
+> datos todavía se preveía administrada. Se conserva como registro histórico. La arquitectura
+> vigente está en
+> [`docs/architecture/overview.md`](docs/architecture/overview.md) §4.
+
+### Base de datos de producción — VPS externo
+
+PostgreSQL de producción será **autogestionado en un VPS económico**, con **PgBouncer** como
+único endpoint externo de la capa de datos y **PostgreSQL nunca expuesto a Internet**. El
+backend **permanece en AWS Lambda** y se conecta por **TLS**. Motivo: evitar que la base de datos domine la factura
+de una arquitectura que, por lo demás, escala a cero — y aprender operación real.
+
+```
+Cloudflare Pages → API Gateway → Lambda (FastAPI) ──TLS──► PgBouncer → PostgreSQL (VPS)
+```
+
+Estrategia completa:
+[`docs/architecture/production-postgresql-vps.md`](docs/architecture/production-postgresql-vps.md) ·
+[ADR-007](docs/adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15). El **proveedor, la región y el tamaño se deciden en `Task/029`**.
 
 ### AWS Local Parity — laboratorio local de infraestructura
 
@@ -175,6 +193,7 @@ La estrategia está aprobada; **la implementación llega en `Task/025`**.
 - Application Load Balancer
 - NAT Gateway
 - Portainer en producción
+- **Amazon RDS** *(añadido por `Task/005.3`)*
 
 Motivo: costo fijo mensual y complejidad operativa desproporcionados para un blog
 personal de bajo tráfico.
@@ -228,7 +247,8 @@ docs/
 │   ├── security-boundaries.md         ← qué puede hablar con qué
 │   ├── open-decisions.md              ← decisiones diferidas
 │   ├── local-to-cloud-mapping.md      ← correspondencia local → nube
-│   └── aws-local-parity.md            ← estrategia de IaC local (AWS Local Parity)
+│   ├── aws-local-parity.md            ← estrategia de IaC local (AWS Local Parity)
+│   └── production-postgresql-vps.md   ← capa de datos de producción en VPS externo
 ├── adr/                               ← decisiones arquitectónicas
 └── task-reports/                      ← reportes finales de ejecución
 ```

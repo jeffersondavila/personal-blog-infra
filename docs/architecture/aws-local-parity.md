@@ -1,4 +1,4 @@
-# AWS Local Parity — estrategia de IaC local con Floci
+﻿# AWS Local Parity — estrategia de IaC local con Floci
 
 | Campo | Valor |
 | --- | --- |
@@ -42,7 +42,9 @@ Esa frase es la meta completa. Se descompone en cuatro propósitos concretos:
 
 - **No** implementa Floci, ni Terraform, ni ningún recurso.
 - **No** fija una versión de Floci (§5.4).
-- **No** resuelve **D-01** (proveedor de PostgreSQL administrado, `Task/029`).
+- **No** resuelve **D-01** (modelo y proveedor de PostgreSQL de producción). El **modelo** lo
+  propone `Task/005.3` — **VPS externo autogestionado**, ver §8 —; el **proveedor** sigue en
+  `Task/029`.
 - **No** resuelve **D-06** (backend de estado de Terraform, `Task/025`).
 - **No** sustituye la arquitectura objetivo de producción, que sigue siendo la de
   [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) y la del diagrama
@@ -123,7 +125,8 @@ flowchart TD
     CF --> PAGES["Cloudflare Pages<br/>React estático"]
     CF --> AGW["API Gateway HTTP API"]
     AGW --> LMB["AWS Lambda<br/>FastAPI"]
-    LMB --> DB[("PostgreSQL administrado<br/>proveedor pendiente · D-01")]
+    LMB -->|"TLS"| PGB["PgBouncer<br/>VPS externo · ADR-007"]
+    PGB --> DB[("PostgreSQL<br/>autogestionado · fuera de AWS")]
     LMB --> S3[("Amazon S3")]
     LMB --> SSM[("SSM Parameter Store")]
     LMB --> CW[("CloudWatch<br/>retención limitada")]
@@ -140,7 +143,7 @@ flowchart TD
 | **Cómputo** | Proceso ASGI / contenedor | Lambda emulada (Docker) | AWS Lambda |
 | **Objetos** | MinIO | S3 emulado | Amazon S3 |
 | **Configuración** | `.env` | SSM emulado | SSM Parameter Store |
-| **Base de datos** | PostgreSQL Docker | Fuera del alcance inicial (§8) | PostgreSQL administrado |
+| **Base de datos** | PostgreSQL Docker | Local cuando la prueba lo requiera; **no se emula** (§8) | **PgBouncer → PostgreSQL en VPS externo**, fuera de AWS |
 | **Costo** | 0 | 0 | Variable, con presupuesto |
 | **Autoridad sobre el comportamiento** | Ninguna sobre la nube | **Ninguna sobre AWS** | **Final** |
 | **Se usa cuando** | Se desarrolla el producto | Se desarrolla o se aprende la infraestructura | Se despliega de verdad |
@@ -411,14 +414,17 @@ real*. En ningún punto se afirma que algo sea «idéntico a AWS».
 | **AWS CLI / boto3 / SDK** | Compatibilidad declarada mediante `AWS_ENDPOINT_URL` o `--endpoint-url`. Existen suites `sdk-test-awscli`, `sdk-test-python`, `sdk-test-node`, `sdk-test-go` y `sdk-test-java` en el repositorio. La imagen `:latest-compat` incluye AWS CLI y boto3 |
 | **Riesgo de diferencia** | Bajo para la mecánica de invocación; el riesgo real está en el comportamiento del servicio, no en el cliente |
 
-### 6.9 RDS PostgreSQL — solo como posibilidad futura
+### 6.9 RDS PostgreSQL — **no se utilizará**
+
+> **Hallazgo histórico, conservado.** Lo verificado el 2026-08-15 sigue siendo cierto y no se
+> borra. Lo que cambió es el **destino elegido**, no el hallazgo.
 
 | Campo | Detalle |
 | --- | --- |
 | **Soporte declarado** | Sí, con **motores reales**: contenedores Docker `postgres:16-alpine`, `mysql:8.0` y `mariadb:11`, expuestos por un rango de puertos proxy (7001–7099) |
 | **Declarado disponible** | Instancias y clústeres, grupos de subred y de parámetros, listado de *snapshots*, *DB proxies* con esquema de autenticación IAM, tags |
 | **Declarado ausente / degradado** | El plano de datos de **DB Proxy** es solo metadatos de plano de control: sin *pooling* real, *timeouts*, TLS ni *session pinning* |
-| **Postura del proyecto** | **Ninguna.** Ver §8: que Floci soporte RDS **no** decide **D-01** |
+| **Postura del proyecto** | **RDS no es el destino de producción.** [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) sitúa PostgreSQL en un **VPS externo**. Por tanto **no se emula RDS**, `Task/025` **no crea recursos RDS** y este apartado queda como registro de investigación. Ver §8 |
 
 ---
 
@@ -453,7 +459,7 @@ real, nunca con expectativas.
 | **CloudWatch Metrics / alarmas** | Pendiente | Pendiente | Pendiente | `No evaluada` | Estado de alarma manual; sin motor de evaluación documentado | `Task/025` → `Task/031`, `Task/041` |
 | **Terraform (`plan`/`apply`/`destroy`)** | Pendiente | Pendiente | Pendiente | `No evaluada` | Backend de estado (**D-06**); combinación APIGWv2+Lambda+Logs no cubierta upstream (§6.8) | `Task/025` → ETAPA 10 |
 | **AWS CLI / boto3** | Pendiente | — | Pendiente | `No evaluada` | Solo cambia el endpoint | `Task/025` → ETAPA 10 |
-| **PostgreSQL** | **Decisión pendiente** | — | Pendiente | — | Fuera del alcance del laboratorio inicial | **`Task/029` (D-01)** |
+| **PostgreSQL** | **No aplica** | — | **No aplica** | `AWS-only` (fuera de AWS) | La base de datos de producción vive en un **VPS externo** ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md)): no pertenece al grafo AWS y el laboratorio **no debe reproducirla** | **`Task/029`** — proveedor y dimensionamiento |
 | **Cloudflare Pages / DNS** | **No aplica** | — | Pendiente | `AWS-only` (fuera de AWS) | Floci no emula Cloudflare | `Task/034`, `Task/035` |
 | **Presupuestos y alarmas de costo** | **No aplica** | — | Pendiente | `AWS-only` | No tiene sentido emular facturación | `Task/027`, `Task/041` |
 
@@ -468,28 +474,51 @@ real, nunca con expectativas.
 
 ---
 
-## 8. PostgreSQL — **D-01 sigue abierta**
+## 8. PostgreSQL — fuera del grafo AWS
 
-Floci soporta RDS con motores PostgreSQL reales (§6.9). **Eso no decide nada.**
+> **Actualizado el 2026-08-15 por `Task/005.3` (aprobada).** Este apartado planteaba dos
+> ramas posibles según lo que eligiera `Task/029`. Esa disyuntiva ya está resuelta a nivel
+> de **modelo**.
+
+Floci soporta RDS con motores PostgreSQL reales (§6.9). **Eso nunca decidió nada**, y la
+regla que lo decía sigue siendo correcta:
 
 > **La disponibilidad de un emulador no es un criterio de arquitectura de datos.**
 
-La elección del PostgreSQL administrado sigue siendo íntegramente de
-**`Task/029-Seleccionar-PostgreSQL-Administrado`** (decisión **D-01**), y sus criterios
-siguen siendo los ya registrados en [open-decisions.md](open-decisions.md): costo mensual
-real, *pooling* o proxy de conexiones, backups y restauración, TLS, límite de conexiones
-concurrentes, compatibilidad con el patrón de conexión efímera de Lambda y operación.
+La regla se cumplió: la decisión se tomó por **costo y aprendizaje**, no por lo que Floci
+soporte. Y su resultado es que se activa la segunda de las dos ramas que este documento ya
+tenía escritas — *«un proveedor externo, no AWS»*.
 
-Las dos ramas posibles quedan escritas de antemano:
+### 8.1 Situación vigente
 
-| Si `Task/029` elige… | Entonces… |
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**) establece que
+**PostgreSQL de producción será autogestionado en un VPS externo**, con PgBouncer delante,
+mientras Lambda permanece en AWS. Estrategia completa:
+[production-postgresql-vps.md](production-postgresql-vps.md).
+
+Consecuencia directa para el laboratorio de paridad:
+
+| Regla | Estado |
 | --- | --- |
-| **AWS RDS PostgreSQL** | Se **evaluará** RDS de Floci como paridad local adicional, y solo si aporta algo real al aprendizaje o a la validación. |
-| **Un proveedor externo** (no AWS) | **No** se usará RDS local. Emular RDS solo para «parecerse a AWS» sería aprender un servicio que el proyecto no va a usar. |
+| **La base de datos de producción no forma parte del grafo AWS.** | Vigente |
+| **`Task/025` no debe crear recursos RDS** para imitar producción. | Vigente |
+| **La matriz de paridad (§7) no necesita validar PostgreSQL/RDS** de producción. | Vigente |
+| **No se usará RDS por el mero hecho de que Floci lo soporte.** | Vigente, sin cambios |
+| Los hallazgos de §6.9 sobre el soporte de RDS en Floci **se conservan**. | Vigente — eran correctos y siguen siéndolo |
 
-Nota práctica: el **Modo A** ya tiene PostgreSQL real en Docker desde `Task/003`. El
-laboratorio de paridad **no necesita** base de datos para su propósito inicial, que es
-Terraform + IAM + Lambda + API Gateway + S3 + SSM + Logs.
+### 8.2 Dónde vive PostgreSQL en cada modo
+
+| Modo | PostgreSQL |
+| --- | --- |
+| **Modo A — desarrollo** | PostgreSQL real en Docker, desde `Task/003`. Sin cambios. |
+| **Modo B — Parity Lab** | **Local**, cuando una prueba de integración lo requiera. **No se emula**: el laboratorio existe para Terraform + IAM + Lambda + API Gateway + S3 + SSM + Logs. |
+| **Modo C — producción** | Lambda → **TLS** → PgBouncer → PostgreSQL en el **VPS externo**. Fuera de AWS. |
+
+### 8.3 Qué queda para `Task/029`
+
+`Task/029-Preparar-PostgreSQL-Produccion-en-VPS` sigue decidiendo **el proveedor, la
+región y el dimensionamiento**, con precios actuales — no el modelo, que ya está propuesto.
+Detalle en [open-decisions.md](open-decisions.md), **D-01**.
 
 ---
 
@@ -758,7 +787,10 @@ argumento a favor de la regla de portabilidad de §4.
 - [Arquitectura — visión general](overview.md)
 - [Correspondencia local → nube](local-to-cloud-mapping.md)
 - [Límites de seguridad](security-boundaries.md)
-- [Decisiones diferidas](open-decisions.md) — **D-01** y **D-06** abiertas; **D-14 Resuelta**
+- [Decisiones diferidas](open-decisions.md) — **D-06** abierta; **D-14 Resuelta**; **D-01**
+  **D-01 Resuelta** (modelo) por `Task/005.3`
+- [PostgreSQL de producción en VPS](production-postgresql-vps.md) ·
+  [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**
 - [ETAPA 08 — Preparación Cloud + AWS Local Parity](../stages/STAGE-08-cloud-ready.md)
 - [ETAPA 10 — Despliegue Cloud](../stages/STAGE-10-cloud-deployment.md)
 - [ETAPA 11 — Automatización de Despliegues](../stages/STAGE-11-deployment-automation.md)

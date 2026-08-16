@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) |
+| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) |
 
 Identifica los **componentes** del sistema, qué comunicaciones entre ellos están
 permitidas y cuáles están explícitamente prohibidas.
@@ -30,6 +30,9 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-10 | **GitHub Actions** | CI/CD | Ejecuta código; accede a la nube con credenciales temporales. |
 | C-11 | **Servicios AWS** | Nube | Lambda, API Gateway, S3, SSM, CloudWatch. |
 | C-12 | **Emulador AWS local** (`Task/005.2`) | Local, **privilegiado** | **Solo local.** Acceso al socket de Docker, igual que C-09. **Nunca contiene datos ni credenciales reales.** Ver §8. |
+| C-13 | **VPS de producción** (`Task/005.3`) | Internet, **host propio** | **Ninguna por sí mismo.** Host expuesto a Internet, administrado por el proyecto. Su compromiso implica **exposición de todos los datos del blog**. Ver §9. |
+| C-14 | **PgBouncer** | Internet, en el VPS | **Único endpoint de la capa de datos alcanzable desde fuera** del VPS. Es el *boundary* de la base de datos. El SSH administrativo del host es un canal **separado**, no forma parte de esta capa. |
+| C-15 | **PostgreSQL de producción** | Datos, **privado en el VPS** | **Nunca alcanzable desde Internet.** Solo acepta conexiones internas del VPS. |
 
 > **C-03 y C-04 no son límites de seguridad.** Ocultar un botón no protege nada: la
 > autorización se decide siempre en C-06.
@@ -57,6 +60,10 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | Terraform local | C-12 Emulador AWS local | Sí | Solo con endpoint local explícito y credenciales ficticias (§8). |
 | AWS CLI / SDK local | C-12 Emulador AWS local | Sí | Solo con `--endpoint-url` / `AWS_ENDPOINT_URL` explícito. |
 | C-12 Emulador AWS local | Docker local | Sí | **Solo en la máquina local.** Privilegio de nivel host (§8). |
+| C-11 Lambda | C-14 PgBouncer | Sí | **TLS obligatorio** con validación del certificado del servidor, y autenticación fuerte (§9). |
+| C-14 PgBouncer | C-15 PostgreSQL | Sí | Únicamente por la **red interna del VPS**; nunca por la interfaz pública. |
+| Proceso de backup del VPS | C-11 Amazon S3 | Sí | Backup **cifrado**, con credenciales de mínimo privilegio. Destino **fuera del host** (§9). |
+| Operador | C-13 VPS | Sí | **SSH solo por llave**, nunca por contraseña. |
 
 ---
 
@@ -80,6 +87,11 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | Credenciales AWS **reales** | C-12 Emulador AWS local | Prohibido: expone una credencial real a un servicio local que no la necesita ni la protege. |
 | Secretos **reales** | C-12 SSM emulado | El `SecureString` del emulador **no cifra**. Solo valores ficticios. |
 | Herramienta apuntada al laboratorio | C-11 Servicios AWS reales | Prohibido por accidente: exige guardas *fail-closed* antes de `apply` y `destroy` (§8.2). |
+| Internet | C-15 PostgreSQL de producción | **La base de datos nunca se publica.** Solo C-14 PgBouncer está expuesto (§9). |
+| C-01 / C-02 Navegador | C-14 PgBouncer | El cliente **nunca** habla con la capa de datos; solo lo hace C-11 Lambda. |
+| C-11 Lambda | C-14 PgBouncer **sin TLS** | Prohibido en producción: el tramo atraviesa Internet. |
+| Credenciales de producción | Git | Ninguna credencial de la base de datos se versiona, en ningún repositorio. |
+| Backup | Permanecer **solo** en el VPS | Un backup que solo vive en el host no protege de perder el host (§9). |
 
 ---
 
@@ -121,6 +133,10 @@ de **nivel host**, no de nivel aplicación.
 | **Emulador AWS local** | Control del socket de Docker ⇒ control del host | Solo local, nunca expuesto, versión fijada (§8) | `Task/025`, `Task/018` |
 | **Endpoint del emulador (4566)** | Exposición a LAN o a internet | Publicación restringida a `127.0.0.1`; verificación en los runbooks | `Task/025`, `Task/026` |
 | **Herramientas de IaC** | Actuar sobre **AWS real** por falta de endpoint | Guardas *fail-closed* antes de `apply` y `destroy` (§8.2) | `Task/025`, `Task/026` |
+| **PgBouncer expuesto** | Acceso no autorizado a la capa de datos | TLS obligatorio, autenticación fuerte, firewall *deny-by-default* (§9) | `Task/029`, `Task/018` |
+| **SSH del VPS** | Fuerza bruta, credenciales robadas | Solo llave, sin contraseña, servicios mínimos (§9) | `Task/029`, `Task/018` |
+| **Host del VPS sin parchear** | Vulnerabilidades acumuladas en SO, PostgreSQL y PgBouncer | Política de actualizaciones y parcheo definida en `Task/029` | `Task/029`, `Task/018` |
+| **Backups del VPS** | Fuga de datos si se almacenan sin cifrar; pérdida total si no salen del host | Cifrado y destino externo con credenciales de mínimo privilegio (§9) | `Task/029`, `Task/026` |
 
 ---
 
@@ -136,6 +152,9 @@ de **nivel host**, no de nivel aplicación.
 8. **Portainer es local y privilegiado**, nunca parte del producto.
 9. **Toda herramienta con acceso al socket de Docker es privilegio de nivel host**, se
    llame como se llame. Su compromiso es un incidente de host, no de aplicación.
+10. **La base de datos nunca se expone a Internet**, en ningún entorno. Si hay que
+    alcanzarla desde fuera, se hace a través de un *boundary* explícito y cifrado
+    (`Task/005.3`).
 
 ---
 
@@ -153,6 +172,9 @@ de **nivel host**, no de nivel aplicación.
 | Campos a redactar en los logs | `Task/017` |
 | Guardas *fail-closed* del laboratorio local y su verificación | `Task/025`, `Task/026` |
 | Revisión del *networking* de Docker del laboratorio | `Task/025` |
+| *Hardening* concreto del VPS, reglas de firewall y política de parcheo | `Task/029`, `Task/018` |
+| Configuración de TLS, SCRAM y evaluación de mTLS en PgBouncer | `Task/029` |
+| Procedimiento de backup, cifrado, retención y prueba de restore | `Task/029`, `Task/026` |
 
 ---
 
@@ -213,3 +235,74 @@ vigente de que **ninguna automatización ejecute `terraform destroy`** (§3).
 - **No se despliega en la nube**, en ninguna forma.
 - **No sustituye** a Portainer, ni a MinIO, ni a PostgreSQL local.
 - **No relaja** ninguna regla existente de este documento.
+
+---
+
+## 9. VPS de producción (C-13, C-14, C-15) — reglas explícitas
+
+> **Estado: Vigente** ✔ — aprobado en `Task/005.3` el 2026-08-15. Estrategia completa:
+> [production-postgresql-vps.md](production-postgresql-vps.md) ·
+> [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**.
+
+Situar PostgreSQL de producción en un VPS externo introduce una **superficie de ataque
+nueva y permanente**: un host propio, expuesto a Internet, con SSH y un servicio de base de
+datos delante. Es el componente cuyo compromiso tendría **el mayor impacto del proyecto**:
+implica la exposición de todos los datos del blog.
+
+Hasta ahora ningún dato de producción vivía en infraestructura administrada por el proyecto.
+A partir de esta decisión, sí.
+
+### 9.1 Topología obligatoria
+
+```
+Aplicación:     Internet ──TLS──► PgBouncer (C-14, único endpoint de la capa de datos)
+                                      │
+                                      ▼  red interna del VPS
+                                  PostgreSQL (C-15, nunca público)
+
+Administración: Operador  ──SSH──► Host del VPS (C-13, canal separado, solo por llave)
+```
+
+**Dos canales distintos, no uno.** La aplicación llega a los datos **únicamente** por
+PgBouncer. La administración del host usa **SSH**, que es un canal **separado y ajeno a la
+capa de datos**, sujeto a sus propias reglas (V-05, V-06, V-07). Decir que PgBouncer es «lo
+único alcanzable del VPS» sería inexacto: lo correcto es que es **lo único alcanzable de la
+capa de datos**.
+
+| # | Regla |
+| --- | --- |
+| V-01 | **PostgreSQL no se expone a Internet.** Su puerto no se publica en la interfaz pública; el *binding* y el firewall deben hacerlo cierto por configuración. |
+| V-02 | **PgBouncer es el único endpoint de la capa de datos** alcanzable desde fuera del VPS. El SSH administrativo no forma parte de esa capa. |
+| V-03 | **El tramo `Lambda → PgBouncer` exige TLS**, con **validación del certificado del servidor**. Un TLS que no valida no protege frente a un intermediario. |
+| V-04 | **Autenticación fuerte**, con **SCRAM-SHA-256** como mecanismo preferente cuando la implementación lo permita. |
+| V-05 | **Firewall *deny-by-default***: solo se abre lo estrictamente necesario. |
+| V-06 | **SSH solo mediante llave.** Sin autenticación por contraseña cuando sea viable. |
+| V-07 | **Servicios mínimos** en el host: nada que no sea necesario para la capa de datos. |
+| V-08 | **Ningún secreto se versiona.** La cadena de conexión de producción no existe en el repositorio. |
+| V-09 | **Actualizaciones y parcheo** del sistema operativo, PostgreSQL y PgBouncer como práctica definida, no como reacción. |
+| V-10 | **Docker o el runtime que se use, con el mínimo privilegio razonable.** |
+| V-11 | **Monitoreo del espacio en disco** y de los recursos: un disco lleno detiene PostgreSQL y puede impedir el propio backup. |
+| V-12 | **Backups cifrados y fuera del host**, con credenciales de mínimo privilegio hacia el destino. |
+| V-13 | **El compromiso del VPS se trata como exposición de datos**, no como una incidencia de servicio. |
+
+### 9.2 No hay *security through obscurity*
+
+**No** cuentan como control suficiente: cambiar el puerto 5432 · usar solo una contraseña
+larga · *rate limiting* en solitario · confiar en que nadie conozca la IP.
+
+Un puerto distinto puede usarse por motivos **operativos**, nunca como frontera principal
+de seguridad. La frontera son **firewall, *binding* privado, TLS y autenticación**.
+
+### 9.3 mTLS — evaluable, no obligatorio todavía
+
+TLS mutuo es una mejora razonable de *hardening*, pero **no se declara obligatorio**. Antes
+de adoptarlo hay que resolver rotación de certificados, impacto de una caducidad —dejaría el
+sitio sin base de datos—, compatibilidad y entrega del certificado a Lambda sin versionarlo.
+Se evalúa en `Task/029`.
+
+### 9.4 Qué NO cambia
+
+- **El VPS no aloja la aplicación.** FastAPI sigue en AWS Lambda.
+- **El frontend no cambia.** Cloudflare Pages sigue igual.
+- **El entorno local no cambia.** PostgreSQL en Docker sigue siendo el destino de desarrollo.
+- **No relaja** ninguna regla existente de este documento; añade las suyas.

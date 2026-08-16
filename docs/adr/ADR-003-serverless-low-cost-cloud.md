@@ -1,4 +1,4 @@
-# ADR-003 — Nube serverless de bajo costo
+﻿# ADR-003 — Nube serverless de bajo costo
 
 | Campo | Valor |
 | --- | --- |
@@ -7,6 +7,16 @@
 | **Tarea** | `Task/001-Inicializar-Workspace-y-Roadmap` |
 | **Reemplaza a** | — |
 | **Reemplazada por** | — |
+| **Modificado parcialmente por** | [ADR-007](ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15), solo la fila «Base de datos» |
+
+> **Nota de vigencia — 2026-08-15 (`Task/005.3`, aprobada).** Este ADR sigue **Aceptado y
+> vigente**, incluidas su decisión serverless y su lista de servicios excluidos.
+> [ADR-007](ADR-007-production-postgresql-on-vps.md) modifica **una sola fila** de la tabla
+> siguiente: la base de datos de producción pasa de **administrada** a **autogestionada en un
+> VPS externo**, por el motivo que este mismo ADR ya anticipaba — *es el único componente con
+> costo fijo de la arquitectura*. Todo lo demás permanece intacto, y ADR-007 **refuerza** la
+> exclusión de NAT Gateway. Detalle:
+> [production-postgresql-vps.md](../architecture/production-postgresql-vps.md).
 
 ---
 
@@ -30,7 +40,7 @@ Se adopta una arquitectura **serverless y de escalado a cero** donde sea posible
 | Entrada HTTP | **API Gateway HTTP API** | Pago por petición, sin costo en reposo. Más barato y simple que REST API o que un balanceador. |
 | Backend | **AWS Lambda** | Pago por invocación y duración. Sin costo cuando nadie visita el sitio. |
 | Archivos e imágenes | **Amazon S3** | Pago por almacenamiento y transferencia reales. Compatible con MinIO local. |
-| Base de datos | **PostgreSQL administrado** | Mismo motor que en local. Proveedor concreto pendiente de `Task/029`, priorizando costo. |
+| Base de datos | **PostgreSQL administrado** ⚠️ **modificado — ver nota** | Mismo motor que en local. Proveedor concreto pendiente de `Task/029`, priorizando costo. |
 | Configuración | **SSM Parameter Store** | Parámetros estándar sin costo; `SecureString` para valores sensibles. |
 | Logs y métricas | **CloudWatch** con retención y uso limitados | Servicio nativo de Lambda. El costo se contiene con retención corta y alarmas mínimas. |
 | CI/CD | **GitHub Actions** | Ya se usa para CI; minutos gratuitos suficientes para este volumen. |
