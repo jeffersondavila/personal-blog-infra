@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-13
+**Última actualización:** 2026-08-15
 
 ---
 
@@ -9,14 +9,15 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.1` **aprobada** y cerrada; `Task/005.2` y `Task/006` **no iniciadas** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.2` **aprobada** y cerrada; `Task/006` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
-| **Último mantenimiento aprobado** | `Task/005.1-Formalizar-TDD-Backend` — **Aprobada** el 2026-08-13; PR `Task/005.1 → main` **abierto, sin fusionar**. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, no iniciada). Antes se cerrará el mantenimiento `Task/005.2-Documentar-Estrategia-Floci-IaC-Local`, **no iniciado** |
+| **Último mantenimiento aprobado** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` — **Aprobada** el 2026-08-15; PR `Task/005.2 → main` **abierto, sin fusionar**. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.1-Formalizar-TDD-Backend` — **Aprobada** el 2026-08-13; PR `#7` **fusionado** por el usuario (`2026-08-16T00:25:21Z` UTC), rama remota eliminada y normalización `main → dev` completada el 2026-08-15 |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión del PR de `Task/005.2` y la normalización `main → dev`) |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | 16 (R-01 y **R-08** cerrados; **R-17** y **R-18** nuevos) |
+| **Riesgos abiertos** | **26** (R-01 y **R-08** cerrados; **R-19** a **R-28** abiertos desde el 2026-08-15) |
 
 > El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
 > por el usuario el 2026-08-12.
@@ -105,6 +106,42 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 
 | Campo | Valor |
 | --- | --- |
+| **Tarea** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` |
+| **Tipo** | **Mantenimiento de arquitectura y gobierno documental** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-15 |
+| **Fecha de aprobación** | 2026-08-15 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.2-Documentar-Estrategia-Floci-IaC-Local` |
+| **Repositorios afectados** | `personal-blog-infra` **únicamente** |
+| **Rama** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local`, creada desde `dev` normalizado (`4e6bfaa`). **Publicada en el cierre** |
+| **Objetivo** | Formalizar que la infraestructura AWS pueda desarrollarse, aprenderse, provisionarse y destruirse **localmente** antes de gastar en AWS real, con **una sola definición de Terraform** para ambos destinos |
+| **Alcance entregado** | Documento canónico [aws-local-parity.md](../architecture/aws-local-parity.md) (**Vigente**); [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**); matriz de paridad inicial (entera en `No evaluada`); decisión **D-14 Resuelta**; ampliación del alcance futuro de la ETAPA 08 y de `Task/023`–`Task/026`; reutilización de módulos en la ETAPA 10; encaje del laboratorio en `Task/039`; componente **C-12** y §8 en límites de seguridad; ley compacta en `PROJECT_INSTRUCTIONS.md` §15 |
+| **Verificación de Floci** | 2026-08-15, **solo fuentes oficiales** (repositorio y documentación del proyecto). Sin blogs ni terceros |
+| **Implementación** | **Ninguna.** 0 archivos Terraform, 0 cambios en Docker Compose, Floci **no instalado**, sin imágenes descargadas, sin contenedores, sin recursos AWS, sin cuentas |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
+| **Decisiones que NO resuelve** | **D-01** (PostgreSQL administrado, `Task/029`) y **D-06** (backend de estado de Terraform, `Task/025`), ambas **siguen abiertas** |
+| **Riesgos nuevos** | **R-19** a **R-28**, los diez **abiertos** |
+| **Imagen de arquitectura** | `images/Infraestructura.png` **intacta**: no modificada, no regenerada, no movida, no reemplazada |
+| **Integración en `dev`** | Merge `--no-ff`, publicado |
+| **Pull request** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
+| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Ficha** | [TASK-005.2](../tasks/TASK-005.2-document-floci-local-iac-strategy.md) |
+| **Reporte** | [TASK-005.2-report](../task-reports/TASK-005.2-report.md) |
+
+La aprobación de este mantenimiento **no modifica el conteo del roadmap**: el avance global
+permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
+
+Con ella, `ADR-006` pasa a **Aceptada**, **D-14** a **Resuelta** y los riesgos **R-19** a
+**R-28** a **Abiertos**. `Task/006` sigue **Pendiente y no iniciada**: no comienza hasta que
+el usuario fusione el PR de `Task/005.2` y se complete la normalización `main → dev`.
+
+---
+
+## Mantenimiento aprobado anterior
+
+| Campo | Valor |
+| --- | --- |
 | **Tarea** | `Task/005.1-Formalizar-TDD-Backend` |
 | **Tipo** | Mantenimiento de gobierno documental |
 | **Estado** | **Aprobada** ✔ |
@@ -121,17 +158,14 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 | **Riesgos nuevos** | **R-17** y **R-18** |
 | **Asset versionado en el cierre** | `images/Infraestructura.png` — diagrama de la arquitectura objetivo inicial, **preexistente**, agregado por el usuario el 2026-07-26 y autorizado explícitamente para versionarse en este cierre. **No es un entregable de la tarea** y no se modificó |
 | **Integración en `dev`** | Merge `--no-ff`, publicado |
-| **Pull request** | `Task/005.1-Formalizar-TDD-Backend → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
-| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Pull request** | `Task/005.1-Formalizar-TDD-Backend → main` (**`#7`**) — **FUSIONADO** por el usuario. Merge commit **`2f56a13`**, `mergedAt = 2026-08-16T00:25:21Z` (UTC) |
+| **Rama Task** | Eliminada **local y remotamente**. La local con `git branch -d` durante el cierre; la remota, por el usuario desde GitHub. Verificado: `git ls-remote --heads origin "Task/*"` no devuelve nada |
+| **Normalización posterior** | **Completada el 2026-08-15.** `main` = `2f56a13`; `main` integrada en `dev` con merge `--no-ff` **`4e6bfaa`**, publicado. `git diff main dev` vacío y `2f56a13` es ancestro de `dev` |
 | **Ficha** | [TASK-005.1](../tasks/TASK-005.1-formalize-backend-tdd.md) |
 | **Reporte** | [TASK-005.1-report](../task-reports/TASK-005.1-report.md) |
 
 La aprobación de este mantenimiento **no modifica el conteo del roadmap**: el avance global
 permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
-
-`Task/005.2-Documentar-Estrategia-Floci-IaC-Local` queda **Pendiente y no iniciada**: no
-comienza hasta que el usuario fusione el PR de `Task/005.1` y se complete la normalización
-`main → dev`.
 
 ---
 
@@ -229,6 +263,25 @@ Distribución por estado:
 | R-18 | El coste de escribir primero la prueba puede empujar a **matrices superficiales** que aparenten cumplimiento sin cubrir edge cases ni casos negativos. | Bajo | La matriz obligatoria exige explícitamente edge cases, errores y seguridad ([BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md) §6), y la revisión del usuario es el control final. Detectado en `Task/005.1`. | Abierto |
 | R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
 
+### Riesgos introducidos por `Task/005.2` — AWS Local Parity
+
+> **Abiertos y vigentes** desde la aprobación de `Task/005.2` el 2026-08-15. Ninguno está
+> cerrado. Detalle completo:
+> [aws-local-parity.md](../architecture/aws-local-parity.md) §14.
+
+| # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
+| --- | --- | --- | --- | --- | --- |
+| R-19 | El comportamiento del emulador AWS local difiere del de AWS real en detalles que solo aparecerían en producción. | Medio | La matriz de paridad nace entera en `No evaluada`; toda diferencia observada se registra; **AWS real es la autoridad final**. | `Task/025` → ETAPA 10 | **Abierto** |
+| R-20 | **Falsa sensación de paridad:** un laboratorio en verde convence de que la nube funcionará, y la ETAPA 10 se aborda con exceso de confianza. | **Alto** | El estado «paridad completa» **no existe** en la matriz, a propósito. Vocabulario obligatorio que distingue *emulado* de *validado*. La pregunta «¿qué diferencia hay respecto a AWS real?» es obligatoria en cada bloque de infraestructura. | ETAPA 10 | **Abierto** |
+| R-21 | Una actualización del emulador rompe la compatibilidad ya validada. | Medio | Versión **fijada**, nunca `latest` ni `nightly`. Actualizar se trata como cambio de infraestructura: revisar CHANGELOG y revalidar la matriz. | `Task/025`, `Task/026` | **Abierto** |
+| R-22 | El emulador necesita **acceso al socket de Docker** para ejecutar Lambda: privilegio de nivel host, junto a Portainer. **Agrava R-09.** | **Alto** | Mismo tratamiento que **R-09**: solo local, nunca expuesto, compromiso = incidente de nivel **host**. Revisión del *networking* de Docker antes de implementar. Componente **C-12** en [security-boundaries](../architecture/security-boundaries.md) §8. | `Task/025`, `Task/018` | **Abierto** |
+| R-23 | El endpoint local (puerto 4566 y rangos auxiliares) queda expuesto a la LAN o a internet por descuido. | **Alto** | Publicación restringida a `127.0.0.1`; prohibición explícita de exponerlo; verificación incluida en los runbooks de `Task/026`. | `Task/025`, `Task/026` | **Abierto** |
+| R-24 | Un comando pensado para el laboratorio acaba ejecutándose **contra AWS real** por faltar el endpoint, o se usan credenciales AWS reales contra el emulador. Un `destroy` en ese estado sería el fallo más caro posible. | **Alto** | Guardas ***fail-closed*** obligatorias antes del primer `apply`: entorno explícito, endpoint explícito, verificación de *account id*, rechazo de credenciales reales y validación bloqueante del destino. Prohibido usar credenciales AWS reales contra el emulador. | `Task/025`, `Task/026` | **Abierto** |
+| R-25 | El **camino crítico del proyecto** —Terraform + API Gateway v2 + Lambda + CloudWatch Logs— **no está cubierto por la suite oficial de compatibilidad Terraform del emulador**, verificado el 2026-08-15. Los servicios están documentados por separado; su combinación con Terraform no está demostrada upstream. | **Alto** | Es el objetivo explícito de `Task/025`. Si no se logra con fidelidad suficiente, esos recursos pasan a `AWS-only` en la matriz y se documenta la limitación, **sin fabricar sustitutos locales**. | `Task/025` | **Abierto** |
+| R-26 | Acumular condicionales por entorno acaba creando **dos IaC distintas** disfrazadas de una sola. | Medio | Tabla **cerrada** de diferencias legítimas ([aws-local-parity](../architecture/aws-local-parity.md) §4.4). Cualquier diferencia fuera de ella se trata como defecto de diseño, no como configuración. | `Task/025`, revisión del usuario | **Abierto** |
+| R-27 | Dependencia excesiva del emulador: se aplaza indefinidamente la validación contra AWS real. | Medio | El laboratorio es una **puerta**, no un destino. La ETAPA 10 sigue siendo obligatoria y sus criterios de salida no se relajan. | ETAPA 10 | **Abierto** |
+| R-28 | **El emulador no aplica políticas IAM por omisión**: acepta cualquier credencial y deja pasar toda petición. Un rol puede validarse en local y ser incorrecto —insuficiente o excesivo— en AWS. | **Alto** | El laboratorio valida que un rol **se crea y se adjunta**, nunca que **autoriza**. La verificación de **mínimo privilegio** queda declarada **AWS-only**. | `Task/028`, `Task/032` | **Abierto** |
+
 ---
 
 ## Tabla completa de tareas
@@ -281,11 +334,13 @@ Distribución por estado:
 
 ## Estado de los repositorios
 
-| Repositorio | Ramas | Rama activa | `main` y `dev` sincronizadas |
-| --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev`, `origin/Task/005.1-Formalizar-TDD-Backend` (**remota**, con PR abierto) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR de `Task/005.1` |
-| `personal-blog-frontend` | `main`, `dev` | `main` | Sí |
-| `personal-blog-backend` | `main`, `dev` | `main` | Sí — normalizadas el 2026-08-13 con el merge `ce4f1bc` |
+Estado verificado el **2026-08-15**.
+
+| Repositorio | Ramas locales | Ramas remotas | Rama activa | `main` y `dev` sincronizadas |
+| --- | --- | --- | --- | --- |
+| `personal-blog-infra` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.2-Documentar-Estrategia-Floci-IaC-Local` (**con PR abierto**) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR de `Task/005.2` |
+| `personal-blog-frontend` | `main` (`144a401`), `dev` (`8823cc3`) | `main`, `dev` | `main` | Sí — sin cambios |
+| `personal-blog-backend` | `main` (`db6ab18`), `dev` (`ce4f1bc`) | `main`, `dev` | `main` | Sí — normalizadas el 2026-08-13 con el merge `ce4f1bc` |
 
 - `main` y `dev` están **publicadas** en GitHub en los tres repositorios y
   contienen el mismo contenido.
@@ -333,11 +388,27 @@ Distribución por estado:
   `personal-blog-infra`**. Es mantenimiento documental, **no cuenta** en las 41 tareas y no
   modifica ningún otro repositorio. Fue **aprobada** el 2026-08-13; su cierre creó el commit,
   integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el
-  pull request `Task/005.1 → main`, que **sigue abierto**. La rama Task local se eliminó con
-  `git branch -d`.
+  pull request `Task/005.1 → main`. La rama Task local se eliminó con `git branch -d`.
 - El diagrama `images/Infraestructura.png`, **preexistente y agregado por el usuario**, se
   versionó durante ese cierre con su autorización explícita. No es un entregable de
   `Task/005.1` y no se modificó. **Versionar un diagrama no crea ningún recurso cloud.**
+- **PR `#7` fusionado y normalización completada (2026-08-15).** El usuario fusionó
+  `Task/005.1 → main` (merge commit **`2f56a13`**, `mergedAt = 2026-08-16T00:25:21Z` UTC) y
+  eliminó la rama remota. Verificado con `gh pr view 7` y con
+  `git ls-remote --heads origin "Task/*"`, que **no devuelve ninguna rama**. Después se
+  integró `main` en `dev` con el merge `--no-ff` **`4e6bfaa`** y se publicó: `git diff main dev`
+  está **vacío** y `2f56a13` es **ancestro de `dev`**.
+- **Backend y frontend verificados el 2026-08-15**, sin modificarlos: `fetch --prune`,
+  `main` y `dev` ya al día, `dev..main` **vacío** en ambos, `git diff main dev` **vacío**,
+  árboles limpios y rama activa `main`. **No se creó rama `Task/005.2` en ninguno de los
+  dos:** la tarea no los modifica.
+- `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` se creó el 2026-08-15 desde `dev`
+  normalizado (`4e6bfaa`), **solo en `personal-blog-infra`**. Es mantenimiento de
+  arquitectura y gobierno documental: **no cuenta** en las 41 tareas y **no altera el
+  avance**. Fue **aprobada** el 2026-08-15; su cierre creó el commit, integró la rama en
+  `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el pull request
+  `Task/005.2 → main`, que **sigue abierto**. La rama Task local se eliminó con
+  `git branch -d`; la remota se conserva mientras el PR siga abierto.
 
 ---
 
@@ -368,22 +439,37 @@ Distribución por estado:
 - Con `Task/004`, la **ETAPA 01 queda completada** (2 de 2 tareas) y el avance global
   pasa a **4 de 41 (10 %)**.
 - **Ningún backup real se versiona:** `local-backups/` está ignorado por Git.
-- **No existe Terraform** en ningún repositorio.
+- **No existe Terraform** en ningún repositorio. `Task/005.2` **no creó ningún archivo
+  `.tf`**: solo documenta cómo se escribirá en `Task/025`.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
+- **Floci no está instalado.** `Task/005.2` es documental: no se descargó ninguna imagen, no
+  se levantó ningún contenedor, no se modificó `docker-compose.yml` y no se ejecutó ningún
+  comando de Terraform ni de AWS CLI.
 - `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
   ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
 - ADR-001 a ADR-005 están todos en estado **Aceptada**. Ni `Task/003` ni `Task/004`
   crearon ADR nuevos: sus decisiones son de implementación local y reversibles. D-05
   quedó **Resuelta** con **Traefik v3** al aprobarse `Task/003`.
-- **Decisiones diferidas: 12 abiertas** (eran 13; D-05 resuelta el 2026-07-29).
+- **`ADR-006` está `Aceptada`** desde el 2026-08-15, al aprobarse `Task/005.2`. Es el sexto
+  ADR del proyecto y el primero sobre estrategia de infraestructura.
+- **Decisiones diferidas: 12 abiertas.** Resueltas: **D-05** (2026-07-29, Traefik v3) y
+  **D-14** (2026-08-15, **Floci** como laboratorio AWS local). **D-01** y **D-06 siguen
+  abiertas: `Task/005.2` no las tocó.**
 - `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno, está **Aprobada** y
   cerrada, y no forma parte de las 41 tareas del roadmap.
+- **La ETAPA 08 amplía su alcance sin añadir tareas.** `Task/005.2`, **aprobada**, la reformula de
+  *«Preparación Cloud sin Cuentas»* a **«Preparación Cloud + AWS Local Parity»**: la IaC
+  pasará a ejecutarse de verdad contra un emulador AWS local en lugar de quedarse en
+  `terraform fmt` + `validate`. **Los 4 identificadores y nombres de `Task/023`–`Task/026`
+  no cambian**, el roadmap sigue teniendo **41 tareas** y **ninguna se renumeró**.
+  Estrategia: [aws-local-parity](../architecture/aws-local-parity.md).
 - La **ETAPA 01 está completada** (2 de 2 tareas aprobadas). La **ETAPA 02 — Fundaciones de
   las Aplicaciones** está **en curso**: **1 de 3** tareas aprobadas, tras la aprobación de
   `Task/005`.
-- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. La normalización
-  posterior a `Task/005` ya está completa; antes de `Task/006` se cerrarán los mantenimientos
-  `Task/005.1` y `Task/005.2`.
+- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1` está
+  aprobada, fusionada y normalizada; `Task/005.2` está **aprobada** con su PR **abierto**.
+  `Task/006` no empieza hasta que el usuario fusione ese PR y se complete la normalización
+  `main → dev`.
 - **El backend se desarrollará test-first a partir de `Task/008`.** `Task/005.1` formaliza la
   regla **RED → GREEN → REFACTOR** en
   [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md), con matriz de casos previa,
@@ -404,7 +490,15 @@ Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-004](../tasks/TASK-004-local-backups-and-recovery.md) ·
 [Reporte TASK-004](../task-reports/TASK-004-report.md) ·
 [TASK-005](../tasks/TASK-005-fastapi-backend-foundation.md) ·
-[Reporte TASK-005](../task-reports/TASK-005-report.md)
+[Reporte TASK-005](../task-reports/TASK-005-report.md) ·
+[TASK-005.1](../tasks/TASK-005.1-formalize-backend-tdd.md) ·
+[Reporte TASK-005.1](../task-reports/TASK-005.1-report.md) ·
+[TASK-005.2](../tasks/TASK-005.2-document-floci-local-iac-strategy.md) ·
+[Reporte TASK-005.2](../task-reports/TASK-005.2-report.md)
+
+Estrategia de infraestructura local aprobada en `Task/005.2`:
+[aws-local-parity](../architecture/aws-local-parity.md) (**Vigente**) ·
+[ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**)
 
 Documentos de producto y arquitectura producidos por `Task/002`:
 [MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·

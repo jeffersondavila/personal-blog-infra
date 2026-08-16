@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-07-29 (`Task/003`) |
-| **Decisiones abiertas** | **12** — D-05 **resuelta** el 2026-07-29 |
-| **Decisiones resueltas** | 1 (D-05) |
+| **Última actualización** | 2026-08-15 (`Task/005.2` — **D-14 añadida y resuelta**) |
+| **Decisiones abiertas** | **12** — D-05 y D-14 **resueltas** |
+| **Decisiones resueltas** | **2** — D-05 (2026-07-29) y **D-14** (2026-08-15) |
 
 Registro explícito de lo que **todavía no está decidido**, cuándo debe decidirse, qué
 información hará falta y qué se ve afectado.
@@ -36,6 +36,7 @@ ADR.
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
 | D-12 | Límites exactos de Lambda | `Task/032` | Abierta |
 | D-13 | Presupuesto mensual objetivo | `Task/027` | Abierta |
+| D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
 
 ---
 
@@ -53,6 +54,12 @@ ADR.
   el principal riesgo técnico (agotamiento de conexiones desde Lambda). Decidirlo antes de
   conocer el patrón de acceso real sería adivinar.
 - **Riesgo asociado:** R-03.
+- **Aclaración añadida el 2026-08-15 (`Task/005.2`):** **sigue abierta y no la afecta la
+  estrategia de paridad local.** Que un emulador soporte RDS **no es un criterio de
+  arquitectura de datos**. Si `Task/029` elige AWS RDS PostgreSQL, se **evaluará** después
+  su emulación local como paridad adicional; si elige un proveedor externo, **no** se usará
+  RDS local solo por imitar a AWS. Detalle:
+  [aws-local-parity.md](aws-local-parity.md) §8.
 
 ## D-02 — Mecanismo concreto de autenticación
 
@@ -139,6 +146,12 @@ No requiere ADR: es una decisión local y reversible.
   (`Task/039`).
 - **Consideración:** un backend remoto exige un recurso creado antes que el resto — un
   problema de arranque que hay que resolver explícitamente.
+- **Aclaración añadida el 2026-08-15 (`Task/005.2`):** **sigue abierta.** El backend de
+  estado es la diferencia local/nube que **no se resuelve con un `tfvars`**: se configura en
+  `terraform init -backend-config=...`. Que el laboratorio local permita un backend
+  compatible con S3 demuestra que la vía es practicable, **no** decide cuál usará
+  producción. La decisión sigue perteneciendo íntegramente a `Task/025`. Detalle:
+  [aws-local-parity.md](aws-local-parity.md) §4.5.
 
 ## D-07 — Dominio definitivo
 
@@ -208,6 +221,50 @@ No requiere ADR: es una decisión local y reversible.
 - **Por qué es crítica:** es la restricción que gobierna toda la Etapa 09 en adelante. Se
   fija **antes** de crear el primer recurso.
 
+## D-14 — ¿Se usará un emulador AWS local para la estrategia de IaC? — **RESUELTA**
+
+- **Planteada y resuelta en:** `Task/005.2-Documentar-Estrategia-Floci-IaC-Local`.
+- **Estado:** **Resuelta** el 2026-08-15, al aprobar el usuario `Task/005.2` con
+  `approved: Task/005.2-Documentar-Estrategia-Floci-IaC-Local`.
+
+**Pregunta:** ¿el proyecto adopta un emulador AWS local para desarrollar, aprender y
+validar la infraestructura como código antes de crear recursos reales, o se queda con
+`terraform fmt` + `validate` y aprende directamente contra AWS?
+
+### Decisión: **sí — Floci** como laboratorio AWS local
+
+Se adopta **Floci** como laboratorio AWS local para validar Terraform y las integraciones
+AWS antes del despliegue real, **manteniendo AWS real como la autoridad final** y con la
+regla de portabilidad que impide duplicar la IaC. Justificación, alternativas (A–D),
+límites de fidelidad y criterio de abandono:
+[ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada**; estrategia
+completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente**.
+
+**Qué sigue pendiente pese a estar D-14 resuelta.** D-14 responde *si* se usa un emulador,
+no *cómo*. Siguen abiertas y **no se resuelven aquí**:
+
+| Pendiente | Se resuelve en |
+| --- | --- |
+| Versión concreta del emulador que se fija | `Task/025` |
+| Estructura concreta de directorios de Terraform | `Task/025` |
+| **Backend de estado de Terraform** (**D-06**) | `Task/025` |
+| Implementación concreta de las guardas *fail-closed* | `Task/025` |
+| Qué servicios resultan realmente validables en local | `Task/025`, con la matriz de paridad |
+| Configuración de red y DNS del laboratorio | `Task/025` |
+| Procedimientos operativos del laboratorio | `Task/026` |
+| **Proveedor de PostgreSQL administrado** (**D-01**) | `Task/029` — **sin relación con esta decisión** |
+| Integración del laboratorio en CI | `Task/039` |
+
+- **Afecta a:** ETAPA 08 (`Task/023`–`Task/026`), ETAPA 10 (reutilización de módulos),
+  ETAPA 11 (`Task/039`) y los límites de seguridad (C-12).
+- **Por qué se planteó ahora y no en `Task/025`:** condiciona el **alcance** de cuatro
+  tareas futuras y la forma de escribir Terraform desde el primer archivo. Descubrirlo con
+  la IaC ya escrita habría obligado a rehacerla.
+- **Riesgos asociados:** **R-19 a R-28**, todos **abiertos** desde la aprobación.
+- **ADR:** [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada** el
+  2026-08-15. Por ser una decisión estructural de infraestructura, sí exige registro
+  arquitectónico.
+
 ---
 
 ## Decisiones no diferidas
@@ -228,6 +285,13 @@ cerrado:
 | Decisión | Dónde |
 | --- | --- |
 | **Traefik v3** como reverse proxy local (D-05), a implementar en `Task/007` | D-05, en este documento |
+
+### Aprobadas en `Task/005.2` (2026-08-15)
+
+| Decisión | Dónde |
+| --- | --- |
+| **Floci** como laboratorio AWS local para validar la IaC (D-14), con AWS real como autoridad final | [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) · [aws-local-parity.md](aws-local-parity.md) |
+| Terraform como fuente de verdad, **una sola definición** para local y AWS, sin duplicar módulos | [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) |
 
 ### Aprobadas en `Task/002` (2026-07-26)
 

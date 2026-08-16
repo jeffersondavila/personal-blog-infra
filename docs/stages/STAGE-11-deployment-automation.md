@@ -44,6 +44,43 @@ GitHub Actions hacia AWS Lambda usando OIDC.
 
 **Depende de:** `Task/037`, `Task/038`. **Repositorio:** `personal-blog-infra`.
 
+#### Dónde encaja la validación local en CI
+
+Intención futura registrada en `Task/005.2`. **No modifica** las responsabilidades ya
+asignadas a `Task/020-CI-Backend`, `Task/021-CI-Infraestructura`, `Task/037` ni `Task/038`:
+solo aclara qué aporta el laboratorio de paridad dentro de esta tarea.
+
+Sobre un **emulador efímero levantado por el propio job**, un pull request de
+infraestructura puede ejecutar el ciclo completo sin credenciales cloud:
+
+```
+Pull Request
+   └─► GitHub Actions
+         └─► emulador AWS efímero
+               ├─ terraform validate
+               ├─ terraform plan   (local)
+               ├─ terraform apply  (local)
+               ├─ pruebas de infraestructura
+               └─ terraform destroy (local)
+```
+
+Y, por separado, el camino hacia AWS real, que **no cambia**:
+
+```
+GitHub Actions ─► OIDC ─► AWS real ─► plan revisable ─► apply protegido
+```
+
+Reglas que se mantienen intactas:
+
+- El `destroy` automático **solo** es admisible contra el emulador efímero del job, que se
+  destruye entero al terminar.
+- **Ningún workflow ejecuta `terraform destroy` contra AWS real.** Sin excepciones.
+- El `apply` contra AWS real sigue exigiendo **aprobación manual**.
+- Ningún workflow usa credenciales cloud permanentes; el job local no usa credencial real
+  alguna.
+
+Estrategia completa: [aws-local-parity.md](../architecture/aws-local-parity.md) §11.3.
+
 ## Criterios de salida de la etapa
 
 - [ ] Un cambio aprobado en el frontend llega a Cloudflare Pages sin intervención manual.
