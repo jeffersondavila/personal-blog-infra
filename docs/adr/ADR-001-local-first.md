@@ -50,7 +50,13 @@ desarrollo, cuando el producto todavía no existe y su alcance aún cambia.
 
 ### Positivas
 
-- Costo cero durante todo el desarrollo, que abarca 22 de las 41 tareas.
+- Costo cero durante todo el desarrollo local, que abarca **de la ETAPA 00 a la ETAPA 08**
+  incluida: desde la fundación del workspace hasta la preparación cloud sin cuentas. El
+  primer gasto posible aparece en la **ETAPA 09**, cuando se crean las cuentas.
+  *(Referencia a etapas y no a un número de tareas: la cifra concreta cambia si el roadmap
+  se reorganiza. Corregido en `Task/005.6`, que encontró aquí «22 de las 41 tareas», cifra
+  que además dejaba fuera la ETAPA 08 pese a ser también de costo cero según el punto 4 de
+  esta misma decisión. El alcance vigente está en [ROADMAP.md](../project-management/ROADMAP.md).)*
 - Ciclo de iteración rápido: sin esperas de despliegue ni de propagación.
 - Ningún riesgo de factura inesperada mientras el alcance todavía se mueve.
 - El entorno reproducible obliga a documentar cómo se levanta el sistema.

@@ -8,7 +8,7 @@
 | **Tareas** | 3 |
 | **Aprobadas** | 0 |
 | **Avance** | 0 % |
-| **Hito que completa** | Cuentas cloud seguras, con presupuesto y acceso sin credenciales permanentes. |
+| **Hito que completa** | Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a AWS sin credenciales permanentes** (OIDC, `Task/028`). El modelo de identidad del **VPS hacia AWS** se decide en `Task/029` (**D-16**, abierta) y **Cloudflare y el proveedor del VPS pueden exigir otro mecanismo** (`Task/039`). *(Acotado en `Task/005.6`: el hito afirmaba «acceso sin credenciales permanentes» sin restringir el sujeto, lo que prejuzgaba decisiones todavía abiertas.)* |
 
 ---
 

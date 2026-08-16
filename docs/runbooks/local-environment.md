@@ -369,14 +369,111 @@ docker compose ps
 
 ---
 
-## 9. Límites vigentes de este entorno
+## 9. Base de datos de pruebas del backend
+
+> **Vigente desde `Task/005.6`.** Necesaria para ejecutar las pruebas de integración de
+> `personal-blog-backend`.
+
+### 9.1 Por qué existe una segunda base
+
+Las pruebas de integración ejecutan el ciclo real de migraciones, que incluye
+**`alembic downgrade base`**: revierte el esquema entero. Ejecutarlo contra `personal_blog`
+—la base cotidiana de desarrollo— **destruiría los datos** en cuanto `Task/008` cree las
+primeras tablas del blog.
+
+Por eso la integración usa una base **dedicada y descartable**, `personal_blog_test`, dentro
+del mismo contenedor de PostgreSQL. No hace falta un segundo servicio ni tocar
+`docker-compose.yml`: una base adicional es la solución más pequeña que resuelve el problema.
+
+### 9.2 Crear la base (idempotente y no destructivo)
+
+Ninguno de estos comandos toca `personal_blog`, sus datos ni los volúmenes.
+
+```powershell
+# 1. ¿Existe ya?
+docker exec personal-blog-local-postgres `
+  psql -U blog_local -d postgres -tAc `
+  "SELECT 1 FROM pg_database WHERE datname='personal_blog_test'"
+
+# 2. Crearla solo si el paso anterior no devolvió nada
+docker exec personal-blog-local-postgres `
+  psql -U blog_local -d postgres -v ON_ERROR_STOP=1 -c `
+  "CREATE DATABASE personal_blog_test OWNER blog_local ENCODING 'UTF8'"
+```
+
+### 9.3 Marcarla como base de pruebas — **obligatorio**
+
+Sin esta marca la suite **se niega a ejecutarse**. Es deliberado: la guarda no puede depender
+de que alguien escriba bien una URL.
+
+```powershell
+docker exec personal-blog-local-postgres `
+  psql -U blog_local -d postgres -v ON_ERROR_STOP=1 -c `
+  "COMMENT ON DATABASE personal_blog_test IS 'personal-blog:test-database - contenido descartable. Las pruebas de integracion ejecutan alembic downgrade base contra esta base.'"
+```
+
+El comentario debe contener la cadena exacta **`personal-blog:test-database`**. La marca vive
+**dentro** de la base a propósito: apuntar por error a `personal_blog` no la encuentra, y
+`personal_blog` **no debe tener nunca** esta marca.
+
+Verificación:
+
+```powershell
+docker exec personal-blog-local-postgres `
+  psql -U blog_local -d postgres -tAc `
+  "SELECT datname, shobj_description(oid,'pg_database') FROM pg_database WHERE datname LIKE 'personal_blog%' ORDER BY 1"
+```
+
+`personal_blog` debe aparecer **sin** comentario.
+
+### 9.4 Apuntar las pruebas a esa base
+
+La variable **no** lleva el prefijo `BLOG_`: la suite limpia ese prefijo del entorno para
+aislarse de la configuración de la máquina.
+
+```powershell
+$env:PERSONAL_BLOG_TEST_DATABASE_URL = "postgresql://<usuario>:<clave>@127.0.0.1:55432/personal_blog_test"
+```
+
+Usuario y clave son los de `POSTGRES_USER` y `POSTGRES_PASSWORD` del `.env` local. **No se
+versiona ningún valor real**: aquí solo hay marcadores de posición.
+
+### 9.5 Comportamiento esperado
+
+| Situación | Resultado |
+| --- | --- |
+| Variable **no definida** | La integración se **omite** (`SKIP`) con motivo explícito. |
+| Variable definida y base correcta | La integración **se ejecuta**. |
+| Variable definida y PostgreSQL caído o credenciales incorrectas | **FAIL.** Nunca `skip`. |
+| Destino sin sufijo `_test` | **FAIL** antes de ejecutar nada. |
+| Destino sin la marca de §9.3 | **FAIL** antes de ejecutar nada. |
+
+Regla completa:
+[BACKEND_TESTING_STRATEGY §8.3](../project-management/BACKEND_TESTING_STRATEGY.md).
+
+### 9.6 Eliminar la base de pruebas
+
+Es descartable: se puede borrar y volver a crear con §9.2 y §9.3 cuando haga falta.
+
+```powershell
+docker exec personal-blog-local-postgres `
+  psql -U blog_local -d postgres -c "DROP DATABASE IF EXISTS personal_blog_test"
+```
+
+> Comprobar el nombre antes de ejecutarlo. `personal_blog` y `personal_blog_test` se
+> diferencian en un sufijo.
+
+---
+
+## 10. Límites vigentes de este entorno
 
 | Elemento | Estado | Dónde se aborda |
 | --- | --- | --- |
 | Backend (FastAPI) | No incluido. | `Task/005`, `Task/007` |
 | Frontend (React) | No incluido. | `Task/006`, `Task/007` |
 | Reverse proxy | No desplegado. Tecnología ya decidida: **Traefik v3** (D-05, resuelta en `Task/003`). | `Task/007` |
-| Esquema de base de datos y migraciones | No existen. La base está vacía. | `Task/008` |
+| Esquema de base de datos y migraciones | Existe la **migración fundacional** de `Task/005`: `personal_blog` tiene `alembic_version` y **ninguna tabla de negocio**. El modelo del blog llega en `Task/008`. *(Corregido en `Task/005.6`: aquí se leía «No existen. La base está vacía».)* | `Task/008` |
+| Base de datos de pruebas | `personal_blog_test`, dedicada y descartable (sección 9). | `Task/005.6` |
 | Buckets de la aplicación | No se crea ninguno. | `Task/010` |
 | Backup y restauración | No existen. | `Task/004` |
 | TLS real | No hay. Portainer usa un certificado autofirmado. | No aplica en local |
@@ -385,7 +482,7 @@ docker compose ps
 
 ---
 
-## 10. Documentos relacionados
+## 11. Documentos relacionados
 
 - [ADR-001 — Estrategia local-first](../adr/ADR-001-local-first.md)
 - [ADR-003 — Nube serverless de bajo costo](../adr/ADR-003-serverless-low-cost-cloud.md)

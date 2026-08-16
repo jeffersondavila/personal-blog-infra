@@ -118,7 +118,15 @@ Estrategia completa: [aws-local-parity.md](../architecture/aws-local-parity.md) 
 - [ ] El `plan` de Terraform es visible y revisable antes del `apply`.
 - [ ] El `apply` requiere aprobación manual **y verifica el destino esperado de cada
       provider** antes de ejecutarse.
-- [ ] Ningún workflow puede ejecutar `terraform destroy`.
+- [ ] **Ningún workflow puede ejecutar `terraform destroy` contra AWS real, Cloudflare o el
+      VPS.** Sin excepciones. El `destroy` **sí** es admisible —y necesario— contra el
+      emulador AWS **efímero** levantado por el propio job, que se destruye entero al
+      terminar y no contiene ningún recurso real. La distinción es la del punto anterior de
+      esta misma etapa; ver también
+      [aws-local-parity.md](../architecture/aws-local-parity.md) §11.3.
+      *(Precisado en `Task/005.6`: este criterio decía «Ningún workflow puede ejecutar
+      `terraform destroy`» en absoluto, contradiciendo el bloque de reglas de esta misma
+      etapa.)*
 - [ ] Existe un procedimiento de rollback probado para frontend y backend.
 - [ ] El **canal de migraciones en producción** está definido, con credencial acotada,
       orden respecto al despliegue, comportamiento ante fallo y protección contra
@@ -134,7 +142,7 @@ Estrategia completa: [aws-local-parity.md](../architecture/aws-local-parity.md) 
 | Riesgo | Mitigación |
 | --- | --- |
 | Un despliegue automático rompe producción. | Rollback probado y despliegue solo desde ramas aprobadas. |
-| Destrucción accidental de recursos vía CI. | `destroy` prohibido en los workflows; `apply` con aprobación manual. |
+| Destrucción accidental de recursos vía CI. | `destroy` **prohibido contra cualquier destino real** (AWS, Cloudflare, VPS); permitido solo contra el emulador efímero del job. `apply` real con aprobación manual y verificación previa del destino. |
 | Divergencia entre el estado de Terraform y lo desplegado. | `plan` en cada PR; deriva tratada como defecto. |
 | Secretos expuestos en logs de CI. | Uso de secretos enmascarados y revisión de salidas. |
 

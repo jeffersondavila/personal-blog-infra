@@ -201,8 +201,79 @@ transacciones, consultas, o de la semántica específica de PostgreSQL.
 > de SQLite.
 
 El entorno local ya provee ese PostgreSQL
-([runbook](../runbooks/local-environment.md)). Las pruebas de integración se **omiten con
-motivo explícito** si no está disponible, nunca se declaran superadas sin ejecutarse.
+([runbook](../runbooks/local-environment.md)).
+
+#### 8.3.1 Base de datos de pruebas aislada — obligatorio
+
+> **Vigente desde `Task/005.6`.** Las reglas de este bloque no son recomendaciones: son
+> condiciones para que la integración pueda ejecutarse.
+
+Las pruebas de integración son **destructivas**: el ciclo de migraciones ejecuta
+`alembic downgrade base`, que revierte el esquema entero.
+
+| Regla | Detalle |
+| --- | --- |
+| **Base dedicada** | La integración se ejecuta contra una base **exclusiva de pruebas** (`personal_blog_test`), nunca contra `personal_blog`, la base cotidiana de desarrollo. |
+| **Nunca migraciones destructivas sobre la base de desarrollo** | Antes de `Task/008` esa base solo tenía `alembic_version`; a partir de `Task/008` tendrá el contenido real del blog. Un `downgrade base` sobre ella **destruye datos**. |
+| **La guarda es *fail-closed*** | No comprueba que el destino sea peligroso: exige **demostrar** que es seguro. Si no puede demostrarlo, **falla**. |
+| **La guarda no confía en la URL** | Además del sufijo `_test` en el nombre, la base debe llevar la marca `personal-blog:test-database` en su **comentario de PostgreSQL**. La marca vive **dentro** de la base: escribir bien una URL no la fabrica, y apuntar por error a la base de desarrollo no la encuentra. |
+| **Artefactos de prueba fuera de las migraciones** | Las tablas auxiliares que una prueba necesite se crean y se destruyen en su *fixture*, con el `DROP` en un `finally`. Nunca entran en las migraciones de negocio. |
+
+Provisionar la base: [runbook del entorno local](../runbooks/local-environment.md) §9.
+
+#### 8.3.2 Skip y fail: la distinción es obligatoria
+
+Solo hay dos casos, y confundirlos convierte la integración en decorativa:
+
+| Caso | Situación | Resultado exigido |
+| --- | --- | --- |
+| **1** | `PERSONAL_BLOG_TEST_DATABASE_URL` **no definida** | `SKIP`, con motivo explícito. No hay entorno de integración que ejecutar. |
+| **2** | La variable **está definida** | PostgreSQL **debe funcionar**. Credenciales incorrectas, host caído, driver ausente, conexión fallida o una regresión del motor son **`FAIL`**. |
+
+> **Prohibido degradar un fallo a `skip`.** Un `except Exception: pytest.skip(...)` alrededor
+> de la conexión hace que la suite quede verde exactamente cuando el acceso a datos está
+> roto, que es el único momento en que esa prueba tenía algo que decir. Solo la **ausencia
+> declarada** del entorno justifica omitir.
+
+#### 8.3.3 Commit y rollback: verificación semántica
+
+Comprobar que `session.commit()` o `session.rollback()` **fueron llamados** no demuestra
+nada: son las dos afirmaciones que un `session_scope` roto sigue satisfaciendo.
+
+| Comportamiento | Cómo se demuestra |
+| --- | --- |
+| **Commit** | El dato se escribe dentro del `session_scope` y se lee después desde **otra sesión independiente**. Debe estar. |
+| **Rollback** | El dato se escribe, se comprueba que **es visible dentro** de la transacción, se provoca el error, y después se lee desde **otra sesión**. No debe estar. |
+
+La comprobación intermedia del rollback es obligatoria: sin ella, un `INSERT` que nunca
+llegara a ejecutarse produciría el mismo resultado final y la prueba pasaría sin haber
+probado nada.
+
+#### 8.3.4 Pruebas de migraciones que no caducan
+
+Una prueba de migraciones **no puede afirmar el estado del esquema de un momento concreto
+del roadmap**. La aserción `tablas <= {"alembic_version"}` —«el proyecto no tiene tablas de
+negocio»— era cierta antes de `Task/008` y se habría puesto roja al aparecer la primera
+tabla legítima del blog.
+
+El contrato durable de **M-04** es: `upgrade head` → `downgrade base` → `upgrade head`
+funciona, y el esquema tras `upgrade` + `downgrade` es **idéntico** al de antes. Eso detecta
+el defecto real —una migración que crea un objeto y olvida soltarlo en su `downgrade`— y
+sigue siendo válido con cualquier número de tablas. La revisión `head` se lee del directorio
+de scripts, nunca se fija en el código de la prueba.
+
+#### 8.3.5 Aislamiento del `.env` del desarrollador
+
+Las pruebas **no leen** el `.env` de la máquina. Hacen falta **dos** mecanismos, porque uno
+solo no basta: limpiar las variables `BLOG_*` del entorno **y** construir la configuración
+con `_env_file=None`. `pydantic-settings` lee el archivo `.env` del directorio de trabajo
+aunque no haya ninguna variable en el entorno; sin el segundo mecanismo, todo campo que la
+prueba no fije explícitamente se toma de la máquina y la suite deja de ser determinista.
+
+---
+
+Las pruebas de integración se **omiten con motivo explícito** cuando no hay entorno de
+integración definido (caso 1), nunca se declaran superadas sin ejecutarse.
 
 ### 8.4 HTTP / FastAPI
 
