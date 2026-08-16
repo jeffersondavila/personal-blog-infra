@@ -408,7 +408,40 @@ Excepciones razonables —documentación, `Dockerfile`, configuración sin lógi
 en la estrategia, §4. **Una excepción a TDD no es una excepción a validar.**
 
 
-## 15. Restricciones del proyecto
+## 15. AWS LOCAL PARITY LAW
+
+Regla de infraestructura. Aplica desde la ETAPA 08 (`Task/023`–`Task/026`) y a toda
+tarea que escriba Terraform o toque el laboratorio AWS local.
+
+Fuente completa y única:
+[`docs/architecture/aws-local-parity.md`](../architecture/aws-local-parity.md).
+Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
+**Aceptada** el 2026-08-15 (`Task/005.2`). Vigente y de cumplimiento obligatorio.
+
+- **Terraform es la fuente de verdad** de la infraestructura cloud.
+- **Floci es el destino local; AWS real es el destino definitivo y la autoridad
+  final.** Lo observado en Floci es hipótesis hasta validarse en AWS.
+- **No duplicar módulos local/cloud.** Una sola definición, un solo grafo de
+  recursos. Nada de recursos Terraform específicos de Floci.
+- **No acoplar la aplicación a Floci.** Backend y herramientas usan AWS SDK /
+  boto3, AWS CLI y el provider oficial `hashicorp/aws`.
+- **Las diferencias van a la matriz de paridad**, nunca a una bifurcación del
+  diseño. **Nunca declarar «paridad completa».**
+- **Nunca usar credenciales AWS reales contra Floci**, ni secretos reales en su
+  SSM emulado: no cifra.
+- **Versión de Floci fijada.** Nunca `latest` ni `nightly`.
+- **Guardas fail-closed** antes de cualquier `apply` o `destroy` local: un
+  comando pensado para Floci no puede acabar hablando con AWS real.
+- **Floci es infraestructura local privilegiada** (socket de Docker): solo
+  local, nunca expuesto, mismo tratamiento que Portainer.
+- **AWS real sigue siendo la validación final.** El laboratorio no sustituye a
+  la ETAPA 10.
+
+No decide **D-01** (PostgreSQL administrado, `Task/029`) ni **D-06** (backend de
+estado de Terraform, `Task/025`): siguen abiertas.
+
+
+## 16. Restricciones del proyecto
 
 Arquitectura acordada y vigente:
 
@@ -429,6 +462,9 @@ Arquitectura acordada y vigente:
 - Sin Portainer en producción.
 - Sin EC2, ECS, EKS, ECR, ALB ni NAT Gateway en la arquitectura inicial.
 - Local-first antes de crear recursos cloud.
+- Floci como laboratorio AWS **local** para validar la IaC (sección 15).
+  **Vigente** desde 2026-08-15 (ADR-006). No es un servicio de producción ni
+  altera la arquitectura cloud objetivo.
 
 Consultar siempre los ADR y documentos vigentes antes de cambiar estas
 decisiones.
@@ -441,7 +477,7 @@ Una modificación a una decisión arquitectónica aceptada requiere:
 4. Esperar aprobación explícita del usuario.
 
 
-## 16. Orden de autoridad
+## 17. Orden de autoridad
 
 Cuando exista conflicto entre:
 

@@ -23,6 +23,36 @@ Es la materialización de la arquitectura de
 [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md). El orden de las tareas no es
 arbitrario: cada una habilita a la siguiente.
 
+## Relación con la ETAPA 08 — reutilizar, no reinventar
+
+`Task/030`–`Task/033` **no crean recursos Terraform nuevos**. La expectativa explícita es:
+
+> **Utilizar los módulos construidos y validados localmente en `Task/025` y materializarlos
+> contra AWS real.**
+
+Esta etapa es, además, donde el proyecto descubre **qué era realmente cierto** del
+laboratorio local. Por cada recurso se documenta y se clasifica:
+
+| Categoría | Significado |
+| --- | --- |
+| **Funcionó sin cambios** | El módulo se aplicó tal cual. |
+| **Cambio de configuración** | Bastó ajustar variables, endpoints o nombres. |
+| **Adaptación necesaria** | Hubo que modificar el diseño del recurso. |
+| **No simulable localmente** | El emulador no lo reproducía con fidelidad suficiente. |
+| **AWS-only** | Nunca pudo validarse en local por naturaleza. |
+
+Diferencias que hay que comparar de forma expresa: **IAM** (autorización real, que el
+laboratorio **no** ejercita), **red y DNS** (`execute-api`, TLS, dominios personalizados),
+**cuotas y límites de cuenta**, **arranque en frío real** de la Lambda, **cifrado real de
+`SecureString`** en SSM y **evaluación real de alarmas** en CloudWatch.
+
+Toda esa evidencia se vuelca en la **matriz de paridad** de
+[aws-local-parity.md](../architecture/aws-local-parity.md) §7, cuyas celdas pasan aquí a
+`Validada en AWS`. Ninguna celda puede marcarse así sin haberse ejecutado contra AWS real.
+
+**AWS real es la autoridad final.** Si el laboratorio y AWS discrepan, AWS tiene razón y el
+laboratorio se corrige.
+
 ## Tareas
 
 | Tarea | Contenido | Depende de |
@@ -49,6 +79,9 @@ arbitrario: cada una habilita a la siguiente.
 - [ ] El dominio resuelve por HTTPS con certificado válido.
 - [ ] Existe contenido real publicado y visible en el sitio.
 - [ ] El costo real observado coincide con lo estimado.
+- [ ] Los módulos aplicados son los **validados en `Task/025`**, no módulos nuevos.
+- [ ] La **matriz de paridad** queda actualizada con evidencia real de AWS, recurso a
+      recurso y con la clasificación de diferencias.
 
 ## Fuera del alcance de la etapa
 

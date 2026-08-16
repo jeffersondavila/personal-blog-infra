@@ -2,8 +2,11 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-08-12
-- **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md))
+- **Última actualización:** 2026-08-15
+- **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
+  infraestructura con **AWS Local Parity** — ver
+  [aws-local-parity.md](../architecture/aws-local-parity.md) y
+  [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**)
 - **Avance global:** **12 %** (5 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
@@ -12,9 +15,9 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > El porcentaje de avance se calcula **solo** con tareas en estado `Aprobada`.
 > Ninguna tarea puede marcarse `Aprobada` sin autorización explícita del usuario.
 
-> **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`, …) son
-> mantenimiento de gobierno: **no forman parte de estas 41** y **no alteran el avance**. Su
-> estado se registra en [`STATUS.md`](STATUS.md).
+> **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`,
+> `Task/005.2`, …) son mantenimiento de gobierno: **no forman parte de estas 41** y **no
+> alteran el avance**. Su estado se registra en [`STATUS.md`](STATUS.md).
 
 ---
 
@@ -191,20 +194,29 @@ cero y con datos reales de prueba.
 
 ---
 
-## ETAPA 08 — Preparación Cloud sin Cuentas
+## ETAPA 08 — Preparación Cloud + AWS Local Parity
 
-**Objetivo:** dejar todo listo para la nube **sin crear cuentas ni recursos reales**.
+**Objetivo:** dejar todo listo para la nube **sin crear cuentas ni recursos reales**, y
+**validar la IaC ejecutándola** contra un laboratorio AWS local.
 
 **Dependencias:** Etapa 07.
-**Hito que completa:** *Artefactos e IaC listos y validados en seco.*
+**Hito que completa:** *Artefactos e IaC listos y **ejecutados** en un laboratorio AWS local.*
 **Ficha:** [STAGE-08-cloud-ready.md](../stages/STAGE-08-cloud-ready.md)
+
+> **AWS Local Parity.** Desde `Task/005.2` (2026-08-15), esta etapa deja de limitarse a
+> `terraform fmt` + `validate` —que comprueban sintaxis, no comportamiento— e incorpora
+> `plan`, `apply`, inspección, *drift* controlado, `destroy` y reconstrucción **contra un
+> emulador AWS local**, con **una sola definición de Terraform** para ambos destinos y
+> **cero recursos AWS reales**. Los **4 identificadores y nombres de tarea no cambian**.
+> Estrategia: [aws-local-parity.md](../architecture/aws-local-parity.md) ·
+> [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**).
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/023-Compatibilidad-FastAPI-Lambda` | Adaptador de FastAPI para API Gateway HTTP API y Lambda. | backend | 022 | Pendiente |
-| `Task/024-Artefacto-ZIP-Lambda` | Paquete Linux reproducible. Validación de tamaño. Checksums. | backend | 023 | Pendiente |
-| `Task/025-Terraform-Cloud` | Módulos para Cloudflare y AWS. Validaciones sin crear recursos reales. | infra | 022 | Pendiente |
-| `Task/026-Runbooks-de-Despliegue` | Creación. Validación. Rollback. Destrucción. Recuperación. | infra | 024, 025 | Pendiente |
+| `Task/023-Compatibilidad-FastAPI-Lambda` | Adaptador de FastAPI para API Gateway HTTP API y Lambda. Compatible además con la Lambda emulada del laboratorio. | backend | 022 | Pendiente |
+| `Task/024-Artefacto-ZIP-Lambda` | Paquete Linux reproducible. Validación de tamaño. Checksums. **Artefacto validable ejecutándolo** en el laboratorio. | backend | 023 | Pendiente |
+| `Task/025-Terraform-Cloud` | Terraform **portable**: módulos compartidos, provider AWS oficial, destino local y destino real. `plan`/`apply`/`destroy` **ejecutados en local**. Matriz de paridad. Guardas *fail-closed*. Resuelve **D-06**. Sin recursos reales. | infra | 022 | Pendiente |
+| `Task/026-Runbooks-de-Despliegue` | Creación. Validación del destino. Rollback. *Drift*. Destrucción. Recuperación. Transición a AWS. | infra | 024, 025 | Pendiente |
 
 ---
 
@@ -233,6 +245,13 @@ desplegar nada.
 **Hito que completa:** *Blog en línea y accesible por dominio propio.*
 **Ficha:** [STAGE-10-cloud-deployment.md](../stages/STAGE-10-cloud-deployment.md)
 
+> **Reutiliza, no reinventa.** `Task/030`–`Task/033` materializan contra AWS real los
+> **módulos ya construidos y validados en `Task/025`**. Aquí se documenta qué funcionó sin
+> cambios, qué exigió otra configuración, qué exigió adaptación y qué no era simulable en
+> local, y se actualiza la
+> [matriz de paridad](../architecture/aws-local-parity.md) con evidencia real. **AWS real es
+> la autoridad final.**
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. | infra | 029 | Pendiente |
@@ -257,7 +276,7 @@ desplegar nada.
 | --- | --- | --- | --- | --- |
 | `Task/037-Deploy-Automatico-Frontend` | GitHub Actions hacia Cloudflare Pages. | frontend | 036 | Pendiente |
 | `Task/038-Deploy-Automatico-Backend` | GitHub Actions hacia Lambda usando OIDC. | backend | 036 | Pendiente |
-| `Task/039-Automatizar-Terraform` | Plan revisable. Apply protegido. Sin destrucción automática. | infra | 037, 038 | Pendiente |
+| `Task/039-Automatizar-Terraform` | Plan revisable. Apply protegido. Sin destrucción automática. Validación de IaC en CI sobre emulador **efímero**, sin credenciales cloud. | infra | 037, 038 | Pendiente |
 
 ---
 
@@ -284,6 +303,9 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `4 / 41 = 10 %`.
+Actualmente: `5 / 41 = 12 %`.
+
+Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`) **no entran en el
+numerador ni en el denominador**.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

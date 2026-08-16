@@ -1,6 +1,6 @@
 # Arquitectura — Visión general
 
-**Última actualización:** 2026-07-26
+**Última actualización:** 2026-08-15
 **Estado:** vigente. Detallada en `Task/002-Definir-MVP-y-Arquitectura`.
 
 > Este documento es la **vista de conjunto**. El detalle vive en:
@@ -103,6 +103,33 @@ de Docker (contenedores, logs, healthchecks, volúmenes, redes).
 Justificación de estas elecciones:
 [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md).
 
+La representación canónica de esta arquitectura objetivo es el diagrama versionado
+[`images/Infraestructura.png`](../../images/Infraestructura.png).
+
+---
+
+## 4.1 AWS Local Parity Lab — tercer entorno
+
+Desde `Task/005.2` (**aprobada** el 2026-08-15) el proyecto tiene un **tercer entorno**,
+intermedio entre los dos anteriores: un **laboratorio local de infraestructura** donde la
+**misma definición de Terraform** se aplica contra un emulador AWS local, sin cuenta y sin
+costo.
+
+| | Local (§3) | **Parity Lab** | Cloud objetivo (§4) |
+| --- | --- | --- | --- |
+| **Para qué** | Desarrollar el producto | Desarrollar y aprender la **infraestructura** | Producción real |
+| **Orquesta** | Docker Compose | Floci + Terraform | Terraform |
+| **Costo** | 0 | 0 | Variable |
+| **Autoridad** | — | **Ninguna sobre AWS** | **Final** |
+
+**No sustituye a ninguno de los otros dos**, y **no reemplaza** el diagrama
+`images/Infraestructura.png`: añade una vista lógica distinta. **Nada de este entorno está
+probado todavía**: se implementa en `Task/025` y el grado real de paridad vive en la
+[matriz de paridad](aws-local-parity.md) §7, hoy entera en `No evaluada`.
+
+Estrategia completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente** ·
+[ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada**.
+
 ---
 
 ## 5. Principios de diseño
@@ -117,6 +144,10 @@ Justificación de estas elecciones:
    contenido que el blog realmente publicará.
 7. **Reproducibilidad.** El entorno completo se reconstruye desde cero siguiendo un
    runbook escrito.
+8. **Una sola definición de infraestructura** (`Task/005.2`, 2026-08-15). Terraform es la
+   fuente de verdad del cloud; local y AWS son dos **destinos** de la misma definición, no
+   dos infraestructuras. Las diferencias se confinan a la configuración
+   ([aws-local-parity.md](aws-local-parity.md) §4).
 
 ---
 
@@ -158,9 +189,10 @@ Ver [local-to-cloud-mapping.md](local-to-cloud-mapping.md).
 
 ## 9. Qué falta decidir
 
-Registro completo y vivo: [open-decisions.md](open-decisions.md) — 13 decisiones
-abiertas, cada una con la tarea en que se resuelve, la información necesaria y las partes
-del sistema afectadas. Entre las principales:
+Registro completo y vivo: [open-decisions.md](open-decisions.md) — **12 decisiones
+abiertas** (D-05 resuelta el 2026-07-29 y **D-14 el 2026-08-15**), cada una con la tarea en
+que se resuelve, la información necesaria y las partes del sistema afectadas. Entre las
+principales:
 
 - Proveedor de PostgreSQL administrado (`Task/029`).
 - Mecanismo concreto de autenticación (`Task/011`).
@@ -168,3 +200,5 @@ del sistema afectadas. Entre las principales:
 - Backend de estado de Terraform (`Task/025`).
 - Dominio definitivo (`Task/035`).
 - Presupuesto mensual objetivo (`Task/027`).
+- Emulador AWS local para la estrategia de IaC (**D-14**) — **Resuelta** el 2026-08-15 con
+  **Floci**, en `Task/005.2`.
