@@ -251,6 +251,7 @@ El MVP está completo cuando, en local y luego en producción:
 - El esquema físico de base de datos → `Task/008`.
 - La biblioteca de componentes visuales ni el diseño visual → `Task/013`.
 - El editor Markdown concreto → `Task/015`.
-- El proveedor de PostgreSQL administrado → `Task/029`.
+- El proveedor de VPS de la base de datos de producción → `Task/029`. El **modelo**
+  —autogestionado en VPS, no administrado— lo propone `Task/005.3`.
 
 Registro completo: [open-decisions.md](../architecture/open-decisions.md).

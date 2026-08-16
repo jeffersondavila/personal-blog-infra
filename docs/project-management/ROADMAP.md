@@ -7,6 +7,10 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
   [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**)
+- **Capa de datos de producción:** PostgreSQL autogestionado en **VPS externo** con
+  PgBouncer — ver
+  [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) y
+  [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**)
 - **Avance global:** **12 %** (5 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
@@ -16,8 +20,8 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > Ninguna tarea puede marcarse `Aprobada` sin autorización explícita del usuario.
 
 > **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`,
-> `Task/005.2`, …) son mantenimiento de gobierno: **no forman parte de estas 41** y **no
-> alteran el avance**. Su estado se registra en [`STATUS.md`](STATUS.md).
+> `Task/005.2`, `Task/005.3`, …) son mantenimiento de gobierno: **no forman parte de estas
+> 41** y **no alteran el avance**. Su estado se registra en [`STATUS.md`](STATUS.md).
 
 ---
 
@@ -229,11 +233,19 @@ desplegar nada.
 **Hito que completa:** *Cuentas cloud seguras, con presupuesto y acceso sin credenciales permanentes.*
 **Ficha:** [STAGE-09-cloud-accounts.md](../stages/STAGE-09-cloud-accounts.md)
 
+> **`Task/029` cambia de alcance, no de número.** Desde `Task/005.3` (2026-08-15,
+> **propuesta**) la base de datos de producción deja de ser un servicio administrado y pasa
+> a ser **PostgreSQL autogestionado en un VPS externo, con PgBouncer delante**, mientras el
+> backend permanece en AWS Lambda. **El identificador `029` no cambia** y el roadmap sigue
+> teniendo **41 tareas**. Estrategia:
+> [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) ·
+> [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md).
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | AWS. Cloudflare. MFA. Presupuestos. Alertas. | infra | 026 | Pendiente |
 | `Task/028-GitHub-OIDC-AWS` | Roles temporales. Sin credenciales AWS permanentes. | infra | 027 | Pendiente |
-| `Task/029-Seleccionar-PostgreSQL-Administrado` | Evaluación por costo. TLS. Backups. Pooling. Compatibilidad con Lambda. | infra | 027 | Pendiente |
+| `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | Selección del VPS por costo, región y RTT. PgBouncer. TLS y SCRAM. Firewall y SSH. Backups fuera del host y restore probado. | infra | 027 | Pendiente |
 
 ---
 
@@ -305,7 +317,7 @@ avance_global = tareas_aprobadas_totales  / 41
 
 Actualmente: `5 / 41 = 12 %`.
 
-Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`) **no entran en el
-numerador ni en el denominador**.
+Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`) **no
+entran en el numerador ni en el denominador**.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

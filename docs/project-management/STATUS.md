@@ -9,15 +9,15 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.2` **aprobada** y cerrada; `Task/006` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.3` **aprobada** y cerrada; `Task/006` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
-| **Último mantenimiento aprobado** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` — **Aprobada** el 2026-08-15; PR `Task/005.2 → main` **abierto, sin fusionar**. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.1-Formalizar-TDD-Backend` — **Aprobada** el 2026-08-13; PR `#7` **fusionado** por el usuario (`2026-08-16T00:25:21Z` UTC), rama remota eliminada y normalización `main → dev` completada el 2026-08-15 |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión del PR de `Task/005.2` y la normalización `main → dev`) |
+| **Último mantenimiento aprobado** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` — **Aprobada** el 2026-08-15; PR `Task/005.3 → main` **abierto, sin fusionar**. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` — **Aprobada** el 2026-08-15; PR `#8` **fusionado**, merge `5583947`, normalizado |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión del PR de `Task/005.3` y la normalización `main → dev`) |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | **26** (R-01 y **R-08** cerrados; **R-19** a **R-28** abiertos desde el 2026-08-15) |
+| **Riesgos abiertos** | **33** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15) |
 
 > El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
 > por el usuario el 2026-08-12.
@@ -106,6 +106,44 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 
 | Campo | Valor |
 | --- | --- |
+| **Tarea** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` |
+| **Tipo** | **Mantenimiento de arquitectura y gobierno documental** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-15 |
+| **Fecha de aprobación** | 2026-08-15 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` |
+| **Repositorios afectados** | `personal-blog-infra` **únicamente** |
+| **Rama** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS`, creada desde `dev` (`a563de6`). **Publicada en el cierre** |
+| **Objetivo** | Cambiar el destino de la capa de datos de producción: de **PostgreSQL administrado** a **PostgreSQL autogestionado en un VPS externo**, con **PgBouncer** delante, manteniendo FastAPI en **AWS Lambda** |
+| **Motivación** | **Costo** —evitar que la base de datos domine la factura de una arquitectura que escala a cero— más aprendizaje operacional real y mayor control |
+| **Alcance entregado** | Documento canónico [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) (**Vigente**); [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**); **D-01 Resuelta** en cuanto al modelo; `Task/029` redefinida conservando su ID; nueva §9 y componentes **C-13**, **C-14**, **C-15** en límites de seguridad; **PRODUCTION DATABASE LAW** en `PROJECT_INSTRUCTIONS.md` §16; actualización de ETAPA 08, ETAPA 09, mapping, paridad AWS y README |
+| **Qué NO cambia** | FastAPI sigue en **Lambda**; API Gateway, S3, SSM, CloudWatch, IAM, Terraform, Floci y Cloudflare Pages **sin cambios**; el entorno local **sin cambios** |
+| **Implementación** | **Ninguna.** 0 VPS contratados, 0 PostgreSQL instalado, 0 PgBouncer instalado, 0 archivos Terraform, 0 recursos AWS, 0 RDS, 0 NAT Gateway, 0 cambios en backend, frontend y Docker Compose |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
+| **Decisiones que NO resuelve** | Proveedor, región y tamaño del VPS (`Task/029`); **D-06** (backend de estado de Terraform, `Task/025`); tamaños de pool y `max_connections`; frecuencia y retención de backups (**D-10**); si se adopta mTLS; si se implementa PITR |
+| **Riesgos nuevos** | **R-29** a **R-35**, los siete **abiertos** |
+| **Imagen de arquitectura** | `images/Infraestructura.png` **intacta**: no modificada, no regenerada, no movida, no reemplazada. Pasa a tratarse como *arquitectura objetivo inicial, anterior a esta decisión* |
+| **Integración en `dev`** | Merge `--no-ff`, publicado |
+| **Pull request** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
+| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Ficha** | [TASK-005.3](../tasks/TASK-005.3-define-production-postgresql-vps.md) |
+| **Reporte** | [TASK-005.3-report](../task-reports/TASK-005.3-report.md) |
+
+La aprobación de este mantenimiento **no modifica el conteo del roadmap**: el avance global
+permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
+
+Con ella, `ADR-007` pasa a **Aceptada**, **D-01** a **Resuelta** en cuanto al **modelo**
+—el proveedor sigue en `Task/029`—, `production-postgresql-vps.md` y la **PRODUCTION
+DATABASE LAW** pasan a **vigentes**, y los riesgos **R-29** a **R-35** a **Abiertos**.
+`Task/006` sigue **Pendiente y no iniciada**.
+
+---
+
+## Último mantenimiento aprobado
+
+| Campo | Valor |
+| --- | --- |
 | **Tarea** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` |
 | **Tipo** | **Mantenimiento de arquitectura y gobierno documental** |
 | **Estado** | **Aprobada** ✔ |
@@ -123,9 +161,10 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 | **Decisiones que NO resuelve** | **D-01** (PostgreSQL administrado, `Task/029`) y **D-06** (backend de estado de Terraform, `Task/025`), ambas **siguen abiertas** |
 | **Riesgos nuevos** | **R-19** a **R-28**, los diez **abiertos** |
 | **Imagen de arquitectura** | `images/Infraestructura.png` **intacta**: no modificada, no regenerada, no movida, no reemplazada |
-| **Integración en `dev`** | Merge `--no-ff`, publicado |
-| **Pull request** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
-| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Integración en `dev`** | Merge `--no-ff` **`a61ecbf`**, publicado |
+| **Pull request** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local → main` (**`#8`**) — **FUSIONADO** por el usuario. Merge commit **`5583947`**, `mergedAt = 2026-08-16T01:23:02Z` (UTC) |
+| **Rama Task** | Eliminada **local y remotamente**. La local con `git branch -d` durante el cierre; la remota, por el usuario desde GitHub |
+| **Normalización posterior** | **Completada por el usuario.** `main` = `5583947`; `dev` = `a563de6` (`Merge branch 'main' into dev`), publicado. `git diff main dev` vacío y `main` contenida en `dev`. Verificado el 2026-08-15 al iniciar `Task/005.3` |
 | **Ficha** | [TASK-005.2](../tasks/TASK-005.2-document-floci-local-iac-strategy.md) |
 | **Reporte** | [TASK-005.2-report](../task-reports/TASK-005.2-report.md) |
 
@@ -246,7 +285,7 @@ Distribución por estado:
 | --- | --- | --- | --- | --- |
 | R-01 | Los tres repositorios no tenían commit inicial, por lo que `dev` y las ramas `Task/*` no podían existir como referencias Git. | Medio | **Resuelto** el 2026-07-26 durante la aprobación de `Task/001`: commit inicial vacío en `main`, `dev` creada desde `main` y `Task/001` creada desde `dev` en los tres repositorios. | **Cerrado** |
 | R-02 | Costo cloud imprevisto al llegar a la Etapa 10. | Alto | Presupuestos y alarmas obligatorios en `Task/027`, antes de cualquier despliegue; refuerzo en `Task/041`. | Abierto |
-| R-03 | La elección de PostgreSQL administrado puede condicionar el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. | Abierto |
+| R-03 | La elección de la base de datos de producción condiciona el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. **Actualización propuesta el 2026-08-15 (`Task/005.3`):** con PostgreSQL en un VPS, la mitigación concreta pasa a ser **PgBouncer** con pool limitado más *Reserved Concurrency* de Lambda; ver **R-33**. | Abierto |
 | R-04 | El roadmap de 41 tareas puede quedar desactualizado si el alcance cambia. | Bajo | `STATUS.md` y `ROADMAP.md` se actualizan en cada cambio de estado, como parte de la Definition of Done. | Abierto |
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
 | R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
@@ -282,6 +321,23 @@ Distribución por estado:
 | R-27 | Dependencia excesiva del emulador: se aplaza indefinidamente la validación contra AWS real. | Medio | El laboratorio es una **puerta**, no un destino. La ETAPA 10 sigue siendo obligatoria y sus criterios de salida no se relajan. | ETAPA 10 | **Abierto** |
 | R-28 | **El emulador no aplica políticas IAM por omisión**: acepta cualquier credencial y deja pasar toda petición. Un rol puede validarse en local y ser incorrecto —insuficiente o excesivo— en AWS. | **Alto** | El laboratorio valida que un rol **se crea y se adjunta**, nunca que **autoriza**. La verificación de **mínimo privilegio** queda declarada **AWS-only**. | `Task/028`, `Task/032` | **Abierto** |
 
+### Riesgos introducidos por `Task/005.3` — PostgreSQL de producción en VPS
+
+> **Abiertos y vigentes** desde la aprobación de `Task/005.3` el 2026-08-15. **Ninguno está
+> cerrado**: son consecuencia asumida de la decisión, no defectos pendientes. Detalle
+> completo:
+> [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) §16.
+
+| # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
+| --- | --- | --- | --- | --- | --- |
+| R-29 | ***Single point of failure*.** Un solo VPS: si cae el host, el blog pierde su base de datos y queda sin contenido dinámico hasta la recuperación manual. | Medio | **Aceptado conscientemente.** Mitigado con backups fuera del host, restore probado, infraestructura reproducible y runbook de recuperación. **No se introduce alta disponibilidad**: su costo y complejidad no se justifican para un blog personal. | `Task/029`, `Task/026` | **Abierto** |
+| R-30 | **Nueva superficie de ataque expuesta a Internet:** PgBouncer publicado y SSH en el host, más software —SO, PostgreSQL, PgBouncer— que envejece y acumula vulnerabilidades sin parchear. **El compromiso del VPS implica exposición de todos los datos del blog.** | **Alto** | Firewall *deny-by-default*; SSH solo por llave; servicios mínimos; **PostgreSQL nunca público**; TLS obligatorio con validación de certificado y **SCRAM-SHA-256**; política de parcheo definida en `Task/029`. Prohibido apoyarse en *security through obscurity*. Ver [security-boundaries](../architecture/security-boundaries.md) §9. | `Task/029`, `Task/018` | **Abierto** |
+| R-31 | **Backup inexistente, corrupto o no restaurable.** El fallo silencioso clásico: existe un archivo, nadie lo ha restaurado nunca y el día del incidente no sirve. | **Alto** | Regla obligatoria: **un backup no está validado hasta haberse restaurado**. Verificación de integridad, restore en entorno controlado y procedimiento documentado — mismo estándar que `Task/004` alcanzó en local. | `Task/029`, `Task/026` | **Abierto** |
+| R-32 | **Pérdida del VPS o del disco**, o **agotamiento de recursos**: un disco lleno detiene PostgreSQL y puede impedir el propio backup. | **Alto** | Backups **fuera del host** — una copia que solo vive en el VPS no protege de esto. Monitoreo de espacio y de recursos con alertas; dimensionamiento y política de crecimiento en `Task/029`. | `Task/029`, `Task/017` | **Abierto** |
+| R-33 | **Agotamiento de conexiones**: una ráfaga de concurrencia de Lambda supera `max_connections` de PostgreSQL. Es la materialización de **R-03** en esta topología. | Medio | **PgBouncer** con pool limitado más ***Reserved Concurrency*** de Lambda aguas arriba. Los tres números —concurrencia, pool y `max_connections`— se derivan de **pruebas**, no de intuición. | `Task/029`, `Task/032` | **Abierto** |
+| R-34 | **Latencia `Lambda ↔ VPS`.** La base de datos deja de estar en la misma región que el cómputo; cada consulta paga el RTT y una petición HTTP suele hacer varias. | Medio | Selección de región del VPS teniendo en cuenta la región AWS, con **RTT medido**, no estimado. Regla explícita: no elegir un VPS lejano por ahorrar poco al mes. | `Task/029`, `Task/040` | **Abierto** |
+| R-35 | **Error humano de operación.** Sin consola administrada que ponga barreras, un comando equivocado puede borrar datos, exponer un puerto o dejar el servicio caído. | Medio | Infraestructura reproducible con Terraform; runbooks escritos para cada operación; backups fuera del host como red de seguridad; regla vigente de no ejecutar operaciones destructivas sin autorización explícita. | `Task/026`, `Task/029` | **Abierto** |
+
 ---
 
 ## Tabla completa de tareas
@@ -316,7 +372,7 @@ Distribución por estado:
 | `Task/026-Runbooks-de-Despliegue` | 08 | infra | Pendiente |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | 09 | infra | Pendiente |
 | `Task/028-GitHub-OIDC-AWS` | 09 | infra | Pendiente |
-| `Task/029-Seleccionar-PostgreSQL-Administrado` | 09 | infra | Pendiente |
+| `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | 09 | infra | Pendiente |
 | `Task/030-Desplegar-Amazon-S3` | 10 | infra | Pendiente |
 | `Task/031-Desplegar-SSM-y-CloudWatch` | 10 | infra | Pendiente |
 | `Task/032-Desplegar-AWS-Lambda` | 10 | infra | Pendiente |
@@ -338,7 +394,7 @@ Estado verificado el **2026-08-15**.
 
 | Repositorio | Ramas locales | Ramas remotas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.2-Documentar-Estrategia-Floci-IaC-Local` (**con PR abierto**) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR de `Task/005.2` |
+| `personal-blog-infra` | `main` (`5583947`), `dev` (`a563de6`), `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (**sin publicar**) | `main`, `dev` — **ninguna rama `Task/*`** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` | **Sí** — normalizadas por el usuario tras fusionar el PR `#8` |
 | `personal-blog-frontend` | `main` (`144a401`), `dev` (`8823cc3`) | `main`, `dev` | `main` | Sí — sin cambios |
 | `personal-blog-backend` | `main` (`db6ab18`), `dev` (`ce4f1bc`) | `main`, `dev` | `main` | Sí — normalizadas el 2026-08-13 con el merge `ce4f1bc` |
 
@@ -406,8 +462,23 @@ Estado verificado el **2026-08-15**.
   normalizado (`4e6bfaa`), **solo en `personal-blog-infra`**. Es mantenimiento de
   arquitectura y gobierno documental: **no cuenta** en las 41 tareas y **no altera el
   avance**. Fue **aprobada** el 2026-08-15; su cierre creó el commit, integró la rama en
+  `dev` con merge `--no-ff` (`a61ecbf`), publicó `dev` y la rama Task, y abrió el pull
+  request `Task/005.2 → main` (**`#8`**). La rama Task local se eliminó con `git branch -d`.
+- **PR `#8` fusionado y normalización completada (2026-08-15), por el usuario.** Merge commit
+  **`5583947`**, `mergedAt = 2026-08-16T01:23:02Z` UTC; rama remota eliminada. El usuario
+  sincronizó `main` y `dev` y publicó `dev` (`a563de6`, `Merge branch 'main' into dev`).
+  **Verificado el 2026-08-15 al iniciar `Task/005.3`:** `gh pr view 8` devuelve `MERGED`,
+  `git ls-remote --heads origin "Task/*"` **no devuelve nada**, `dev..main` está **vacío** y
+  `git diff main dev` está **vacío**.
+- **Backend y frontend verificados de nuevo el 2026-08-15**, sin modificarlos: `fetch --prune`,
+  `main` y `dev` al día, `dev..main` **vacío** en ambos, `git diff main dev` **vacío**, árboles
+  limpios y rama activa `main`. **No se creó rama `Task/005.3` en ninguno de los dos.**
+- `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` se creó el 2026-08-15 desde `dev`
+  normalizado (**`a563de6`**), **solo en `personal-blog-infra`**. Es mantenimiento de
+  arquitectura y gobierno documental: **no cuenta** en las 41 tareas y **no altera el
+  avance**. Fue **aprobada** el 2026-08-15; su cierre creó el commit, integró la rama en
   `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el pull request
-  `Task/005.2 → main`, que **sigue abierto**. La rama Task local se eliminó con
+  `Task/005.3 → main`, que **sigue abierto**. La rama Task local se eliminó con
   `git branch -d`; la remota se conserva mientras el PR siga abierto.
 
 ---
@@ -439,22 +510,43 @@ Estado verificado el **2026-08-15**.
 - Con `Task/004`, la **ETAPA 01 queda completada** (2 de 2 tareas) y el avance global
   pasa a **4 de 41 (10 %)**.
 - **Ningún backup real se versiona:** `local-backups/` está ignorado por Git.
-- **No existe Terraform** en ningún repositorio. `Task/005.2` **no creó ningún archivo
-  `.tf`**: solo documenta cómo se escribirá en `Task/025`.
-- **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores.
-- **Floci no está instalado.** `Task/005.2` es documental: no se descargó ninguna imagen, no
-  se levantó ningún contenedor, no se modificó `docker-compose.yml` y no se ejecutó ningún
-  comando de Terraform ni de AWS CLI.
+- **No existe Terraform** en ningún repositorio. Ni `Task/005.2` ni `Task/005.3` crearon
+  ningún archivo `.tf`: solo documentan cómo se escribirá en `Task/025` y `Task/029`.
+- **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores. **`Task/005.3`
+  no contrató ningún VPS**, no instaló PostgreSQL ni PgBouncer, no creó certificados, claves,
+  usuarios SSH ni reglas de firewall, y no ejecutó `pg_dump`.
+- **Floci no está instalado.** `Task/005.2` y `Task/005.3` son documentales: no se descargó
+  ninguna imagen, no se levantó ningún contenedor, no se modificó `docker-compose.yml` y no
+  se ejecutó ningún comando de Terraform ni de AWS CLI.
+- **El backend y el frontend no se han tocado en ninguno de los dos mantenimientos.**
+  `Task/005.3` **no modifica** `DATABASE_URL`, SQLAlchemy ni psycopg: la abstracción ya
+  existente es precisamente lo que permite cambiar el destino de la base de datos **sin tocar
+  código**.
 - `Task/002` definió el **alcance del MVP y la arquitectura**, y fue **aprobada**. Con
   ella, la **ETAPA 00 queda completada** (2 de 2 tareas).
 - ADR-001 a ADR-005 están todos en estado **Aceptada**. Ni `Task/003` ni `Task/004`
   crearon ADR nuevos: sus decisiones son de implementación local y reversibles. D-05
   quedó **Resuelta** con **Traefik v3** al aprobarse `Task/003`.
+- **`ADR-007` está `Aceptada`** desde el 2026-08-15, al aprobarse `Task/005.3`. Es el
+  séptimo ADR del proyecto. Cambia el destino de la **capa de datos de producción**: de
+  PostgreSQL administrado a **PostgreSQL autogestionado en un VPS externo**, con
+  **PgBouncer** delante y **PostgreSQL nunca expuesto a Internet**. **FastAPI permanece en
+  AWS Lambda** y toda la arquitectura AWS sigue igual. Motivo principal: **costo**. Ver
+  [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) —
+  **Vigente**.
+- **`ADR-007` modifica parcialmente a `ADR-003`**, solo su fila «Base de datos». ADR-003
+  sigue **Aceptado y vigente**, y ADR-007 **refuerza** su exclusión de NAT Gateway. **Amazon
+  RDS queda excluido** como destino de producción. Precisión registrada con documentación
+  oficial de AWS: **NAT Gateway no es una consecuencia inherente de RDS** — aparece solo si
+  una Lambda ya dentro de una VPC necesita salida IPv4 a Internet.
 - **`ADR-006` está `Aceptada`** desde el 2026-08-15, al aprobarse `Task/005.2`. Es el sexto
   ADR del proyecto y el primero sobre estrategia de infraestructura.
-- **Decisiones diferidas: 12 abiertas.** Resueltas: **D-05** (2026-07-29, Traefik v3) y
-  **D-14** (2026-08-15, **Floci** como laboratorio AWS local). **D-01** y **D-06 siguen
-  abiertas: `Task/005.2` no las tocó.**
+- **Decisiones diferidas: 11 abiertas.** Resueltas: **D-05** (2026-07-29, Traefik v3),
+  **D-14** (2026-08-15, **Floci** como laboratorio AWS local) y **D-01** (2026-08-15,
+  PostgreSQL **autogestionado en VPS externo**). **D-01 se resolvió solo en cuanto al
+  *modelo***: la selección de **proveedor, región y tamaño sigue pendiente** en `Task/029`.
+  **D-06 sigue abierta:** `Task/005.3` no la toca. **D-10** amplía su alcance: el proyecto
+  asume backup y restore completos.
 - `Task/002.1-Configurar-Claude-Code` es mantenimiento de gobierno, está **Aprobada** y
   cerrada, y no forma parte de las 41 tareas del roadmap.
 - **La ETAPA 08 amplía su alcance sin añadir tareas.** `Task/005.2`, **aprobada**, la reformula de
@@ -466,10 +558,15 @@ Estado verificado el **2026-08-15**.
 - La **ETAPA 01 está completada** (2 de 2 tareas aprobadas). La **ETAPA 02 — Fundaciones de
   las Aplicaciones** está **en curso**: **1 de 3** tareas aprobadas, tras la aprobación de
   `Task/005`.
-- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1` está
-  aprobada, fusionada y normalizada; `Task/005.2` está **aprobada** con su PR **abierto**.
-  `Task/006` no empieza hasta que el usuario fusione ese PR y se complete la normalización
-  `main → dev`.
+- **`Task/029` cambia de alcance, no de número** (`Task/005.3`, aprobada). Pasa de
+  `Task/029-Seleccionar-PostgreSQL-Administrado` a
+  **`Task/029-Preparar-PostgreSQL-Produccion-en-VPS`**: selección del VPS con precios
+  actuales, región y **RTT medido**, PgBouncer, TLS y SCRAM, firewall y SSH, backups fuera
+  del host y restore probado. **El identificador `029` no cambia**, el roadmap sigue teniendo
+  **41 tareas** y **ninguna se renumeró**.
+- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1` y
+  `Task/005.2` están aprobadas, fusionadas y normalizadas; `Task/005.3` está **Lista para
+  validación**. `Task/006` no empieza hasta cerrar ese mantenimiento.
 - **El backend se desarrollará test-first a partir de `Task/008`.** `Task/005.1` formaliza la
   regla **RED → GREEN → REFACTOR** en
   [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md), con matriz de casos previa,
@@ -494,11 +591,17 @@ Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-005.1](../tasks/TASK-005.1-formalize-backend-tdd.md) ·
 [Reporte TASK-005.1](../task-reports/TASK-005.1-report.md) ·
 [TASK-005.2](../tasks/TASK-005.2-document-floci-local-iac-strategy.md) ·
-[Reporte TASK-005.2](../task-reports/TASK-005.2-report.md)
+[Reporte TASK-005.2](../task-reports/TASK-005.2-report.md) ·
+[TASK-005.3](../tasks/TASK-005.3-define-production-postgresql-vps.md) ·
+[Reporte TASK-005.3](../task-reports/TASK-005.3-report.md)
 
 Estrategia de infraestructura local aprobada en `Task/005.2`:
 [aws-local-parity](../architecture/aws-local-parity.md) (**Vigente**) ·
 [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**)
+
+Capa de datos de producción aprobada en `Task/005.3`:
+[production-postgresql-vps](../architecture/production-postgresql-vps.md) ·
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Propuesta**)
 
 Documentos de producto y arquitectura producidos por `Task/002`:
 [MVP_SCOPE](../product/MVP_SCOPE.md) · [USER_FLOWS](../product/USER_FLOWS.md) ·

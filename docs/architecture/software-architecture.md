@@ -281,7 +281,7 @@ El backend debe funcionar igual como proceso local y como función Lambda:
 | --- | --- |
 | Sin estado entre invocaciones | Nada de cachés en memoria de proceso ni sesiones en RAM. |
 | Sin procesos residentes | Ninguna tarea de fondo de larga duración ni scheduler interno. |
-| Conexiones efímeras a la base de datos | Uso de conexiones cortas o pooling externo (`Task/029`). |
+| Conexiones efímeras a la base de datos | Conexiones cortas y **pooling externo con PgBouncer** delante de PostgreSQL (`Task/029`). El código solo conoce `DATABASE_URL`. |
 | Arranque en frío | Artefacto ligero, importaciones perezosas donde ayude. |
 | Sistema de archivos efímero | Ningún dato persistente en disco local. |
 

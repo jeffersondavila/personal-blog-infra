@@ -1,4 +1,4 @@
-# Arquitectura — Visión general
+﻿# Arquitectura — Visión general
 
 **Última actualización:** 2026-08-15
 **Estado:** vigente. Detallada en `Task/002-Definir-MVP-y-Arquitectura`.
@@ -44,6 +44,7 @@ Secciones previstas del blog:
 | **Almacenamiento de objetos** | Imágenes y archivos. MinIO en local, S3 en la nube. |
 | **Entrada HTTP** | Enrutado y TLS. Reverse proxy en local, API Gateway en la nube. |
 | **Supervisión** | Portainer CE en local. CloudWatch en la nube. |
+| **Pool de conexiones** | No aplica en local. **PgBouncer** delante de PostgreSQL en producción (`Task/005.3`). |
 
 ---
 
@@ -77,34 +78,29 @@ de Docker (contenedores, logs, healthchecks, volúmenes, redes).
 
 ## 4. Arquitectura cloud objetivo
 
-```
-                    ┌──────────────────────────┐
-   navegador  ────► │    Cloudflare (DNS)      │
-                    └──────┬─────────────┬─────┘
-                           │             │
-                           ▼             ▼
-              ┌──────────────────┐   ┌──────────────────────┐
-              │ Cloudflare Pages │   │ API Gateway HTTP API │
-              │ (React estático) │   └──────────┬───────────┘
-              └──────────────────┘              │
-                                                ▼
-                                     ┌──────────────────────┐
-                                     │ AWS Lambda (FastAPI) │
-                                     └──────────┬───────────┘
-                                                │
-                   ┌────────────────┬───────────┴────┬────────────────┐
-                   ▼                ▼                ▼                ▼
-          ┌────────────────┐ ┌────────────┐ ┌───────────────┐ ┌──────────────┐
-          │ PostgreSQL     │ │ Amazon S3  │ │ SSM Parameter │ │ CloudWatch   │
-          │ administrado   │ │            │ │ Store         │ │ (limitado)   │
-          └────────────────┘ └────────────┘ └───────────────┘ └──────────────┘
+```mermaid
+flowchart TD
+    NAV["navegador"] --> CFDNS["Cloudflare · DNS"]
+    CFDNS --> PAGES["Cloudflare Pages<br/>React estático"]
+    CFDNS --> AGW["API Gateway HTTP API"]
+    AGW --> LMB["AWS Lambda · FastAPI"]
+    LMB --> S3[("Amazon S3")]
+    LMB --> SSM[("SSM Parameter Store")]
+    LMB --> CW[("CloudWatch · limitado")]
+    LMB -->|"TLS"| PGB["PgBouncer<br/>VPS externo"]
+    PGB --> PG[("PostgreSQL<br/>autogestionado, privado")]
 ```
 
 Justificación de estas elecciones:
-[ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md).
+[ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) — cómputo, entrada HTTP y servicios
+AWS — y [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**) — capa de
+datos en VPS externo. Detalle:
+[production-postgresql-vps.md](production-postgresql-vps.md).
 
-La representación canónica de esta arquitectura objetivo es el diagrama versionado
-[`images/Infraestructura.png`](../../images/Infraestructura.png).
+> **Sobre el diagrama versionado.** [`images/Infraestructura.png`](../../images/Infraestructura.png)
+> representa la **arquitectura objetivo inicial, anterior a `Task/005.3`**, cuando PostgreSQL
+> administrado todavía era la vía prevista. Se conserva como registro histórico y **no se
+> modifica**. La arquitectura vigente de la capa de datos es la de este apartado.
 
 ---
 
@@ -194,7 +190,8 @@ abiertas** (D-05 resuelta el 2026-07-29 y **D-14 el 2026-08-15**), cada una con 
 que se resuelve, la información necesaria y las partes del sistema afectadas. Entre las
 principales:
 
-- Proveedor de PostgreSQL administrado (`Task/029`).
+- Proveedor de VPS para la base de datos de producción (**D-01**, `Task/029`). El **modelo**
+  —autogestionado en VPS— lo propone `Task/005.3`.
 - Mecanismo concreto de autenticación (`Task/011`).
 - Biblioteca de componentes visuales (`Task/013`).
 - Backend de estado de Terraform (`Task/025`).

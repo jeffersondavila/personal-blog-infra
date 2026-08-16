@@ -437,11 +437,50 @@ Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
 - **AWS real sigue siendo la validación final.** El laboratorio no sustituye a
   la ETAPA 10.
 
-No decide **D-01** (PostgreSQL administrado, `Task/029`) ni **D-06** (backend de
-estado de Terraform, `Task/025`): siguen abiertas.
+No decide **D-06** (backend de estado de Terraform, `Task/025`): sigue abierta.
+**D-01** quedó **resuelta** por `Task/005.3` en cuanto al **modelo** (sección
+16); el **proveedor** sigue en `Task/029`.
 
 
-## 16. Restricciones del proyecto
+## 16. PRODUCTION DATABASE LAW
+
+Regla de la capa de datos de producción. **Vigente** desde el 2026-08-15
+(`Task/005.3`).
+
+Fuente completa y única:
+[`docs/architecture/production-postgresql-vps.md`](../architecture/production-postgresql-vps.md).
+Decisión: [`ADR-007`](../adr/ADR-007-production-postgresql-on-vps.md) —
+**Aceptada**. Vigente y de cumplimiento obligatorio.
+
+1. **PostgreSQL productivo vive en un VPS externo**, autogestionado. **No RDS.**
+2. **FastAPI permanece en AWS Lambda.** API Gateway, IAM, S3, SSM y CloudWatch
+   permanecen en AWS.
+3. **PostgreSQL nunca se expone directamente a Internet.**
+4. **PgBouncer es el punto de entrada** de la capa de datos: el único
+   endpoint de esa capa alcanzable desde fuera del VPS. El SSH
+   administrativo es un canal separado, ajeno a la capa de datos.
+5. **`Lambda → PgBouncer` exige TLS** con validación del certificado del
+   servidor. **SCRAM-SHA-256** es el mecanismo de autenticación preferente;
+   **mTLS** es opcional y todavía no obligatorio.
+6. **El código de aplicación solo depende de `DATABASE_URL`.** No conoce
+   proveedor, IP, Docker, Floci ni PgBouncer.
+7. **Proveedor, región y tamaño se deciden en `Task/029`**, con precios
+   actuales — nunca con cifras heredadas.
+8. **Los backups deben salir del VPS.** Una copia que solo vive en el host no
+   protege de perder el host.
+9. **El restore debe probarse.** Un backup no está validado hasta haberse
+   restaurado.
+10. **No introducir NAT Gateway ni VPC** únicamente por PostgreSQL sin una
+    decisión explícita basada en un requisito real.
+11. **AWS y Floci no simulan la base de datos productiva.** `Task/025` no debe
+    crear recursos RDS.
+12. **PostgreSQL local sigue siendo el destino normal de desarrollo.**
+
+No resuelve **D-06**, ni el proveedor concreto, ni los tamaños de pool, ni
+`max_connections`, ni la frecuencia de backups: todo eso es de `Task/029`.
+
+
+## 17. Restricciones del proyecto
 
 Arquitectura acordada y vigente:
 
@@ -465,6 +504,9 @@ Arquitectura acordada y vigente:
 - Floci como laboratorio AWS **local** para validar la IaC (sección 15).
   **Vigente** desde 2026-08-15 (ADR-006). No es un servicio de producción ni
   altera la arquitectura cloud objetivo.
+- PostgreSQL de producción **autogestionado en un VPS externo**, con PgBouncer
+  delante (sección 16). **Vigente** desde 2026-08-15 (ADR-007). **RDS no es el
+  destino de producción.**
 
 Consultar siempre los ADR y documentos vigentes antes de cambiar estas
 decisiones.
@@ -477,7 +519,7 @@ Una modificación a una decisión arquitectónica aceptada requiere:
 4. Esperar aprobación explícita del usuario.
 
 
-## 17. Orden de autoridad
+## 18. Orden de autoridad
 
 Cuando exista conflicto entre:
 
