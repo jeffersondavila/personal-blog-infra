@@ -9,12 +9,12 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.3` **aprobada** y cerrada; `Task/006` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.4` **aprobada** y cerrada; `Task/006` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
-| **Último mantenimiento aprobado** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` — **Aprobada** el 2026-08-15; PR `Task/005.3 → main` **abierto, sin fusionar**. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` — **Aprobada** el 2026-08-15; PR `#8` **fusionado**, merge `5583947`, normalizado |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión del PR de `Task/005.3` y la normalización `main → dev`) |
+| **Último mantenimiento aprobado** | `Task/005.4-Corregir-Base-Ramas-Task-Main` — **Aprobada** el 2026-08-15; PR `Task/005.4 → main` **abierto, sin fusionar**. **Primera tarea creada desde `main`.** No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` — **Aprobada** el 2026-08-15; PR `#9` **fusionado**, merge `181c634`, normalizado |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión del PR de `Task/005.4` y la normalización `main → dev`). **Nacerá desde `main`** |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **33** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15) |
@@ -106,6 +106,42 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 
 | Campo | Valor |
 | --- | --- |
+| **Tarea** | `Task/005.4-Corregir-Base-Ramas-Task-Main` |
+| **Tipo** | **Mantenimiento de gobierno y workflow Git** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-15 |
+| **Fecha de aprobación** | 2026-08-15 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.4-Corregir-Base-Ramas-Task-Main` |
+| **Repositorios afectados** | `personal-blog-infra` **únicamente**, más el `CLAUDE.md` raíz del workspace |
+| **Rama** | `Task/005.4-Corregir-Base-Ramas-Task-Main` |
+| **Rama base** | **`main`** — **primera tarea del proyecto creada desde `main`** |
+| **SHA base** | **`181c634`** (`= main = origin/main` en el momento de crearla). Verificado: `HEAD == main`, distinto de `dev` (`9dfbc10`) |
+| **Problema corregido** | La documentación indicaba que las ramas Task debían crearse **desde `dev`**, e incluso prohibía explícitamente partir de `main`. Es incorrecto: `dev` acumula commits de integración que contaminan la ascendencia de una tarea nueva y pueden filtrarse al PR `Task → main` |
+| **Invariante establecido** | **Toda rama `Task/<...>` nace desde `main` actualizado y limpio. `dev` NUNCA es base de una Task**; es exclusivamente rama de integración |
+| **Qué NO cambia** | La palabra de aprobación, la integración `Task → dev`, el push de `dev`, la publicación de la rama Task, el PR `Task → main`, el merge manual del usuario y la normalización `main → dev`. **Solo cambia de dónde nace la rama** |
+| **Alcance** | Gobierno y workflow **exclusivamente**. 0 cambios de arquitectura, 0 implementación |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
+| **Historial de tareas anteriores** | **No se reescribe.** `Task/002`–`Task/005.3` nacieron de `dev` por la regla incorrecta; sus fichas y reportes se conservan como registro histórico |
+| **Integración en `dev`** | Merge `--no-ff`, publicado |
+| **Pull request** | `Task/005.4-Corregir-Base-Ramas-Task-Main → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
+| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Ficha** | [TASK-005.4](../tasks/TASK-005.4-correct-task-branch-base-main.md) |
+| **Reporte** | [TASK-005.4-report](../task-reports/TASK-005.4-report.md) |
+
+La aprobación de este mantenimiento **no modifica el conteo del roadmap**: el avance global
+permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
+
+Con ella, el **invariante de ramas** queda **vigente y de cumplimiento obligatorio**:
+**toda rama `Task/<...>` nace desde `main` actualizado y limpio; `dev` nunca es base de una
+Task.** `Task/006` sigue **Pendiente y no iniciada**, y **nacerá desde `main`**.
+
+---
+
+## Mantenimiento aprobado anterior — `Task/005.3`
+
+| Campo | Valor |
+| --- | --- |
 | **Tarea** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` |
 | **Tipo** | **Mantenimiento de arquitectura y gobierno documental** |
 | **Estado** | **Aprobada** ✔ |
@@ -125,8 +161,9 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 | **Riesgos nuevos** | **R-29** a **R-35**, los siete **abiertos** |
 | **Imagen de arquitectura** | `images/Infraestructura.png` **intacta**: no modificada, no regenerada, no movida, no reemplazada. Pasa a tratarse como *arquitectura objetivo inicial, anterior a esta decisión* |
 | **Integración en `dev`** | Merge `--no-ff`, publicado |
-| **Pull request** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS → main` — **abierto, sin fusionar**. La fusión es responsabilidad del usuario |
-| **Rama Task** | Eliminada **localmente** con `git branch -d`; **conservada en `origin`** mientras el PR siga abierto |
+| **Pull request** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS → main` (**`#9`**) — **FUSIONADO** por el usuario. Merge commit **`181c634`**, `mergedAt = 2026-08-16T03:56:08Z` (UTC) |
+| **Rama Task** | Eliminada **local y remotamente**. La local con `git branch -d` en el cierre; la remota, por el usuario desde GitHub |
+| **Normalización posterior** | **Completada el 2026-08-15.** `main` = `181c634`; `main` integrada en `dev` con merge `--no-ff` **`9dfbc10`**, publicado. `git diff main dev` vacío y `main` es ancestro de `dev` |
 | **Ficha** | [TASK-005.3](../tasks/TASK-005.3-define-production-postgresql-vps.md) |
 | **Reporte** | [TASK-005.3-report](../task-reports/TASK-005.3-report.md) |
 
@@ -140,7 +177,7 @@ DATABASE LAW** pasan a **vigentes**, y los riesgos **R-29** a **R-35** a **Abier
 
 ---
 
-## Último mantenimiento aprobado
+## Mantenimiento aprobado previo — `Task/005.2`
 
 | Campo | Valor |
 | --- | --- |
@@ -177,7 +214,7 @@ el usuario fusione el PR de `Task/005.2` y se complete la normalización `main �
 
 ---
 
-## Mantenimiento aprobado anterior
+## Mantenimiento aprobado previo — `Task/005.1`
 
 | Campo | Valor |
 | --- | --- |
@@ -394,7 +431,7 @@ Estado verificado el **2026-08-15**.
 
 | Repositorio | Ramas locales | Ramas remotas | Rama activa | `main` y `dev` sincronizadas |
 | --- | --- | --- | --- | --- |
-| `personal-blog-infra` | `main` (`5583947`), `dev` (`a563de6`), `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (**sin publicar**) | `main`, `dev` — **ninguna rama `Task/*`** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` | **Sí** — normalizadas por el usuario tras fusionar el PR `#8` |
+| `personal-blog-infra` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.4-Corregir-Base-Ramas-Task-Main` (**con PR abierto**) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR de `Task/005.4` |
 | `personal-blog-frontend` | `main` (`144a401`), `dev` (`8823cc3`) | `main`, `dev` | `main` | Sí — sin cambios |
 | `personal-blog-backend` | `main` (`db6ab18`), `dev` (`ce4f1bc`) | `main`, `dev` | `main` | Sí — normalizadas el 2026-08-13 con el merge `ce4f1bc` |
 
@@ -477,9 +514,23 @@ Estado verificado el **2026-08-15**.
   normalizado (**`a563de6`**), **solo en `personal-blog-infra`**. Es mantenimiento de
   arquitectura y gobierno documental: **no cuenta** en las 41 tareas y **no altera el
   avance**. Fue **aprobada** el 2026-08-15; su cierre creó el commit, integró la rama en
-  `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el pull request
-  `Task/005.3 → main`, que **sigue abierto**. La rama Task local se eliminó con
-  `git branch -d`; la remota se conserva mientras el PR siga abierto.
+  `dev` con merge `--no-ff` (`bf31ebc`), publicó `dev` y la rama Task, y abrió el pull
+  request `Task/005.3 → main` (**`#9`**). La rama Task local se eliminó con `git branch -d`.
+- **PR `#9` fusionado y normalización completada (2026-08-15).** El usuario fusionó
+  `Task/005.3 → main` (merge commit **`181c634`**, `mergedAt = 2026-08-16T03:56:08Z` UTC) y
+  eliminó la rama remota. Verificado con `gh pr view 9` y `git ls-remote --heads origin
+  "Task/*"`, que **no devuelve ninguna rama**. Como el merge del PR existía **solo en
+  `main`**, se integró `main` en `dev` con el merge `--no-ff` **`9dfbc10`** y se publicó:
+  `main` es **ancestro de `dev`** y `git diff main dev` está **vacío**.
+- `Task/005.4-Corregir-Base-Ramas-Task-Main` se creó el 2026-08-15 **desde `main`**
+  (**`181c634`**), **solo en `personal-blog-infra`**. Es **la primera rama Task del
+  proyecto creada desde `main`** y la evidencia del invariante que ella misma establece:
+  al crearla, `HEAD == main == 181c634`, distinto de `dev` (`9dfbc10`). Es mantenimiento de
+  gobierno: **no cuenta** en las 41 tareas y **no altera el avance**. Fue **aprobada** el
+  2026-08-15; su cierre creó el commit, integró la rama en `dev` con merge `--no-ff`, publicó
+  `dev` y la rama Task, y abrió el pull request `Task/005.4 → main`, que **sigue abierto**.
+  La rama Task local se eliminó con `git branch -d`; la remota se conserva mientras el PR
+  siga abierto.
 
 ---
 
@@ -564,9 +615,18 @@ Estado verificado el **2026-08-15**.
   actuales, región y **RTT medido**, PgBouncer, TLS y SCRAM, firewall y SSH, backups fuera
   del host y restore probado. **El identificador `029` no cambia**, el roadmap sigue teniendo
   **41 tareas** y **ninguna se renumeró**.
-- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1` y
-  `Task/005.2` están aprobadas, fusionadas y normalizadas; `Task/005.3` está **Lista para
-  validación**. `Task/006` no empieza hasta cerrar ese mantenimiento.
+- **Invariante Git corregido y VIGENTE desde el 2026-08-15 (`Task/005.4`, aprobada).** La documentación indicaba que
+  las ramas Task debían crearse **desde `dev`**, e incluso prohibía partir de `main`. La
+  regla vigente es la contraria: **toda rama `Task/<...>` nace desde `main` actualizado y
+  limpio; `dev` NUNCA es base de una Task**, solo rama de integración. Motivo: `dev` acumula
+  commits de integración que contaminarían la ascendencia de una tarea nueva y podrían
+  filtrarse al PR `Task → main`. **El resto del workflow no cambia.** El historial de las
+  tareas anteriores **no se reescribe**. Detalle:
+  [WORKFLOW.md](WORKFLOW.md) §2.1.
+- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1`,
+  `Task/005.2` y `Task/005.3` están aprobadas, fusionadas y normalizadas; `Task/005.4` está
+  **aprobada** con su PR **abierto**. `Task/006` no empieza hasta que el usuario fusione ese
+  PR y se complete la normalización `main → dev`, y **nacerá desde `main`**.
 - **El backend se desarrollará test-first a partir de `Task/008`.** `Task/005.1` formaliza la
   regla **RED → GREEN → REFACTOR** en
   [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md), con matriz de casos previa,
@@ -593,7 +653,9 @@ Detalle completo: [ROADMAP.md](ROADMAP.md) ·
 [TASK-005.2](../tasks/TASK-005.2-document-floci-local-iac-strategy.md) ·
 [Reporte TASK-005.2](../task-reports/TASK-005.2-report.md) ·
 [TASK-005.3](../tasks/TASK-005.3-define-production-postgresql-vps.md) ·
-[Reporte TASK-005.3](../task-reports/TASK-005.3-report.md)
+[Reporte TASK-005.3](../task-reports/TASK-005.3-report.md) ·
+[TASK-005.4](../tasks/TASK-005.4-correct-task-branch-base-main.md) ·
+[Reporte TASK-005.4](../task-reports/TASK-005.4-report.md)
 
 Estrategia de infraestructura local aprobada en `Task/005.2`:
 [aws-local-parity](../architecture/aws-local-parity.md) (**Vigente**) ·

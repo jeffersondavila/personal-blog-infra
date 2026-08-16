@@ -273,14 +273,22 @@ Estados oficiales: `Pendiente`, `En progreso`, `Lista para validación`, `Aproba
 
 ## 7. Estrategia de ramas
 
-- `main` — versión estable o liberable.
-- `dev` — integración de tareas aprobadas.
-- `Task/<numero>-<nombre>` — trabajo aislado de una tarea, creado desde `dev`.
+- `main` — versión estable o liberable. **Única base permitida de las ramas Task.**
+- `dev` — **solo integración** de tareas aprobadas. **Nunca base de una Task.**
+- `Task/<numero>-<nombre>` — trabajo aislado de una tarea, creado **desde `main`**.
 
-`main` y `dev` existen y están publicadas en los tres repositorios. En
-`personal-blog-infra`, `dev` contiene además `Task/004` mientras su pull request hacia
-`main` espera la decisión del usuario. Estado vigente de las ramas en
-[`docs/project-management/STATUS.md`](docs/project-management/STATUS.md), sección
+> **Invariante crítico.** Toda rama `Task/<...>` nace desde `main` actualizado y limpio.
+> `dev` recibe la tarea aprobada por merge, y tras la fusión manual del PR se normaliza
+> `main → dev`. Motivo y validaciones obligatorias:
+> [WORKFLOW §2.1](docs/project-management/WORKFLOW.md).
+
+```
+main ──► Task/<nombre> ──► dev (integración)
+                       └─► PR Task → main ──► usuario fusiona ──► main → dev
+```
+
+`main` y `dev` existen y están publicadas en los tres repositorios. Estado vigente de las
+ramas en [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md), sección
 *Estado de los repositorios*.
 
 ---

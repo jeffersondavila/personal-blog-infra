@@ -28,7 +28,8 @@ Resumen:
 
 1. Selecciona una tarea `Pendiente` en `STATUS.md`.
 2. Verifica sus dependencias en `ROADMAP.md`.
-3. Crea la rama `Task/<numero>-<nombre>` **desde `dev`**.
+3. Crea la rama `Task/<numero>-<nombre>` **desde `main`** actualizado y limpio.
+   **Nunca desde `dev`** ([WORKFLOW §2.1](docs/project-management/WORKFLOW.md)).
 4. Marca la tarea `En progreso` en `STATUS.md`.
 5. Implementa **solo** el alcance de la tarea.
 6. Ejecuta las validaciones declaradas.
@@ -48,12 +49,16 @@ approved: Task/<nombre-de-rama>
 
 | Rama | Propósito |
 | --- | --- |
-| `main` | Versión estable o liberable. No recibe merge automático. |
-| `dev` | Integración de tareas aprobadas. |
-| `Task/<numero>-<nombre>` | Trabajo aislado de una tarea, creado desde `dev`. |
+| `main` | Versión estable o liberable. No recibe merge automático. **Única base permitida de las ramas Task.** |
+| `dev` | **Solo integración** de tareas aprobadas. **Nunca base de una Task.** |
+| `Task/<numero>-<nombre>` | Trabajo aislado de una tarea, creado **desde `main`**. |
+
+> **Invariante crítico:** toda rama `Task/<...>` nace desde `main` actualizado y limpio.
+> `dev` nunca es base de una Task. Motivo y validaciones:
+> [WORKFLOW §2.1](docs/project-management/WORKFLOW.md).
 
 Cuando una tarea afecta a varios repositorios, se usa **el mismo nombre de rama Task**
-en todos los repositorios afectados.
+en todos los repositorios afectados, y **todas nacen de `main`**.
 
 ---
 
