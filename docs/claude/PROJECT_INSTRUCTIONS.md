@@ -58,34 +58,79 @@ vigente. Verificar siempre Git y la documentación local.
 
 Ramas permanentes:
 
-- `main`: versión estable y revisada por el usuario.
-- `dev`: integración de tareas aprobadas.
-- `Task/<numero>-<nombre>`: trabajo aislado de una tarea.
+- `main`: versión estable y revisada por el usuario. **Única base permitida de
+  las ramas Task.**
+- `dev`: **solo integración** de tareas aprobadas y normalización posterior al
+  PR. **Nunca base de una Task.**
+- `Task/<numero>-<nombre>`: trabajo aislado de una tarea. **Nace de `main`.**
 
-Toda rama Task debe crearse desde `dev` actualizado.
+### INVARIANTE CRÍTICO
+
+**Toda rama `Task/<...>` se crea SIEMPRE desde `main` actualizado y limpio.**
+
+**`dev` NUNCA es la rama base de una Task.** `dev` es exclusivamente rama de
+integración.
 
 No crear una rama Task en un repositorio que no será modificado.
 
 Cuando una tarea afecta varios repositorios, utilizar el mismo nombre de rama
-Task en todos los repositorios afectados.
+Task en todos los repositorios afectados, **y todas nacen de `main`**.
 
 
 ## 4. Preparación de una tarea
 
 Antes de crear una nueva rama Task, en cada repositorio afectado:
 
-1. Ejecutar `git fetch --prune origin`.
-2. Cambiar a `main`.
-3. Ejecutar `git pull --ff-only origin main`.
-4. Cambiar a `dev`.
-5. Ejecutar `git pull --ff-only origin dev`.
-6. Verificar si `main` contiene commits que `dev` no contiene.
-7. Si los contiene, integrar `main` dentro de `dev`.
-8. Publicar la sincronización de `dev`.
-9. Crear la rama Task desde `dev`.
-10. Confirmar la rama activa y el estado del árbol.
+```powershell
+git fetch --prune origin
+git switch main
+git pull --ff-only origin main
+```
 
-No comenzar una tarea desde `main`.
+Validar **antes** de crear la rama:
+
+```powershell
+git status --porcelain      # debe estar vacio
+git rev-parse main
+git rev-parse origin/main   # deben coincidir
+```
+
+Solo entonces:
+
+```powershell
+git switch -c Task/<nombre>
+```
+
+Validación **obligatoria e inmediata** después de crearla:
+
+```powershell
+git rev-parse HEAD
+git rev-parse main          # deben coincidir
+```
+
+Si `HEAD` no coincide con `main`, la rama está mal creada: detenerse y
+reportarlo.
+
+### Prohibido
+
+```powershell
+git switch dev
+git switch -c Task/<nombre>     # PROHIBIDO
+```
+
+Y cualquier flujo equivalente que use `dev` —o una rama derivada de `dev`—
+como base de una Task.
+
+**Motivo:** `dev` contiene commits de integración que no deben formar parte de
+la ascendencia de una tarea nueva. Si una Task nace de `dev`, el pull request
+`Task → main` puede heredar historial exclusivo de integración. Detalle
+completo en
+[`WORKFLOW.md`](../project-management/WORKFLOW.md) §2.1.
+
+> **Nota histórica.** Hasta el 2026-08-15 esta sección indicaba `dev` como base
+> y añadía «No comenzar una tarea desde `main`», lo que era **incorrecto**. La
+> regla quedó corregida en `Task/005.4-Corregir-Base-Ramas-Task-Main`. El
+> historial de las tareas anteriores **no se reescribe**.
 
 
 ## 5. Estados de una tarea

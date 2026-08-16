@@ -16,9 +16,40 @@ No elimines secciones: si una no aplica, escribe `No aplica` y la razón.
 | **Estado** | Pendiente \| En progreso \| Lista para validación \| Aprobada \| Bloqueada \| Descartada |
 | **Repositorios involucrados** | personal-blog-infra \| personal-blog-frontend \| personal-blog-backend |
 | **Dependencias** | `Task/<n>` (deben estar Aprobadas) |
-| **Rama** | `Task/<numero>-<nombre>` (creada desde `dev`) |
+| **Rama** | `Task/<numero>-<nombre>` |
+| **Rama base** | **`main`** — única base permitida |
+| **SHA base** | `<git rev-parse main en el momento de crear la rama>` |
 | **Fecha de inicio** | AAAA-MM-DD |
 | **Última actualización** | AAAA-MM-DD |
+
+---
+
+## 0. Preparación Git
+
+**Rama base obligatoria: `main`.** `dev` **nunca** es base de una Task
+([`WORKFLOW.md`](WORKFLOW.md) §2.1).
+
+| # | Comprobación | Resultado |
+| --- | --- | --- |
+| 1 | `main == origin/main` | |
+| 2 | Working tree limpio antes de crear la rama | |
+| 3 | Rama creada **desde `main`** | |
+| 4 | `git rev-parse HEAD` == `git rev-parse main` justo tras crearla | |
+
+El **SHA base se obtiene dinámicamente** al crear la rama; no se fija de antemano ni se
+copia de otra tarea.
+
+```powershell
+git fetch --prune origin
+git switch main
+git pull --ff-only origin main
+git status --porcelain                          # vacio
+git rev-parse main; git rev-parse origin/main   # deben coincidir
+
+git switch -c Task/<numero>-<nombre>
+
+git rev-parse HEAD; git rev-parse main          # deben coincidir
+```
 
 ---
 
