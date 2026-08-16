@@ -9,15 +9,15 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.5` **aprobada** y cerrada; `Task/006` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.6` **aprobada** y cerrada; `Task/006` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
-| **Último mantenimiento aprobado** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` — **Aprobada** el 2026-08-16; PR `Task/005.5 → main` **abierto, sin fusionar** en los **tres** repositorios. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.4-Corregir-Base-Ramas-Task-Main` — **Aprobada** el 2026-08-15; PR **`#10` fusionado** el 2026-08-16 (merge `cc90b96`) y **normalizado**. **Primera tarea creada desde `main`** |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**; **espera** la fusión de los PR de `Task/005.5` y la normalización `main → dev`). **Nacerá desde `main`** |
+| **Último mantenimiento aprobado** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` — **Aprobada** el 2026-08-16. Cierre de fundaciones tras dos mega auditorías. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` — **Aprobada** el 2026-08-16, integrada en `main` y normalizada. No cuenta en las 41 tareas |
+| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**). **Nacerá desde `main`** actualizado, como toda rama Task |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | **33** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15) |
+| **Riesgos abiertos** | **34** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`) |
 | **Decisiones abiertas** | **13** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5` |
 
 > El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
@@ -129,8 +129,9 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 | **Roadmap** | **No cuenta** dentro de las 41 tareas. **41 identificadores intactos**, sin renumerar. Avance global y ETAPA 02 **sin cambios** |
 | **Imagen de arquitectura** | `images/Infraestructura.png` **intacta**. Se corrigieron los textos que aún la trataban como autoridad canónica de producción |
 | **Integración en `dev`** | Merge `--no-ff` en los **tres** repositorios, publicado |
-| **Pull request** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria → main` — **abierto, sin fusionar** en `personal-blog-infra`, `personal-blog-backend` y `personal-blog-frontend`. La fusión es responsabilidad del usuario |
-| **Rama Task** | Eliminada **localmente** con `git branch -d` en los tres; **conservada en `origin`** mientras el PR siga abierto |
+| **Pull request** | `Task/005.5 → main` en los tres repositorios. *Observado el 2026-08-16 con `gh pr list`:* **`#11` infra, `#3` backend y `#2` frontend — `MERGED`**, fusionados por el usuario |
+| **Normalización posterior** | **Completada.** *Observado el 2026-08-16:* `main` = `bd0aaf5` (infra), `72c8adc` (backend), `4132a65` (frontend); `main` integrada en `dev` y publicada — `dev` = `2819f6c` · `1e20839` · `7e89d2a`. `git diff main dev` **vacío** y `main` **ancestro de `dev`** en los tres |
+| **Rama Task** | Eliminada **local y remotamente** en los tres. *Observado el 2026-08-16:* `git ls-remote --heads origin "Task/*"` **no devuelve nada** |
 | **Ficha** | [TASK-005.5](../tasks/TASK-005.5-align-planning-after-audit.md) |
 | **Reporte** | [TASK-005.5-report](../task-reports/TASK-005.5-report.md) |
 
@@ -142,6 +143,51 @@ el **mapa de responsabilidades transversales** del ROADMAP, la dependencia
 `Task/025 → Task/024`, la separación entre lo que `Task/029` **define** y lo que solo puede
 **validarse** más tarde, y las decisiones **D-15** y **D-16**, ambas **abiertas**.
 `Task/006` sigue **Pendiente y no iniciada**.
+
+---
+
+## Último mantenimiento aprobado — `Task/005.6`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` |
+| **Tipo** | **Mantenimiento transversal de fundaciones**: reproducibilidad, aislamiento de pruebas y estado documental |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-16 |
+| **Fecha de aprobación** | 2026-08-16 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` |
+| **Repositorios afectados** | `personal-blog-infra`, `personal-blog-backend`, `personal-blog-frontend` |
+| **Rama** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` en los tres |
+| **Rama base** | **`main`** en los tres. SHA base: infra `bd0aaf5` · backend `72c8adc` · frontend `4132a65`. Verificado `HEAD == main` inmediatamente después de crearlas |
+| **Origen** | Conciliación de **dos mega auditorías independientes** (Claude y Codex). Ninguna se aceptó como autoridad: cada hallazgo se **reprodujo** contra el repositorio antes de decidir |
+| **Conclusión de ambas auditorías** | **No existe defecto arquitectónico.** Arquitectura, Git, roadmap, PostgreSQL, FastAPI, Docker, Alembic y las *boundaries* son reutilizables |
+| **Política EOL** | `.gitattributes` en los **tres** repositorios. Causa raíz: `core.autocrlf=true` de nivel *system* convertía el árbol de trabajo a CRLF y `ruff format --check .` fallaba en los 31 archivos Python. **El índice ya era LF**: la corrección produce **0 líneas de diff de contenido** |
+| **Aislamiento de pruebas** | `settings_factory` construye con `_env_file=None`: la suite ya no lee el `.env` del desarrollador. Con regresión y guarda anti-tautología |
+| **Base de datos de pruebas** | `personal_blog_test`, **dedicada**. Guarda *fail-closed* de dos barreras: sufijo `_test` **y** marca `personal-blog:test-database` **dentro** de la base. `personal_blog` **no se toca** |
+| **Skip frente a fail** | Sin variable de entorno → `SKIP`. Con variable y PostgreSQL roto → **`FAIL`**. Ningún error se degrada ya a `skip` |
+| **Tests semánticos** | `commit` y `rollback` demuestran **efecto persistente observado desde otra sesión**. Verificados por **mutación**: con `session_scope` roto, ambos se ponen rojos |
+| **Migraciones** | Contrato durable: el esquema tras `upgrade` + `downgrade` debe ser idéntico al de antes. Sustituye a la aserción que habría caducado en `Task/008` |
+| **Implementación** | **0 funcionalidad de negocio.** `app/` **sin cambios**: `git diff -- app/` vacío. 0 código frontend, 0 Terraform, 0 recursos cloud, 0 cambios en Docker Compose |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
+| **Regla de gobierno nueva** | [WORKFLOW §6.1](WORKFLOW.md): los documentos versionados registran **estado duradero**; el estado transitorio de Git/GitHub se consulta **en vivo**. Elimina la necesidad estructural de una tarea de mantenimiento tras cada fusión |
+| **ADR** | **Ninguno nuevo.** No apareció ninguna decisión arquitectónica: se corrigieron reproducibilidad, aislamiento de pruebas y precisión documental. **`ADR-001` no cambia su decisión**, solo una cifra frágil por una referencia por etapas |
+| **Arquitectura** | **Sin cambios.** Monolito modular, FastAPI, PostgreSQL, MinIO/S3, Cloudflare Pages, API Gateway, Lambda, Terraform, Floci y PgBouncer siguen exactamente igual |
+| **Riesgo nuevo** | **R-36** — el log no redacta secretos de forma automática. **Abierto**, con propietario `Task/017` y `Task/018` |
+| **Integración en `dev`** | Merge `--no-ff` en los **tres** repositorios, publicado |
+| **Pull request** | `Task/005.6 → main` en los tres. Base `main`, head la rama Task. **Ninguno es `dev → main`** y **ninguno lo fusiona Claude** |
+| **Ficha** | [TASK-005.6](../tasks/TASK-005.6-close-foundations-after-mega-audit.md) |
+| **Reporte** | [TASK-005.6-report](../task-reports/TASK-005.6-report.md) |
+
+Este mantenimiento **no modifica el conteo del roadmap**: el avance global permanece en
+**5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas. `Task/006` sigue
+**Pendiente y no iniciada**.
+
+Con esta aprobación quedan **vigentes**: la política de finales de línea de los tres
+repositorios, la **base de datos de pruebas dedicada** con sus guardas *fail-closed*, la
+distinción **skip / fail** de la integración, la verificación **semántica** de
+`commit`/`rollback`, el contrato durable de migraciones y la regla de gobierno de
+[WORKFLOW §6.1](WORKFLOW.md). El **invariante de ramas no cambia**: toda Task nace de `main`.
 
 ---
 
@@ -390,6 +436,12 @@ Distribución por estado:
 | R-18 | El coste de escribir primero la prueba puede empujar a **matrices superficiales** que aparenten cumplimiento sin cubrir edge cases ni casos negativos. | Bajo | La matriz obligatoria exige explícitamente edge cases, errores y seguridad ([BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md) §6), y la revisión del usuario es el control final. Detectado en `Task/005.1`. | Abierto |
 | R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
 
+### Riesgo introducido por `Task/005.6` — redacción de secretos en el log
+
+| # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
+| --- | --- | --- | --- | --- | --- |
+| R-36 | **El log no tiene redacción automática de secretos.** `JsonLogFormatter` emite en `context` **todo** atributo propio del `LogRecord` y serializa las excepciones completas. La regla S-08 —«los logs no contienen contraseñas, tokens ni cadenas de conexión»— existe y se cumple hoy, pero depende de que **quien registra el evento** no pase un valor sensible: no hay ningún mecanismo que lo impida. Una excepción de driver o un `extra` descuidado pueden filtrar una credencial. Reproducido en `Task/005.6` por inspección del formateador. | Medio | **Deliberadamente NO se corrige en `Task/005.6`**: construir una política de redacción completa —lista de claves sensibles, patrones de token y URL, redacción en mensaje, contexto y traza— es trabajo de observabilidad y endurecimiento, no de cierre de fundaciones. Mitigación vigente: `database_url` está excluida de `repr` y solo se expone por `database_url_safe`, verificado en el contenedor real (`blog_local:***@`); `ConfigurationError` nombra campos, nunca valores. | `Task/017` (observabilidad, correlation ID y política de log) y `Task/018` (endurecimiento de seguridad) | **Abierto** |
+
 ### Riesgos introducidos por `Task/005.2` — AWS Local Parity
 
 > **Abiertos y vigentes** desde la aprobación de `Task/005.2` el 2026-08-15. Ninguno está
@@ -478,17 +530,24 @@ Distribución por estado:
 
 ## Estado de los repositorios
 
-Estado tras el cierre aprobado de `Task/005.5`, el **2026-08-16**.
+> **Cómo leer esta sección** (regla de [WORKFLOW §6.1](WORKFLOW.md), vigente desde
+> `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
+> El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
+> `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
 
-| Repositorio | Ramas locales | Ramas remotas | Rama activa | `main` y `dev` sincronizadas |
-| --- | --- | --- | --- | --- |
-| `personal-blog-infra` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.5-Alinear-Planificacion-Tras-Auditoria` (**con PR abierto**) | `main` | **No todavía** — se normaliza cuando el usuario fusione el PR |
-| `personal-blog-frontend` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.5-Alinear-Planificacion-Tras-Auditoria` (**con PR abierto**) | `main` | **No todavía** — se normaliza tras la fusión |
-| `personal-blog-backend` | `main`, `dev` — la rama Task se eliminó localmente en el cierre | `main`, `dev`, `origin/Task/005.5-Alinear-Planificacion-Tras-Auditoria` (**con PR abierto**) | `main` | **No todavía** — se normaliza tras la fusión |
+**Observado el 2026-08-16**, tras la fusión de los PR de `Task/005.5` y su normalización, y
+al crear las ramas de `Task/005.6`:
+
+| Repositorio | Ramas locales | Ramas remotas | `main` | `dev` | `main` y `dev` |
+| --- | --- | --- | --- | --- | --- |
+| `personal-blog-infra` | `main`, `dev`, `Task/005.6-...` | `main`, `dev` — **ninguna rama `Task/*`** | `bd0aaf5` | `2819f6c` | **Sincronizadas** — `git diff main dev` vacío |
+| `personal-blog-backend` | `main`, `dev`, `Task/005.6-...` | `main`, `dev` — **ninguna rama `Task/*`** | `72c8adc` | `1e20839` | **Sincronizadas** — `git diff main dev` vacío |
+| `personal-blog-frontend` | `main`, `dev`, `Task/005.6-...` | `main`, `dev` — **ninguna rama `Task/*`** | `4132a65` | `7e89d2a` | **Sincronizadas** — `git diff main dev` vacío |
 
 Las tres ramas `Task/005.5` se crearon **desde `main`**, con `HEAD == main` verificado
-inmediatamente después. Los tres pull request son **`Task/005.5 → main`**; **ninguno es
-`dev → main`** y **ninguno fue fusionado por Claude**.
+inmediatamente después. Los tres pull request fueron **`Task/005.5 → main`**; **ninguno fue
+`dev → main`** y **ninguno lo fusionó Claude**. Las tres ramas `Task/005.6` se crearon
+igualmente **desde `main`**, con `HEAD == main` verificado.
 
 - `main` y `dev` están **publicadas** en GitHub en los tres repositorios y
   contienen el mismo contenido.
@@ -524,8 +583,11 @@ inmediatamente después. Los tres pull request son **`Task/005.5 → main`**; **
   **`personal-blog-backend`** (implementación) y en **`personal-blog-infra`** (solo
   documentación de gobierno). Fue **aprobada** el 2026-08-12; su cierre creó los commits,
   integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el
-  pull request `Task/005 → main` en cada repositorio. **Los PR siguen abiertos**: fusionarlos
-  es responsabilidad del usuario. La rama Task local se eliminó con `git branch -d`.
+  pull request `Task/005 → main` en cada repositorio. La rama Task local se eliminó con
+  `git branch -d`. *(Corregido en `Task/005.6`: esta viñeta afirmaba «**Los PR siguen
+  abiertos**», contradiciendo a la viñeta siguiente y a la tabla de `Task/005`, que
+  registran su fusión el 2026-08-13. Se elimina la contradicción, no la historia: el
+  desenlace real está en la viñeta siguiente.)*
 - **No se creó rama `Task/005` en `personal-blog-frontend`**: la tarea no lo modifica. El
   frontend permanece en `main`, con el árbol limpio.
 - **Normalización completada el 2026-08-13.** El usuario fusionó los PR `#2` (backend, merge
@@ -597,8 +659,22 @@ inmediatamente después. Los tres pull request son **`Task/005.5 → main`**; **
   Es mantenimiento de gobierno y planificación: **no cuenta** en las 41 tareas y **no altera
   el avance**. Fue **aprobada** el 2026-08-16; su cierre creó el commit en cada repositorio,
   integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y abrió el
-  pull request `Task/005.5 → main` en los tres. **Los tres PR siguen abiertos**: fusionarlos
-  es responsabilidad del usuario. La rama Task local se eliminó con `git branch -d`.
+  pull request `Task/005.5 → main` en los tres. La rama Task local se eliminó con
+  `git branch -d`.
+- **Los tres PR de `Task/005.5` fueron fusionados por el usuario.** *Observado el
+  2026-08-16 con `gh pr list`:* `#11` (infra), `#3` (backend) y `#2` (frontend), los tres
+  `MERGED`. `main` quedó en `bd0aaf5` · `72c8adc` · `4132a65`, se integró en `dev` y se
+  publicó (`2819f6c` · `1e20839` · `7e89d2a`). `git ls-remote --heads origin "Task/*"` **no
+  devuelve ninguna rama**, `git diff main dev` está **vacío** y `main` es **ancestro de
+  `dev`** en los tres repositorios.
+- `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` se creó el 2026-08-16 **desde `main`**
+  en **los tres repositorios** —infra (`bd0aaf5`), backend (`72c8adc`) y frontend
+  (`4132a65`)—, con `HEAD == main` verificado en cada uno. Es la **tercera tarea creada
+  desde `main`**. Es mantenimiento transversal de fundaciones: **no cuenta** en las 41
+  tareas y **no altera el avance**. Fue **aprobada** el 2026-08-16; su cierre creó el commit
+  en cada repositorio, integró la rama en `dev` con merge `--no-ff`, publicó `dev` y la rama
+  Task, y abrió el pull request `Task/005.6 → main` en los tres. La rama Task local se
+  eliminó con `git branch -d`.
 
 ---
 
@@ -694,10 +770,27 @@ inmediatamente después. Los tres pull request son **`Task/005.5 → main`**; **
   tareas anteriores **no se reescribe**. Detalle:
   [WORKFLOW.md](WORKFLOW.md) §2.1.
 - `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1`,
-  `Task/005.2`, `Task/005.3` y **`Task/005.4`** están aprobadas, fusionadas y normalizadas.
-  `Task/005.5` está **aprobada** con sus **tres PR abiertos**. `Task/006` **no empieza** hasta
-  que el usuario los fusione y se complete la normalización `main → dev`, y **nacerá desde
-  `main`**.
+  `Task/005.2`, `Task/005.3`, **`Task/005.4`** y **`Task/005.5`** están aprobadas, fusionadas
+  y normalizadas. **`Task/005.6`** está **aprobada**. Como toda rama Task, `Task/006`
+  **nacerá desde `main`** actualizado y limpio.
+- **Cierre de fundaciones (`Task/005.6`, 2026-08-16, aprobada).** Se
+  conciliaron **dos mega auditorías independientes** y se reprodujo cada hallazgo antes de
+  decidir. Corregido: la política de finales de línea de los tres repositorios
+  (`.gitattributes`, causa raíz `core.autocrlf=true` de nivel *system*); el aislamiento de
+  la suite frente al `.env` del desarrollador; una **base de datos de pruebas dedicada** con
+  guarda *fail-closed* de dos barreras; la distinción **skip / fail** de la integración; la
+  verificación **semántica** de `commit` y `rollback`; el test de migraciones que habría
+  caducado en `Task/008`; la cobertura de una configuración `production` **válida**; y el
+  estado documental posterior a `Task/005.5`. **Ningún defecto arquitectónico**, **0
+  funcionalidad nueva** y **`app/` sin cambios**. Deuda diferida con propietario:
+  **R-36**.
+- **Regla de gobierno nueva ([WORKFLOW §6.1](WORKFLOW.md), `Task/005.6`).** Los documentos
+  versionados registran **estado duradero**; el estado transitorio de Git y GitHub —PR
+  abierto o fusionado, rama remota, sincronización actual— se **consulta en vivo** y solo se
+  archiva como **observación fechada**. Corrige la causa estructural por la que `STATUS.md`
+  quedaba obsoleto tras cada fusión y evita tener que crear una tarea de mantenimiento
+  (`006.1`, `007.1`, …) después de cada PR. **El invariante de ramas y el flujo de
+  aprobación manual no cambian.**
 - **Alineación posterior a la auditoría (`Task/005.5`, 2026-08-16, aprobada).**
   Se reprodujeron los hallazgos de dos auditorías independientes contra el repositorio, y se
   corrigieron los que se sostuvieron: la regla de ramas en backend y frontend, el estado

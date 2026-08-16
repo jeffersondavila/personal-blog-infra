@@ -306,6 +306,74 @@ Debe verificarse con Git antes de iniciar o cerrar cualquier tarea.
 
 ---
 
+## 6.1 Estado duradero frente a estado transitorio
+
+> **Vigente desde `Task/005.6`.** Regla de gobierno que corrige un defecto **estructural**,
+> no un descuido de redacción.
+
+### El problema
+
+El cierre de una tarea documenta su estado **antes** de que el usuario fusione el PR. En ese
+momento el PR está abierto y la rama remota existe, así que el documento lo escribe. Ese
+texto viaja **dentro del propio PR** hacia `main`. Cuando el usuario fusiona —el paso
+siguiente e inevitable del flujo— el documento ya versionado en `main` sigue afirmando que
+el PR está abierto.
+
+**No es un olvido: es una afirmación condenada a ser falsa desde que se escribe.** Un
+documento no puede describir con exactitud el resultado de un acto que todavía no ha
+ocurrido. Corregirlo a posteriori obligaría a crear una tarea de mantenimiento
+—`006.1`, `007.1`, `008.1`…— después de **cada** fusión, indefinidamente.
+
+### La regla
+
+Los documentos versionados registran **estado duradero**. El estado **transitorio** de
+Git y GitHub **no se versiona como estado vigente**: se consulta en vivo.
+
+| Naturaleza | Ejemplos | Dónde vive |
+| --- | --- | --- |
+| **Duradero** | Estado de la tarea (`Pendiente`, `En progreso`, `Lista para validación`, `Aprobada`, `Bloqueada`, `Descartada`); fecha y expresión de aprobación; alcance entregado; decisiones tomadas; ADR promovidos; riesgos abiertos; siguiente tarea; conteo del roadmap. | `STATUS.md`, `ROADMAP.md`, fichas, reportes, ADR. |
+| **Transitorio** | Si un PR está abierto o fusionado; si la rama remota existe; SHA del commit de merge; si `main` y `dev` están sincronizadas en este instante. | **Git y GitHub**, consultados en el momento. |
+
+### Cómo se aplica
+
+1. **`STATUS.md` no afirma el estado vivo de un PR.** No escribe «el PR sigue abierto» ni
+   «pendiente de fusionar» como situación vigente. La aprobación de una tarea es un hecho
+   duradero; la fusión de su PR es un trámite posterior del usuario.
+
+2. **Los datos históricos se marcan como históricos**, con su fecha de observación. Son
+   válidos y útiles —trazabilidad real— siempre que se lean como registro, no como estado
+   actual:
+
+   > *Observado el 2026-08-16: PR `#11` fusionado, merge `bd0aaf5`.*
+
+   Escrito así, el paso del tiempo **no lo vuelve falso**.
+
+3. **Antes de iniciar o cerrar una tarea, el estado real se verifica con Git**, nunca
+   leyendo `STATUS.md`. Ya era obligatorio (§4) y sigue siéndolo: esta regla solo elimina la
+   fuente de contradicción.
+
+   ```powershell
+   git fetch --prune origin
+   git ls-remote --heads origin "Task/*"     # ramas Task remotas vivas
+   gh pr list --state all --limit 5           # estado real de los PR
+   git diff main dev                          # vacio = sincronizadas
+   ```
+
+4. **Ningún documento condiciona el inicio de la siguiente tarea a un hecho transitorio ya
+   ocurrido.** La condición se expresa como regla permanente —*«la siguiente Task nace de
+   `main` actualizado tras la normalización»*— y no como estado —*«`Task/006` espera la
+   fusión del PR de `Task/005.5`»*—.
+
+### Lo que esta regla NO cambia
+
+- **El flujo de aprobación manual es idéntico.** Sigue haciendo falta
+  `approved: Task/<nombre>`, el PR sigue siendo `Task → main` y **solo el usuario fusiona**.
+- **La trazabilidad no se pierde:** los merges, PR y SHA históricos se conservan, marcados
+  como observaciones fechadas.
+- **El invariante de ramas no se toca** (§2.1): toda Task nace de `main`; `dev` nunca es base.
+
+---
+
 ## 7. Principio de no duplicación
 
 El roadmap, el estado y las decisiones viven **solo** en `personal-blog-infra`.

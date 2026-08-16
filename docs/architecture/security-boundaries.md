@@ -80,7 +80,7 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | Internet | C-09 Portainer | Nunca expuesto a internet, en ningún entorno. |
 | C-09 Portainer | Contenido del blog | Portainer **no administra contenido**. |
 | C-10 GitHub Actions | C-11 AWS con claves permanentes | Prohibido: solo credenciales temporales por OIDC. |
-| C-10 GitHub Actions | `terraform destroy` | Ninguna automatización destruye infraestructura (`Task/039`). |
+| C-10 GitHub Actions | `terraform destroy` sobre **infraestructura real** | Ninguna automatización destruye infraestructura real: AWS, Cloudflare ni VPS (`Task/039`). El `destroy` contra el **emulador AWS efímero** de un job de CI sí está permitido: no hay recurso real que perder y el laboratorio se tira entero al terminar (§8.2). |
 | C-11 Lambda | Recursos fuera de su rol | Permisos mínimos, acotados a lo que necesita. |
 | Cualquiera | Secretos en Git | Ningún secreto se versiona, en ningún repositorio. |
 | Internet o LAN | C-12 Emulador AWS local | **Nunca expuesto.** Ni el puerto 4566 ni sus rangos auxiliares (§8). |
@@ -233,7 +233,9 @@ verdad. La implementación futura **debe** incluir guardas que **fallen cerrado*
 
 **Ninguna se implementa en `Task/005.2`.** Son requisito para `Task/025` (guardas técnicas)
 y `Task/026` (procedimiento escrito que las ejerce), y son coherentes con la prohibición ya
-vigente de que **ninguna automatización ejecute `terraform destroy`** (§3).
+vigente de que **ninguna automatización ejecute `terraform destroy` contra infraestructura
+real** (§3). Contra un **emulador AWS efímero** de CI, el `destroy` es legítimo: es el
+propio laboratorio el que se destruye, no un recurso real. Precisado en `Task/005.6`.
 
 ### 8.3 Qué NO cambia
 
