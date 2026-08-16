@@ -58,6 +58,33 @@ justificación (por ejemplo: "criterio 4 no aplica: tarea exclusivamente documen
 - Migraciones aplican y revierten.
 - La imagen Docker construye.
 - Variables de entorno documentadas en `.env.example` con valores ficticios.
+- **Cero warnings no documentados.** Si se tolera alguno, se registra con su causa y la
+  tarea futura que lo resuelve.
+
+#### Tareas de backend **funcional**
+
+Además de lo anterior, toda tarea que introduzca **comportamiento funcional nuevo**
+—dominio, casos de uso, API pública o administrativa, persistencia, autenticación,
+autorización, auditoría o `ObjectStorage`— debe cumplir la práctica test-first definida en
+[`BACKEND_TESTING_STRATEGY.md`](BACKEND_TESTING_STRATEGY.md):
+
+| # | Criterio | Cómo se verifica |
+| --- | --- | --- |
+| B-1 | **Matriz de casos** construida antes de implementar. | Sección *TDD / Plan test-first* de la ficha, con la capa de cada caso. |
+| B-2 | **Evidencia RED.** | Salida registrada en el reporte: el test falló **por la razón esperada** antes de la implementación. |
+| B-3 | **Evidencia GREEN.** | El mismo test en verde tras la implementación mínima. |
+| B-4 | **Refactor ejecutado o declarado innecesario.** | Registrado en el reporte, sin cambio de comportamiento observable. |
+| B-5 | **Suite afectada en verde.** | Ejecución real de las pruebas del área tocada. |
+| B-6 | **Integración correspondiente.** | PostgreSQL real cuando el comportamiento depende de PostgreSQL; MinIO cuando dependa del almacenamiento. Nunca SQLite como sustituto. |
+| B-7 | **Regresión completa.** | La suite entera vuelve a ejecutarse antes de marcar `Lista para validación`. |
+| B-8 | **Edge cases cubiertos.** | Presentes en la matriz y en la suite. |
+| B-9 | **Casos negativos cubiertos.** | Entradas inválidas, recursos inexistentes, estados no permitidos. |
+| B-10 | **Seguridad cuando aplique.** | No autenticado, sin permisos, contenido no publicado, ausencia de filtraciones. |
+| B-11 | **Sin bug fix sin test de regresión.** | Todo defecto corregido deja su prueba permanentemente en la suite. |
+| B-12 | **Los tests no se modificaron para acomodar la implementación.** | Cualquier cambio de expectativa está justificado por requisito, contradicción documentada, error demostrado o decisión registrada. |
+
+Una tarea de backend funcional que no pueda demostrar **B-2** y **B-3** no está terminada:
+sin evidencia de RED y GREEN no hay ciclo TDD, solo pruebas escritas a posteriori.
 
 ### Tareas de frontend
 - Lint y type-check sin errores.
@@ -95,3 +122,7 @@ Una tarea **no** está terminada si:
 - Se versionaron secretos.
 - Se marcó `Aprobada` sin la expresión `approved:` del usuario.
 - Se avanzó a la siguiente tarea sin aprobación de la actual.
+- **Se escribieron las pruebas después de la implementación** en una tarea de backend
+  funcional, o no hay evidencia de RED.
+- **Se modificó un test para que pasara** en lugar de corregir la implementación, sin
+  justificación registrada ([`BACKEND_TESTING_STRATEGY.md`](BACKEND_TESTING_STRATEGY.md) §9).

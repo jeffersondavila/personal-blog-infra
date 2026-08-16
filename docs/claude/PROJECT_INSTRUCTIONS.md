@@ -371,7 +371,44 @@ Una tarea solo debe crear una rama Task en los repositorios que realmente
 modificará.
 
 
-## 14. Restricciones del proyecto
+## 14. BACKEND TEST-FIRST LAW
+
+Regla obligatoria para **todo comportamiento funcional nuevo** de
+`personal-blog-backend`. Aplica de forma estricta desde `Task/008`.
+
+Fuente completa y única:
+[`docs/project-management/BACKEND_TESTING_STRATEGY.md`](../project-management/BACKEND_TESTING_STRATEGY.md).
+Leerla **antes** de escribir código de dominio, casos de uso, API, persistencia,
+autenticación, auditoría o almacenamiento.
+
+Reglas mínimas que ninguna sesión puede saltarse:
+
+- **Matriz de comportamiento antes de implementar.** Casos, precondiciones,
+  resultado esperado y capa. Sin matriz no se programa la funcionalidad.
+- **RED demostrado.** El test se escribe primero, se ejecuta y **falla por la
+  razón esperada**. La evidencia se conserva en el reporte de la tarea.
+- **GREEN demostrado.** Implementación mínima suficiente, sin comportamiento
+  futuro no solicitado.
+- **REFACTOR.** Ejecutado sin cambiar el comportamiento observable, o declarado
+  innecesario con su razón.
+- **Regresión completa.** La suite afectada y la suite entera vuelven a
+  ejecutarse antes de cerrar la tarea.
+- **Los tests no se cambian para acomodar código incorrecto.** Solo pueden
+  modificarse si el requisito cambió, si contradicen la documentación vigente,
+  si contienen un error demostrado o si una decisión documentada redefinió el
+  comportamiento. Ante una contradicción entre requisito, arquitectura y test:
+  **detenerse y documentarla**, nunca reescribir la expectativa en silencio.
+- **Sin bug fix sin test de regresión.** Primero se reproduce el defecto con un
+  test que falla; ese test se queda en la suite.
+- **La cobertura es una señal, no la especificación.** No se aceptan pruebas sin
+  *asserts* útiles ni exclusiones injustificadas.
+
+Excepciones razonables —documentación, `Dockerfile`, configuración sin lógica,
+*wiring* trivial, cambios mecánicos, migraciones estructurales— están definidas
+en la estrategia, §4. **Una excepción a TDD no es una excepción a validar.**
+
+
+## 15. Restricciones del proyecto
 
 Arquitectura acordada y vigente:
 
@@ -404,7 +441,7 @@ Una modificación a una decisión arquitectónica aceptada requiere:
 4. Esperar aprobación explícita del usuario.
 
 
-## 15. Orden de autoridad
+## 16. Orden de autoridad
 
 Cuando exista conflicto entre:
 

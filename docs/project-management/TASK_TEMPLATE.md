@@ -50,43 +50,84 @@ Lo que explícitamente **no** se hace en esta tarea y en qué tarea futura corre
 1. Criterio verificable 1.
 2. Criterio verificable 2.
 
-## 7. Plan de validación
+## 7. TDD / Plan test-first
+
+> **Obligatoria** para tareas de backend **funcional** (dominio, casos de uso, API pública o
+> administrativa, persistencia, autenticación, autorización, auditoría, `ObjectStorage`).
+> En cualquier otra tarea, escribe `No aplica` y la razón.
+> Regla completa: [`BACKEND_TESTING_STRATEGY.md`](BACKEND_TESTING_STRATEGY.md).
+
+### 7.1 Comportamientos a construir
+
+- Comportamiento observable 1.
+- Comportamiento observable 2.
+
+### 7.2 Matriz de casos
+
+Se completa **antes** de escribir implementación.
+
+| Caso | Entrada | Precondición | Resultado esperado | Capa |
+| --- | --- | --- | --- | --- |
+| Happy path | | | | dominio |
+| Edge | | | | aplicación |
+| Error | | | | HTTP |
+| Seguridad | | | | integración |
+
+### 7.3 Tests RED esperados
+
+| Test | Capa | Motivo de fallo esperado |
+| --- | --- | --- |
+| `test_<comportamiento>` | | |
+
+### 7.4 Integración necesaria
+
+PostgreSQL real, MinIO u otra dependencia, y por qué el comportamiento la exige.
+
+### 7.5 Casos negativos y de seguridad
+
+No autenticado, sin permisos, recurso inexistente, contenido no publicado, entrada inválida.
+
+### 7.6 Regresiones relevantes
+
+Pruebas existentes que deben seguir pasando y defectos previos que no pueden reaparecer.
+
+## 8. Plan de validación
 
 Cómo se comprueba cada criterio de aceptación.
 
-## 8. Comandos de validación
+## 9. Comandos de validación
 
 ```bash
 # Comandos exactos, no destructivos, con su propósito
 ```
 
-## 9. Evidencia esperada
+## 10. Evidencia esperada
 
 Salidas, capturas, archivos o registros que demuestran que la tarea funciona.
 
-## 10. Riesgos
+## 11. Riesgos
 
 | # | Riesgo | Impacto | Mitigación |
 | --- | --- | --- | --- |
 | | | | |
 
-## 11. Decisiones técnicas
+## 12. Decisiones técnicas
 
 | Decisión | Alternativas consideradas | Justificación | ¿ADR? |
 | --- | --- | --- | --- |
 | | | | |
 
-## 12. Documentación creada o actualizada
+## 13. Documentación creada o actualizada
 
 - `ruta/archivo.md` — qué cambió.
 
-## 13. Archivos modificados
+## 14. Archivos modificados
 
 | Repositorio | Archivo | Acción (creado/modificado) |
 | --- | --- | --- |
 | | | |
 
-## 14. Resultado de pruebas
+## 15. Resultado de pruebas
 
 | Prueba | Comando | Resultado |
 | --- | --- | --- |
@@ -94,11 +135,11 @@ Salidas, capturas, archivos o registros que demuestran que la tarea funciona.
 
 Si algo falló, se registra el fallo tal cual, sin omitirlo.
 
-## 15. Problemas encontrados
+## 16. Problemas encontrados
 
 Incidencias durante la ejecución y cómo se resolvieron (o por qué siguen abiertas).
 
-## 16. Pasos de validación para el usuario
+## 17. Pasos de validación para el usuario
 
 Instrucciones exactas y reproducibles para que el usuario verifique el resultado.
 
@@ -106,15 +147,15 @@ Instrucciones exactas y reproducibles para que el usuario verifique el resultado
 # comandos que el usuario puede ejecutar
 ```
 
-## 17. Deuda técnica pendiente
+## 18. Deuda técnica pendiente
 
 Lo que queda por hacer y en qué tarea se abordará.
 
-## 18. Próxima tarea
+## 19. Próxima tarea
 
 `Task/<numero+1>-<nombre>` — breve descripción.
 
-## 19. Aprobación
+## 20. Aprobación
 
 | Campo | Valor |
 | --- | --- |
@@ -135,3 +176,6 @@ Lo que queda por hacer y en qué tarea se abordará.
 - Al terminar, actualiza [`STATUS.md`](STATUS.md) y [`ROADMAP.md`](ROADMAP.md).
 - Verifica [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) antes de marcar
   `Lista para validación`.
+- Si la tarea introduce **comportamiento funcional del backend**, la sección 7 es
+  **obligatoria** y se completa **antes** de escribir implementación. La práctica completa
+  está en [`BACKEND_TESTING_STRATEGY.md`](BACKEND_TESTING_STRATEGY.md).
