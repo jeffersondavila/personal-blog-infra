@@ -1,0 +1,76 @@
+# ---------------------------------------------------------------------------
+# personal-blog-infra — politica de finales de linea (Task/005.6)
+#
+# Por que existe este archivo
+#
+# Git para Windows instala `core.autocrlf=true` a nivel de sistema. Con esa
+# configuracion, un checkout convierte a CRLF el contenido del arbol de trabajo
+# aunque el indice guarde LF. En `personal-blog-backend` eso hacia fallar
+# `ruff format --check .` en todos los archivos Python por una diferencia de
+# fin de linea, no de formato.
+#
+# La politica se aplica a los TRES repositorios para que sea coherente en todo
+# el workspace: un archivo movido entre repositorios no cambia de formato, y el
+# frontend queda protegido antes de que exista su primer TypeScript
+# (`Task/006`).
+#
+# `.editorconfig` ya declaraba `end_of_line = lf`, pero solo gobierna al editor:
+# no interviene en el checkout de Git. Este archivo es la capa que faltaba.
+#
+# La politica NO depende de la configuracion personal de cada maquina: los
+# atributos del repositorio tienen prioridad sobre `core.autocrlf`.
+# ---------------------------------------------------------------------------
+
+# Todo archivo de texto se normaliza a LF en el indice y se extrae con LF.
+# `text=auto` deja que Git detecte binarios y no los toque.
+* text=auto eol=lf
+
+# --- Documentacion y configuracion: LF explicito ---------------------------
+*.md        text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.json      text eol=lf
+*.txt       text eol=lf
+*.toml      text eol=lf
+*.ini       text eol=lf
+*.sha256    text eol=lf
+.gitignore  text eol=lf
+.editorconfig text eol=lf
+.env.example  text eol=lf
+
+# --- Scripts ---------------------------------------------------------------
+# PowerShell interpreta LF sin problema en Windows PowerShell 5.1 y en
+# PowerShell 7; los scripts de `scripts/backup/` ya viven en LF en el indice.
+*.ps1       text eol=lf
+*.psm1      text eol=lf
+*.psd1      text eol=lf
+*.sh        text eol=lf
+
+# --- Infraestructura como codigo (llega en Task/025) -----------------------
+# Declarado por adelantado: cuando aparezca el primer `.tf` no habra que
+# recordar esta politica.
+*.tf        text eol=lf
+*.tfvars    text eol=lf
+*.hcl       text eol=lf
+
+# --- Excepcion tecnica: scripts por lotes de Windows -----------------------
+# `cmd.exe` puede interpretar mal etiquetas y `goto` si el archivo llega con
+# LF. No existe ninguno hoy; la regla evita que el primero que aparezca nazca
+# roto.
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+
+# --- Binarios: nunca se convierten -----------------------------------------
+# `images/Infraestructura.png` es el unico binario versionado hoy. Los
+# artefactos de `local-backups/` estan ignorados por Git, pero se declaran sus
+# extensiones por si alguno se versionara deliberadamente en el futuro.
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.zip       binary
+*.gz        binary
+*.tar       binary
+*.dump      binary

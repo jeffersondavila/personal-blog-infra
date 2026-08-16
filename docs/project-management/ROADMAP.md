@@ -2,7 +2,8 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-08-16 (`Task/005.5` — alineación posterior a la auditoría)
+- **Última actualización:** 2026-08-16 (`Task/005.6` — cierre de fundaciones tras la mega
+  auditoría)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -20,9 +21,18 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > Ninguna tarea puede marcarse `Aprobada` sin autorización explícita del usuario.
 
 > **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`,
-> `Task/005.2`, `Task/005.3`, `Task/005.4`, `Task/005.5`, …) son mantenimiento de gobierno:
-> **no forman parte de estas 41** y **no alteran el avance**. Su estado se registra en
-> [`STATUS.md`](STATUS.md).
+> `Task/005.2`, `Task/005.3`, `Task/005.4`, `Task/005.5`, `Task/005.6`, …) son mantenimiento
+> de gobierno: **no forman parte de estas 41** y **no alteran el avance**. Su estado se
+> registra en [`STATUS.md`](STATUS.md).
+
+> **Cierre de fundaciones — `Task/005.6` (2026-08-16).** Mantenimiento transversal previo a
+> `Task/006`: política de finales de línea en los tres repositorios, aislamiento de la suite
+> frente al `.env` del desarrollador, base de datos de pruebas dedicada con guardas
+> *fail-closed*, verificación semántica de `commit`/`rollback` y corrección del estado
+> documental. **0 funcionalidad nueva**, **41 identificadores intactos** y avance **sin
+> cambios**. Añade la regla de gobierno de
+> [WORKFLOW §6.1](WORKFLOW.md): los documentos versionados registran estado **duradero**; el
+> estado transitorio de Git y GitHub se consulta **en vivo**.
 
 > **Alineación posterior a la auditoría — `Task/005.5` (2026-08-16).** Se corrigieron
 > dependencias invertidas, propietarios ausentes y *gates* que exigían recursos futuros.
@@ -237,7 +247,10 @@ cero y con datos reales de prueba.
 desplegar nada.
 
 **Dependencias:** Etapa 08.
-**Hito que completa:** *Cuentas cloud seguras, con presupuesto y acceso sin credenciales permanentes.*
+**Hito que completa:** *Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a
+AWS sin credenciales permanentes** (OIDC, `Task/028`).* La identidad del **VPS hacia AWS**
+sigue abierta en **D-16** (`Task/029`), y **Cloudflare y el proveedor del VPS** pueden exigir
+otro modelo (`Task/039`). Acotado en `Task/005.6`.
 **Ficha:** [STAGE-09-cloud-accounts.md](../stages/STAGE-09-cloud-accounts.md)
 
 > **`Task/029` cambia de alcance, no de número.** Desde `Task/005.3` (2026-08-15,
@@ -358,6 +371,6 @@ avance_global = tareas_aprobadas_totales  / 41
 Actualmente: `5 / 41 = 12 %`.
 
 Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`,
-`Task/005.4`, `Task/005.5`) **no entran en el numerador ni en el denominador**.
+`Task/005.4`, `Task/005.5`, `Task/005.6`) **no entran en el numerador ni en el denominador**.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

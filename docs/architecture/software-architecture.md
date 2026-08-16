@@ -48,6 +48,7 @@ El frontend presenta y valida por usabilidad; el backend decide.
 
 ```
 app/
+├── api/                    transporte HTTP transversal, ajeno a un modulo
 ├── modules/
 │   ├── profile/
 │   ├── posts/
@@ -67,6 +68,14 @@ app/
     ├── errors/
     └── configuration/
 ```
+
+`app/api` contiene los *endpoints* que **no pertenecen a ningún módulo de negocio**:
+operativos y de plataforma, como `GET /health` (`Task/005`) y `/ready` (`Task/017`). No
+contiene reglas de negocio ni acceso a datos; los endpoints de contenido viven en la capa
+`presentation` de su propio módulo (§3.2).
+
+> Añadido en `Task/005.6`: el paquete existe en `personal-blog-backend` desde `Task/005`,
+> pero este diagrama solo mostraba `modules/` y `shared/`.
 
 ### 3.2 Capas dentro de un módulo
 
@@ -279,7 +288,7 @@ El backend debe funcionar igual como proceso local y como función Lambda:
 
 | Restricción | Consecuencia de diseño |
 | --- | --- |
-| Sin estado entre invocaciones | Nada de cachés en memoria de proceso ni sesiones en RAM. |
+| Sin estado entre invocaciones | Ningún **estado de negocio** en memoria de proceso: ni sesiones de usuario en RAM, ni datos de contenido cacheados, ni nada cuya pérdida al terminar la invocación cambie el comportamiento observable. |
 | Sin procesos residentes | Ninguna tarea de fondo de larga duración ni scheduler interno. |
 | Conexiones efímeras a la base de datos | Conexiones cortas y **pooling externo con PgBouncer** delante de PostgreSQL (`Task/029`). El código solo conoce `DATABASE_URL`. |
 | Arranque en frío | Artefacto ligero, importaciones perezosas donde ayude. |
@@ -287,6 +296,14 @@ El backend debe funcionar igual como proceso local y como función Lambda:
 
 **El adaptador Lambda es una capa delgada y removible** (`Task/023`). El código de negocio
 lo desconoce.
+
+> **Qué no prohíbe la primera fila** *(precisado en `Task/005.6`)*. Una **caché técnica
+> recreable** —un `lru_cache` sobre la configuración, el *engine* de SQLAlchemy o el
+> `sessionmaker`— **no es estado de negocio**: memoriza el resultado de leer un entorno que
+> no cambia durante la vida del proceso, se reconstruye sola en la invocación siguiente y su
+> pérdida no altera ninguna respuesta. Es, de hecho, el patrón correcto para el arranque en
+> frío. Lo prohibido es lo que **sustituye a la base de datos o a la sesión**: guardar ahí
+> contenido, permisos o sesiones de usuario y asumir que seguirán existiendo.
 
 ---
 
