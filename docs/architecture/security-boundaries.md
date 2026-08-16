@@ -174,7 +174,13 @@ de **nivel host**, no de nivel aplicación.
 | Revisión del *networking* de Docker del laboratorio | `Task/025` |
 | *Hardening* concreto del VPS, reglas de firewall y política de parcheo | `Task/029`, `Task/018` |
 | Configuración de TLS, SCRAM y evaluación de mTLS en PgBouncer | `Task/029` |
+| **Ciclo de vida del certificado de PgBouncer**: emisión, CA, *hostname*, renovación, alerta de caducidad y confianza desde Lambda | `Task/029`; validado en `Task/040` |
 | Procedimiento de backup, cifrado, retención y prueba de restore | `Task/029`, `Task/026` |
+| **Identidad con la que el VPS escribe sus backups en AWS** (**D-16**) | Decide `Task/029` · materializa `Task/030` · valida `Task/040` |
+| ***Baseline* de observabilidad del VPS**, incluida la notificación de fallo de backup | `Task/029`; validado en `Task/040`. **No** `Task/017` —local— ni `Task/031` —solo AWS— |
+| **Credenciales de CI hacia Cloudflare y el proveedor del VPS**, con *scopes* y rotación | `Task/039`. `Task/028` cubre **solo** GitHub → AWS |
+| **Guardas de destino multi-provider** antes de un `apply` real | `Task/039`, sobre las guardas de `Task/025` |
+| **Canal de migraciones en producción**: credencial, orden y protección contra ejecución accidental | `Task/038` |
 
 ---
 
@@ -282,7 +288,7 @@ capa de datos**.
 | V-09 | **Actualizaciones y parcheo** del sistema operativo, PostgreSQL y PgBouncer como práctica definida, no como reacción. |
 | V-10 | **Docker o el runtime que se use, con el mínimo privilegio razonable.** |
 | V-11 | **Monitoreo del espacio en disco** y de los recursos: un disco lleno detiene PostgreSQL y puede impedir el propio backup. |
-| V-12 | **Backups cifrados y fuera del host**, con credenciales de mínimo privilegio hacia el destino. |
+| V-12 | **Backups cifrados y fuera del host**, con credenciales de mínimo privilegio hacia el destino — **escritura sobre un prefijo concreto**, sin lectura ni borrado del resto. El **mecanismo de identidad** es **D-16**, abierta: el compromiso del VPS **no debe** implicar el compromiso de la cuenta AWS. |
 | V-13 | **El compromiso del VPS se trata como exposición de datos**, no como una incidencia de servicio. |
 
 ### 9.2 No hay *security through obscurity*

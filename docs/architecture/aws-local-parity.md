@@ -43,12 +43,13 @@ Esa frase es la meta completa. Se descompone en cuatro propósitos concretos:
 - **No** implementa Floci, ni Terraform, ni ningún recurso.
 - **No** fija una versión de Floci (§5.4).
 - **No** resuelve **D-01** (modelo y proveedor de PostgreSQL de producción). El **modelo** lo
-  propone `Task/005.3` — **VPS externo autogestionado**, ver §8 —; el **proveedor** sigue en
-  `Task/029`.
+  **resolvió** `Task/005.3`, **aprobada** el 2026-08-15 — **VPS externo autogestionado**, ver
+  §8 —; el **proveedor** sigue en `Task/029`.
 - **No** resuelve **D-06** (backend de estado de Terraform, `Task/025`).
-- **No** sustituye la arquitectura objetivo de producción, que sigue siendo la de
-  [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) y la del diagrama
-  `images/Infraestructura.png`.
+- **No** sustituye la arquitectura objetivo de producción, que es la de
+  [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) **modificada en su capa de datos
+  por** [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), y cuya representación
+  canónica vigente es el diagrama de §3.3 de este documento.
 - **No** promete paridad completa con AWS. Ninguna afirmación de paridad de este documento
   está probada todavía: la matriz de §7 nace entera en estado *No evaluada*.
 
@@ -109,14 +110,19 @@ comportamiento de AWS.
 
 ### 3.3 Modo C — AWS real (arquitectura objetivo de producción)
 
-Es la arquitectura que ya está acordada y dibujada. La representación canónica es el
-diagrama versionado del usuario:
+Es la arquitectura que ya está acordada. **La representación canónica vigente es el
+diagrama Mermaid de este apartado**, que incorpora
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada** el 2026-08-15).
 
-**[`images/Infraestructura.png`](../../images/Infraestructura.png) — arquitectura objetivo
-AWS / producción.**
+> **Sobre el diagrama versionado.**
+> [`images/Infraestructura.png`](../../images/Infraestructura.png) representa la
+> **arquitectura objetivo inicial, anterior a `Task/005.3`**, cuando PostgreSQL
+> administrado todavía era la vía prevista. Se conserva como **registro histórico** y
+> **no se modifica, no se regenera, no se mueve y no se reemplaza**. **Ya no es la
+> autoridad canónica de la capa de datos de producción**: para eso rigen el diagrama de
+> abajo y [production-postgresql-vps.md](production-postgresql-vps.md) §3.
 
-Ese diagrama **no se modifica, no se regenera, no se mueve y no se reemplaza** por este
-trabajo. Floci **no lo sustituye**: Floci añade la vista del Modo B, que es un
+Floci **no sustituye** ninguna de las dos: añade la vista del Modo B, que es un
 *laboratorio*, no un destino.
 
 ```mermaid
@@ -573,10 +579,26 @@ La implementación futura **debe** incluir guardas *fail-closed*. Conceptualment
 | G-04 | **Credenciales ficticias** | Detectar y rechazar credenciales con forma de credencial real en el flujo local. |
 | G-05 | **Validación del destino previa a `apply` y `destroy`** | Un paso de comprobación que se ejecuta **antes**, no un aviso posterior. |
 
+#### Extensión multi-provider — registrada en `Task/005.5`
+
+G-01 a G-05 nacieron pensando en un único destino equivocado posible: **AWS real**. Desde
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), Terraform pasa a ser
+**multi-provider**, y el mismo tipo de error puede ocurrir con los otros dos. El principio
+no cambia; su alcance sí:
+
+> Antes de un `apply` o un `destroy`, debe verificarse **el destino esperado de cada
+> provider implicado**: **cuenta AWS**, **proyecto/zona de Cloudflare** y
+> **proyecto/región del proveedor del VPS**. Cualquier discrepancia **aborta**.
+
+Esto **no se implementa aquí ni se convierte en código Terraform ahora**. Es un requisito
+con propietarios explícitos: **`Task/025`** para el destino local/AWS y **`Task/039`** para
+extenderlo a Cloudflare y al VPS en la automatización.
+
 **Nada de esto se implementa en `Task/005.2`.** Queda registrado como **requisito** para:
 
 - **`Task/025-Terraform-Cloud`** — las guardas técnicas.
 - **`Task/026-Runbooks-de-Despliegue`** — el procedimiento escrito que las ejerce.
+- **`Task/039-Automatizar-Terraform`** — la extensión multi-provider en CI.
 
 Es coherente con la regla ya vigente de que **ninguna automatización ejecuta
 `terraform destroy`** ([security-boundaries.md](security-boundaries.md) §3).
@@ -787,14 +809,15 @@ argumento a favor de la regla de portabilidad de §4.
 - [Arquitectura — visión general](overview.md)
 - [Correspondencia local → nube](local-to-cloud-mapping.md)
 - [Límites de seguridad](security-boundaries.md)
-- [Decisiones diferidas](open-decisions.md) — **D-06** abierta; **D-14 Resuelta**; **D-01**
+- [Decisiones diferidas](open-decisions.md) — **D-06** abierta; **D-14 Resuelta**;
   **D-01 Resuelta** (modelo) por `Task/005.3`
 - [PostgreSQL de producción en VPS](production-postgresql-vps.md) ·
   [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**
 - [ETAPA 08 — Preparación Cloud + AWS Local Parity](../stages/STAGE-08-cloud-ready.md)
 - [ETAPA 10 — Despliegue Cloud](../stages/STAGE-10-cloud-deployment.md)
 - [ETAPA 11 — Automatización de Despliegues](../stages/STAGE-11-deployment-automation.md)
-- `images/Infraestructura.png` — arquitectura objetivo AWS / producción
+- `images/Infraestructura.png` — arquitectura objetivo **inicial**, anterior a ADR-007.
+  Registro histórico; **no es la autoridad canónica vigente** (§3.3)
 
 **Oficiales de Floci, consultadas el 2026-08-15:**
 

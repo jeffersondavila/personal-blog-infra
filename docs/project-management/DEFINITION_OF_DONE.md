@@ -107,10 +107,27 @@ sin evidencia de RED y GREEN no hay ciclo TDD, solo pruebas escritas a posterior
 - Los servicios son visibles y sanos en Portainer.
 
 ### Tareas de infraestructura cloud
-- `terraform fmt -check` y `terraform validate` sin errores.
-- `terraform plan` revisado y sin cambios inesperados.
-- Ningún recurso creado sin autorización explícita del usuario.
-- Impacto en costo estimado y documentado.
+
+Actualizada en `Task/005.5`: la versión anterior era **anterior a ADR-006** y solo exigía
+sintaxis y `plan`. Se aplica **lo que corresponda al destino de la tarea**; un criterio que
+no aplique se declara con su razón.
+
+| # | Criterio |
+| --- | --- |
+| C-1 | `terraform fmt -check` y `terraform validate` sin errores. |
+| C-2 | **Destino explícito y verificado antes de actuar**: local o AWS real. Sin declaración, no se ejecuta. |
+| C-3 | **Guardas *fail-closed*** operativas antes de cualquier `apply` o `destroy` ([security-boundaries](../architecture/security-boundaries.md) §8.2). |
+| C-4 | `terraform plan` revisado y **sin cambios inesperados**. |
+| C-5 | **Evidencia registrada distinguiendo emulación de validación real.** Lo observado en el laboratorio es *hipótesis*; solo AWS real *valida*. Prohibido el estado «paridad completa». |
+| C-6 | **Matriz de paridad actualizada** cuando la tarea toque un recurso que figure en ella. |
+| C-7 | **Estado de Terraform** en el backend acordado (**D-06**), sin dejarlo suelto. |
+| C-8 | Ningún recurso creado sin **autorización explícita del usuario**. |
+| C-9 | **Recursos realmente creados** enumerados y contrastados con lo planificado. |
+| C-10 | **Impacto en costo** estimado y documentado, con precios vigentes. |
+| C-11 | Ningún secreto versionado y **ninguna credencial cloud real usada contra el emulador**. |
+
+> **C-5 es el criterio que no debe relajarse.** Es la defensa concreta contra **R-20**: un
+> laboratorio en verde no demuestra que AWS funcionará.
 
 ### Tareas de CI
 - El workflow se ejecuta y termina en verde.

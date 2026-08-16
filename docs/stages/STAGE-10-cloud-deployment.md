@@ -57,9 +57,9 @@ laboratorio se corrige.
 
 | Tarea | Contenido | Depende de |
 | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. | `Task/029` |
-| `Task/031-Desplegar-SSM-y-CloudWatch` | Parámetros, grupos de logs, retención, alarmas mínimas. | `Task/029` |
-| `Task/032-Desplegar-AWS-Lambda` | Función, rol IAM, configuración, memoria y timeout. | `Task/030`, `Task/031` |
+| `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. **Destino y retención de los backups del VPS**, **materialización de la identidad decidida en D-16** y **validación de `S3Storage` contra S3 real**. Resuelve **D-08**. | `Task/029` |
+| `Task/031-Desplegar-SSM-y-CloudWatch` | Parámetros, grupos de logs, retención, alarmas mínimas. **Alcance exclusivamente AWS: no observa el VPS.** | `Task/029` |
+| `Task/032-Desplegar-AWS-Lambda` | Función, rol IAM, configuración, memoria y timeout. ***Reserved Concurrency*** coherente con el pool de PgBouncer, **RTT real `Lambda → PgBouncer` medido** y *wiring* de `S3Storage`. | `Task/030`, `Task/031` |
 | `Task/033-Desplegar-API-Gateway` | HTTP API, rutas, CORS, throttling. | `Task/032` |
 | `Task/034-Desplegar-Cloudflare-Pages` | Build de React, variables, dominio. | `Task/033` |
 | `Task/035-Configurar-DNS` | Dominio principal, `www`, `api`, `media` si corresponde. | `Task/034` |
@@ -79,6 +79,11 @@ laboratorio se corrige.
 - [ ] El dominio resuelve por HTTPS con certificado válido.
 - [ ] Existe contenido real publicado y visible en el sitio.
 - [ ] El costo real observado coincide con lo estimado.
+- [ ] El **destino de backups del VPS** existe en S3, con su política, su retención y el
+      **principal de acceso** derivado de **D-16**, sin credenciales versionadas.
+- [ ] `S3Storage` —cuyo código entrega `Task/010`— **funciona contra S3 real**.
+- [ ] La **`Reserved Concurrency`** de la Lambda es coherente con el pool de PgBouncer y con
+      `max_connections`, según los números derivados en `Task/029`.
 - [ ] Los módulos aplicados son los **validados en `Task/025`**, no módulos nuevos.
 - [ ] La **matriz de paridad** queda actualizada con evidencia real de AWS, recurso a
       recurso y con la clasificación de diferencias.

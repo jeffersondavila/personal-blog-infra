@@ -50,10 +50,11 @@ una vez que hay dominio construido encima.
 **Ficha:** [TASK-005](../tasks/TASK-005-fastapi-backend-foundation.md) ·
 **Reporte:** [TASK-005-report](../task-reports/TASK-005-report.md)
 
-> **Aprobada** por el usuario el 2026-08-12. El pull request `Task/005 → main` está
-> **abierto y sin fusionar** en backend e infra. Su alcance excluye deliberadamente
-> `/ready` (`Task/017`), CORS (`Task/007`), el modelo de datos (`Task/008`) y la
-> autenticación (`Task/011`).
+> **Aprobada** por el usuario el 2026-08-12. Los pull request `Task/005 → main` —`#2` en
+> backend y `#6` en infra— fueron **fusionados** el 2026-08-13 y la normalización
+> `main → dev` está **completada**. Su alcance excluye deliberadamente `/ready`
+> (`Task/017`), CORS (`Task/007`), el modelo de datos (`Task/008`) y la autenticación
+> (`Task/011`).
 
 ### `Task/006-Fundacion-Frontend-React` — *Pendiente*
 
@@ -70,6 +71,16 @@ una vez que hay dominio construido encima.
 - Integrar frontend, backend, PostgreSQL y MinIO en un único Compose.
 - Reverse proxy local con rutas para sitio y API.
 - Supervisión del conjunto desde Portainer.
+
+> **Límite con `Task/010`** (aclarado en `Task/005.5`). `Task/007` integra MinIO **a nivel
+> de infraestructura**: contenedor, red, nombre de servicio, healthcheck y configuración
+> **disponible** para el backend. **No exige —ni permite— que el backend implemente lógica
+> de objetos**, y **prohíbe** un acceso directo temporal de FastAPI a MinIO que después
+> habría que sustituir. El uso aplicativo del almacenamiento llega con la interfaz
+> `ObjectStorage`, en `Task/010`.
+>
+> Criterio práctico: al terminar `Task/007`, MinIO debe estar **levantado, sano y
+> alcanzable**; el backend **no debe haber leído ni escrito un solo objeto**.
 
 **Depende de:** `Task/005` y `Task/006`.
 **Repositorios:** `personal-blog-infra`, `personal-blog-frontend`, `personal-blog-backend`.

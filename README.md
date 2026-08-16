@@ -32,22 +32,27 @@ Repositorios hermanos:
 
 - **ETAPA 00 — Fundación y Gobierno: completada** (2 de 2 tareas aprobadas).
 - **ETAPA 01 — Infraestructura Local: completada** (2 de 2 tareas aprobadas).
-- **Etapa siguiente:** ETAPA 02 — Fundaciones de las Aplicaciones.
-- **Última tarea aprobada:** `Task/004-Backups-y-Recuperacion-Local` (2026-07-31). Su PR
-  `Task/004 → main` queda pendiente de revisión y fusión del usuario.
-- **Próxima tarea:** `Task/005-Fundacion-Backend-FastAPI` — *Pendiente, no iniciada*.
-  Será el **primer código de aplicación** del proyecto.
-- **Tareas aprobadas:** 4 de 41 (10 %).
+- **Etapa actual:** **ETAPA 02 — Fundaciones de las Aplicaciones**, *en curso* (1 de 3).
+- **Última tarea aprobada:** `Task/005-Fundacion-Backend-FastAPI` (2026-08-12). Sus PR `#2`
+  (backend) y `#6` (infra) fueron **fusionados** el 2026-08-13 y normalizados.
+- **Último mantenimiento aprobado:** `Task/005.4-Corregir-Base-Ramas-Task-Main`
+  (2026-08-15); PR `#10` **fusionado** el 2026-08-16 y normalizado.
+- **Mantenimiento en curso:** `Task/005.5-Alinear-Planificacion-Tras-Auditoria` —
+  *Lista para validación*.
+- **Próxima tarea del roadmap:** `Task/006-Fundacion-Frontend-React` — *Pendiente, no
+  iniciada*. Será el **primer código React** del proyecto.
+- **Tareas aprobadas:** 5 de 41 (12 %).
 
 Estado de la implementación:
 
 | Área | Estado |
 | --- | --- |
 | **Infraestructura local** | **Completa y respaldada.** `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE (`Task/003`), más respaldo y recuperación verificados (`Task/004`). |
-| **Backend** (FastAPI) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/005`. |
+| **Backend** (FastAPI) | **Base profesional entregada y aprobada** (`Task/005`): FastAPI con Python 3.12, configuración tipada, logging JSON en UTC, `GET /health`, OpenAPI, SQLAlchemy 2 con psycopg 3, Alembic y suite de pruebas. **La funcionalidad del blog empieza en `Task/008`.** |
 | **Frontend** (React) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/006`. |
 | **Terraform e infraestructura cloud** | **No existen.** Sin archivos `.tf`. Empieza en `Task/025`. |
 | **Recursos cloud y cuentas** | **Ninguno creado.** Etapas 09 y 10. |
+| **VPS de producción** | **No contratado.** Modelo decidido (`ADR-007`); proveedor en `Task/029`. |
 
 Consulta siempre [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md)
 para el estado vigente.
