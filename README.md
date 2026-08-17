@@ -35,10 +35,12 @@ Repositorios hermanos:
 - **Etapa actual:** **ETAPA 02 — Fundaciones de las Aplicaciones**, *en curso* (1 de 3).
 - **Última tarea aprobada:** `Task/005-Fundacion-Backend-FastAPI` (2026-08-12). Sus PR `#2`
   (backend) y `#6` (infra) fueron **fusionados** el 2026-08-13 y normalizados.
-- **Último mantenimiento aprobado:** `Task/005.4-Corregir-Base-Ramas-Task-Main`
-  (2026-08-15); PR `#10` **fusionado** el 2026-08-16 y normalizado.
-- **Mantenimiento en curso:** `Task/005.5-Alinear-Planificacion-Tras-Auditoria` —
-  *Lista para validación*.
+- **Último mantenimiento aprobado:** `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion`
+  (2026-08-16). Anteriores: `Task/005.6`, `Task/005.5`, `Task/005.4`, `Task/005.3`,
+  `Task/005.2`, `Task/005.1`. Ninguno cuenta en las 41 tareas.
+- **Mantenimiento en curso:** ninguno.
+  *(Actualizado en `Task/005.7`: aquí se nombraba `Task/005.4` como último mantenimiento
+  aprobado y `Task/005.5` como en curso; ambas quedaron aprobadas después.)*
 - **Próxima tarea del roadmap:** `Task/006-Fundacion-Frontend-React` — *Pendiente, no
   iniciada*. Será el **primer código React** del proyecto.
 - **Tareas aprobadas:** 5 de 41 (12 %).

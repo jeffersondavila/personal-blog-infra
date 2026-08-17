@@ -23,8 +23,26 @@ indent_size = 2
 indent_size = 2
 end_of_line = lf
 
-[*.{ps1,psm1}]
+; PowerShell: LF, igual que el resto del proyecto.
+;
+; Hasta Task/005.7 aqui ponia `crlf`, en contradiccion directa con
+; `.gitattributes`, que declara `*.ps1 text eol=lf` desde Task/005.6. Git escribia
+; LF en el arbol de trabajo y el editor pretendia CRLF: el archivo quedaba
+; modificado con solo abrirlo y guardarlo. Los scripts de `scripts/backup/` ya
+; viven en LF en el indice y PowerShell 5.1 y 7 los interpretan sin problema.
+;
+; La politica canonica de finales de linea es `.gitattributes`; este archivo debe
+; seguirla, nunca contradecirla.
+[*.{ps1,psm1,psd1}]
 indent_size = 4
+end_of_line = lf
+
+; Excepcion tecnica: `cmd.exe` puede interpretar mal etiquetas y `goto` si el
+; archivo llega con LF. `.gitattributes` declara `eol=crlf` para estas
+; extensiones; sin esta seccion, el `[*]` de arriba impondria LF desde el editor
+; y volveria a haber dos politicas para el mismo archivo. No existe ningun `.bat`
+; ni `.cmd` hoy: la regla evita que el primero que aparezca nazca roto.
+[*.{bat,cmd}]
 end_of_line = crlf
 
 [Makefile]

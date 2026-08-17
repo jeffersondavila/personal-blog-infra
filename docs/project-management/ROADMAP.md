@@ -2,8 +2,8 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-08-16 (`Task/005.6` — cierre de fundaciones tras la mega
-  auditoría)
+- **Última actualización:** 2026-08-16 (`Task/005.7` — cierre de los hallazgos finales de
+  certificación)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -21,9 +21,19 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > Ninguna tarea puede marcarse `Aprobada` sin autorización explícita del usuario.
 
 > **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`,
-> `Task/005.2`, `Task/005.3`, `Task/005.4`, `Task/005.5`, `Task/005.6`, …) son mantenimiento
-> de gobierno: **no forman parte de estas 41** y **no alteran el avance**. Su estado se
-> registra en [`STATUS.md`](STATUS.md).
+> `Task/005.2`, `Task/005.3`, `Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`, …) son
+> mantenimiento de gobierno: **no forman parte de estas 41** y **no alteran el avance**. Su
+> estado se registra en [`STATUS.md`](STATUS.md).
+
+> **Cierre de los hallazgos finales de certificación — `Task/005.7` (2026-08-16).**
+> Mantenimiento transversal previo a `Task/006`, sobre la mega auditoría final de Claude y
+> Codex. Ambos reprodujeron los **mismos dos defectos** de la fundación de testing y
+> discreparon en severidad; se adoptó **el criterio más estricto**: corregirlos, no
+> diferirlos. Queda cerrado que un `.env` del desarrollador no puede alterar la suite **ni
+> durante la *collection***, y que las *fixtures* oficiales de integración no entregan acceso
+> a PostgreSQL ni a Alembic antes de validar el destino. La concurrencia de la suite queda
+> **diferida con propietario explícito** (**R-37**, `Task/020`). **0 funcionalidad nueva**,
+> **41 identificadores intactos** y avance **sin cambios**.
 
 > **Cierre de fundaciones — `Task/005.6` (2026-08-16).** Mantenimiento transversal previo a
 > `Task/006`: política de finales de línea en los tres repositorios, aislamiento de la suite
@@ -371,6 +381,7 @@ avance_global = tareas_aprobadas_totales  / 41
 Actualmente: `5 / 41 = 12 %`.
 
 Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`,
-`Task/005.4`, `Task/005.5`, `Task/005.6`) **no entran en el numerador ni en el denominador**.
+`Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`) **no entran en el numerador ni en el
+denominador**.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

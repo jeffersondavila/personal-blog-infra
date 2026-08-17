@@ -15,7 +15,13 @@
 ## Objetivo
 
 Que cada cambio aprobado llegue a la nube de forma automática, reproducible y
-controlada, sin credenciales permanentes y sin destrucción automática de recursos.
+controlada, **sin credenciales permanentes en el canal GitHub Actions → AWS** (OIDC,
+`Task/028`) y sin destrucción automática de recursos.
+
+> *(Acotado en `Task/005.7`: aquí se leía «sin credenciales permanentes» sin sujeto, lo
+> que contradecía la aclaración de la propia etapa más abajo. El mecanismo de Cloudflare
+> y del proveedor del VPS es de `Task/039` y **D-16 sigue abierta**: pueden no admitir
+> OIDC.)*
 
 ## Por qué esta etapa existe
 
