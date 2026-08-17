@@ -262,6 +262,12 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m mypy
 
 # Pruebas (la integración necesita PostgreSQL en marcha)
+#
+# ⚠️ HISTÓRICO — NO EJECUTAR ESTA LÍNEA CONTRA LA BASE DE DESARROLLO.
+# La línea de abajo apunta a `personal_blog`, tal y como se escribió en Task/005.
+# La política vigente desde Task/005.6 exige `personal_blog_test`, con la marca
+# `personal-blog:test-database`, y la guarda fail-closed RECHAZA hoy este destino.
+# Comando vigente: runbook local-environment.md §9.4.
 $env:PERSONAL_BLOG_TEST_DATABASE_URL = "postgresql://<usuario>:<clave>@127.0.0.1:55432/personal_blog"
 .\.venv\Scripts\python.exe -m pytest --cov --cov-report=term-missing
 

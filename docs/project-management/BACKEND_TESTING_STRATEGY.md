@@ -262,13 +262,83 @@ el defecto real —una migración que crea un objeto y olvida soltarlo en su `do
 sigue siendo válido con cualquier número de tablas. La revisión `head` se lee del directorio
 de scripts, nunca se fija en el código de la prueba.
 
-#### 8.3.5 Aislamiento del `.env` del desarrollador
+#### 8.3.5 Aislamiento del `.env` del desarrollador — desde la *collection*
 
-Las pruebas **no leen** el `.env` de la máquina. Hacen falta **dos** mecanismos, porque uno
-solo no basta: limpiar las variables `BLOG_*` del entorno **y** construir la configuración
-con `_env_file=None`. `pydantic-settings` lee el archivo `.env` del directorio de trabajo
-aunque no haya ninguna variable en el entorno; sin el segundo mecanismo, todo campo que la
-prueba no fije explícitamente se toma de la máquina y la suite deja de ser determinista.
+> **Ampliado en `Task/005.7`** (`CERT-AUD-001`). Hasta entonces esta sección describía dos
+> mecanismos que solo cubrían el **cuerpo** de las pruebas.
+
+Las pruebas **no leen** el `.env` de la máquina, y la garantía empieza en la **collection**,
+no en la primera *fixture*.
+
+| # | Mecanismo | Qué cubre |
+| --- | --- | --- |
+| **1** | El paquete `tests` neutraliza el dotenv para **todo el proceso** (`env_file=None` en `model_config`) y limpia el entorno antes de que pytest coleccione nada. | *Collection*, imports, `get_settings()`, ruta de integración. |
+| **2** | Una *fixture* `autouse` deja el entorno de cada prueba en el mismo estado controlado. | Aislamiento entre pruebas. |
+| **3** | La *factory* de configuración construye con `_env_file=None`. | Configuración explícita de cada prueba. |
+
+**Por qué el mecanismo 1 es imprescindible y no lo sustituye ningún `autouse`.** Las
+*fixtures* se ejecutan **después** de la *collection*. `app/main.py` construye la instancia
+ASGI **al importarse** —arranque fail-fast, requisito T-01—, así que cualquier import de ese
+módulo durante la *collection* resuelve la configuración con el `.env` que haya en el
+directorio de trabajo. Se reprodujo: un `.env` intruso cambiaba `app_name`, `log_level` y
+`app_debug` del proceso de pruebas. Ninguna *fixture* llega a tiempo de impedirlo.
+
+Reglas vigentes:
+
+- **El harness no importa `app.main` durante la *collection*.** Ese import vive dentro de la
+  *fixture* que construye la aplicación. Es una segunda capa independiente del mecanismo 1:
+  perder una en una refactorización no reabre el defecto.
+- **La regresión se ejecuta en un subproceso limpio**, desde un directorio de trabajo propio
+  con un `.env` intruso. Es la única forma de observar la *collection* desde fuera y de no
+  depender del `.env` real ni del *cwd* habitual del repositorio.
+- **Toda prueba de aislamiento lleva su guarda anti-tautología**: se demuestra que el `.env`
+  intruso **sí** es legible sin el aislamiento. Sin eso, un archivo colocado en una ruta
+  equivocada haría pasar la prueba sin probar nada.
+- **La ruta de integración también es hermética.** Las *fixtures* que dejan el proceso
+  apuntando a la base real fijan la URL de destino y nada más: el resto de campos `BLOG_*` no
+  se heredan de ningún archivo.
+- **No se cambia el comportamiento de producción para que pasen las pruebas.** La aplicación
+  real sigue leyendo su `.env`; lo que se aísla es el **harness**.
+
+**Alcance de la garantía:** el harness oficial. No se afirma que ningún código Python
+imaginable pueda leer un `.env`; se afirma que **arrancar y ejecutar esta suite no lo hace**.
+
+#### 8.3.6 El harness de integración es *fail-closed* por construcción
+
+> **Vigente desde `Task/005.7`** (`CERT-AUD-002`).
+
+**Garantía exacta, y es la única que puede afirmarse:**
+
+> Ninguna *fixture* del harness oficial de integración entrega `Settings`, `Engine`,
+> `Session`, conexión o `Config` de Alembic apuntando al destino de integración **antes** de
+> haber verificado que ese destino es seguro.
+
+**Lo que NO se afirma** —sería falso y la documentación no debe prometer más protección de la
+que existe—: que resulte imposible que código Python arbitrario abra una conexión a otra base.
+`create_engine` está al alcance de quien lo escriba. La protección es del **harness**, que es
+donde una prueba futura se equivocaría por accidente.
+
+Reglas de diseño que hacen cumplible esa garantía:
+
+| Regla | Motivo |
+| --- | --- |
+| **Un único resolutor del destino** | Una sola *fixture* convierte `PERSONAL_BLOG_TEST_DATABASE_URL` en configuración y motor, y **verifica antes de hacer `yield`**. Todo lo demás se deriva de ella. |
+| **No coexisten una ruta segura y otra insegura** | Que `database_engine` verificara no bastaba mientras `database_settings` entregara la configuración sin verificar: el harness ofrecía dos caminos y confiaba en que nadie tomara el malo. Se reprodujo ejecutando DDL contra una base `_test` **sin marca**. |
+| **Las dos barreras se comprueban antes de exponer nada** | Sufijo `_test` en el nombre **y** marca `personal-blog:test-database` dentro de la base. Si algo no puede demostrarse, **`FAIL`**. |
+| **`personal_blog` no es alcanzable como destino destructivo** | Su nombre no termina en `_test` y no lleva la marca: el rechazo ocurre **antes** de cualquier DDL, `downgrade` o migración. |
+| **La estructura se comprueba, no se confía** | Una prueba recorre el grafo de *fixtures* y exige que **todas** dependan del resolutor verificado. No necesita PostgreSQL levantado, así que se ejecuta siempre. |
+| **Los módulos del harness se descubren, no se enumeran** | El conjunto inspeccionado se obtiene **del directorio** `tests/integration/`, no de una lista escrita a mano. Una lista manual falla **abierta**: quien añade un módulo nuevo y no se acuerda de registrarlo pierde la protección en silencio — justo la convención humana que esta regla existe para eliminar. Con descubrimiento, un módulo entra en la comprobación por el hecho de existir. |
+| **El descubrimiento tiene su propia guarda** | Se exige que encuentre los módulos y las *fixtures* ya conocidos. Sin eso, un descubrimiento roto dejaría el conjunto vacío y la comprobación pasaría **sin haber inspeccionado nada**. |
+
+#### 8.3.7 Concurrencia — pendiente, con propietario
+
+**La suite de integración NO es segura para ejecución concurrente sobre la misma base**
+(`CERT-AUD-009`, riesgo **R-37**): nombre de tabla auxiliar fijo, `downgrade base` sobre
+esquema compartido y mutación de entorno y cachés de proceso.
+
+Hoy **no hay ejecución paralela oficial** —`pytest-xdist` no está instalado— así que el
+riesgo no es explotable. **Propietario: `Task/020-CI-Backend`.** Debe resolverse **antes** de
+habilitar cualquier paralelismo; habilitarlo es lo que activa el riesgo.
 
 ---
 

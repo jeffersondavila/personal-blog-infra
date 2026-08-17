@@ -210,8 +210,9 @@ docker compose restart
 
 > **Nunca ejecutes `docker compose down -v` salvo que quieras destruir los datos.**
 > La bandera `-v` elimina los volúmenes: base de datos, objetos de MinIO y
-> configuración de Portainer. El procedimiento de respaldo y recuperación se define en
-> `Task/004-Backups-y-Recuperacion-Local`; hasta entonces, **no hay backup**.
+> configuración de Portainer. Antes de hacerlo, **toma una copia** con el procedimiento de
+> [local-backup-and-recovery.md](local-backup-and-recovery.md) (`Task/004`, aprobada).
+> *(Corregido en `Task/005.7`: aquí se leía «hasta entonces, no hay backup».)*
 
 ---
 
@@ -357,8 +358,11 @@ Los mismos logs, volúmenes y redes son visibles gráficamente en Portainer
 ## 8. Reconstrucción desde cero
 
 > **Destruye todos los datos locales.** El procedimiento completo de respaldo previo y
-> recuperación se define en `Task/004-Backups-y-Recuperacion-Local`. Hasta que esa tarea
-> esté aprobada, esto no es recuperable.
+> recuperación está disponible y validado en
+> [local-backup-and-recovery.md](local-backup-and-recovery.md) (`Task/004`, aprobada):
+> toma una copia **antes** de ejecutar lo siguiente.
+> *(Corregido en `Task/005.7`: aquí se condicionaba la recuperabilidad a que `Task/004`
+> estuviera aprobada, cosa que ya ocurrió.)*
 
 ```powershell
 docker compose down -v
@@ -475,7 +479,7 @@ docker exec personal-blog-local-postgres `
 | Esquema de base de datos y migraciones | Existe la **migración fundacional** de `Task/005`: `personal_blog` tiene `alembic_version` y **ninguna tabla de negocio**. El modelo del blog llega en `Task/008`. *(Corregido en `Task/005.6`: aquí se leía «No existen. La base está vacía».)* | `Task/008` |
 | Base de datos de pruebas | `personal_blog_test`, dedicada y descartable (sección 9). | `Task/005.6` |
 | Buckets de la aplicación | No se crea ninguno. | `Task/010` |
-| Backup y restauración | No existen. | `Task/004` |
+| Backup y restauración | **Disponibles en local.** `Task/004` está aprobada: `scripts/backup/` genera copias de PostgreSQL, MinIO y Portainer, y el procedimiento de restauración está validado. Ver [local-backup-and-recovery.md](local-backup-and-recovery.md). **No cubre producción**, que llega con `Task/029` y la ETAPA 10. *(Corregido en `Task/005.7`: aquí se leía «No existen», que dejó de ser cierto al aprobarse `Task/004`.)* | `Task/004` (local) |
 | TLS real | No hay. Portainer usa un certificado autofirmado. | No aplica en local |
 | Control de solo lectura sobre la Docker API | **No existe.** El `:ro` del socket no lo proporciona (sección 2.1). Requeriría un socket proxy o una política adicional. | Fuera del alcance actual; a evaluar en `Task/018` |
 | Recursos cloud | **Ninguno.** | Etapas 09 y 10 |
