@@ -67,6 +67,7 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/005.4-Corregir-Base-Ramas-Task-Main` *(mantenimiento)* | [TASK-005.4-report.md](TASK-005.4-report.md) | Aprobada (2026-08-15) |
 | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` *(mantenimiento)* | [TASK-005.5-report.md](TASK-005.5-report.md) | Aprobada (2026-08-16) |
 | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` *(mantenimiento)* | [TASK-005.6-report.md](TASK-005.6-report.md) | Aprobada (2026-08-16) |
+| `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` *(mantenimiento)* | [TASK-005.7-report.md](TASK-005.7-report.md) | Aprobada (2026-08-16) |
 
 > Las tareas de **mantenimiento** llevan sufijo (`005.1`, `005.2`, `005.3`, `005.4`,
-> `005.5`, `005.6`) y **no cuentan** dentro de las 41 tareas del roadmap.
+> `005.5`, `005.6`, `005.7`) y **no cuentan** dentro de las 41 tareas del roadmap.

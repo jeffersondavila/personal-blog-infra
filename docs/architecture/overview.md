@@ -133,7 +133,13 @@ Estrategia completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente** 
 1. **Local-first.** Nada se despliega antes de estar validado en local.
 2. **Paridad local–nube por interfaz, no por servicio.** El código habla con
    abstracciones (`ObjectStorage`), no con MinIO ni con S3 directamente.
-3. **Costo como restricción de diseño.** Sin servicios de costo fijo mensual.
+3. **Costo como restricción de diseño.** Se evita **todo costo fijo mensual innecesario**:
+   la arquitectura escala a cero y no se paga por capacidad ociosa. La única excepción es
+   **consciente, acotada y presupuestada** — el **VPS de PostgreSQL** de producción
+   ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), **Aceptada**), cuyo costo se
+   asume a cambio de control operativo y de un gasto más predecible que el de una base
+   administrada. *(Corregido en `Task/005.7`: aquí se leía «Sin servicios de costo fijo
+   mensual», un absoluto que ADR-007 dejó de cumplir.)*
 4. **Configuración fuera del código.** `.env` en local, SSM Parameter Store en la nube.
 5. **Sin credenciales permanentes donde esté demostrado.** GitHub Actions accede a AWS
    mediante OIDC (`Task/028`). **No es todavía una propiedad global**: cómo se autentica el

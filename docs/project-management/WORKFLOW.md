@@ -276,8 +276,17 @@ Reglas:
 
 ### Estado actual de las ramas
 
-El estado real y vigente de las ramas se registra en [`STATUS.md`](STATUS.md).
-Debe verificarse con Git antes de iniciar o cerrar cualquier tarea.
+**La fuente viva del estado de las ramas es Git y GitHub, nunca un documento.** Antes de
+iniciar o cerrar una tarea se verifica con los comandos de §6.1, regla 3.
+
+`STATUS.md` registra el estado **duradero** del proyecto —tareas aprobadas, avance,
+decisiones— y puede citar un hecho transitorio siempre que lo feche como observación
+(§6.1, regla 2). No es donde se consulta qué ramas existen ahora mismo.
+
+> *(Corregido en `Task/005.7`: aquí se leía «el estado real y vigente de las ramas se
+> registra en `STATUS.md`», que contradecía la regla 3 de §6.1 —la que prohíbe leer el
+> estado transitorio de un documento— introducida en `Task/005.6`. Queda una sola regla
+> vigente.)*
 
 ---
 

@@ -9,15 +9,15 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.6` **aprobada** y cerrada; `Task/006` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/005.7` **aprobada** y cerrada; `Task/006` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
-| **Último mantenimiento aprobado** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` — **Aprobada** el 2026-08-16. Cierre de fundaciones tras dos mega auditorías. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.5-Alinear-Planificacion-Tras-Auditoria` — **Aprobada** el 2026-08-16, integrada en `main` y normalizada. No cuenta en las 41 tareas |
+| **Último mantenimiento aprobado** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` — **Aprobada** el 2026-08-16, integrada en `main` y normalizada. No cuenta en las 41 tareas |
 | **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**). **Nacerá desde `main`** actualizado, como toda rama Task |
 | **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | **34** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`) |
+| **Riesgos abiertos** | **35** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** añadido en `Task/005.7`, propietario `Task/020`) |
 | **Decisiones abiertas** | **13** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5` |
 
 > El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
@@ -103,7 +103,10 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 
 ---
 
-## Último mantenimiento aprobado — `Task/005.5`
+## Mantenimiento anterior aprobado — `Task/005.5`
+
+> *(Título corregido en `Task/005.7`: esta sección y la de `Task/005.6` se llamaban
+> ambas «Último mantenimiento aprobado». El contenido histórico no se altera.)*
 
 | Campo | Valor |
 | --- | --- |
@@ -146,7 +149,47 @@ el **mapa de responsabilidades transversales** del ROADMAP, la dependencia
 
 ---
 
-## Último mantenimiento aprobado — `Task/005.6`
+## Último mantenimiento aprobado — `Task/005.7`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` |
+| **Tipo** | **Mantenimiento transversal**: hermeticidad del harness de pruebas y *fail-closed* real de la integración |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-16 |
+| **Fecha de aprobación** | 2026-08-16 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` |
+| **Repositorios afectados** | `personal-blog-backend`, `personal-blog-infra`, `personal-blog-frontend` |
+| **Rama** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` en los tres |
+| **Rama base** | **`main`** en los tres. SHA base: infra `7c98f59` · backend `c36cd44` · frontend `5d2bef1`. Verificado `HEAD == main` inmediatamente después de crearlas |
+| **Origen** | Mega auditoría final independiente (Claude y Codex). Ambos reprodujeron los **mismos dos defectos**; discreparon en severidad (Claude: MEDIO, diferir · Codex: ALTO, baseline no certificada). Se adopta **deliberadamente el criterio más estricto**: corregir ahora |
+| **CERT-AUD-001** | **Cerrado.** El arranque de la suite ya no consume el `.env` del desarrollador, tampoco durante la *collection*. Dos capas independientes en `tests/` |
+| **CERT-AUD-002** | **Cerrado.** Un único resolutor verificado (`destino_de_integracion_verificado`) alimenta todas las fixtures de integración. No queda ruta oficial sin guarda |
+| **Comprobación estructural** | Los módulos del harness se **descubren** del directorio `tests/integration/`, no se enumeran a mano: añadir un módulo nuevo no exige recordar registrarlo. *(Corregido durante la validación del usuario: la lista manual fallaba **abierta** y ya omitía dos módulos existentes.)* |
+| **CERT-AUD-009** | **Diferido con propietario explícito**: `Task/020-CI-Backend`. Riesgo **R-37**. No se implementa paralelismo ahora |
+| **Implementación** | **0 funcionalidad de negocio.** `app/` **sin cambios**. 0 código frontend, 0 Terraform, 0 recursos cloud |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global y ETAPA 02 **sin cambios** |
+| **Ficha** | [TASK-005.7](../tasks/TASK-005.7-close-final-certification-findings.md) |
+| **Reporte** | [TASK-005.7-report](../task-reports/TASK-005.7-report.md) |
+
+Este mantenimiento **no modifica el conteo del roadmap**: el avance global permanece en
+**5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas. `Task/006` sigue
+**Pendiente y no iniciada**.
+
+Con esta aprobación quedan **vigentes**: el **arranque hermético** del harness de pruebas
+—la suite no consume el `.env` del desarrollador ni durante la *collection*—, la garantía
+***fail-closed*** del harness de integración con un **único resolutor verificado**, el
+**descubrimiento automático** de los módulos del harness en la comprobación estructural, la
+coherencia entre `.gitattributes` y `.editorconfig` en los tres repositorios y las secciones
+§8.3.5 – §8.3.7 de [BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md).
+
+El alcance de la garantía es el **harness oficial**, no Python arbitrario: la documentación
+no promete más protección de la que existe.
+
+---
+
+## Mantenimiento anterior aprobado — `Task/005.6`
 
 | Campo | Valor |
 | --- | --- |
@@ -441,6 +484,14 @@ Distribución por estado:
 | # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
 | --- | --- | --- | --- | --- | --- |
 | R-36 | **El log no tiene redacción automática de secretos.** `JsonLogFormatter` emite en `context` **todo** atributo propio del `LogRecord` y serializa las excepciones completas. La regla S-08 —«los logs no contienen contraseñas, tokens ni cadenas de conexión»— existe y se cumple hoy, pero depende de que **quien registra el evento** no pase un valor sensible: no hay ningún mecanismo que lo impida. Una excepción de driver o un `extra` descuidado pueden filtrar una credencial. Reproducido en `Task/005.6` por inspección del formateador. | Medio | **Deliberadamente NO se corrige en `Task/005.6`**: construir una política de redacción completa —lista de claves sensibles, patrones de token y URL, redacción en mensaje, contexto y traza— es trabajo de observabilidad y endurecimiento, no de cierre de fundaciones. Mitigación vigente: `database_url` está excluida de `repr` y solo se expone por `database_url_safe`, verificado en el contenedor real (`blog_local:***@`); `ConfigurationError` nombra campos, nunca valores. | `Task/017` (observabilidad, correlation ID y política de log) y `Task/018` (endurecimiento de seguridad) | **Abierto** |
+
+### Riesgo introducido por `Task/005.7` — concurrencia de la suite de integración
+
+> **Abierto y vigente** desde la aprobación de `Task/005.7` el 2026-08-16.
+
+| # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
+| --- | --- | --- | --- | --- | --- |
+| R-37 | **La suite de integración no es segura para ejecución concurrente sobre la misma base de datos** (`CERT-AUD-009`). Tres causas concretas, reproducidas por inspección en `Task/005.7`: (1) `tabla_de_pruebas` usa un **nombre fijo** —`prueba_transaccional_005_6`—, así que dos procesos se pisan la tabla y el `DROP` de uno rompe al otro; (2) `test_migrations` ejecuta **`alembic downgrade base` sobre el esquema compartido**, que revierte el esquema entero por debajo de cualquier otro test en vuelo; (3) las fixtures **mutan estado de proceso** —`os.environ["BLOG_DATABASE_URL"]`, `get_settings.cache_clear()`, `dispose_engine()`—, que es seguro entre procesos pero no entre hilos. | Medio | **Deliberadamente NO se corrige en `Task/005.7`.** Hoy no hay ejecución paralela oficial: `pytest-xdist` **no está instalado** y el único flujo de integración esperado es secuencial, así que el riesgo **no es explotable en el estado actual**. Construir aislamiento por trabajador —esquema o base por *worker*, nombres de tabla derivados del `worker_id`, aislamiento del estado de proceso— es diseño de CI, no cierre de fundaciones, y hacerlo ahora sería sobrediseñar sin un consumidor real. **Debe revisarse antes de habilitar cualquier ejecución paralela**, y la decisión de habilitarla es lo que activa este riesgo. | `Task/020-CI-Backend` — propietaria de la concurrencia de CI del backend | **Abierto** |
 
 ### Riesgos introducidos por `Task/005.2` — AWS Local Parity
 
