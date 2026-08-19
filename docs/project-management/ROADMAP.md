@@ -2,8 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-08-16 (`Task/005.7` — cierre de los hallazgos finales de
-  certificación)
+- **Última actualización:** 2026-08-18 (`Task/006` — fundación del frontend, **Aprobada**)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -12,7 +11,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   PgBouncer — ver
   [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) y
   [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**)
-- **Avance global:** **12 %** (5 de 41 tareas aprobadas)
+- **Avance global:** **15 %** (6 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -58,7 +57,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | --- | --- | --- | --- | --- | --- | --- |
 | 00 | Fundación y Gobierno | 2 | 2 | 100 % | **Completada** | — |
 | 01 | Infraestructura Local | 2 | 2 | **100 %** | **Completada** | 00 ✔ |
-| 02 | Fundaciones de las Aplicaciones | 3 | 1 | **33 %** | **En curso** | 01 ✔ |
+| 02 | Fundaciones de las Aplicaciones | 3 | 2 | **67 %** | **En curso** | 01 ✔ |
 | 03 | Dominio y Backend | 5 | 0 | 0 % | Pendiente | 02 |
 | 04 | Experiencia del Usuario | 3 | 0 | 0 % | Pendiente | 03 |
 | 05 | Calidad y Seguridad | 3 | 0 | 0 % | Pendiente | 04 |
@@ -69,7 +68,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **5** | **12 %** | | |
+| | **Total** | **41** | **6** | **15 %** | | |
 
 ---
 
@@ -127,12 +126,12 @@ infraestructura local.
 **Dependencias:** Etapa 01.
 **Hito que completa:** *Frontend y backend arrancan e integran contra PostgreSQL y MinIO.*
 **Ficha:** [STAGE-02-application-foundations.md](../stages/STAGE-02-application-foundations.md)
-**Estado:** **En curso** desde el 2026-08-01. **1 de 3** tareas aprobadas.
+**Estado:** **En curso** desde el 2026-08-01. **2 de 3** tareas aprobadas.
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/005-Fundacion-Backend-FastAPI` | Base profesional de FastAPI. Configuración. Logging. PostgreSQL. Alembic. Pruebas. Dockerfile. | backend, infra (documentación) | 004 | **Aprobada** (2026-08-12) |
-| `Task/006-Fundacion-Frontend-React` | React. TypeScript. Vite. Router. Cliente HTTP. Pruebas. Build. | frontend | 004 | Pendiente |
+| `Task/006-Fundacion-Frontend-React` | React. TypeScript. Vite. Router. Cliente HTTP. Pruebas. Build. | frontend, infra (documentación) | 004 | **Aprobada** (2026-08-18) |
 | `Task/007-Integracion-Local` | Integrar frontend, backend, PostgreSQL y MinIO **a nivel de infraestructura**: contenedores, red, nombres de servicio, configuración disponible y healthchecks. Reverse proxy. Docker Compose completo. Supervisión desde Portainer. **No implementa lógica de objetos ni acceso directo de FastAPI a MinIO**: eso es `Task/010`. | infra, frontend, backend | 005, 006 | Pendiente |
 
 ---
@@ -378,7 +377,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `5 / 41 = 12 %`.
+Actualmente: `6 / 41 = 15 %`.
 
 Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`,
 `Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`) **no entran en el numerador ni en el
