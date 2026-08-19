@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-16
+**Última actualización:** 2026-08-18
 
 ---
 
@@ -8,24 +8,61 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (1 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/005.7` **aprobada** y cerrada; `Task/006` **no iniciada** |
+| **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (2 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
+| **Tarea actual** | Ninguna en ejecución. `Task/006` **aprobada** y cerrada; `Task/007` **no iniciada** |
 | **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/005-Fundacion-Backend-FastAPI` — **Aprobada** el 2026-08-12 por jeffersondavila; PR `#2` (backend) y `#6` (infra) **fusionados** el 2026-08-13 y normalizados |
+| **Última tarea aprobada** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18 por jeffersondavila. Pull request `Task/006 → main` **abiertos** en frontend e infra, pendientes de que el usuario los fusione |
 | **Último mantenimiento aprobado** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` — **Aprobada** el 2026-08-16, integrada en `main` y normalizada. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/006-Fundacion-Frontend-React` (Pendiente, **no iniciada**). **Nacerá desde `main`** actualizado, como toda rama Task |
-| **Avance global** | **12 %** — 5 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/007-Integracion-Local` (Pendiente, **no iniciada**). No comienza hasta que el usuario apruebe `Task/006` y se complete su cierre |
+| **Avance global** | **15 %** — 6 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **35** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** añadido en `Task/005.7`, propietario `Task/020`) |
 | **Decisiones abiertas** | **13** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5` |
 
-> El avance se calcula **solo** con tareas `Aprobada`. `Task/005` ya cuenta: fue aprobada
-> por el usuario el 2026-08-12.
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/006` ya cuenta**: fue aprobada
+> por el usuario el 2026-08-18, lo que lleva el avance a **6 de 41** y la ETAPA 02 a
+> **2 de 3**. Que sus pull request sigan abiertos **no** afecta al recuento: el estado de la
+> tarea lo fija la aprobación del usuario, no la fusión.
 
 ---
 
-## Última tarea aprobada
+## Última tarea aprobada — `Task/006-Fundacion-Frontend-React`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/006-Fundacion-Frontend-React` |
+| **Etapa** | ETAPA 02 — Fundaciones de las Aplicaciones |
+| **Estado** | **Aprobada** ✔ |
+| **Repositorios** | `personal-blog-frontend` (implementación) · `personal-blog-infra` (gobierno documental) |
+| **Rama base** | `main` en ambos: `21cb51d8…` (frontend) y `ccc19473…` (infra) |
+| **Fecha de inicio** | 2026-08-18 |
+| **Fecha de aprobación** | 2026-08-18 |
+| **Ficha** | [TASK-006](../tasks/TASK-006-react-frontend-foundation.md) |
+| **Reporte** | [TASK-006-report](../task-reports/TASK-006-report.md) |
+| **Efecto en el avance** | Avance global **6 de 41 (15 %)**; ETAPA 02 **2 de 3** |
+
+Qué entrega: la fundación del frontend —React 19, TypeScript 5.9 estricto, Vite 8, router
+con *fallback* 404, configuración de entorno validada al arrancar, cliente HTTP común con
+modelo de error, suite de 31 pruebas, lint, formato y build de producción reproducible—.
+
+Validaciones, con **códigos de salida reales**: `lint`, `typecheck`, `format:check`,
+`test:coverage` y `build` terminan en **0**, tanto en el repositorio como desde una
+instalación limpia con `npm ci`, cuyo `dist/` resulta **byte a byte idéntico**. La consola
+del navegador queda **sin errores** en la ruta inicial y en una ruta 404, comprobado con
+Chrome *headless*.
+
+Su alcance excluye deliberadamente el sistema de diseño (`Task/013`), las páginas del sitio
+público (`Task/014`), el panel administrativo (`Task/015`), la autenticación (`Task/011`) y
+el consumo real del API (`Task/007`).
+
+> **Pendiente del usuario:** fusionar los pull request `Task/006 → main` en frontend e
+> infra. Claude no los fusiona. Hasta que eso ocurra y se complete la normalización
+> `main → dev`, `Task/007` **no se inicia**.
+
+---
+
+## Tarea aprobada anterior — `Task/005-Fundacion-Backend-FastAPI`
 
 | Campo | Valor |
 | --- | --- |
@@ -56,7 +93,7 @@ Con esta aprobación el avance global pasa a **5 de 41 (12 %)** y la **ETAPA 02*
 
 ---
 
-## Tarea aprobada anterior
+## Tarea aprobada previa — `Task/004-Backups-y-Recuperacion-Local`
 
 | Campo | Valor |
 | --- | --- |
@@ -414,7 +451,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | --- | --- | --- | --- |
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
-| 02 — Fundaciones de las Aplicaciones | 3 | 1 | **33 %** — **en curso** |
+| 02 — Fundaciones de las Aplicaciones | 3 | 2 | **67 %** — **en curso** |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
@@ -425,16 +462,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **5** | **12 %** |
+| **Total** | **41** | **6** | **15 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 36 |
+| Pendiente | 35 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **5** |
+| **Aprobada** | **6** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -540,7 +577,7 @@ Distribución por estado:
 | `Task/003-Crear-Infraestructura-Local` | 01 | infra | **Aprobada** |
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | **Aprobada** |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend, infra (documentación) | **Aprobada** |
-| `Task/006-Fundacion-Frontend-React` | 02 | frontend | Pendiente |
+| `Task/006-Fundacion-Frontend-React` | 02 | frontend, infra (documentación) | **Aprobada** |
 | `Task/007-Integracion-Local` | 02 | infra, frontend, backend | Pendiente |
 | `Task/008-Modelo-de-Datos` | 03 | backend | Pendiente |
 | `Task/009-API-Publica` | 03 | backend | Pendiente |
@@ -585,6 +622,21 @@ Distribución por estado:
 > `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
 > El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
 > `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
+
+**Observado el 2026-08-18**, tras el cierre aprobado de `Task/006`:
+
+- Las dos ramas `Task/006` —frontend e infra— nacieron **desde `main`**, con `HEAD == main`
+  verificado inmediatamente después de crearlas.
+- Ambas se integraron en `dev` con merge `--no-ff` y se publicaron en `origin`.
+- Los pull request son **`Task/006-Fundacion-Frontend-React → main`** en los dos
+  repositorios. **Ninguno usa `dev` como *head*** y **ninguno lo fusionó Claude**.
+- Las ramas Task **locales** se eliminaron con `git branch -d`; las **remotas se conservan**:
+  eliminarlas es decisión del usuario.
+- `personal-blog-backend` **no participó**: sin rama Task, worktree limpio, en `main`.
+
+Los SHA y las URL concretas se consultan en vivo con `git fetch --prune`,
+`git ls-remote --heads origin "Task/*"` y `gh pr list`, según
+[WORKFLOW §6.1](WORKFLOW.md).
 
 **Observado el 2026-08-16**, tras la fusión de los PR de `Task/005.5` y su normalización, y
 al crear las ramas de `Task/005.6`:
@@ -734,7 +786,7 @@ igualmente **desde `main`**, con `HEAD == main` verificado.
 - **`Task/005` produce el primer código de aplicación del proyecto:** `personal-blog-backend`
   ya contiene una aplicación FastAPI que arranca, expone `/health` y OpenAPI, se conecta al
   PostgreSQL local y gestiona su esquema con Alembic. Está **`Aprobada`** desde el
-  2026-08-12. **No existe todavía código React.**
+  2026-08-12. *(El código React llegó después, con `Task/006`; ver la nota siguiente.)*
 - **Correcciones del 2026-08-11, en la misma rama y sin commit:** el log emite ahora UTC
   explícito —antes el formato dependía del sistema operativo— con 9 pruebas deterministas
   comprobadas en Windows y en Docker; la advertencia de `starlette.testclient` se resolvió
@@ -743,6 +795,18 @@ igualmente **desde `main`**, con `HEAD == main` verificado.
   filtro** en los dos entornos; se rectificó la afirmación errónea de que rotar la contraseña de
   PostgreSQL obliga a recrear su volumen; y se verificó que el `Dockerfile` es coherente con
   **R-14**. **El avance global no cambia.**
+- **`Task/006` produce el primer código de interfaz del proyecto:**
+  `personal-blog-frontend` ya contiene una aplicación React que monta, enruta, valida su
+  configuración de entorno al arrancar y dispone de un cliente HTTP común con modelo de
+  error. Está **`Aprobada`** desde el 2026-08-18, lo que lleva el avance a **6 de 41 (15 %)**
+  y la ETAPA 02 a **2 de 3**. Su alcance **no** incluye sistema de diseño, páginas del sitio
+  público, panel administrativo, autenticación ni consumo real del API.
+- **Defecto corregido durante la revisión de `Task/006`:** el cliente HTTP declaraba `304`
+  entre los estados exitosos sin cuerpo, pero el flujo evalúa `!response.ok` antes de
+  consultarlos, así que `304` —que no es 2xx— jamás llegaba allí. La entrada era
+  inalcanzable y describía un comportamiento inexistente. `304` no figura en
+  [api-contracts.md](../architecture/api-contracts.md) §8 y el proyecto no hace peticiones
+  condicionales: se retiró del conjunto y quedó **prueba de regresión permanente**.
 - **La funcionalidad del blog sigue sin empezar:** no hay modelo de datos, ni endpoints de
   contenido, ni autenticación. Llegan a partir de `Task/008`.
 - **`Task/003` produjo el primer artefacto ejecutable del proyecto:** un
@@ -820,10 +884,11 @@ igualmente **desde `main`**, con `HEAD == main` verificado.
   filtrarse al PR `Task → main`. **El resto del workflow no cambia.** El historial de las
   tareas anteriores **no se reescribe**. Detalle:
   [WORKFLOW.md](WORKFLOW.md) §2.1.
-- `Task/006` y `Task/007` siguen **Pendientes** y **no se han iniciado**. `Task/005.1`,
-  `Task/005.2`, `Task/005.3`, **`Task/005.4`** y **`Task/005.5`** están aprobadas, fusionadas
-  y normalizadas. **`Task/005.6`** está **aprobada**. Como toda rama Task, `Task/006`
-  **nacerá desde `main`** actualizado y limpio.
+- **`Task/006` está `Aprobada`** desde el 2026-08-18; `Task/007` sigue **Pendiente** y
+  **no se ha iniciado**. `Task/005.1`, `Task/005.2`, `Task/005.3`,
+  **`Task/005.4`** y **`Task/005.5`** están aprobadas, fusionadas y normalizadas.
+  **`Task/005.6`** y **`Task/005.7`** están **aprobadas**. Las ramas `Task/006` de frontend
+  e infra nacieron **desde `main`**, con `HEAD == main` verificado inmediatamente.
 - **Cierre de fundaciones (`Task/005.6`, 2026-08-16, aprobada).** Se
   conciliaron **dos mega auditorías independientes** y se reprodujo cada hallazgo antes de
   decidir. Corregido: la política de finales de línea de los tres repositorios

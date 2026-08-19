@@ -6,11 +6,11 @@
 | **Estado** | **En curso** |
 | **Dependencias** | [ETAPA 01](STAGE-01-local-infrastructure.md) — **Completada** ✔ (2026-07-31) |
 | **Tareas** | 3 |
-| **Aprobadas** | 1 |
-| **Avance** | 33 % |
+| **Aprobadas** | 2 |
+| **Avance** | 67 % |
 | **Hito que completa** | Frontend y backend arrancan e integran contra PostgreSQL y MinIO. |
 | **Inicio** | 2026-08-01 |
-| **Última actualización** | 2026-08-12 |
+| **Última actualización** | 2026-08-18 |
 
 ---
 
@@ -56,15 +56,34 @@ una vez que hay dominio construido encima.
 > (`Task/017`), CORS (`Task/007`), el modelo de datos (`Task/008`) y la autenticación
 > (`Task/011`).
 
-### `Task/006-Fundacion-Frontend-React` — *Pendiente*
+### `Task/006-Fundacion-Frontend-React` — **Aprobada** ✔ (2026-08-18)
 
-- React + TypeScript + Vite.
-- Router.
-- Cliente HTTP con manejo de errores.
-- Suite de pruebas base.
-- Build de producción.
+- [x] React 19 + TypeScript 5.9 (estricto) + Vite 8, con versiones fijadas sin rango y
+      `package-lock.json` versionado.
+- [x] Router: tabla de rutas central, ruta inicial y *fallback* 404.
+- [x] Configuración de entorno tipada (`VITE_API_BASE_URL`), **validada al arrancar**
+      (requisito T-01).
+- [x] Cliente HTTP común con `fetch` inyectable y modelo de error alineado con
+      [api-contracts.md](../architecture/api-contracts.md) §7.
+- [x] Suite de pruebas base (Vitest + Testing Library): **31 pruebas**, cobertura de
+      *statements* 100 % y de ramas 98.36 %, sin acceso a red.
+- [x] Lint (ESLint), formato (Prettier) y tipado estricto, con *scripts* reproducibles.
+- [x] Build de producción estático, verificado desde instalación limpia y **byte a byte
+      reproducible**.
+- [x] Sin errores de consola en la ruta inicial ni en una ruta 404, comprobado con Chrome
+      *headless*.
 
-**Depende de:** `Task/004`. **Repositorio:** `personal-blog-frontend`.
+**Depende de:** `Task/004` — Aprobada ✔ · `Task/005` — Aprobada ✔.
+**Repositorios:** `personal-blog-frontend` (implementación) · `personal-blog-infra`
+(documentación de gobierno).
+**Ficha:** [TASK-006](../tasks/TASK-006-react-frontend-foundation.md) ·
+**Reporte:** [TASK-006-report](../task-reports/TASK-006-report.md)
+
+> **Aprobada** por el usuario el 2026-08-18. La etapa pasa a **2 de 3**. Los pull request
+> `Task/006 → main` —frontend e infra— quedan **abiertos**: fusionarlos es responsabilidad
+> exclusiva del usuario. Su alcance excluye deliberadamente el sistema de diseño
+> (`Task/013`), las páginas del sitio público (`Task/014`), el panel administrativo
+> (`Task/015`), la autenticación (`Task/011`) y el consumo real del API (`Task/007`).
 
 ### `Task/007-Integracion-Local` — *Pendiente*
 
@@ -94,9 +113,10 @@ una vez que hay dominio construido encima.
 - [ ] El frontend construye y se sirve tras el reverse proxy. — `Task/006`, `Task/007`.
 - [ ] El frontend consume un endpoint real del backend. — `Task/007`.
 - [ ] Todo el conjunto es visible y sano en Portainer. — `Task/007`.
-- [~] Las pruebas base pasan en ambos repositorios. — Backend: **69 pruebas superadas** en
-      `Task/005` (**aprobada**), más 1 omitida con motivo explícito. Falta el frontend:
-      `Task/006`.
+- [x] Las pruebas base pasan en ambos repositorios. — Backend: **69 pruebas superadas** en
+      `Task/005` (**aprobada**), más 1 omitida con motivo explícito. Frontend: **31 pruebas
+      superadas** en `Task/006` (**aprobada** el 2026-08-18), con cobertura de *statements*
+      del 100 %.
 
 > `[~]` significa cumplido solo en parte. Un criterio se marca `[x]` cuando la tarea que lo
 > cumple ha sido aprobada por el usuario.
