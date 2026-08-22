@@ -379,9 +379,9 @@ no registra errores en ninguna de las dos.
 ## 19. Próxima tarea
 
 `Task/007-Integracion-Local` — integrar frontend, backend, PostgreSQL y MinIO en un único
-Compose, con reverse proxy local y supervisión desde Portainer. **No se ha iniciado.** No
-comienza hasta que el usuario fusione el pull request `Task/006 → main` y se complete la
-normalización `main → dev`.
+Compose, con reverse proxy local y supervisión desde Portainer. Es la **siguiente tarea
+oficial del roadmap** y está **Pendiente, no iniciada**. Como toda rama Task, **nacerá desde
+`main`** actualizado y limpio ([WORKFLOW §2.1](../project-management/WORKFLOW.md)).
 
 ## 20. Aprobación
 
