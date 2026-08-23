@@ -3,13 +3,13 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 |
+| **Fecha** | 2026-07-26 · §5 ampliada y **aprobada** el 2026-08-23 (`Task/006.2`) con **O-09** y **O-10** |
 
 Criterios mínimos que toda implementación posterior debe respetar. Se verifican
 principalmente en las Etapas 05 (`Task/016`–`Task/018`), 07 (`Task/022`) y 12
 (`Task/040`).
 
-**Total: 57 requisitos** en 7 categorías.
+**Total: 59 requisitos** en 7 categorías.
 
 | Categoría | Nº | Prefijo |
 | --- | ---: | --- |
@@ -17,10 +17,10 @@ principalmente en las Etapas 05 (`Task/016`–`Task/018`), 07 (`Task/022`) y 12
 | Rendimiento | 8 | `P-` |
 | Accesibilidad | 8 | `A-` |
 | SEO | 8 | `E-` |
-| Observabilidad | 8 | `O-` |
+| Observabilidad | 10 | `O-` |
 | Portabilidad | 7 | `T-` |
 | Mantenibilidad | 6 | `M-` |
-| **Total** | **57** | |
+| **Total** | **59** | |
 
 Relacionados: [security-boundaries.md](security-boundaries.md) ·
 [software-architecture.md](software-architecture.md) ·
@@ -106,9 +106,11 @@ Objetivo de referencia: **WCAG 2.1 nivel AA**.
 | O-03 | **Healthcheck** (`/health`) que refleja la vivacidad del proceso. | `Task/005`, `Task/017` |
 | O-04 | **Readiness** (`/ready`) que comprueba base de datos y almacenamiento. | `Task/017` |
 | O-05 | **Auditoría administrativa** de toda acción que modifica datos. | `Task/011`, `Task/012` |
-| O-06 | **CloudWatch con retención limitada** en producción, para contener el costo. | `Task/031`, `Task/041` |
+| O-06 | **CloudWatch mínimo con retención limitada y explícita** en producción, para contener el costo. Nunca retención infinita. | `Task/031`, `Task/041` |
 | O-07 | **Logs locales visibles mediante Docker y Portainer**. | `Task/003`, `Task/017` |
 | O-08 | Los logs **no contienen** contraseñas, tokens, secretos ni datos personales innecesarios. | `Task/017`, `Task/018` |
+| O-09 | **La telemetría enviada fuera del proyecto** —logs, métricas y trazas hacia un destino de terceros— **no contiene secretos ni datos personales innecesarios**. Enviar a un tercero es **exportar**: qué se recolecta es parte del diseño, no configuración. | `Task/029`, `Task/018`, `Task/040` |
+| O-10 | **La observabilidad del VPS de producción sale del host.** Un plano de observabilidad alojado en la máquina que vigila cae con ella; el *baseline* —uptime, CPU, RAM, disco, PostgreSQL, PgBouncer, fallo de backup y caducidad del certificado— se envía a un destino externo. | `Task/029`, `Task/040` |
 
 ---
 

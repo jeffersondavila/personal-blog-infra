@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-21
+**Última actualización:** 2026-08-23
 
 ---
 
@@ -9,21 +9,68 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (2 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/006.1` **aprobada** y cerrada; `Task/007` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/006.2` **aprobada** y cerrada; `Task/007` **no iniciada** |
 | **Estado de la tarea** | — |
 | **Última tarea aprobada** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18 por jeffersondavila. Fundación del frontend en `personal-blog-frontend`, con su gobierno en `personal-blog-infra`. Cierre e integración completados |
-| **Último mantenimiento aprobado** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
+| **Último mantenimiento aprobado** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
+| **Mantenimiento previo** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
 | **Próxima tarea prevista** | `Task/007-Integracion-Local` — **Pendiente, no iniciada**. Como toda rama Task, **nacerá desde `main`** actualizado y limpio |
 | **Avance global** | **15 %** — 6 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | **35** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** añadido en `Task/005.7`, propietario `Task/020`) |
-| **Decisiones abiertas** | **13** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5` |
+| **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
+| **Decisiones abiertas** | **17** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` (2026-08-23) |
 
 > El avance se calcula **solo** con tareas `Aprobada`. **`Task/006` ya cuenta**: fue aprobada
 > por el usuario el 2026-08-18, lo que lleva el avance a **6 de 41** y la ETAPA 02 a
 > **2 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
 > posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+
+---
+
+## Último mantenimiento aprobado — `Task/006.2`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` |
+| **Tipo** | **Mantenimiento transversal de arquitectura y planificación** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-23 |
+| **Fecha de aprobación** | 2026-08-23 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` |
+| **Repositorios afectados** | `personal-blog-infra` (**únicamente**) |
+| **Rama** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` |
+| **Rama base** | **`main`** — única base permitida. SHA base: `d08fe27711866eabe091a2d139387e2022c95b70`. Verificado `HEAD == main` inmediatamente después de crearla |
+| **Origen** | El usuario actualizó manualmente `images/Infraestructura.png` en `main` y normalizó `main → dev`. La documentación textual no describía la arquitectura que la imagen ya mostraba |
+| **Alcance entregado** | Documento canónico [target-production-architecture.md](../architecture/target-production-architecture.md) (26 secciones) — **Vigente**; [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada** ✔; alineación de `overview`, `local-to-cloud-mapping`, `security-boundaries` (**C-16**, **C-17**, §10), `production-postgresql-vps` (§11.1.1, §15.3.1), `non-functional-requirements` (**O-09**, **O-10**), `open-decisions` (**D-17**–**D-20**), `ROADMAP`, `STATUS`, `README` y las fichas de las ETAPAS 02, 05, 09, 10 y 12 |
+| **Decisiones que cierra** | Secretos del VPS **cifrados** (herramienta abierta), **CloudWatch mínimo**, **Grafana Cloud** como plano central, **Grafana Alloy** en el VPS, **Terraform no configura el sistema operativo**, **Docker no es runtime de producción** |
+| **Decisiones que abre** | **D-17** (herramienta de secretos del VPS, `Task/029`) · **D-18** (configuración del SO, `Task/029`) · **D-19** (plan y costo de Grafana Cloud, `Task/041`) · **D-20** (integración CloudWatch → Grafana, `Task/031`) |
+| **Riesgos nuevos** | **R-38** a **R-42**, los cinco **abiertos** |
+| **Imagen** | `images/Infraestructura.png` **no modificada**. Sigue siendo el commit `d08fe27` del usuario |
+| **Implementación** | **0 funcionalidad.** 0 código, 0 pruebas, 0 Compose, 0 Terraform, 0 recursos cloud, 0 cuentas contratadas |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. **41 identificadores intactos, sin renumerar.** Avance global **6 de 41 (15 %)** y ETAPA 02 **2 de 3** **sin cambios** |
+| **Ficha** | [TASK-006.2](../tasks/TASK-006.2-formalize-target-production-architecture.md) |
+| **Reporte** | [TASK-006.2-report](../task-reports/TASK-006.2-report.md) |
+
+> **Aprobada** por el usuario el 2026-08-23. **ADR-008** queda **Aceptada** y el documento
+> canónico **Vigente**. Lo aceptado antes —ADR-001 a ADR-007— sigue vigente y **no se
+> reabre**.
+>
+> **Aprobar no autoriza a implementar.** Contratar Grafana Cloud, provisionar el VPS,
+> instalar Alloy o crear cualquier recurso cloud sigue exigiendo su tarea propietaria y la
+> autorización explícita del usuario.
+
+> **Reconciliación previa, ajena a esta tarea.** El 2026-08-23, **antes** de crear la rama,
+> se verificó que la normalización `main → dev` del hotfix de la imagen —ejecutada
+> manualmente por el usuario— estaba completa. Esa reconciliación **no forma parte del
+> alcance de `Task/006.2`**.
+>
+> El estado vivo de ramas y pull request se consulta en Git y GitHub, no aquí
+> ([WORKFLOW §6.1](WORKFLOW.md)).
+
+`Task/007-Integracion-Local` sigue **Pendiente y no iniciada**, y **nacerá desde `main`**,
+como toda rama Task.
 
 ---
 
@@ -597,6 +644,23 @@ Distribución por estado:
 | R-34 | **Latencia `Lambda ↔ VPS`.** La base de datos deja de estar en la misma región que el cómputo; cada consulta paga el RTT y una petición HTTP suele hacer varias. | Medio | Selección de región del VPS teniendo en cuenta la región AWS, con **RTT medido**, no estimado. Regla explícita: no elegir un VPS lejano por ahorrar poco al mes. | `Task/029`, `Task/040` | **Abierto** |
 | R-35 | **Error humano de operación.** Sin consola administrada que ponga barreras, un comando equivocado puede borrar datos, exponer un puerto o dejar el servicio caído. | Medio | Infraestructura reproducible con Terraform; runbooks escritos para cada operación; backups fuera del host como red de seguridad; regla vigente de no ejecutar operaciones destructivas sin autorización explícita. | `Task/026`, `Task/029` | **Abierto** |
 
+### Riesgos introducidos por `Task/006.2` — arquitectura objetivo de producción
+
+> **Abiertos y vigentes** desde la aprobación de `Task/006.2` el 2026-08-23. **Ninguno está
+> cerrado**: son consecuencia asumida de las decisiones de observabilidad y de operación del
+> VPS, no defectos pendientes. Detalle:
+> [target-production-architecture.md](../architecture/target-production-architecture.md) —
+> **Vigente** ·
+> [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**.
+
+| # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
+| --- | --- | --- | --- | --- | --- |
+| R-38 | **Dependencia de un tier gratuito de terceros.** El plano central de observabilidad es **Grafana Cloud**, y el objetivo inicial es su tier gratuito. Los límites y precios de un plan gratuito **cambian**, y pueden dejar de ser suficientes justo cuando el sistema ya depende de ellos para diagnosticar incidentes. | Medio | **Declarado explícitamente como preferencia presupuestaria, no como dependencia arquitectónica**: si deja de servir, se paga, se reduce el volumen de telemetría o se cambia de destino, **sin romper la arquitectura**. **Ninguna cifra comercial se persiste** en la documentación; las que se registren se marcan *«verificar en `Task/041` / antes de contratar»*. **D-19**. | `Task/041`, con aporte de `Task/027` | **Abierto** |
+| R-39 | **La telemetría sale del perímetro del proyecto y puede llevar lo que no debe.** Alloy recolecta logs del host y de PostgreSQL y los envía a un tercero. Un log de driver, una consulta con parámetros o un volcado de error pueden contener credenciales o datos personales. **Es la misma familia que R-36, en otro plano y con destino externo.** | **Alto** | **Qué se recolecta es parte del diseño, no configuración** (**O-09**). Selección explícita de fuentes, sin recolección indiscriminada; regla **O-08** aplicada también aquí; verificación por muestreo en `Task/040`. La redacción en el log de aplicación sigue siendo de `Task/017` y `Task/018` (**R-36**). | `Task/029`, `Task/018`, `Task/040` | **Abierto** |
+| R-40 | **Secretos del VPS mal gestionados.** El host necesita sus propios secretos —contraseñas de PostgreSQL y PgBouncer, clave privada del certificado, credencial de backup y credencial de Alloy— y **la herramienta todavía no está elegida** (**D-17**). Sin cifrado, custodia y rotación definidos, el compromiso del VPS entrega todo de golpe. | **Alto** | Modelo **ya cerrado**: cifrados, **clave fuera del repositorio**, descifrado local seguro, **nada versionado en claro** (regla V-08). La herramienta y la rotación se deciden en `Task/029`. **Mientras D-17 siga abierta no se instala nada ni se generan claves.** | `Task/029`, `Task/018` | **Abierto** |
+| R-41 | **El agente de observabilidad compite por los recursos de PostgreSQL.** Alloy consume RAM, CPU y disco en la misma máquina que la base de datos, que es el componente que no puede degradarse (**R-32**). | Bajo | **Agente, no *stack***: se descarta autohospedar Grafana, Prometheus o Loki en el VPS. El dimensionamiento de `Task/029` contempla el consumo del agente, y `Task/040` verifica que el host sigue holgado. | `Task/029`, `Task/040` | **Abierto** |
+| R-42 | ***Drift* de configuración del VPS.** Terraform **no configura el sistema operativo** por decisión (**D-18**), así que lo que hay dentro del host puede alejarse en silencio de lo documentado. Un cambio manual «temporal» sobrevive hasta el día de la reconstrucción, cuando ya nadie recuerda que existía. | Medio | Mecanismo **idempotente y reproducible** decidido en `Task/029` —Ansible, cloud-init o scripts—, runbooks escritos (`Task/026`), y verificación de que el host reconstruido coincide con lo documentado (`Task/040`). Refuerza la mitigación de **R-35**. | `Task/029`, `Task/026`, `Task/040` | **Abierto** |
+
 ---
 
 ## Tabla completa de tareas
@@ -856,6 +920,20 @@ igualmente **desde `main`**, con `HEAD == main` verificado.
 - **No se ha creado ningún recurso cloud** ni ninguna cuenta en proveedores. **`Task/005.3`
   no contrató ningún VPS**, no instaló PostgreSQL ni PgBouncer, no creó certificados, claves,
   usuarios SSH ni reglas de firewall, y no ejecutó `pg_dump`.
+- **`Task/006.2` tampoco crea nada.** Es documental: **0 recursos AWS, 0 recursos Cloudflare,
+  0 cuentas de Grafana Cloud, 0 VPS, 0 buckets, 0 parámetros SSM, 0 roles IAM, 0 Terraform**.
+  **No se instaló Grafana Alloy, ni Ansible, ni SOPS, ni age**, y **no se generó ninguna
+  clave de cifrado**. La imagen `images/Infraestructura.png` **no se modificó**: sigue siendo
+  la que el usuario publicó en el commit `d08fe27`.
+- **`ADR-008` está `Aceptada`** desde el 2026-08-23, al aprobarse `Task/006.2`. Es el
+  **octavo ADR** del proyecto. Registra la observabilidad de producción —**CloudWatch
+  mínimo** + **Grafana Cloud** con **Grafana Alloy** en el VPS— y modifica **una sola fila**
+  de `ADR-003`, la de «Logs y métricas»; el resto de ADR-003 permanece **íntegro y
+  vigente**, incluida la exclusión de **ECR** y el empaquetado de Lambda por **ZIP**.
+- **Aceptar ADR-008 no autoriza a implementarlo.** No existe cuenta de Grafana Cloud, ni
+  Alloy instalado, ni integración con CloudWatch: cada pieza es de su tarea propietaria
+  —`Task/029`, `Task/031`, `Task/040`, `Task/041`— y exige autorización explícita del
+  usuario.
 - **Floci no está instalado.** `Task/005.2` y `Task/005.3` son documentales: no se descargó
   ninguna imagen, no se levantó ningún contenedor, no se modificó `docker-compose.yml` y no
   se ejecutó ningún comando de Terraform ni de AWS CLI.

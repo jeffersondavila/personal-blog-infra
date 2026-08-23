@@ -7,7 +7,7 @@
 | **Tarea** | `Task/001-Inicializar-Workspace-y-Roadmap` |
 | **Reemplaza a** | — |
 | **Reemplazada por** | — |
-| **Modificado parcialmente por** | [ADR-007](ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15), solo la fila «Base de datos» |
+| **Modificado parcialmente por** | [ADR-007](ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15), solo la fila «Base de datos» · [ADR-008](ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada** (2026-08-23), solo la fila «Logs y métricas» |
 
 > **Nota de vigencia — 2026-08-15 (`Task/005.3`, aprobada).** Este ADR sigue **Aceptado y
 > vigente**, incluidas su decisión serverless y su lista de servicios excluidos.
@@ -17,6 +17,16 @@
 > costo fijo de la arquitectura*. Todo lo demás permanece intacto, y ADR-007 **refuerza** la
 > exclusión de NAT Gateway. Detalle:
 > [production-postgresql-vps.md](../architecture/production-postgresql-vps.md).
+
+> **Nota de vigencia — 2026-08-23 (`Task/006.2`, aprobada).**
+> [ADR-008](ADR-008-observability-grafana-cloud-and-alloy.md) modifica **una sola fila más**
+> de la tabla siguiente: **«Logs y métricas»**. CloudWatch **no se sustituye** —sigue siendo
+> la observabilidad nativa de AWS, ahora explícitamente **en modo mínimo**—, pero deja de ser
+> la respuesta **única**: se añade **Grafana Cloud** como plano central, alimentado desde el
+> VPS por **Grafana Alloy**. El motivo es el mismo que este ADR ya aceptaba en su lógica:
+> **CloudWatch no observa un host externo**, y desde ADR-007 la capa de datos vive fuera de
+> AWS. **La modificación es vigente desde el 2026-08-23.** Todo lo demás de ADR-003
+> permanece intacto, incluida la exclusión de **ECR** y el empaquetado de Lambda por **ZIP**.
 
 ---
 
@@ -42,7 +52,7 @@ Se adopta una arquitectura **serverless y de escalado a cero** donde sea posible
 | Archivos e imágenes | **Amazon S3** | Pago por almacenamiento y transferencia reales. Compatible con MinIO local. |
 | Base de datos | **PostgreSQL administrado** ⚠️ **modificado — ver nota** | Mismo motor que en local. Proveedor concreto pendiente de `Task/029`, priorizando costo. |
 | Configuración | **SSM Parameter Store** | Parámetros estándar sin costo; `SecureString` para valores sensibles. |
-| Logs y métricas | **CloudWatch** con retención y uso limitados | Servicio nativo de Lambda. El costo se contiene con retención corta y alarmas mínimas. |
+| Logs y métricas | **CloudWatch** con retención y uso limitados ⚠️ **modificado — ver nota** | Servicio nativo de Lambda. El costo se contiene con retención corta y alarmas mínimas. |
 | CI/CD | **GitHub Actions** | Ya se usa para CI; minutos gratuitos suficientes para este volumen. |
 | Infraestructura como código | **Terraform** | Reproducibilidad, revisión por `plan` y capacidad de destruir todo si se abandona el proyecto. |
 

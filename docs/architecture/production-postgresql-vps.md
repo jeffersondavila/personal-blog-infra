@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** ✔ — aprobado en `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (2026-08-15) |
-| **Fecha** | 2026-08-15 |
+| **Fecha** | 2026-08-15 · §11.1.1 y §15.3.1 ampliadas y **aprobadas** el 2026-08-23 (`Task/006.2`) |
 | **Tipo** | Documento canónico de arquitectura de la capa de datos de producción |
 | **Repositorio** | `personal-blog-infra` |
 | **ADR asociado** | [ADR-007 — PostgreSQL de producción en VPS](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada** ✔ |
@@ -84,7 +84,7 @@ flowchart TD
         LAMBDA["Lambda · FastAPI"]
         S3["S3"]
         SSM["SSM Parameter Store"]
-        CW["CloudWatch"]
+        CW["CloudWatch minimo"]
         IAM["IAM"]
     end
 
@@ -140,7 +140,7 @@ Esta decisión está deliberadamente acotada. **No** implica:
 | Convertir el proyecto en arquitectura VPS | Solo la **capa de datos** vive en el VPS |
 | Eliminar S3 | **Amazon S3** sigue siendo el almacenamiento de objetos |
 | Eliminar SSM | **SSM Parameter Store** sigue siendo la configuración |
-| Eliminar CloudWatch | **CloudWatch** sigue siendo logs y métricas |
+| Eliminar CloudWatch | **CloudWatch** sigue siendo la observabilidad **nativa de AWS**, en **modo mínimo** desde `Task/006.2`. No observa el VPS: eso es de **Grafana Alloy → Grafana Cloud** |
 | Eliminar Terraform | **Terraform** sigue siendo la fuente de verdad de la infraestructura |
 | Eliminar Floci | [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) sigue **Aceptada** y vigente |
 | Cambiar el frontend | **Cloudflare Pages** sin cambios |
@@ -403,6 +403,32 @@ backend.**
   entrega la configuración a Lambda en tiempo de ejecución.
 - La cadena de conexión de producción **no existe** en ningún archivo del repositorio.
 
+#### 11.1.1 Los secretos del VPS son un plano distinto — añadido en `Task/006.2`
+
+> **Vigente** ✔ desde el 2026-08-23 (`Task/006.2`). Ver
+> [target-production-architecture.md](target-production-architecture.md) §9.
+
+SSM sirve a la **Lambda**. **No sirve al VPS**: el host necesita sus propios secretos
+—contraseñas de PostgreSQL y PgBouncer, clave privada del certificado, credencial de backup
+hacia S3 (**D-16**) y credencial del agente de telemetría (§15.3.1)— **antes** de que exista
+ninguna invocación, y hacerlos depender de AWS invertiría la dependencia y añadiría
+credenciales AWS permanentes en el host.
+
+**Modelo decidido:**
+
+| Regla |
+| --- |
+| Los secretos del VPS viven **cifrados**; **ninguno se versiona en claro** |
+| **La clave de descifrado no vive en el repositorio** |
+| El **material cifrado sí puede versionarse**: su seguridad depende de la clave, no de ocultarlo |
+| El **descifrado ocurre en el host**, en el momento de usarlo |
+| **SSM no sustituye a este mecanismo, ni al revés.** Dos planos, dos superficies |
+
+**La herramienta NO está decidida.** **SOPS + age** es el candidato más probable, pero
+**no se declara tecnología irreversible**: elegirla antes de conocer el proveedor y la
+distribución sería inventar la decisión. Es **D-17**, en `Task/029`. Riesgo asociado:
+**R-40**. **Mientras siga abierta no se instala nada ni se generan claves.**
+
 ---
 
 ## 12. Conectividad, concurrencia y latencia
@@ -638,10 +664,24 @@ cubre el **entorno local**, y `Task/031-Desplegar-SSM-y-CloudWatch` cubre **solo
 **PostgreSQL** · estado de **PgBouncer** · **fallo del backup** · **caducidad del
 certificado** (§10.0).
 
-> **No se decide aquí la herramienta.** En particular, **no se adopta CloudWatch Agent por
-> omisión**: instalar un agente AWS en el VPS es una decisión con costo, superficie y
-> credenciales propias —relacionada con **D-16**— y corresponde a `Task/029`, con las
-> alternativas sobre la mesa.
+> **Actualizado en `Task/006.2` (aprobada el 2026-08-23): la herramienta ya está decidida.**
+> Hasta entonces esta nota decía *«no se decide aquí la herramienta»*, y era correcta: no
+> había ninguna elegida. `Task/006.2` cierra esa elección.
+
+**Decisión vigente:** el agente es **Grafana Alloy** y el destino es **Grafana Cloud**.
+
+| Punto | Definición |
+| --- | --- |
+| **Agente** | **Grafana Alloy** en el VPS. **Solo salida**: no abre puertos de entrada |
+| **Destino** | **Grafana Cloud**, plano central de visualización, consulta y alertas |
+| **Qué NO se hace** | **No se autohospedan Grafana, Prometheus ni Loki** en el VPS: sus recursos son de PostgreSQL, y un plano de observabilidad alojado en la máquina que vigila **cae con ella** |
+| **CloudWatch Agent** | **Sigue descartado por omisión**, por el mismo motivo de siempre: costo, superficie y credenciales AWS permanentes en el host (**D-16**) |
+| **Credencial de Alloy** | Es un **secreto del VPS** (§11.1.1): cifrada, permisos mínimos, rotación definida (**D-17**) |
+| **Qué sale del host** | Telemetría **sin secretos ni datos personales innecesarios** (**O-08**, **O-09**). Qué se recolecta **es parte del diseño** |
+
+`Task/029` sigue siendo quien **instala y configura**; `Task/040` verifica que **opera de
+verdad**. Riesgos asociados: **R-39**, **R-40**, **R-41**. Decisión:
+[ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**.
 
 ### 15.4 Disponibilidad — SPOF aceptado conscientemente
 

@@ -71,6 +71,12 @@ solo resuelve GitHub OIDC → AWS.** Esta tarea es propietaria de lo demás:
 | **Entornos protegidos** | Aprobación manual obligatoria antes de cualquier `apply` real |
 | **Guardas de destino** | Extensión *fail-closed* de `Task/025`: cuenta AWS esperada, **proyecto Cloudflare esperado** y **proyecto/región del VPS esperados**. Sin coincidencia, no se ejecuta |
 
+> **Terraform no configura el sistema operativo del VPS** (precisado en `Task/006.2`,
+> **aprobada** el 2026-08-23). Puede **crear** el VPS si el proveedor elegido en `Task/029` tiene un
+> provider mantenido, pero **no sustituye a Ansible, cloud-init ni a los scripts
+> idempotentes** en usuarios, firewall, TLS, PostgreSQL, PgBouncer, Grafana Alloy, secretos
+> ni backups. El mecanismo es **D-18**, y es de `Task/029`. Riesgo asociado: **R-42**.
+
 > **No se afirma «sin credenciales permanentes» como absoluto global** mientras el diseño
 > no haya demostrado cómo Cloudflare y el VPS se autentican sin ellas. La afirmación
 > vigente y verificada se limita a **GitHub Actions → AWS**.
