@@ -61,6 +61,9 @@ Debe cubrir, como mínimo:
 | **Base de datos** | Distribución del host · versión de PostgreSQL · persistencia · *filesystem* y volumen · `max_connections` |
 | **Conexiones** | PgBouncer · `pool_mode` · tamaños de pool · *tuning* · relación con la concurrencia reservada de Lambda |
 | **Seguridad** | TLS · **ciclo de vida del certificado de PgBouncer**: emisión, CA, *hostname*, instalación, renovación y confianza desde el cliente · SCRAM-SHA-256 · evaluación de mTLS · firewall *deny-by-default* · SSH por llave · usuarios · *hardening* |
+| **Secretos del host** (`Task/006.2`) | **D-17** — herramienta de gestión de **secretos cifrados**, con la clave **fuera del repositorio** y descifrado local seguro. **SOPS + age es candidato, no decisión.** Custodia y **rotación** de la clave. **SSM sirve a la Lambda, no al VPS** |
+| **Configuración del SO** (`Task/006.2`) | **D-18** — mecanismo de configuración interna del host: **Ansible**, **cloud-init** o **scripts idempotentes**. **Terraform no configura Linux.** Cómo se ejecuta y cómo se detecta el *drift* (**R-42**) |
+| **Observabilidad** (`Task/006.2`) | **Grafana Alloy** instalado y configurado en el VPS, enviando el *baseline* a **Grafana Cloud**. **No se autohospedan Grafana, Prometheus ni Loki.** Su credencial es un secreto del host (**D-17**) |
 | **Operación** | Backups **fuera del host** · restore **probado** · almacenamiento externo · retención · RPO · RTO · **baseline de observabilidad del VPS** · espacio en disco · actualizaciones y parcheo · rollback · recuperación |
 | **Identidad** | **D-16** — con qué mecanismo escribirá el VPS sus backups en AWS, y bajo qué restricciones de seguridad |
 | **IaC** | Soporte de Terraform del proveedor · documentación operacional |
@@ -114,8 +117,16 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 - [ ] **D-16 resuelta**: está decidido con qué mecanismo el VPS escribirá en AWS y bajo qué
       restricciones. Su **materialización** es de `Task/030`.
 - [ ] Existe un ***baseline* de observabilidad del VPS** configurado —uptime, CPU, RAM,
-      disco, PostgreSQL, PgBouncer, fallo de backup, caducidad de certificado—. `Task/017`
-      es local y `Task/031` es solo AWS: **ninguna de las dos cubre esto**.
+      disco, PostgreSQL, PgBouncer, fallo de backup, caducidad de certificado—, **enviado
+      fuera del host mediante Grafana Alloy hacia Grafana Cloud** (**O-10**). `Task/017` es
+      local y `Task/031` es solo AWS: **ninguna de las dos cubre esto**.
+- [ ] **D-17 resuelta**: está decidida la herramienta de secretos cifrados del VPS, con
+      custodia y rotación de la clave definidas. **Ningún secreto del host versionado en
+      claro.**
+- [ ] **D-18 resuelta**: está decidido el mecanismo de configuración interna del sistema
+      operativo, y **no es Terraform**.
+- [ ] La telemetría que sale hacia Grafana Cloud **no contiene secretos ni datos personales
+      innecesarios** (**O-09**).
 - [ ] Ninguna credencial de producción está versionada.
 
 ## Fuera del alcance de la etapa
@@ -143,6 +154,9 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 | **El VPS añade superficie de ataque** expuesta a Internet (**R-30**). | Firewall *deny-by-default*, SSH por llave, PostgreSQL privado, TLS obligatorio, parcheo. |
 | **Backup no restaurable** (**R-31**). | Un backup no está validado hasta haberse restaurado; la prueba es criterio de salida. |
 | **Elegir un VPS lejano por ahorrar poco** y pagar latencia en cada consulta (**R-34**). | RTT **medido** como criterio de selección, no el precio en solitario. |
+| **Los secretos del host acaban en claro o sin rotación** (**R-40**). | Cifrado obligatorio, clave fuera del repositorio, permisos mínimos y rotación definida (**D-17**). |
+| **El agente de observabilidad compite con PostgreSQL** por RAM, CPU y disco (**R-41**). | **Agente, no *stack***: Alloy en lugar de Grafana + Prometheus + Loki autohospedados. El dimensionamiento lo contempla. |
+| ***Drift* de configuración del host**, que Terraform no ve (**R-42**). | Mecanismo idempotente y reproducible (**D-18**), runbooks (`Task/026`) y verificación en `Task/040`. |
 
 ## Siguiente etapa
 

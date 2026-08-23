@@ -58,7 +58,7 @@ laboratorio se corrige.
 | Tarea | Contenido | Depende de |
 | --- | --- | --- |
 | `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. **Destino y retención de los backups del VPS**, **materialización de la identidad decidida en D-16** y **validación de `S3Storage` contra S3 real**. Resuelve **D-08**. | `Task/029` |
-| `Task/031-Desplegar-SSM-y-CloudWatch` | Parámetros, grupos de logs, retención, alarmas mínimas. **Alcance exclusivamente AWS: no observa el VPS.** | `Task/029` |
+| `Task/031-Desplegar-SSM-y-CloudWatch` | Parámetros **`SecureString`** y permisos IAM mínimos. **CloudWatch mínimo**: grupos de logs, **retención corta y explícita** (**D-11**), alarmas mínimas. **Base de la integración `CloudWatch → Grafana Cloud`: decide D-20** y su modelo IAM de **solo lectura**. **Alcance exclusivamente AWS: no observa el VPS.** | `Task/029` |
 | `Task/032-Desplegar-AWS-Lambda` | Función, rol IAM, configuración, memoria y timeout. ***Reserved Concurrency*** coherente con el pool de PgBouncer, **RTT real `Lambda → PgBouncer` medido** y *wiring* de `S3Storage`. | `Task/030`, `Task/031` |
 | `Task/033-Desplegar-API-Gateway` | HTTP API, rutas, CORS, throttling. | `Task/032` |
 | `Task/034-Desplegar-Cloudflare-Pages` | Build de React, variables, dominio. | `Task/033` |
@@ -72,7 +72,12 @@ laboratorio se corrige.
 
 - [ ] El bucket S3 es privado; el acceso a archivos usa URLs prefirmadas.
 - [ ] Toda la configuración vive en SSM Parameter Store, nunca en el código.
-- [ ] Los logs llegan a CloudWatch con retención limitada y explícita.
+- [ ] Los logs llegan a CloudWatch con retención limitada y explícita, y el alcance de
+      CloudWatch se mantiene **mínimo**: sin *dashboards* elaborados ni funcionalidades no
+      justificadas.
+- [ ] **D-20 decidida**: está definido con qué mecanismo IAM de **solo lectura** accedería
+      Grafana Cloud a CloudWatch, sin credenciales de larga vida versionadas. **Implementarla
+      no es obligatorio en esta etapa; decidirla, sí.**
 - [ ] La Lambda responde correctamente a través de API Gateway.
 - [ ] API Gateway tiene throttling configurado.
 - [ ] El frontend está publicado en Cloudflare Pages y consume el API real.
@@ -100,6 +105,7 @@ laboratorio se corrige.
 | --- | --- |
 | Bucket S3 accidentalmente público. | Bloqueo de acceso público a nivel de cuenta y bucket; verificación explícita. |
 | Retención de logs infinita generando costo creciente. | Retención definida en `Task/031`; refuerzo en `Task/041`. |
+| **Dar a un tercero acceso amplio o permanente a AWS** al integrar la observabilidad (**D-20**). | Permiso **mínimo**, **solo lectura** y sin credenciales de larga vida versionadas. El compromiso de Grafana Cloud **no debe** implicar el de AWS. |
 | CORS mal configurado que rompe el frontend. | Orígenes permitidos explícitos; prueba desde el dominio real. |
 | Propagación de DNS más lenta de lo previsto. | TTL bajo durante el corte; ventana de validación holgada. |
 | Arranque en frío perceptible en la primera visita. | Medición y ajuste de memoria de la Lambda. |

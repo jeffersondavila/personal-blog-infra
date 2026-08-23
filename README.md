@@ -149,18 +149,48 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 | Archivos e imágenes | Amazon S3 |
 | Base de datos | **PostgreSQL autogestionado en VPS externo**, con PgBouncer delante |
 | Configuración | AWS SSM Parameter Store |
-| Logs y métricas | Amazon CloudWatch (retención y uso limitados) |
+| Logs y métricas (AWS) | Amazon CloudWatch **mínimo** (retención corta y explícita) |
+| Observabilidad central | **Grafana Cloud**, alimentado desde el VPS por **Grafana Alloy** |
+| Secretos del VPS | **Cifrados**, con la clave fuera del repositorio (herramienta pendiente, **D-17**) |
 | CI/CD | GitHub Actions |
 | Infraestructura como código | Terraform |
 
-Detalle y justificación: [ADR-003](docs/adr/ADR-003-serverless-low-cost-cloud.md) y
+Detalle y justificación: [ADR-003](docs/adr/ADR-003-serverless-low-cost-cloud.md),
+[ADR-008](docs/adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**) y
 [docs/architecture/local-to-cloud-mapping.md](docs/architecture/local-to-cloud-mapping.md).
 
-> El diagrama versionado [`images/Infraestructura.png`](images/Infraestructura.png)
-> representa la **arquitectura objetivo inicial, anterior a `Task/005.3`**, cuando la base de
-> datos todavía se preveía administrada. Se conserva como registro histórico. La arquitectura
-> vigente está en
-> [`docs/architecture/overview.md`](docs/architecture/overview.md) §4.
+> El diagrama versionado [`images/Infraestructura.png`](images/Infraestructura.png) es la
+> **vista visual vigente** de la arquitectura objetivo. Su contraparte **textual** —la que
+> permite razonar sobre la arquitectura sin mirar la imagen— es
+> [`docs/architecture/target-production-architecture.md`](docs/architecture/target-production-architecture.md).
+
+### Observabilidad de producción — dos planos
+
+Producción vive en **dos sitios**, y por eso la observabilidad tiene dos planos:
+
+```
+AWS      → CloudWatch minimo (logs y metricas nativas, retencion corta)
+VPS      → Grafana Alloy ──► Grafana Cloud (plano central: ver, consultar, alertar)
+CloudWatch ····► Grafana Cloud   (integracion segura/IAM — contemplada, NO implementada)
+```
+
+**CloudWatch no desaparece** y **no observa el VPS**. **No se autohospedan Grafana,
+Prometheus ni Loki** en el VPS: sus recursos son de PostgreSQL. El tier gratuito de Grafana
+Cloud es una **preferencia presupuestaria**, no una dependencia arquitectónica; los precios
+y límites se verifican en `Task/041`.
+
+Estrategia completa:
+[`docs/architecture/target-production-architecture.md`](docs/architecture/target-production-architecture.md) ·
+[ADR-008](docs/adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**
+(2026-08-23, `Task/006.2`).
+
+### Papel de Docker
+
+**Docker sí se utiliza**: es el entorno de desarrollo local, la integración local
+(`Task/007`), el *build* y test reproducibles, y el laboratorio AWS local. Lo que **no** es,
+es un **runtime obligatorio de producción**: el frontend son estáticos en Cloudflare Pages,
+el backend es un **artefacto ZIP** en Lambda —**ECR sigue excluido**— y **Portainer no llega
+a producción**.
 
 ### Base de datos de producción — VPS externo
 
@@ -250,12 +280,13 @@ docs/
 │   ├── overview.md                    ← visión de conjunto
 │   ├── software-architecture.md       ← organización de backend y frontend
 │   ├── api-contracts.md               ← convenciones de API
-│   ├── non-functional-requirements.md ← 57 requisitos: seguridad, rendimiento, SEO…
+│   ├── non-functional-requirements.md ← 59 requisitos: seguridad, rendimiento, SEO…
 │   ├── security-boundaries.md         ← qué puede hablar con qué
 │   ├── open-decisions.md              ← decisiones diferidas
 │   ├── local-to-cloud-mapping.md      ← correspondencia local → nube
 │   ├── aws-local-parity.md            ← estrategia de IaC local (AWS Local Parity)
-│   └── production-postgresql-vps.md   ← capa de datos de producción en VPS externo
+│   ├── production-postgresql-vps.md   ← capa de datos de producción en VPS externo
+│   └── target-production-architecture.md ← arquitectura objetivo de producción (texto)
 ├── adr/                               ← decisiones arquitectónicas
 └── task-reports/                      ← reportes finales de ejecución
 ```

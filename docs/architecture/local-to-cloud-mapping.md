@@ -1,7 +1,8 @@
 ﻿# Correspondencia local → nube
 
-**Última actualización:** 2026-08-16 (`Task/005.5` — alineación posterior a la auditoría;
-la capa de datos en VPS de `Task/005.3` está **aprobada** y **vigente**)
+**Última actualización:** 2026-08-23 (`Task/006.2` — observabilidad de producción y papel
+de Docker, **aprobada** y **vigente**. La capa de datos en VPS de `Task/005.3` sigue
+**aprobada** y **vigente**)
 
 > Consistente con la arquitectura definida en `Task/002`. Ver
 > [software-architecture.md](software-architecture.md) para la organización interna del
@@ -39,9 +40,14 @@ con PgBouncer delante**, mientras el backend permanece en AWS Lambda. **Aprobada
 | Archivos | MinIO | S3 emulado | Amazon S3 |
 | Administración Docker | Portainer | No aplica | No se despliega |
 | Configuración | `.env` | SSM emulado (**sin cifrado real**) | SSM Parameter Store |
-| Logs | Docker y Portainer | CloudWatch Logs emulado | CloudWatch |
+| Logs | Docker y Portainer | CloudWatch Logs emulado | **CloudWatch mínimo** (AWS) + **Grafana Cloud** (VPS, vía Alloy) |
+| Métricas y alertas | No aplica | No aplica | **CloudWatch mínimo** (AWS) + **Grafana Cloud** como plano central |
+| Agente de telemetría | No aplica | No aplica | **Grafana Alloy** en el VPS |
+| Supervisión operativa | **Portainer** | No aplica | **Grafana Cloud.** Portainer **no se despliega** |
 | Permisos | No aplica | IAM emulado — **crea, no autoriza** | IAM |
-| Ejecución | Docker Compose | Emulador AWS local | Serverless |
+| Ejecución | Docker Compose | Emulador AWS local | Serverless + VPS acotado a la capa de datos |
+| Papel de Docker | **Runtime del entorno de desarrollo** | Runtime del emulador y de la Lambda emulada | **No es runtime de producción.** Solo *build*/test si hace falta |
+| Secretos del host | No aplica | No aplica | **Cifrados en el VPS**, clave fuera del repositorio (**D-17**) |
 | Infraestructura | Docker Compose | **Terraform** (misma definición) | **Terraform** (misma definición) |
 | Integración continua | GitHub Actions | GitHub Actions + emulador efímero (`Task/039`) | GitHub Actions |
 | Despliegue | No aplica todavía | `apply`/`destroy` local (`Task/025`) | GitHub Actions + Terraform |
@@ -111,14 +117,38 @@ En local, `.env` (ignorado por Git) más un `.env.example` con valores ficticios
 En la nube, SSM Parameter Store; los valores sensibles como `SecureString`. El código
 lee siempre variables de entorno: quién las provee es indiferente.
 
-### Logs
-En local, salida estándar capturada por Docker y visible en Portainer. En la nube,
-CloudWatch con retención explícita y limitada para contener el costo. En ambos casos el
+### Logs y observabilidad
+En local, salida estándar capturada por Docker y visible en Portainer. En ambos entornos el
 formato es JSON con correlation ID (`Task/017`).
 
-### Ejecución
-Docker Compose local frente a ejecución serverless en la nube. Implicación: no hay
-procesos residentes en producción; toda tarea periódica debe modelarse como invocación.
+**Ampliado en `Task/006.2`** (**aprobada** el 2026-08-23)**.** La observabilidad de producción tiene **dos
+planos**, porque producción vive en **dos sitios**:
+
+| Plano | Qué observa | Cómo |
+| --- | --- | --- |
+| **CloudWatch mínimo** | Lambda y API Gateway | Nativo de AWS. Retención **corta y explícita** (**D-11**) |
+| **Grafana Cloud** | El **VPS** y sus servicios; a futuro también CloudWatch | **Grafana Alloy** en el host empuja logs, métricas y telemetría |
+
+**CloudWatch no observa el VPS** —un host externo no aparece allí por defecto— y **no se
+adopta CloudWatch Agent por omisión**. **No se autohospedan Grafana, Prometheus ni Loki en
+el VPS**: sus recursos son de PostgreSQL. La integración `CloudWatch → Grafana Cloud` está
+**contemplada y no implementada** (**D-20**, `Task/031`).
+
+**La aplicación no se acopla a ningún destino** (**O-09**): emite JSON por `stdout` y quien
+lo recoge es una decisión de infraestructura. Detalle:
+[target-production-architecture.md](target-production-architecture.md) §10–§13 ·
+[ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**.
+
+### Ejecución y papel de Docker
+Docker Compose local frente a ejecución serverless en la nube. Implicación: no hay procesos
+residentes en el plano de aplicación; toda tarea periódica debe modelarse como invocación.
+
+**Aclarado en `Task/006.2`** (**aprobada** el 2026-08-23)**.** **Docker sí se utiliza** en este proyecto —
+desarrollo local, integración local (`Task/007`), *build* y test reproducibles, y el
+laboratorio de paridad. Lo que **no** es, es **runtime obligatorio de producción**: el
+frontend son estáticos en Cloudflare Pages, el backend es un **ZIP** en Lambda —**ECR sigue
+excluido**— y en el VPS solo vive la capa de datos, que puede usar Docker o no (decisión de
+`Task/029`, con el mínimo privilegio razonable). **Portainer no llega a producción.**
 
 ### Infraestructura
 Docker Compose describe el entorno local de aplicación; Terraform describe el cloud. No se
@@ -152,7 +182,7 @@ añade en la Etapa 11, usando OIDC para acceder a AWS sin credenciales permanent
 | 5 | S3 cobra por almacenamiento y transferencia; MinIO no. | `Task/030`, `Task/041` |
 | 6 | CloudWatch cobra por ingesta y retención de logs. | `Task/031`, `Task/041` |
 | 7 | El límite de conexiones de PostgreSQL es finito y en una máquina económica es bajo: **PgBouncer** y la concurrencia reservada de Lambda lo acotan. | `Task/029`, `Task/032` |
-| 8 | No hay equivalente de Portainer en producción. | Diagnóstico por CloudWatch (`Task/031`) |
+| 8 | No hay equivalente de Portainer en producción. | **CloudWatch mínimo** para AWS (`Task/031`) y **Grafana Cloud** como plano de supervisión, alimentado por **Alloy** desde el VPS (`Task/029`) |
 | 9 | **El laboratorio local no aplica políticas IAM**: un rol puede validarse en local y ser incorrecto en AWS. | `Task/028`, `Task/032` — **AWS-only** |
 | 10 | **`SecureString` no se cifra** en el SSM emulado. | `Task/031` — ningún secreto real en el laboratorio |
 | 11 | El arranque en frío del laboratorio **no es comparable** con el de AWS. | `Task/032` (**D-12**) — medir solo en AWS real |

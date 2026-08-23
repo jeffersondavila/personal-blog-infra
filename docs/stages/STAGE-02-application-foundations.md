@@ -10,7 +10,7 @@
 | **Avance** | 67 % |
 | **Hito que completa** | Frontend y backend arrancan e integran contra PostgreSQL y MinIO. |
 | **Inicio** | 2026-08-01 |
-| **Última actualización** | 2026-08-18 |
+| **Última actualización** | 2026-08-23 (`Task/006.2` — guardrail de arquitectura objetivo para `Task/007`; **Aprobada**) |
 
 ---
 
@@ -90,6 +90,25 @@ una vez que hay dominio construido encima.
 - Integrar frontend, backend, PostgreSQL y MinIO en un único Compose.
 - Reverse proxy local con rutas para sitio y API.
 - Supervisión del conjunto desde Portainer.
+
+> **Guardrail de arquitectura objetivo** (añadido en `Task/006.2`, **aprobada** el 2026-08-23). La
+> arquitectura objetivo de producción es **Cloudflare Pages → API Gateway →
+> Lambda/FastAPI → TLS → VPS/PgBouncer/PostgreSQL**; **S3** para object storage; **SSM
+> `SecureString`** para los secretos de la Lambda; **CloudWatch mínimo + Grafana Cloud**
+> para observabilidad; **Grafana Alloy** en el VPS.
+>
+> **`Task/007` NO implementa ninguno de esos servicios productivos** —ni AWS real, ni
+> Lambda, ni API Gateway, ni S3, ni SSM, ni Grafana Cloud, ni Alloy, ni VPS, ni Terraform
+> cloud, ni Cloudflare Pages real—, **pero tampoco debe crear acoplamientos locales que
+> impidan sustituir MinIO, PostgreSQL o el proxy local por sus implementaciones
+> productivas.**
+>
+> **Su naturaleza no cambia: sigue siendo integración local.** Criterio práctico para
+> comprobarlo: al terminar, sustituir MinIO por S3, el proxy local por API Gateway y
+> PostgreSQL local por PgBouncer **debe ser un cambio de configuración y de adaptador**,
+> nunca una reescritura del dominio. Detalle:
+> [target-production-architecture.md](../architecture/target-production-architecture.md)
+> §24.
 
 > **Límite con `Task/010`** (aclarado en `Task/005.5`). `Task/007` integra MinIO **a nivel
 > de infraestructura**: contenedor, red, nombre de servicio, healthcheck y configuración
