@@ -41,7 +41,8 @@ responsive y prueba de rollback.
 | **Aplicación** | Sitio, API, login, contenido, SEO, responsive, rollback |
 | **AWS** | Lambda, API Gateway, S3, SSM, CloudWatch y sus alarmas |
 | **Capa de datos** | Conexión `Lambda → PgBouncer`, PostgreSQL respondiendo, pool coherente bajo carga real |
-| **VPS** | Disponibilidad del host, espacio en disco, recursos, observabilidad operando de verdad |
+| **VPS** | Disponibilidad del host, espacio en disco, recursos, **Grafana Alloy enviando de verdad** a Grafana Cloud |
+| **Observabilidad** | **CloudWatch mínimo** con su retención real · **Grafana Cloud** recibiendo y alertando · integración **D-20** si se implementó · **ninguna alerta muda** |
 | **TLS** | Certificado **válido y vigente**, validado **desde la Lambda real**, con su alerta de caducidad activa |
 | **Continuidad** | **Backup reciente y verificado**, **restore vigente** —no uno de hace meses—, runbooks y procedimiento de recuperación |
 
@@ -56,10 +57,16 @@ responsive y prueba de rollback.
 Presupuestos, alarmas, retención de logs, límites de servicio y revisión periódica de
 recursos activos.
 
-> **El costo no es solo AWS** (ampliado en `Task/005.5`). Debe contemplar **todos** los
-> recursos productivos que cuestan dinero: **AWS**, **Cloudflare si aplica**, **dominio**,
-> **VPS**, **IPv4 si tiene costo**, **almacenamiento de backups**, **snapshots** y
-> **transferencia**. Un control de costos que ignore el VPS no protege la factura real.
+> **El costo no es solo AWS** (ampliado en `Task/005.5`, y en `Task/006.2` con la
+> observabilidad). Debe contemplar **todos** los recursos productivos que cuestan dinero:
+> **AWS**, **Cloudflare si aplica**, **dominio**, **VPS**, **IPv4 si tiene costo**,
+> **almacenamiento de backups**, **snapshots**, **transferencia** y **Grafana Cloud**
+> (**D-19**). Un control de costos que ignore el VPS o la observabilidad no protege la
+> factura real.
+>
+> **Y debe confirmar que los tiers gratuitos siguen siendo aplicables** en ese momento
+> (**R-38**). Las condiciones de un plan gratuito **no son una garantía eterna**: «Grafana
+> Cloud Free» es una **preferencia presupuestaria**, no una dependencia arquitectónica.
 >
 > **Precios vigentes en el momento de ejecutarse**, nunca cifras heredadas de este
 > documento ni de `Task/029`.
@@ -72,7 +79,12 @@ recursos activos.
 - [ ] El API responde en su subdominio con CORS correcto.
 - [ ] El login administrativo funciona en producción.
 - [ ] Todas las secciones del blog muestran contenido real.
-- [ ] Los logs llegan a CloudWatch y son consultables.
+- [ ] Los logs llegan a CloudWatch y son consultables, con la retención real verificada.
+- [ ] **Grafana Cloud recibe la telemetría del VPS** y sus alertas —disco, caducidad de
+      certificado, fallo de backup— **se dispararon en una prueba**, no solo están
+      configuradas.
+- [ ] La telemetría enviada **no contiene secretos ni datos personales innecesarios**
+      (**O-09**), comprobado por muestreo.
 - [ ] Los metadatos SEO se validan con herramientas externas.
 - [ ] El sitio se comporta correctamente en móvil, tableta y escritorio.
 - [ ] El rollback se ejecutó realmente y funcionó.
@@ -85,7 +97,10 @@ recursos activos.
 - [ ] Presupuestos y alarmas activos y probados.
 - [ ] Retención de logs limitada y verificada.
 - [ ] Existe una lista revisable de **todos** los recursos productivos que cuestan dinero y
-      su costo: AWS, **VPS**, dominio, **backups**, transferencia y Cloudflare si aplica.
+      su costo: AWS, **VPS**, dominio, **backups**, transferencia, Cloudflare si aplica y
+      **Grafana Cloud**.
+- [ ] **Confirmado con precios y límites vigentes en ese momento** que los tiers gratuitos
+      utilizados siguen siendo aplicables (**D-19**, **R-38**).
 - [ ] Está definida la periodicidad de la revisión de costos.
 
 ## Fuera del alcance de la etapa
@@ -99,6 +114,7 @@ recursos activos.
 | Riesgo | Mitigación |
 | --- | --- |
 | Crecimiento silencioso del costo con el tiempo. | Revisión periódica agendada y alarmas por umbral. |
+| **Un tier gratuito de terceros cambia de límites o de precio** (**R-38**). | Declarado como preferencia presupuestaria, no como dependencia; verificación de precios reales en cada revisión; la arquitectura admite pagar, reducir volumen o cambiar de destino. |
 | Recursos huérfanos que nadie recuerda haber creado. | Inventario de recursos mantenido en Terraform y revisado. |
 | Rollback nunca probado en producción real. | Se ejecuta como criterio obligatorio en `Task/040`. |
 | Abandono del mantenimiento tras el lanzamiento. | Runbooks y automatización que reducen el esfuerzo de operación. |

@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-08-18 (`Task/006` — fundación del frontend, **Aprobada**)
+- **Última actualización:** 2026-08-23 (`Task/006.2` — formalización de la arquitectura objetivo de producción, **Aprobada**. **41 identificadores intactos**)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -11,6 +11,11 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   PgBouncer — ver
   [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) y
   [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**)
+- **Arquitectura objetivo de producción:** Cloudflare → Pages → API Gateway → Lambda → TLS →
+  VPS/PgBouncer/PostgreSQL, con S3, SSM `SecureString`, **CloudWatch mínimo** y **Grafana
+  Cloud** (Alloy en el VPS) — ver
+  [target-production-architecture.md](../architecture/target-production-architecture.md) y
+  [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
 - **Avance global:** **15 %** (6 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
@@ -20,9 +25,22 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > Ninguna tarea puede marcarse `Aprobada` sin autorización explícita del usuario.
 
 > **Tareas de mantenimiento.** Las tareas con sufijo (`Task/002.1`, `Task/005.1`,
-> `Task/005.2`, `Task/005.3`, `Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`, …) son
-> mantenimiento de gobierno: **no forman parte de estas 41** y **no alteran el avance**. Su
-> estado se registra en [`STATUS.md`](STATUS.md).
+> `Task/005.2`, `Task/005.3`, `Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`,
+> `Task/006.1`, `Task/006.2`, …) son mantenimiento de gobierno: **no forman parte de estas
+> 41** y **no alteran el avance**. Su estado se registra en [`STATUS.md`](STATUS.md).
+
+> **Formalización de la arquitectura objetivo de producción — `Task/006.2` (2026-08-23,
+> aprobada).**
+> Mantenimiento transversal de arquitectura y planificación, previo a `Task/007`. Da
+> contraparte **textual** al diagrama `images/Infraestructura.png` que el usuario actualizó
+> en `main`, y alinea documentación, roadmap, decisiones y riesgos con él. Cierra el modelo
+> de **secretos del VPS**, el **papel de Docker** y la **observabilidad de producción**
+> —CloudWatch mínimo + Grafana Cloud con Alloy— y abre **D-17** a **D-20** con propietario.
+> **0 funcionalidad**, **0 recursos cloud**, **41 identificadores intactos** y avance **sin
+> cambios**. Documento canónico:
+> [target-production-architecture.md](../architecture/target-production-architecture.md) —
+> **Vigente** ·
+> [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**.
 
 > **Cierre de los hallazgos finales de certificación — `Task/005.7` (2026-08-16).**
 > Mantenimiento transversal previo a `Task/006`, sobre la mega auditoría final de Claude y
@@ -128,6 +146,18 @@ infraestructura local.
 **Ficha:** [STAGE-02-application-foundations.md](../stages/STAGE-02-application-foundations.md)
 **Estado:** **En curso** desde el 2026-08-01. **2 de 3** tareas aprobadas.
 
+> **Guardrail de `Task/007` — añadido en `Task/006.2`, aprobada.** La arquitectura objetivo
+> de producción es **Cloudflare Pages → API Gateway → Lambda/FastAPI → TLS →
+> VPS/PgBouncer/PostgreSQL**; **S3** para object storage; **SSM `SecureString`** para los
+> secretos de la Lambda; **CloudWatch mínimo + Grafana Cloud** para observabilidad; **Alloy**
+> en el VPS.
+>
+> **`Task/007` NO implementa estos servicios productivos**, pero **tampoco debe crear
+> acoplamientos locales que impidan sustituir MinIO, PostgreSQL o el proxy local por sus
+> implementaciones productivas.** Su naturaleza **no cambia**: sigue siendo integración
+> **local**. Detalle:
+> [target-production-architecture.md](../architecture/target-production-architecture.md) §24.
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/005-Fundacion-Backend-FastAPI` | Base profesional de FastAPI. Configuración. Logging. PostgreSQL. Alembic. Pruebas. Dockerfile. | backend, infra (documentación) | 004 | **Aprobada** (2026-08-12) |
@@ -188,7 +218,7 @@ observabilidad y endurecimiento de seguridad.
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | Metadatos. Open Graph. Sitemap. Robots. Optimización. Accesibilidad. **Verificación comprobable** del *rendering* de la SPA por URL directa y ante *crawlers*, con **criterio explícito de reconsideración** si no se satisface. `og:image` con URL estable, no expirable. | frontend, backend | 014, 015 | Pendiente |
-| `Task/017-Observabilidad-Local` | Logs JSON. Correlation ID. Healthchecks. Auditoría. Diagnóstico con Portainer. **Solo entorno local: no es owner del monitoreo del VPS productivo** (`Task/029`, `Task/040`). | backend, infra | 014, 015 | Pendiente |
+| `Task/017-Observabilidad-Local` | Logs JSON. Correlation ID. Healthchecks. Auditoría. Diagnóstico con Portainer. **Solo entorno local: no es owner del monitoreo del VPS productivo** (`Task/029`, `Task/040`). **La telemetría debe ser portable**: el dominio no se acopla a CloudWatch, Grafana, Loki ni Prometheus (**O-09**). | backend, infra | 014, 015 | Pendiente |
 | `Task/018-Endurecimiento-de-Seguridad` | Dependencias. Imágenes Docker. Secretos. CORS. Headers. Archivos. Autenticación. | infra, frontend, backend | 016, 017 | Pendiente |
 
 ---
@@ -275,11 +305,21 @@ otro modelo (`Task/039`). Acotado en `Task/005.6`.
 > (`Task/032`) se validan en su tarea propietaria y, definitivamente, en `Task/040`. Ver
 > [STAGE-09](../stages/STAGE-09-cloud-accounts.md).
 
+> **`Task/029` absorbe tres materias más — `Task/006.2` (2026-08-23, aprobada).** El
+> **identificador `029` no cambia** y el roadmap sigue teniendo **41 tareas**. Se le confirma
+> el *ownership* de: **el mecanismo de secretos cifrados del host** (**D-17**; SOPS + age es
+> candidato, no decisión), **el mecanismo de configuración del sistema operativo** (**D-18**;
+> Ansible, cloud-init o scripts idempotentes — **nunca Terraform**) y **la instalación y
+> configuración de Grafana Alloy** como agente del *baseline* de observabilidad que ya tenía
+> asignado. Detalle:
+> [target-production-architecture.md](../architecture/target-production-architecture.md) §9,
+> §11 y §17.
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | AWS. Cloudflare. MFA. Presupuestos. Alertas. | infra | 026 | Pendiente |
 | `Task/028-GitHub-OIDC-AWS` | Roles temporales de **GitHub Actions → AWS**. Sin credenciales AWS permanentes. **No cubre la identidad del VPS** (**D-16**, `Task/029`). | infra | 027 | Pendiente |
-| `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | Selección del VPS por costo, región y RTT **medido**. PgBouncer. TLS, **ciclo de vida del certificado** y SCRAM. Firewall y SSH. Backup **fuera del host** y **restore demostrado** contra un destino disponible entonces. **Baseline de observabilidad del VPS.** Decide **D-16** (identidad del VPS hacia AWS). | infra | 027 | Pendiente |
+| `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | Selección del VPS por costo, región y RTT **medido**. PgBouncer. TLS, **ciclo de vida del certificado** y SCRAM. Firewall y SSH. Usuarios, roles y límites de conexión. Backup **fuera del host** y **restore demostrado** contra un destino disponible entonces. **Baseline de observabilidad del VPS con Grafana Alloy.** **Mecanismo de secretos cifrados del host** (**D-17**) y **mecanismo de configuración del sistema operativo** (**D-18**). Decide **D-16** (identidad del VPS hacia AWS). | infra | 027 | Pendiente |
 
 ---
 
@@ -298,14 +338,20 @@ otro modelo (`Task/039`). Acotado en `Task/005.6`.
 > [matriz de paridad](../architecture/aws-local-parity.md) con evidencia real. **AWS real es
 > la autoridad final.**
 
+> **Observabilidad — precisado en `Task/006.2`, aprobada.** `Task/031` mantiene
+> **CloudWatch en modo mínimo** —retención corta y explícita, alarmas imprescindibles— y
+> **decide D-20**: con qué mecanismo IAM de **solo lectura** accederá Grafana Cloud a
+> CloudWatch. **Sigue siendo solo AWS: no observa el VPS**, cuya telemetría la envía
+> **Grafana Alloy** desde `Task/029`.
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. **Destino y política de los backups del VPS** y **materialización de la identidad decidida en D-16**. Valida `S3Storage` contra S3 real. Resuelve **D-08**. | infra | 029 | Pendiente |
-| `Task/031-Desplegar-SSM-y-CloudWatch` | Parámetros. Logs. Retención. Alarmas mínimas. **Solo AWS: no observa el VPS.** | infra | 029 | Pendiente |
-| `Task/032-Desplegar-AWS-Lambda` | Función. IAM. Configuración. Límites. **Reserved Concurrency** coherente con el pool de PgBouncer. *Wiring* de `S3Storage`. | infra | 030, 031 | Pendiente |
-| `Task/033-Desplegar-API-Gateway` | HTTP API. Rutas. CORS. Throttling. | infra | 032 | Pendiente |
-| `Task/034-Desplegar-Cloudflare-Pages` | React. Variables. Dominio. | infra, frontend | 033 | Pendiente |
-| `Task/035-Configurar-DNS` | Dominio principal. `www`. `api`. `media` si corresponde. | infra | 034 | Pendiente |
+| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. **Destino, política, retención y *lifecycle* de los backups del VPS** —**owner único de ese tramo**; el mecanismo de backup es de `Task/029`— y **materialización de la identidad decidida en D-16**. Valida `S3Storage` contra S3 real. Resuelve **D-08**. | infra | 029 | Pendiente |
+| `Task/031-Desplegar-SSM-y-CloudWatch` | **SSM `SecureString`** para los secretos de la Lambda, con permisos IAM mínimos. **CloudWatch mínimo**: logs y métricas nativas, retención corta y explícita (**D-11**), alarmas mínimas. **Base de la integración AWS → Grafana Cloud**: decide **D-20** y su modelo IAM de solo lectura. **Solo AWS: no observa el VPS.** | infra | 029 | Pendiente |
+| `Task/032-Desplegar-AWS-Lambda` | Función FastAPI en Lambda por **artefacto ZIP**. IAM. **Configuración no secreta por variables de entorno y secretos desde SSM.** `DATABASE_URL` apuntando a **PgBouncer**, con **TLS** hacia el VPS. Límites (**D-12**). **Reserved Concurrency** coherente con el pool de PgBouncer. *Wiring* de `S3Storage`. **Logging compatible con la observabilidad elegida.** | infra | 030, 031 | Pendiente |
+| `Task/033-Desplegar-API-Gateway` | **HTTP API**. Rutas hacia la Lambda. CORS. Throttling. Dominio del API si corresponde. | infra | 032 | Pendiente |
+| `Task/034-Desplegar-Cloudflare-Pages` | **Cloudflare Pages**: build de React, variables del build y publicación de la SPA. **Owner del despliegue del frontend**; DNS, CDN y WAF son de `Task/035`. | infra, frontend | 033 | Pendiente |
+| `Task/035-Configurar-DNS` | Dominio principal, `www`, `api` y `media` si corresponde. **DNS, CDN y WAF de Cloudflare.** Resuelve **D-07**; la topología lógica ya viene fijada por **D-15** (`Task/011`). | infra | 034 | Pendiente |
 | `Task/036-Publicar-Primer-Contenido` | **Primera ejecución de las migraciones en producción.** Administrador. Perfil. Artículo. Review. Video. Imágenes. | backend, frontend | 035 | Pendiente |
 
 ---
@@ -322,7 +368,7 @@ otro modelo (`Task/039`). Acotado en `Task/005.6`.
 | --- | --- | --- | --- | --- |
 | `Task/037-Deploy-Automatico-Frontend` | GitHub Actions hacia Cloudflare Pages. | frontend | 036 | Pendiente |
 | `Task/038-Deploy-Automatico-Backend` | GitHub Actions hacia Lambda usando OIDC. **Canal repetible de migraciones en producción**: quién las ejecuta, desde dónde, con qué credencial, en qué orden respecto al despliegue, cómo se revierte y qué impide una ejecución accidental. | backend | 036 | Pendiente |
-| `Task/039-Automatizar-Terraform` | Plan revisable. Apply protegido. Sin destrucción automática. Validación de IaC en CI sobre emulador **efímero**, sin credenciales cloud. **Credenciales, rotación, *scopes*, entornos protegidos y guardas de destino para los tres providers: AWS, Cloudflare y VPS.** | infra | 037, 038 | Pendiente |
+| `Task/039-Automatizar-Terraform` | Plan revisable. Apply protegido. Sin destrucción automática. Validación de IaC en CI sobre emulador **efímero**, sin credenciales cloud. **Credenciales, rotación, *scopes*, entornos protegidos y guardas de destino para los tres providers: AWS, Cloudflare y VPS.** **Terraform no sustituye a Ansible, cloud-init ni a los scripts idempotentes** en la configuración del sistema operativo del VPS (**D-18**, `Task/029`). | infra | 037, 038 | Pendiente |
 
 ---
 
@@ -337,8 +383,8 @@ permanente.
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/040-Validacion-Final-Produccion` | HTTPS. Dominio. API. Login. Contenido. Logs. SEO. Responsive. Rollback. **Y la capa de datos: conexión a PgBouncer, PostgreSQL, disponibilidad y disco del VPS, TLS y vigencia del certificado, observabilidad del VPS, backup reciente y restore vigente, runbooks.** | infra, frontend, backend | 039 | Pendiente |
-| `Task/041-Proteccion-de-Costos` | Presupuestos. Alarmas. Retención. Límites. Revisión periódica. **Todos los recursos productivos que cuestan dinero, no solo AWS: VPS, dominio, IPv4 si aplica, almacenamiento de backups, snapshots, transferencia y Cloudflare si aplica.** Precios **vigentes en el momento**, nunca heredados. | infra | 040 | Pendiente |
+| `Task/040-Validacion-Final-Produccion` | Comprobación **end-to-end** de lo realmente implementado: **Cloudflare** (DNS, CDN, WAF), **Pages**, **API Gateway**, **Lambda**, **S3**, **SSM**, HTTPS, dominio, login, contenido, SEO, responsive y rollback. **Y la capa de datos: conexión a PgBouncer, PostgreSQL, disponibilidad y disco del VPS, TLS y vigencia del certificado, backup reciente y restore vigente, runbooks.** **Y la observabilidad: CloudWatch mínimo, Grafana Cloud y Alloy operando de verdad**, más la integración de **D-20** si existe. | infra, frontend, backend | 039 | Pendiente |
+| `Task/041-Proteccion-de-Costos` | Presupuestos. Alarmas. Retención. Límites. Revisión periódica. **Todos los recursos productivos que cuestan dinero, no solo AWS: VPS, dominio, IPv4 si aplica, almacenamiento de backups, snapshots, transferencia, Cloudflare si aplica y Grafana Cloud** (**D-19**). Precios **vigentes en el momento**, nunca heredados, y **confirmación de que los tiers gratuitos siguen siendo aplicables** (**R-38**). | infra | 040 | Pendiente |
 
 ---
 
@@ -359,12 +405,19 @@ identificadores.**
 | **Medios públicos y URLs** (**D-08**) | `Task/010` — persiste **claves de objeto** · `Task/016` — `og:image` estable | `Task/030` — resuelve **D-08** | `Task/040` |
 | **Credenciales CI multi-provider** | `Task/028` — **solo** GitHub → AWS | `Task/039` — AWS, Cloudflare y VPS: rotación, *scopes*, entornos protegidos y guardas de destino | `Task/040` |
 | **Topología lógica de dominios** (**D-15**) | `Task/011` — mismo *site*, subdominios o dominios separados; cookies y CORS | `Task/018` — CORS efectivo | `Task/035` — dominio concreto y DNS (**D-07**) |
+| **Observabilidad de producción** (`Task/006.2`) | `Task/029` — **Grafana Alloy** y el *baseline* del VPS · `Task/031` — **CloudWatch mínimo** y la base de **D-20** | `Task/029`, `Task/031` | `Task/040` — que **opera de verdad**, no que está configurada |
+| **Telemetría portable de la aplicación** (`Task/006.2`) | `Task/017` — logs JSON y correlation ID, **sin acoplar el dominio a ningún destino** | `Task/018` — redacción y endurecimiento | `Task/040` |
+| **Secretos del VPS** (**D-17**, `Task/006.2`) | `Task/029` — herramienta, custodia y rotación de la clave | `Task/029` | `Task/040` |
+| **Configuración del sistema operativo del VPS** (**D-18**, `Task/006.2`) | `Task/029` — mecanismo y *drift* | `Task/029` · `Task/039` no lo sustituye con Terraform | `Task/040` |
+| **Costo de la observabilidad** (**D-19**, `Task/006.2`) | `Task/027` — presupuesto (**D-13**) | `Task/031`, `Task/029` | `Task/041` — **precios reales del momento** |
 
 **Reglas que esto fija:**
 
 - **Ninguna tarea exige como evidencia final algo que solo existe después de ella.**
 - `Task/017` es observabilidad **local**; `Task/031` es **solo AWS**. Ninguna de las dos
-  observa el VPS.
+  observa el VPS: eso es de `Task/029` con **Grafana Alloy**, verificado por `Task/040`.
+- **El backup tiene un único owner por tramo**: mecanismo en `Task/029`, destino y retención
+  en `Task/030`, verificación en `Task/040`. **No se duplica.**
 - `Task/029` **define y prepara**; `Task/030`/`Task/032` **materializan**; `Task/040`
   **verifica**, no implementa.
 
@@ -380,7 +433,7 @@ avance_global = tareas_aprobadas_totales  / 41
 Actualmente: `6 / 41 = 15 %`.
 
 Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`,
-`Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`) **no entran en el numerador ni en el
-denominador**.
+`Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`, `Task/006.1`, `Task/006.2`) **no
+entran en el numerador ni en el denominador**.
 
 Ver estado vigente en [STATUS.md](STATUS.md).

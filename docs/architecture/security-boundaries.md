@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) |
+| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) |
 
 Identifica los **componentes** del sistema, qué comunicaciones entre ellos están
 permitidas y cuáles están explícitamente prohibidas.
@@ -33,6 +33,8 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-13 | **VPS de producción** (`Task/005.3`) | Internet, **host propio** | **Ninguna por sí mismo.** Host expuesto a Internet, administrado por el proyecto. Su compromiso implica **exposición de todos los datos del blog**. Ver §9. |
 | C-14 | **PgBouncer** | Internet, en el VPS | **Único endpoint de la capa de datos alcanzable desde fuera** del VPS. Es el *boundary* de la base de datos. El SSH administrativo del host es un canal **separado**, no forma parte de esta capa. |
 | C-15 | **PostgreSQL de producción** | Datos, **privado en el VPS** | **Nunca alcanzable desde Internet.** Solo acepta conexiones internas del VPS. |
+| C-16 | **Grafana Alloy** (`Task/006.2`) | En el VPS, **solo salida** | Agente de telemetría. **No abre puertos de entrada.** Lee logs y métricas del host y de sus servicios: **ve datos sensibles por diseño**. Ver §10. |
+| C-17 | **Grafana Cloud** (`Task/006.2`) | Internet, **tercero** | Destino externo de telemetría. **Los datos que le llegan salen del perímetro del proyecto.** No tiene acceso a AWS ni al VPS mientras **D-20** siga abierta. Ver §10. |
 
 > **C-03 y C-04 no son límites de seguridad.** Ocultar un botón no protege nada: la
 > autorización se decide siempre en C-06.
@@ -64,6 +66,9 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-14 PgBouncer | C-15 PostgreSQL | Sí | Únicamente por la **red interna del VPS**; nunca por la interfaz pública. |
 | Proceso de backup del VPS | C-11 Amazon S3 | Sí | Backup **cifrado**, con credenciales de mínimo privilegio. Destino **fuera del host** (§9). |
 | Operador | C-13 VPS | Sí | **SSH solo por llave**, nunca por contraseña. |
+| C-16 Grafana Alloy | C-17 Grafana Cloud | Sí | **Solo salida**, cifrada. Sin secretos ni datos personales innecesarios en la telemetría (§10). |
+| C-16 Grafana Alloy | C-13 / C-14 / C-15 en el VPS | Sí, **solo lectura** | Lee logs, métricas y estado **dentro del host**. No modifica servicios ni datos. |
+| C-17 Grafana Cloud | C-11 CloudWatch | **Todavía no** | Contemplado en la arquitectura, **no implementado**. Exigirá permisos **mínimos y de solo lectura** (**D-20**, `Task/031`). |
 
 ---
 
@@ -92,6 +97,10 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-11 Lambda | C-14 PgBouncer **sin TLS** | Prohibido en producción: el tramo atraviesa Internet. |
 | Credenciales de producción | Git | Ninguna credencial de la base de datos se versiona, en ningún repositorio. |
 | Backup | Permanecer **solo** en el VPS | Un backup que solo vive en el host no protege de perder el host (§9). |
+| Internet | C-16 Grafana Alloy | El agente **no expone ningún puerto de entrada**. Su tráfico es **saliente**; el firewall sigue *deny-by-default* (§10). |
+| Secretos, credenciales o datos personales innecesarios | C-17 Grafana Cloud | La telemetría **sale del perímetro del proyecto**. Regla **O-08** y **O-09**: no viaja lo que no debe salir (§10). |
+| C-17 Grafana Cloud | C-13 VPS o C-11 AWS con permisos amplios | Ningún destino de telemetría recibe acceso administrativo. Cuando **D-20** se resuelva, será **solo lectura** y de **permiso mínimo** (§10). |
+| **Stack de observabilidad autohospedado** (Grafana, Prometheus, Loki) | C-13 VPS | Prohibido por [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md): compite por los recursos reservados a PostgreSQL y cae con el host que debía vigilar. |
 
 ---
 
@@ -313,4 +322,79 @@ Se evalúa en `Task/029`.
 - **El VPS no aloja la aplicación.** FastAPI sigue en AWS Lambda.
 - **El frontend no cambia.** Cloudflare Pages sigue igual.
 - **El entorno local no cambia.** PostgreSQL en Docker sigue siendo el destino de desarrollo.
+- **No relaja** ninguna regla existente de este documento; añade las suyas.
+
+---
+
+## 10. Observabilidad de producción (C-16, C-17) — reglas explícitas
+
+> **Estado: Vigente** ✔ — aprobado en `Task/006.2` el 2026-08-23. Decisión:
+> [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**.
+> Documento canónico:
+> [target-production-architecture.md](target-production-architecture.md) §10–§13.
+
+La observabilidad de producción introduce **una frontera de confianza que las anteriores no
+tenían**: un destino **externo al proyecto y a sus dos proveedores**. Hasta ahora, todo dato
+del sistema vivía en AWS, en Cloudflare, en el VPS o en la máquina local. **La telemetría
+enviada a Grafana Cloud sale de ese perímetro.**
+
+Y el agente que la envía —**Grafana Alloy**, C-16— vive **dentro del VPS**, que es el
+componente cuyo compromiso tendría el mayor impacto del proyecto (§9). Un agente que lee
+logs del host y de PostgreSQL **ve datos sensibles por diseño**: esa es su función.
+
+### 10.1 Topología
+
+```
+VPS (C-13)
+  ├── PostgreSQL (C-15) ─┐
+  ├── PgBouncer (C-14) ──┤ lectura de logs, metricas y estado
+  └── host ──────────────┘
+                 │
+          Grafana Alloy (C-16)   ← solo salida; NO abre puertos de entrada
+                 │
+                 ▼  TLS saliente
+          Grafana Cloud (C-17)   ← TERCERO. Los datos salen del perimetro
+
+AWS
+  CloudWatch minimo (C-11) ····► Grafana Cloud   (D-20, NO implementada)
+```
+
+### 10.2 Controles obligatorios
+
+| # | Regla | Detalle |
+| --- | --- | --- |
+| G-01 | **Alloy no abre puertos de entrada** | Su tráfico es **saliente**. El firewall del VPS sigue *deny-by-default* (regla V-05). |
+| G-02 | **La telemetría no lleva secretos** | Ni contraseñas, ni tokens, ni cadenas de conexión, ni claves. Aplicación directa de **O-08**. |
+| G-03 | **La telemetría no lleva datos personales innecesarios** | Requisito **O-09**. Enviar a un tercero es exportar: qué se recolecta **es parte del diseño**, no configuración. |
+| G-04 | **La credencial de Alloy es un secreto del VPS** | Cifrada, clave fuera del repositorio, permisos mínimos y rotación definida (**D-17**, `Task/029`). |
+| G-05 | **Alloy con el mínimo privilegio razonable en el host** | Lee; no administra. No necesita ser raíz para todo lo que hace: lo que exija privilegio se acota. |
+| G-06 | **Ningún secreto de Grafana se versiona** | Regla ya vigente (V-08), sin excepción para este componente. |
+| G-07 | **Grafana Cloud no recibe acceso a AWS todavía** | **D-20** abierta. Cuando se resuelva será **solo lectura** y de **permiso mínimo**. |
+| G-08 | **El compromiso de Grafana Cloud no debe implicar el compromiso de AWS ni del VPS** | Mismo criterio exigido a **D-16**: son principals distintos, con superficies distintas. |
+| G-09 | **No se autohospeda un *stack* de observabilidad en el VPS** | Grafana, Prometheus y Loki compiten por los recursos reservados a PostgreSQL y **caen con el host que debían vigilar**. |
+| G-10 | **La retención de CloudWatch es corta y explícita** | Nunca infinita (**D-11**, `Task/031`). El costo de observabilidad se contiene por diseño. |
+| G-11 | **Ninguna cifra comercial de Grafana se documenta como permanente** | Si se registra, se marca *«verificar en `Task/041` / antes de contratar»*. |
+
+### 10.3 Por qué el agente y no un *stack*
+
+Un plano de observabilidad **alojado en la máquina que vigila** tiene dos fallos, y cada uno
+basta para descartarlo en este proyecto:
+
+1. **Compite por los recursos de PostgreSQL** —RAM, CPU, disco—, que es exactamente lo que
+   no puede degradarse (**R-32**, **R-41**).
+2. **Desaparece con el incidente.** Si el host cae, se pierde la telemetría del momento en
+   que más falta hace.
+
+Un **agente** que empuja hacia fuera no tiene ninguno de los dos.
+
+### 10.4 Qué NO cambia
+
+- **El entorno local no cambia.** Alloy y Grafana Cloud son **exclusivamente de
+  producción**; en local siguen Docker, Portainer y `Task/017`.
+- **El laboratorio AWS local no cambia.** Floci **no emula Grafana Cloud** y no debe
+  intentarlo.
+- **CloudWatch no desaparece.** Sigue siendo la observabilidad nativa de AWS, en modo
+  mínimo.
+- **La aplicación no cambia.** Emite logs JSON con correlation ID por `stdout`; quién los
+  recoge es decisión de infraestructura.
 - **No relaja** ninguna regla existente de este documento; añade las suyas.

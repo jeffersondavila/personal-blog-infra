@@ -3,8 +3,8 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-08-16 (`Task/005.5` — **D-15** y **D-16** añadidas; **D-02** y **D-07** reformuladas) |
-| **Decisiones abiertas** | **13** — D-05, D-14 y D-01 **resueltas** |
+| **Última actualización** | 2026-08-23 (`Task/006.2` — **D-17** a **D-20** añadidas; **aprobada**) |
+| **Decisiones abiertas** | **17** — D-05, D-14 y D-01 **resueltas** |
 | **Decisiones resueltas** | **3** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15) |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
@@ -43,6 +43,18 @@ ADR.
 | D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
 | D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | Abierta |
 | D-16 | **Mecanismo de identidad del VPS hacia AWS** para los backups | `Task/029` (decide) · `Task/030` (materializa) | Abierta |
+| D-17 | **Herramienta de gestión de secretos cifrados del VPS** | `Task/029` | Abierta |
+| D-18 | **Mecanismo de configuración interna del sistema operativo del VPS** | `Task/029` | Abierta |
+| D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) | Abierta |
+| D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) | Abierta |
+
+> **D-17 a D-20 se añadieron en `Task/006.2`** (**aprobada** el 2026-08-23), al formalizar la arquitectura
+> objetivo de producción. **Son consecuencia de cerrar decisiones, no de abrirlas al azar:**
+> decidir *qué* —secretos cifrados en el VPS, Grafana Cloud, Alloy, CloudWatch mínimo—
+> obliga a nombrar explícitamente el *cómo* que **todavía no puede decidirse sin el host
+> provisionado ni precios actuales**. Ninguna crea una tarea nueva. Documento canónico:
+> [target-production-architecture.md](target-production-architecture.md) — **Vigente** ·
+> [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**.
 
 ---
 
@@ -430,6 +442,123 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 > credenciales permanentes» como propiedad global del proyecto**. La afirmación
 > verificada se limita a **GitHub Actions → AWS** (`Task/028`).
 
+## D-17 — Herramienta de gestión de secretos cifrados del VPS
+
+> **Añadida en `Task/006.2`** (2026-08-23). El **modelo** queda cerrado por esa tarea:
+> **secretos cifrados, clave fuera del repositorio y descifrado local seguro**. Lo que sigue
+> abierto es **la herramienta**, y separar ambas cosas es deliberado.
+
+- **Se resuelve en:** `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`
+- **Qué está decidido ya:** ningún secreto del VPS se versiona en claro; la clave de
+  descifrado **no vive en el repositorio**; el material cifrado **sí puede versionarse**; el
+  descifrado ocurre **en el host**, en el momento de usarlo. **SSM no sustituye a este
+  mecanismo**: SSM sirve a la Lambda, esto sirve al VPS, y son dos superficies distintas.
+- **Qué queda por decidir:** la herramienta concreta y su operación —generación, custodia y
+  **rotación de la clave**, formato del material cifrado, integración con el mecanismo de
+  configuración del host (**D-18**) y con el despliegue.
+- **Candidato actual:** **SOPS + age**. Es el más probable, pero **no se declara todavía
+  tecnología irreversible**: nadie lo ha validado en este proyecto y elegirlo sin haber
+  provisionado el host ni conocido su distribución sería inventar la decisión.
+- **Información necesaria:** distribución y capacidades del VPS ya elegido; qué secretos
+  existen realmente (contraseñas de PostgreSQL y PgBouncer, clave privada del certificado,
+  credencial de backup hacia S3 según **D-16**, credencial de Alloy hacia Grafana Cloud);
+  cómo se entregan al arrancar cada servicio; costo operativo de la rotación.
+- **Afecta a:** *hardening* del VPS (`Task/029`), backups (**D-10**, **D-16**), configuración
+  del host (**D-18**), observabilidad (`Task/029`, ADR-008), runbooks (`Task/026`).
+- **Riesgo asociado:** **R-40**.
+- **Por qué no se resuelve ahora:** depende del proveedor de VPS, que **todavía no está
+  seleccionado**, y del mecanismo de configuración que se elija para el host.
+- **Restricción firme mientras siga abierta:** **no se generan claves `age`, ni de ninguna
+  otra herramienta, ni se instala nada**, hasta `Task/029`.
+
+## D-18 — Mecanismo de configuración interna del VPS
+
+> **Añadida en `Task/006.2`** (2026-08-23), a partir de una regla que esa tarea sí cierra:
+> **Terraform no es la herramienta de configuración del sistema operativo.** Terraform
+> provisiona el recurso; lo que ocurre **dentro** del host tiene otro ciclo de vida y otra
+> idempotencia. Nadie era propietario de con qué se hace ese *dentro*.
+
+- **Se resuelve en:** `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`
+- **Qué está decidido ya:** la configuración interna del host **está separada de
+  Terraform**. Terraform **puede** crear el VPS si el proveedor elegido tiene un provider
+  mantenido, pero **no** configurar Linux.
+- **Qué queda por decidir:** la herramienta. **Candidatos, ninguno elegido:** **Ansible**,
+  **cloud-init**, **scripts idempotentes**. También queda por decidir cómo se ejecuta —desde
+  dónde, con qué credencial— y cómo se detecta el *drift*.
+- **Qué deberá cubrir, sea cual sea:** usuarios · firewall · TLS y ciclo de vida del
+  certificado · PostgreSQL · PgBouncer · **Grafana Alloy** · secretos (**D-17**) · backups ·
+  *hardening* y parcheo.
+- **Información necesaria:** distribución del host; si el proveedor soporta `cloud-init`;
+  cuántas veces se espera reconstruir el VPS; esfuerzo de mantener Ansible para **un solo
+  host**; cómo se prueba el resultado sin un segundo servidor.
+- **Afecta a:** reproducibilidad del VPS (`Task/029`), runbooks (`Task/026`), recuperación
+  ante desastre (**R-29**, **R-35**), automatización (`Task/039`).
+- **Riesgo asociado:** **R-42** — *drift* de configuración que Terraform no ve.
+- **Tensión conocida:** Ansible es la respuesta profesional, pero para **un único host** su
+  costo de mantenimiento puede superar su beneficio; `cloud-init` más scripts idempotentes
+  puede bastar. La decisión exige tener el host delante, no elegirse por prestigio.
+- **Por qué no se resuelve ahora:** depende del proveedor y de la distribución, que
+  **todavía no están seleccionados**.
+
+## D-19 — Plan, límites y costo reales de Grafana Cloud
+
+> **Añadida en `Task/006.2`** (2026-08-23). `Task/006.2` cierra **que** Grafana Cloud es el
+> plano central de observabilidad; **no** cierra en qué plan, con qué límites ni a qué
+> precio — y **deliberadamente no los documenta**, porque son datos comerciales de terceros
+> con fecha de caducidad.
+
+- **Se resuelve en:** `Task/041-Proteccion-de-Costos`, con aporte de
+  `Task/027-Configurar-Cuentas-y-Presupuestos`
+- **Qué está decidido ya:** Grafana Cloud es el plano central de visualización, consulta y
+  alertas. **El tier gratuito es una preferencia presupuestaria, no una dependencia
+  arquitectónica rígida**: si deja de ser suficiente, se paga, se reduce el volumen de
+  telemetría o se cambia de destino, **y la arquitectura no se rompe**.
+- **Qué queda por decidir:** plan concreto; si los límites de ingesta, retención, series y
+  usuarios del tier disponible **en ese momento** bastan para este volumen; costo si no
+  bastan; volumen de telemetría que el proyecto va a enviar de verdad.
+- **Información necesaria:** **precios y límites vigentes en el momento de decidir**, nunca
+  heredados de este documento; volumen real de logs y métricas observado; presupuesto
+  mensual (**D-13**).
+- **Afecta a:** costo total (`Task/041`), presupuesto (**D-13**, `Task/027`), qué recolecta
+  Alloy (`Task/029`), validación final (`Task/040`).
+- **Riesgo asociado:** **R-38**.
+- **Regla de redacción vigente:** ningún documento del proyecto persiste cuotas, límites ni
+  precios de Grafana como permanentes. Si se registran, se marcan
+  ***«verificar en `Task/041` / antes de contratar»***.
+- **Por qué se difiere:** las condiciones de un tier gratuito **no son una garantía eterna**,
+  y el volumen real de telemetría no se conoce hasta que el sistema esté en producción.
+
+## D-20 — Mecanismo de integración `CloudWatch → Grafana Cloud`
+
+> **Añadida en `Task/006.2`** (2026-08-23). La arquitectura **contempla** que Grafana Cloud
+> vea lo que hay en CloudWatch. **Que exista** está cerrado; **con qué mecanismo**, no.
+
+- **Se decide en:** `Task/031-Desplegar-SSM-y-CloudWatch`
+- **Se valida en:** `Task/040-Validacion-Final-Produccion`
+- **Pregunta:** ¿con qué identidad y por qué vía accede Grafana Cloud a CloudWatch, sin que
+  eso se convierta en una credencial de larga vida, con permisos amplios y sin rotación?
+- **Qué está decidido ya:** la integración **se contempla y no se implementa ahora**; cuando
+  exista será de **solo lectura** y de **permiso mínimo**; **ninguna credencial de larga vida
+  se versiona**; y **el compromiso de Grafana Cloud no debe implicar el compromiso de AWS**.
+- **Opciones que `Task/031` deberá comparar** —ninguna está elegida—:
+
+  | Opción | A favor | En contra |
+  | --- | --- | --- |
+  | **Rol IAM asumible** por el proveedor de observabilidad, con *external id* | Credenciales temporales, sin clave estática | Confía en un tercero para asumir un rol de la cuenta; exige acotar muy bien la política |
+  | **Clave de acceso IAM** de solo lectura, muy acotada | Simple y universal | Credencial permanente en manos de un tercero, con rotación manual |
+  | ***Push* desde AWS** hacia el destino | No entrega ninguna credencial AWS al tercero | Invierte el flujo, añade componentes y puede tener costo por volumen |
+
+- **Información necesaria:** qué ofrece realmente el plan contratado (**D-19**); qué métricas
+  y logs de CloudWatch hacen falta de verdad —no todos—; costo de las consultas de la
+  API de CloudWatch, que **se paga por petición**.
+- **Afecta a:** IAM (`Task/031`), costo (`Task/041`), validación final (`Task/040`),
+  límites de seguridad ([security-boundaries](security-boundaries.md) §10, regla G-07).
+- **Relación con D-16:** son de la **misma familia** —dar acceso acotado a AWS a algo que
+  vive fuera— y deben resolverse con el mismo criterio. **No se fusionan**: son dos
+  principals distintos, con dos superficies y dos ciclos de rotación distintos.
+- **Por qué no se resuelve ahora:** exige que exista la cuenta AWS, los grupos de logs y el
+  plan de Grafana. Nada de eso ocurre antes de la ETAPA 09.
+
 ---
 
 ## Decisiones no diferidas
@@ -466,6 +595,25 @@ cerrado:
 | **TLS obligatorio** en `Lambda → PgBouncer`, con **SCRAM-SHA-256** preferente y **mTLS** opcional | [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) |
 | **Backups fuera del host** y **restore probado** como reglas obligatorias | [production-postgresql-vps.md](production-postgresql-vps.md) §15 |
 | **La Lambda permanece fuera de VPC**; no se introduce NAT Gateway por esta decisión | [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) |
+
+### Aprobadas en `Task/006.2` (2026-08-23)
+
+> **Aceptadas** el 2026-08-23, al aprobar el usuario `Task/006.2` con la expresión exacta
+> requerida por [WORKFLOW.md](../project-management/WORKFLOW.md). Son **vigentes y de
+> cumplimiento obligatorio**. Documento canónico:
+> [target-production-architecture.md](target-production-architecture.md) §21 — **Vigente**.
+>
+> **Aceptarlas no autoriza a implementarlas:** cada pieza sigue exigiendo su tarea
+> propietaria y la autorización explícita del usuario.
+
+| Decisión | Dónde |
+| --- | --- |
+| **CloudWatch se mantiene en modo mínimo**, con retención corta y alarmas imprescindibles | [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) |
+| **Grafana Cloud** como plano central de visualización, consulta y alertas; tier gratuito como **preferencia presupuestaria**, no como dependencia arquitectónica | [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) |
+| **Grafana Alloy** como agente del VPS; **no se autohospedan Grafana, Prometheus ni Loki** allí | [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) |
+| **Secretos del VPS cifrados**, con la clave fuera del repositorio y descifrado local seguro (la herramienta es **D-17**) | [target-production-architecture.md](target-production-architecture.md) §9 |
+| **La configuración interna del VPS está separada de Terraform** (el mecanismo es **D-18**) | [target-production-architecture.md](target-production-architecture.md) §17 |
+| **Docker es herramienta de desarrollo, integración local y *build*/test; producción no depende de Docker como runtime** | [target-production-architecture.md](target-production-architecture.md) §18 |
 
 ### Aprobadas en `Task/002` (2026-07-26)
 

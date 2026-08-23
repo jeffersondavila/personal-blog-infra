@@ -96,7 +96,8 @@ seguridad, validación de archivos subidos y refuerzo de autenticación.
 ## Fuera del alcance de la etapa
 
 - Automatización de estas verificaciones en CI (Etapa 06).
-- Observabilidad cloud con CloudWatch (Etapa 10).
+- Observabilidad cloud con CloudWatch (Etapa 10) y con **Grafana Cloud** (`Task/029`,
+  `Task/031`). **`Task/017` es local y no observa el VPS de producción.**
 - **Monitoreo del VPS de producción** (`Task/029`, validado en `Task/040`).
 - **Cambiar la estrategia de *rendering*** del frontend: `Task/016` solo puede **abrir** la
   reconsideración con evidencia; resolverla exige un ADR propio.
