@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-18
+**Última actualización:** 2026-08-21
 
 ---
 
@@ -9,12 +9,12 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (2 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/006` **aprobada** y cerrada; `Task/007` **no iniciada** |
+| **Tarea actual** | Ninguna en ejecución. `Task/006.1` **aprobada** y cerrada; `Task/007` **no iniciada** |
 | **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18 por jeffersondavila. Pull request `Task/006 → main` **abiertos** en frontend e infra, pendientes de que el usuario los fusione |
-| **Último mantenimiento aprobado** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/005.6-Cerrar-Fundaciones-Tras-Mega-Auditoria` — **Aprobada** el 2026-08-16, integrada en `main` y normalizada. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/007-Integracion-Local` (Pendiente, **no iniciada**). No comienza hasta que el usuario apruebe `Task/006` y se complete su cierre |
+| **Última tarea aprobada** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18 por jeffersondavila. Fundación del frontend en `personal-blog-frontend`, con su gobierno en `personal-blog-infra`. Cierre e integración completados |
+| **Último mantenimiento aprobado** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
+| **Próxima tarea prevista** | `Task/007-Integracion-Local` — **Pendiente, no iniciada**. Como toda rama Task, **nacerá desde `main`** actualizado y limpio |
 | **Avance global** | **15 %** — 6 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **35** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** añadido en `Task/005.7`, propietario `Task/020`) |
@@ -22,8 +22,35 @@
 
 > El avance se calcula **solo** con tareas `Aprobada`. **`Task/006` ya cuenta**: fue aprobada
 > por el usuario el 2026-08-18, lo que lleva el avance a **6 de 41** y la ETAPA 02 a
-> **2 de 3**. Que sus pull request sigan abiertos **no** afecta al recuento: el estado de la
-> tarea lo fija la aprobación del usuario, no la fusión.
+> **2 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
+> posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+
+---
+
+## Último mantenimiento aprobado — `Task/006.1`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` |
+| **Tipo** | **Mantenimiento de gobierno documental** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-19 |
+| **Fecha de aprobación** | 2026-08-21 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/006.1-Corregir-Drift-Documental-Post-Merge` |
+| **Repositorios afectados** | `personal-blog-infra` (**únicamente**) |
+| **Rama** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` |
+| **Rama base** | **`main`**. SHA base: `f434666`. Verificado `HEAD == main` inmediatamente después de crearla |
+| **Origen** | Auditoría focalizada del cierre post-merge de `Task/006`: **6 afirmaciones** presentaban como estado vigente un trámite de pull request ya consumado. Incumplimiento de [WORKFLOW §6.1](WORKFLOW.md), vigente desde `Task/005.6` |
+| **Alcance entregado** | Las 6 afirmaciones reescritas en forma **duradera** en `STATUS.md` (4), `STAGE-02` (1) y la ficha `TASK-006` (1). Verificación dirigida posterior: **0 apariciones** de estado transitorio presentado como vigente |
+| **Historia preservada** | El reporte de `Task/006` y las secciones de `Task/001`–`Task/005.7` **no se reescriben**: son registros fechados |
+| **Implementación** | **0 funcionalidad.** 0 código, 0 pruebas, 0 Compose, 0 Terraform, 0 ADR, 0 recursos cloud. `ROADMAP.md` **sin cambios** |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global **6 de 41 (15 %)** y ETAPA 02 **2 de 3** **sin cambios** |
+| **Ficha** | [TASK-006.1](../tasks/TASK-006.1-correct-post-merge-documentation-drift.md) |
+| **Reporte** | [TASK-006.1-report](../task-reports/TASK-006.1-report.md) |
+
+`Task/007-Integracion-Local` sigue **Pendiente y no iniciada**, y **nacerá desde `main`**,
+como toda rama Task.
 
 ---
 
@@ -56,9 +83,13 @@ Su alcance excluye deliberadamente el sistema de diseño (`Task/013`), las pági
 público (`Task/014`), el panel administrativo (`Task/015`), la autenticación (`Task/011`) y
 el consumo real del API (`Task/007`).
 
-> **Pendiente del usuario:** fusionar los pull request `Task/006 → main` en frontend e
-> infra. Claude no los fusiona. Hasta que eso ocurra y se complete la normalización
-> `main → dev`, `Task/007` **no se inicia**.
+> **Cierre completado.** La aprobación quedó registrada, la tarea se integró en `dev`, el
+> usuario fusionó los pull request `Task/006 → main` en ambos repositorios y la
+> normalización `main → dev` se ejecutó después. `Task/007` sigue **Pendiente y no
+> iniciada**, y **nacerá desde `main`**, como toda rama Task.
+>
+> El estado vivo de ramas y pull request se consulta en Git y GitHub, no aquí
+> ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
@@ -186,7 +217,7 @@ el **mapa de responsabilidades transversales** del ROADMAP, la dependencia
 
 ---
 
-## Último mantenimiento aprobado — `Task/005.7`
+## Mantenimiento aprobado anterior — `Task/005.7`
 
 | Campo | Valor |
 | --- | --- |

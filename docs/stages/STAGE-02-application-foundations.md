@@ -79,11 +79,11 @@ una vez que hay dominio construido encima.
 **Ficha:** [TASK-006](../tasks/TASK-006-react-frontend-foundation.md) ·
 **Reporte:** [TASK-006-report](../task-reports/TASK-006-report.md)
 
-> **Aprobada** por el usuario el 2026-08-18. La etapa pasa a **2 de 3**. Los pull request
-> `Task/006 → main` —frontend e infra— quedan **abiertos**: fusionarlos es responsabilidad
-> exclusiva del usuario. Su alcance excluye deliberadamente el sistema de diseño
-> (`Task/013`), las páginas del sitio público (`Task/014`), el panel administrativo
-> (`Task/015`), la autenticación (`Task/011`) y el consumo real del API (`Task/007`).
+> **Aprobada** por el usuario el 2026-08-18 y **fusionada en `main`** en ambos
+> repositorios, con la normalización `main → dev` completada. La etapa pasa a **2 de 3**.
+> Su alcance excluye deliberadamente el sistema de diseño (`Task/013`), las páginas del
+> sitio público (`Task/014`), el panel administrativo (`Task/015`), la autenticación
+> (`Task/011`) y el consumo real del API (`Task/007`).
 
 ### `Task/007-Integracion-Local` — *Pendiente*
 
