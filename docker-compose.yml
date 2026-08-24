@@ -1,11 +1,42 @@
 # ---------------------------------------------------------------------------
-# personal-blog-infra — Entorno local (Task/003-Crear-Infraestructura-Local)
+# personal-blog-infra — Entorno local
 #
-# Servicios: PostgreSQL, MinIO y Portainer CE.
+# Task/003: PostgreSQL, MinIO y Portainer CE.
+# Task/007: se anaden backend (FastAPI), frontend (React) y Traefik v3, que
+#           integran las aplicaciones con la infraestructura ya existente.
+#
 # Uso exclusivamente local. Ningun servicio de este archivo se despliega en la
 # nube (ver docs/adr/ADR-001-local-first.md y docs/adr/ADR-003-serverless-low-cost-cloud.md).
 #
+# TOPOLOGIA (Task/007)
+#
+#   navegador
+#       |
+#       v
+#   Traefik v3  (unica puerta de entrada publicada)
+#       |
+#       +---------> frontend  React servido como estatico
+#       |
+#       +---------> backend   FastAPI
+#                       |
+#                       +----> PostgreSQL
+#                       |
+#                       + - -> MinIO   solo infraestructura alcanzable;
+#                                      el uso aplicativo llega en Task/010
+#
+# CORRESPONDENCIA CON PRODUCCION (target-production-architecture.md, seccion 19)
+#
+#   React en Compose   -> Cloudflare Pages
+#   FastAPI en Compose -> AWS Lambda (artefacto ZIP, no esta imagen)
+#   MinIO              -> Amazon S3
+#   PostgreSQL Docker  -> PostgreSQL en VPS, tras PgBouncer
+#   Traefik v3         -> Cloudflare + API Gateway HTTP API
+#   Portainer          -> nada: es solo local
+#
 # Requiere un archivo .env en esta misma carpeta. Copialo de .env.example.
+# Los repositorios de aplicacion deben estar clonados como carpetas hermanas
+# de este (ver BACKEND_CONTEXT y FRONTEND_CONTEXT en .env.example).
+#
 # Operacion completa: docs/runbooks/local-environment.md
 # ---------------------------------------------------------------------------
 
@@ -122,13 +153,146 @@ services:
     # sondearla. Se verifica desde el host abriendo la consola HTTPS.
     stop_grace_period: 30s
 
+  # -------------------------------------------------------------------------
+  # Backend — FastAPI (Task/005, integrado en el Compose por Task/007).
+  #
+  # La imagen se construye desde `personal-blog-backend`, con el Dockerfile
+  # aprobado en `Task/005`. Ese repositorio NO se modifica en `Task/007`: toda
+  # la integracion se resuelve con configuracion.
+  #
+  # No publica ningun puerto en el host: solo es alcanzable a traves de Traefik
+  # y desde la red de datos. Es la diferencia con la ejecucion suelta que
+  # documenta su Dockerfile.
+  # -------------------------------------------------------------------------
+  backend:
+    build:
+      context: ${BACKEND_CONTEXT:-../personal-blog-backend}
+      dockerfile: Dockerfile
+    image: personal-blog-backend:local
+    container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-backend
+    restart: unless-stopped
+    environment:
+      BLOG_APP_NAME: ${BLOG_APP_NAME:-personal-blog-backend}
+      BLOG_APP_ENV: local
+      BLOG_APP_DEBUG: "false"
+      BLOG_LOG_LEVEL: ${BLOG_LOG_LEVEL:-INFO}
+      BLOG_LOG_FORMAT: json
+      # DENTRO de Docker el host es el NOMBRE DEL SERVICIO y el puerto es el
+      # INTERNO (5432), no el publicado en el host (55432). Apuntar aqui a
+      # 127.0.0.1:55432 resolveria al propio contenedor del backend, no a
+      # PostgreSQL.
+      #
+      # La aplicacion sigue dependiendo unicamente de DATABASE_URL: no sabe si
+      # detras hay Docker, un VPS o PgBouncer (ADR-007).
+      BLOG_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      TZ: ${TZ}
+    networks:
+      - blog-data
+      - blog-edge
+    depends_on:
+      postgres:
+        # No basta con el orden de arranque: `service_healthy` espera a que
+        # PostgreSQL acepte conexiones de verdad.
+        condition: service_healthy
+    # El healthcheck lo define el Dockerfile del backend (`Task/005`): sonda
+    # HTTP contra /health con la biblioteca estandar. No se redefine aqui.
+    stop_grace_period: 30s
+
+  # -------------------------------------------------------------------------
+  # Frontend — React construido y servido como estatico (Task/006 + Task/007).
+  #
+  # El contenedor es un detalle del entorno LOCAL. En produccion el mismo
+  # `dist/` lo publica Cloudflare Pages, sin contenedor (ADR-003).
+  #
+  # VITE_API_BASE_URL se pasa como argumento de BUILD porque Vite incrusta las
+  # variables `VITE_*` en el bundle: cambiarla exige reconstruir la imagen.
+  # Apunta al MISMO origen que sirve el sitio, de modo que el navegador trate
+  # las peticiones como same-origin y no haga falta CORS.
+  # -------------------------------------------------------------------------
+  frontend:
+    build:
+      context: ${FRONTEND_CONTEXT:-../personal-blog-frontend}
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:${TRAEFIK_HTTP_HOST_PORT}
+    image: personal-blog-frontend:local
+    container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-frontend
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    networks:
+      # Solo la red de borde: el frontend no tiene —ni debe tener— acceso a
+      # PostgreSQL ni a MinIO. Sus datos llegan siempre por el API.
+      - blog-edge
+    depends_on:
+      backend:
+        condition: service_healthy
+    stop_grace_period: 15s
+
+  # -------------------------------------------------------------------------
+  # Traefik v3 — reverse proxy local (D-05, resuelta en Task/003).
+  #
+  # Es la UNICA puerta de entrada publicada del conjunto de aplicaciones.
+  #
+  # SIN acceso al socket de Docker, a proposito. El descubrimiento por
+  # etiquetas exigiria montarlo, y eso daria a un tercer componente capacidad
+  # administrativa sobre el host —junto a Portainer (R-09) y al futuro emulador
+  # de `Task/025` (R-22)—. Con dos rutas estables no compensa: el enrutado se
+  # declara en docker/traefik/dynamic/routes.yml.
+  #
+  # Traefik NO es Cloudflare ni API Gateway: es su equivalente local.
+  # -------------------------------------------------------------------------
+  traefik:
+    image: traefik:${TRAEFIK_VERSION}
+    container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-traefik
+    restart: unless-stopped
+    ports:
+      - "${LOCAL_BIND_ADDRESS}:${TRAEFIK_HTTP_HOST_PORT}:8080"
+    volumes:
+      # Solo lectura: Traefik no escribe su configuracion.
+      - ./docker/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./docker/traefik/dynamic:/etc/traefik/dynamic:ro
+    environment:
+      TZ: ${TZ}
+    networks:
+      # Solo la red de borde: Traefik no alcanza PostgreSQL ni MinIO, y no
+      # tiene ningun motivo para hacerlo.
+      - blog-edge
+    depends_on:
+      # Ambos por salud, no por arranque: los dos exponen sonda propia, asi que
+      # esperar solo a que el proceso exista dejaria a Traefik enrutando hacia
+      # un servicio que todavia no responde.
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # `traefik healthcheck` viene en la imagen y consulta el ping interno.
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    stop_grace_period: 15s
+
 # ---------------------------------------------------------------------------
 # Redes
 # ---------------------------------------------------------------------------
 networks:
-  # Datos del blog: PostgreSQL y MinIO. El backend se unira en Task/007.
+  # Datos del blog: PostgreSQL, MinIO y —desde Task/007— el backend.
+  # Ni el frontend ni Traefik se unen a ella: no tienen credenciales de base de
+  # datos ni motivo para alcanzar el almacenamiento
+  # (security-boundaries.md, seccion 3).
   blog-data:
     name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-data
+    driver: bridge
+
+  # Borde HTTP (Task/007): Traefik, frontend y backend. Es la frontera por la
+  # que entra el trafico del navegador. Se mantiene separada de blog-data para
+  # que el backend siga siendo el unico servicio con un pie en cada lado: es
+  # justo el papel que tendra la Lambda en produccion.
+  blog-edge:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-edge
     driver: bridge
 
   # Herramientas de infraestructura. Aislada de los datos a proposito: impide

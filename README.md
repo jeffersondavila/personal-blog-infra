@@ -106,10 +106,26 @@ docker compose ps
 
 | Servicio | Acceso local |
 | --- | --- |
+| **Sitio y API** (tras Traefik v3) | **`http://localhost:8081`** |
 | PostgreSQL | `127.0.0.1:55432` |
 | MinIO — API S3 | `http://127.0.0.1:9000` |
 | MinIO — consola | `http://127.0.0.1:9001` |
 | Portainer | `https://127.0.0.1:9444` |
+
+Desde `Task/007` el entorno integra tambien **frontend**, **backend** y **Traefik v3**:
+
+```
+navegador -> Traefik v3 :8081
+                 |
+                 +-- /health, /api/ --> backend (FastAPI) --> PostgreSQL
+                 |                                       + -> MinIO (alcanzable,
+                 |                                                   sin uso aplicativo)
+                 +-- resto ----------> frontend (React estatico)
+```
+
+El sitio y el API **comparten origen**, asi que el navegador no exige CORS. `backend` y
+`frontend` **no publican puertos**: solo se llega a ellos por el proxy. Sus imagenes se
+construyen desde los repositorios hermanos, que deben estar clonados junto a este.
 
 Todos los puertos se publican **solo en la interfaz de loopback**. Operación completa,
 verificación y diagnóstico: [docs/runbooks/local-environment.md](docs/runbooks/local-environment.md).

@@ -37,6 +37,9 @@ docker compose version
 
 | Servicio | Imagen | Rol | Red |
 | --- | --- | --- | --- |
+| `traefik` | `traefik:v3.6.2` | **Reverse proxy local.** Única puerta de entrada del navegador. | `blog-edge` |
+| `frontend` | `personal-blog-frontend:local` | Sitio React construido y servido como estático. | `blog-edge` |
+| `backend` | `personal-blog-backend:local` | API FastAPI. | `blog-edge`, `blog-data` |
 | `postgres` | `postgres:17.10-alpine` | Persistencia relacional del blog. | `blog-data` |
 | `minio` | `minio/minio:RELEASE.2025-09-07T16-13-09Z` | Almacenamiento de objetos compatible con S3. | `blog-data` |
 | `portainer` | `portainer/portainer-ce:2.39.5` | Supervisión de Docker en local. | `blog-management` |
@@ -44,27 +47,87 @@ docker compose version
 Las versiones están fijadas en `.env.example`. No se usa `latest` en ningún servicio:
 un entorno reproducible no puede depender de una etiqueta móvil.
 
+Las imágenes `personal-blog-backend:local` y `personal-blog-frontend:local` **se
+construyen desde los repositorios hermanos** —`BACKEND_CONTEXT` y `FRONTEND_CONTEXT` en el
+`.env`—, no se descargan de ningún registro.
+
+> **`traefik`, `frontend` y `backend` se añadieron en `Task/007`.** `postgres`, `minio` y
+> `portainer` no cambiaron: mismos nombres, mismas imágenes, mismos volúmenes.
+
+### Topología
+
+```
+navegador
+    |
+    v
+Traefik v3   127.0.0.1:8081        <- unico puerto publicado de las aplicaciones
+    |
+    +-- /health, /api/, /docs, /openapi.json --> backend  :8000
+    |                                              |
+    |                                              +--> postgres :5432
+    |                                              |
+    |                                              + - > minio   :9000   (alcanzable;
+    |                                                                     sin uso
+    |                                                                     aplicativo)
+    +-- resto de rutas ------------------------> frontend :8080
+```
+
+El sitio y el API **comparten origen**. Es deliberado: el navegador trata las peticiones
+del frontend al backend como *same-origin* y **no hace falta CORS**. La topología
+definitiva de dominios es **D-15** y se decide en `Task/011`.
+
 ### Puertos publicados
 
 Todos se publican en la interfaz de loopback (`127.0.0.1`), nunca en `0.0.0.0`.
 
 | Servicio | Host | Contenedor | Uso |
 | --- | --- | --- | --- |
-| PostgreSQL | `55432` | `5432` | Conexión desde el backend y desde herramientas locales. |
+| **Traefik** | `8081` | `8080` | **Sitio y API.** Es la URL que se abre en el navegador. |
+| PostgreSQL | `55432` | `5432` | Conexión desde herramientas locales y desde la suite de pruebas. |
 | MinIO — API S3 | `9000` | `9000` | Cliente S3 (`ObjectStorage`, `Task/010`). |
 | MinIO — consola | `9001` | `9001` | Interfaz web de administración de buckets. |
 | Portainer | `9444` | `9443` | Consola HTTPS de supervisión. |
 
+**`backend` y `frontend` no publican ningún puerto en el host.** Solo son alcanzables a
+través de Traefik y desde su red de Docker. Es intencionado: una sola puerta de entrada,
+igual que en producción.
+
 > **Por qué `55432` y no `5432`:** evita el choque con una instalación nativa de
 > PostgreSQL o con otro proyecto Docker en la misma máquina.
 > **Por qué `9444` y no `9443`:** evita el choque con otra instancia de Portainer.
+> **Por qué `8081` y no `80` ni `8080`:** el `80` exige privilegios en algunas máquinas y
+> el `8080` es el puerto que más colisiona con otros proyectos Docker.
+
+### URLs locales
+
+| Qué | URL |
+| --- | --- |
+| Sitio | `http://localhost:8081/` |
+| Vivacidad del API | `http://localhost:8081/health` |
+| OpenAPI | `http://localhost:8081/openapi.json` |
+| Documentación interactiva del API | `http://localhost:8081/docs` |
+| Consola de MinIO | `http://127.0.0.1:9001` |
+| Portainer | `https://127.0.0.1:9444` |
+
+> Si cambias `TRAEFIK_HTTP_HOST_PORT`, **reconstruye la imagen del frontend**: Vite
+> incrusta `VITE_API_BASE_URL` en tiempo de *build*, no de ejecución.
+>
+> ```powershell
+> docker compose build frontend
+> docker compose up -d frontend
+> ```
 
 ### Redes
 
 | Red | Contiene | Motivo |
 | --- | --- | --- |
-| `personal-blog-local-data` | `postgres`, `minio` | Datos del blog. El backend se unirá en `Task/007`. |
+| `personal-blog-local-data` | `postgres`, `minio`, `backend` | Datos del blog. **Solo el backend** entra aquí desde el borde: es el único servicio con credenciales de base de datos. |
+| `personal-blog-local-edge` | `traefik`, `frontend`, `backend` | Borde HTTP. Por aquí entra el tráfico del navegador. **Ni Traefik ni el frontend alcanzan PostgreSQL o MinIO.** |
 | `personal-blog-local-management` | `portainer` | Portainer está **aislado por red** de PostgreSQL y MinIO: no puede alcanzarlos como cliente. Esa separación **no limita** lo que Portainer puede hacer sobre esos contenedores a través del daemon de Docker — ver sección 3.1. |
+
+**El backend es el único servicio con un pie en cada red.** Es exactamente el papel que
+tendrá la Lambda en producción: recibe HTTP por el borde y es lo único que habla con la
+capa de datos.
 
 ### Volúmenes
 
@@ -77,6 +140,10 @@ Todos se publican en la interfaz de loopback (`127.0.0.1`), nunca en `0.0.0.0`.
 Son volúmenes gestionados por Docker, no *bind mounts*: sobreviven a
 `docker compose down` y evitan los problemas de permisos y rendimiento de los
 *bind mounts* en Windows.
+
+**`Task/007` no añadió ningún volumen.** `traefik`, `frontend` y `backend` no guardan
+estado: se reconstruyen enteros desde su imagen. Los únicos montajes nuevos son los dos
+archivos de configuración de Traefik, en **solo lectura**.
 
 ---
 
@@ -156,6 +223,21 @@ ficticios.
 | `MINIO_CONSOLE_HOST_PORT` | Puerto de la consola web. |
 | `PORTAINER_VERSION` | Etiqueta de la imagen de Portainer CE. |
 | `PORTAINER_HTTPS_HOST_PORT` | Puerto HTTPS de la consola. |
+| `BACKEND_CONTEXT` | Ruta al repositorio del backend, usada como contexto de construcción. |
+| `FRONTEND_CONTEXT` | Ruta al repositorio del frontend, usada como contexto de construcción. |
+| `BLOG_APP_NAME` | Nombre del servicio backend, visible en `/health` y en los logs. |
+| `BLOG_LOG_LEVEL` | Nivel de registro del backend. |
+| `TRAEFIK_VERSION` | Etiqueta de la imagen de Traefik. |
+| `TRAEFIK_HTTP_HOST_PORT` | **Puerto del sitio y del API.** Cambiarlo obliga a reconstruir el frontend. |
+
+**`BLOG_DATABASE_URL` no aparece en el `.env`.** La compone el propio Compose a partir de
+`POSTGRES_USER`, `POSTGRES_PASSWORD` y `POSTGRES_DB`, apuntando al host interno
+`postgres:5432`. Así no hay dos sitios donde mantener la misma credencial sincronizada.
+
+> **Variables del host frente a variables del contenedor.** `POSTGRES_HOST_PORT=55432` es
+> el puerto **publicado en tu máquina**; dentro de la red de Docker el puerto es `5432` y
+> el host es `postgres`. Apuntar el backend a `127.0.0.1:55432` desde dentro de un
+> contenedor lo haría hablar consigo mismo, no con PostgreSQL.
 
 ---
 
@@ -170,28 +252,72 @@ Copy-Item .env.example .env
 # 2. Validar la definición antes de levantar nada
 docker compose config --quiet
 
-# 3. Descargar las imágenes
-docker compose pull
+# 3. Descargar las imágenes de terceros
+docker compose pull postgres minio portainer traefik
 
-# 4. Levantar el entorno
+# 4. Construir las imágenes de las aplicaciones
+#    Requiere que personal-blog-backend y personal-blog-frontend esten
+#    clonados como carpetas hermanas de este repositorio.
+docker compose build
+
+# 5. Levantar el entorno
 docker compose up -d
 
-# 5. Comprobar el estado
+# 6. Comprobar el estado
 docker compose ps
 ```
 
-Estado esperado tras 20–40 segundos:
+Estado esperado tras 30–60 segundos:
 
 ```
 NAME                            STATUS
+personal-blog-local-backend     Up (healthy)
+personal-blog-local-frontend    Up (healthy)
 personal-blog-local-minio       Up (healthy)
 personal-blog-local-portainer   Up
 personal-blog-local-postgres    Up (healthy)
+personal-blog-local-traefik     Up (healthy)
 ```
 
 `portainer` aparece como `Up` sin sufijo de salud: su imagen es *distroless* y no
 contiene ningún binario con el que sondearla desde dentro. Se verifica desde el host
 (sección 6).
+
+El arranque está **encadenado por salud**, no por tiempo. Toda la cadena de dependencias
+usa `service_healthy`, sin ningún `service_started` ni espera fija:
+
+```
+PostgreSQL healthy         -> backend habilitado
+backend healthy            -> frontend habilitado
+backend + frontend healthy -> Traefik habilitado
+```
+
+Compruébalo cuando quieras sin levantar nada:
+
+```powershell
+docker compose config | Select-String -Pattern "service_healthy" -Context 1,0
+```
+
+Al terminar, abre **`http://localhost:8081/`**.
+
+### Reconstruir tras un cambio de código
+
+```powershell
+# Backend: cambio en personal-blog-backend
+docker compose build backend
+docker compose up -d backend
+
+# Frontend: cambio en personal-blog-frontend, o cambio de TRAEFIK_HTTP_HOST_PORT
+docker compose build frontend
+docker compose up -d frontend
+
+# Traefik: cambio en docker/traefik/traefik.yml (configuracion ESTATICA)
+docker compose restart traefik
+```
+
+> **`docker/traefik/dynamic/routes.yml` se recarga solo.** La configuración **estática**
+> (`traefik.yml`) solo se lee al arrancar: un `docker compose up -d` no basta si el
+> contenedor ya existe, hay que **reiniciarlo**.
 
 ---
 
@@ -207,6 +333,10 @@ docker compose down
 # Reiniciar los servicios en marcha
 docker compose restart
 ```
+
+> **Reconstruir un contenedor no destruye datos.** `traefik`, `frontend` y `backend` no
+> tienen volúmenes: se pueden eliminar y recrear sin ninguna precaución. Los datos viven
+> únicamente en los tres volúmenes de `postgres`, `minio` y `portainer`.
 
 > **Nunca ejecutes `docker compose down -v` salvo que quieras destruir los datos.**
 > La bandera `-v` elimina los volúmenes: base de datos, objetos de MinIO y
@@ -224,7 +354,12 @@ docker compose restart
 docker compose ps
 docker inspect --format "{{.State.Health.Status}}" personal-blog-local-postgres
 docker inspect --format "{{.State.Health.Status}}" personal-blog-local-minio
+docker inspect --format "{{.State.Health.Status}}" personal-blog-local-backend
+docker inspect --format "{{.State.Health.Status}}" personal-blog-local-frontend
+docker inspect --format "{{.State.Health.Status}}" personal-blog-local-traefik
 ```
+
+Los cinco deben responder `healthy`. `portainer` no tiene sonda: se verifica en 6.4.
 
 ### 6.2 PostgreSQL
 
@@ -290,11 +425,21 @@ El certificado HTTPS es autofirmado: el navegador mostrará un aviso. Es esperad
 
 ```powershell
 docker network inspect personal-blog-local-data --format "{{range .Containers}}{{.Name}} {{end}}"
+docker network inspect personal-blog-local-edge --format "{{range .Containers}}{{.Name}} {{end}}"
 docker network inspect personal-blog-local-management --format "{{range .Containers}}{{.Name}} {{end}}"
 ```
 
 `portainer` debe aparecer **solo** en `management`; `postgres` y `minio` **solo** en
-`data`.
+`data`; `traefik` y `frontend` **solo** en `edge`; y `backend` en **ambas**, `data` y
+`edge`.
+
+Comprobación activa de que el frontend **no** alcanza la capa de datos: debe fallar.
+
+```powershell
+docker compose exec frontend sh -c "nc -z -w3 postgres 5432"   # error esperado
+docker compose exec frontend sh -c "nc -z -w3 minio 9000"      # error esperado
+docker compose exec traefik  sh -c "nc -z -w3 postgres 5432"   # error esperado
+```
 
 > Esto confirma el aislamiento **de red**. No confirma —ni pretende confirmar— una
 > limitación de privilegios: Portainer sigue pudiendo administrar esos contenedores a
@@ -318,6 +463,59 @@ docker compose exec postgres psql -U blog_local -d personal_blog -c "SELECT * FR
 docker compose exec postgres psql -U blog_local -d personal_blog -c "DROP TABLE prueba;"
 ```
 
+### 6.7 Sitio y API a través del proxy
+
+Es la comprobación que cierra la ETAPA 02: el navegador solo habla con Traefik.
+
+```powershell
+# Sitio -> 200, HTML
+curl.exe -s -o NUL -w "%{http_code}`n" http://localhost:8081/
+
+# API -> 200, JSON del backend real
+curl.exe -s http://localhost:8081/health
+
+# Fallback de la SPA: cualquier ruta devuelve index.html, no un 404 del servidor
+curl.exe -s -o NUL -w "%{http_code}`n" http://localhost:8081/una-ruta-inexistente
+
+# OpenAPI del backend, tambien por el proxy
+curl.exe -s -o NUL -w "%{http_code}`n" http://localhost:8081/openapi.json
+```
+
+Respuesta esperada de `/health`:
+
+```json
+{"status":"ok","service":"personal-blog-backend","version":"0.1.0"}
+```
+
+**Comprobación visual (la que de verdad demuestra el criterio):** abre
+`http://localhost:8081/` en el navegador. Bajo *Estado del backend* debe leerse
+**«Backend disponible»**, con el nombre del servicio y la versión que devolvió el API. Si
+dice **«Backend sin respuesta»**, el sitio se está sirviendo pero el API no responde: mira
+los logs del backend (sección 7).
+
+Qué ruta sirvió cada petición, según Traefik:
+
+```powershell
+docker compose logs traefik | Select-String '"RouterName"' | Select-Object -Last 5
+```
+
+`RouterName` debe ser `backend@file` para `/health` y `frontend@file` para el resto.
+
+### 6.8 Backend contra PostgreSQL
+
+```powershell
+# A que host y base se conecta, con la contrasena enmascarada
+docker compose exec backend python -c "from app.shared.configuration import get_settings; print(get_settings().database_url_safe)"
+
+# Estado de las migraciones desde el entorno integrado
+docker compose exec backend alembic current
+```
+
+Esperado: `postgresql://blog_local:***@postgres:5432/personal_blog` y `0001 (head)`.
+
+> **Nunca imprimas `BLOG_DATABASE_URL` completa.** Lleva la contraseña. `database_url_safe`
+> existe justo para esto (requisito S-08).
+
 ---
 
 ## 7. Diagnóstico
@@ -338,6 +536,9 @@ docker compose exec postgres psql -U blog_local -d personal_blog -c "DROP TABLE 
 docker compose logs
 docker compose logs -f postgres
 docker compose logs --tail 50 minio
+docker compose logs --tail 50 backend     # log JSON de FastAPI
+docker compose logs --tail 50 frontend    # accesos al sitio estatico
+docker compose logs --tail 50 traefik     # log de acceso JSON del proxy
 
 # Recursos y estado
 docker compose ps -a
@@ -351,7 +552,19 @@ docker inspect --format "{{json .State.Health}}" personal-blog-local-postgres
 ```
 
 Los mismos logs, volúmenes y redes son visibles gráficamente en Portainer
-(`https://127.0.0.1:9444`), que es precisamente su función en el proyecto.
+(`https://127.0.0.1:9444`), que es precisamente su función en el proyecto. Desde
+`Task/007` deben aparecer allí **los seis contenedores** del entorno.
+
+### Síntomas frecuentes
+
+| Síntoma | Causa probable | Qué hacer |
+| --- | --- | --- |
+| El sitio carga pero dice **«Backend sin respuesta»** | El backend no arranca o no conecta con PostgreSQL. | `docker compose logs backend`; comprobar 6.8. |
+| `/health` devuelve 404 por el proxy | Traefik cargó una configuración vieja. | `docker compose restart traefik`. |
+| Un cambio en `traefik.yml` no surte efecto | La configuración **estática** solo se lee al arrancar. | `docker compose restart traefik`, no `up -d`. |
+| El frontend sigue apuntando al puerto anterior | `VITE_API_BASE_URL` se incrusta en tiempo de *build*. | `docker compose build frontend && docker compose up -d frontend`. |
+| `docker compose build` falla al no encontrar el contexto | Los repositorios no están como carpetas hermanas. | Ajustar `BACKEND_CONTEXT` / `FRONTEND_CONTEXT` en el `.env`. |
+| El puerto `8081` está ocupado | Otro proyecto lo usa. | Cambiar `TRAEFIK_HTTP_HOST_PORT` **y reconstruir el frontend**. |
 
 ---
 
@@ -473,9 +686,12 @@ docker exec personal-blog-local-postgres `
 
 | Elemento | Estado | Dónde se aborda |
 | --- | --- | --- |
-| Backend (FastAPI) | No incluido. | `Task/005`, `Task/007` |
-| Frontend (React) | No incluido. | `Task/006`, `Task/007` |
-| Reverse proxy | No desplegado. Tecnología ya decidida: **Traefik v3** (D-05, resuelta en `Task/003`). | `Task/007` |
+| Backend (FastAPI) | **Integrado** en el Compose (`Task/007`). Expone `/health`; los recursos de contenido llegan en `Task/009`. | `Task/009` |
+| Frontend (React) | **Integrado** en el Compose (`Task/007`). Pantalla provisional: consume `/health` y nada más. | `Task/013`, `Task/014` |
+| Reverse proxy | **Desplegado**: **Traefik v3** con enrutado explícito por archivo (D-05, `Task/003`; implementado en `Task/007`). | — |
+| Uso aplicativo de MinIO | **No existe.** MinIO está levantado y es alcanzable desde el backend, pero el backend **no lee ni escribe un solo objeto**: no hay `ObjectStorage`, ni SDK de S3, ni buckets de aplicación. | `Task/010` |
+| CORS | **No configurado, y es correcto.** Sitio y API comparten origen tras Traefik, así que el navegador no lo exige. La política de orígenes se decide en `Task/011` (**D-15**). | `Task/011`, `Task/018` |
+| Autenticación | No existe. Ningún endpoint está protegido. | `Task/011` |
 | Esquema de base de datos y migraciones | Existe la **migración fundacional** de `Task/005`: `personal_blog` tiene `alembic_version` y **ninguna tabla de negocio**. El modelo del blog llega en `Task/008`. *(Corregido en `Task/005.6`: aquí se leía «No existen. La base está vacía».)* | `Task/008` |
 | Base de datos de pruebas | `personal_blog_test`, dedicada y descartable (sección 9). | `Task/005.6` |
 | Buckets de la aplicación | No se crea ninguno. | `Task/010` |
@@ -492,5 +708,8 @@ docker exec personal-blog-local-postgres `
 - [ADR-003 — Nube serverless de bajo costo](../adr/ADR-003-serverless-low-cost-cloud.md)
 - [security-boundaries.md](../architecture/security-boundaries.md) — reglas de Portainer.
 - [local-to-cloud-mapping.md](../architecture/local-to-cloud-mapping.md) — equivalencia con la nube.
+- [target-production-architecture.md](../architecture/target-production-architecture.md) — arquitectura objetivo de producción, y a qué corresponde cada pieza local.
 - [ETAPA 01 — Infraestructura Local](../stages/STAGE-01-local-infrastructure.md)
-- [TASK-003](../tasks/TASK-003-create-local-infrastructure.md) — ficha de la tarea.
+- [ETAPA 02 — Fundaciones de las Aplicaciones](../stages/STAGE-02-application-foundations.md)
+- [TASK-003](../tasks/TASK-003-create-local-infrastructure.md) — ficha de la infraestructura local.
+- [TASK-007](../tasks/TASK-007-local-integration.md) — ficha de la integración local.
