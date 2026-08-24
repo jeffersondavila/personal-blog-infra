@@ -8,23 +8,62 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 02 — Fundaciones de las Aplicaciones — **En curso** (2 de 3 aprobadas). ETAPAS 00 y 01 **completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/006.2` **aprobada** y cerrada; `Task/007` **no iniciada** |
+| **Etapa actual** | ETAPA 03 — Dominio y Backend — **Pendiente**. ETAPAS 00, 01 y **02 completadas** |
+| **Tarea actual** | Ninguna en ejecución. `Task/007` **aprobada** y cerrada; `Task/008` **no iniciada** |
 | **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18 por jeffersondavila. Fundación del frontend en `personal-blog-frontend`, con su gobierno en `personal-blog-infra`. Cierre e integración completados |
+| **Última tarea aprobada** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23 por jeffersondavila. **Completa la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
+| **Tarea aprobada anterior** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18. Fundación del frontend |
 | **Último mantenimiento aprobado** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/007-Integracion-Local` — **Pendiente, no iniciada**. Como toda rama Task, **nacerá desde `main`** actualizado y limpio |
-| **Avance global** | **15 %** — 6 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/008-Modelo-de-Datos` — **Pendiente, no iniciada**. Primera tarea de la ETAPA 03 y primera sujeta a la **BACKEND TEST-FIRST LAW**. Como toda rama Task, **nacerá desde `main`** actualizado y limpio |
+| **Avance global** | **17 %** — 7 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
 | **Decisiones abiertas** | **17** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` (2026-08-23) |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/006` ya cuenta**: fue aprobada
-> por el usuario el 2026-08-18, lo que lleva el avance a **6 de 41** y la ETAPA 02 a
-> **2 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
-> posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/007` ya cuenta**: fue
+> aprobada por el usuario el 2026-08-23, lo que lleva el avance a **7 de 41** y **completa
+> la ETAPA 02** (3 de 3). Lo que fija el recuento es **la aprobación del usuario**, no el
+> trámite posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+
+---
+
+## Última tarea aprobada — `Task/007-Integracion-Local`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/007-Integracion-Local` |
+| **Etapa** | ETAPA 02 — Fundaciones de las Aplicaciones |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41 |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-23 |
+| **Fecha de aprobación** | 2026-08-23 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/007-Integracion-Local` |
+| **Repositorios modificados** | `personal-blog-infra` · `personal-blog-frontend` |
+| **Repositorio leído y NO modificado** | `personal-blog-backend` — la integración se resuelve **solo con configuración**; su `Dockerfile`, su configuración por entorno y `GET /health` sirven sin cambios |
+| **Ramas base** | **`main`** en ambos: `a6412f3…` (infra) y `c4af3617…` (frontend) |
+| **Alcance entregado** | Compose completo con **Traefik v3**, **frontend** y **backend** sobre la infraestructura existente; enrutado explícito **sin socket de Docker**; red de borde `blog-edge` separada de `blog-data`; arranque encadenado por *healthchecks*; **consumo real de `GET /health`** desde el frontend con el cliente HTTP oficial; runbook y gobierno actualizados |
+| **Sitio y API** | **Mismo origen** (`http://localhost:8081`): el navegador no exige CORS y **no se configura ninguno** |
+| **Datos** | **3 volúmenes antes y después, 0 eliminados.** `postgres`, `minio` y `portainer` no se recrearon |
+| **Backups de `Task/004`** | **Compatibles.** Nombres de contenedor y de volumen intactos; integridad del conjunto existente verificada |
+| **Fuera del alcance** | `ObjectStorage` y uso aplicativo de MinIO (`Task/010`), modelo de datos (`Task/008`), API pública (`Task/009`), autenticación (`Task/011`), diseño (`Task/013`+), CI y cualquier recurso cloud |
+| **Riesgos nuevos** | **Ninguno.** **R-09 no se agrava**: Traefik **no** recibe el socket de Docker |
+| **Efecto en el avance** | Avance global **7 de 41 (17 %)**; **ETAPA 02 completada** (3 de 3) |
+| **Ficha** | [TASK-007](../tasks/TASK-007-local-integration.md) |
+| **Reporte** | [TASK-007-report](../task-reports/TASK-007-report.md) |
+
+> **Aprobada** por el usuario el 2026-08-23. Con ella **la ETAPA 02 queda completada** y el
+> avance pasa a **7 de 41 (17 %)**.
+>
+> **Queda una comprobación en manos del usuario:** la validación **visual autenticada** de
+> Portainer. Lo verificado técnicamente es que Portainer sigue operativo, que es el único
+> contenedor con el socket de Docker y que los seis contenedores existen en ese mismo
+> daemon; que se vean en su interfaz es una inferencia razonable, no una observación.
+
+`Task/008-Modelo-de-Datos` sigue **Pendiente y no iniciada**. Es la primera tarea de la
+ETAPA 03 y la primera sujeta a la **BACKEND TEST-FIRST LAW**.
 
 ---
 
@@ -529,7 +568,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | --- | --- | --- | --- |
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
-| 02 — Fundaciones de las Aplicaciones | 3 | 2 | **67 %** — **en curso** |
+| 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
 | 03 — Dominio y Backend | 5 | 0 | 0 % |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
@@ -540,16 +579,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **6** | **15 %** |
+| **Total** | **41** | **7** | **17 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 35 |
+| Pendiente | 34 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **6** |
+| **Aprobada** | **7** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -673,7 +712,7 @@ Distribución por estado:
 | `Task/004-Backups-y-Recuperacion-Local` | 01 | infra | **Aprobada** |
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend, infra (documentación) | **Aprobada** |
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend, infra (documentación) | **Aprobada** |
-| `Task/007-Integracion-Local` | 02 | infra, frontend, backend | Pendiente |
+| `Task/007-Integracion-Local` | 02 | infra, frontend | **Aprobada** |
 | `Task/008-Modelo-de-Datos` | 03 | backend | Pendiente |
 | `Task/009-API-Publica` | 03 | backend | Pendiente |
 | `Task/010-Almacenamiento-Compatible-S3` | 03 | backend | Pendiente |

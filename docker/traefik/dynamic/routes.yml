@@ -1,0 +1,72 @@
+# ---------------------------------------------------------------------------
+# Traefik v3 — configuracion DINAMICA del entorno local (Task/007)
+#
+# Enrutado explicito, sin descubrimiento por etiquetas de Docker: el motivo
+# —evitar un tercer componente con acceso al socket del daemon— esta en
+# `../traefik.yml`.
+#
+# TOPOLOGIA
+#
+#   navegador -> Traefik :8080
+#                  |
+#                  +-- /health, /api/, /docs, /openapi.json -> backend  :8000
+#                  |
+#                  +-- resto                                 -> frontend :8080
+#
+# El sitio y el API comparten ORIGEN. Es deliberado: el navegador trata las
+# peticiones del frontend al backend como *same-origin* y no hace falta CORS.
+# La topologia definitiva de dominios es **D-15** y se decide en `Task/011`;
+# aqui no se adelanta.
+# ---------------------------------------------------------------------------
+
+http:
+  # --- Enrutadores ---------------------------------------------------------
+  routers:
+    # El API se declara con prioridad explicita mayor que la del sitio para que
+    # las reglas no dependan del orden de evaluacion por longitud, que es un
+    # detalle interno de Traefik y no un contrato.
+    backend:
+      rule: >-
+        PathPrefix(`/health`)
+        || PathPrefix(`/api/`)
+        || PathPrefix(`/docs`)
+        || PathPrefix(`/openapi.json`)
+      priority: 100
+      entryPoints:
+        - web
+      service: backend
+
+    # Todo lo demas es el sitio. El *fallback* de la SPA lo resuelve el propio
+    # contenedor del frontend, no Traefik.
+    frontend:
+      rule: PathPrefix(`/`)
+      priority: 1
+      entryPoints:
+        - web
+      service: frontend
+
+  # --- Servicios -----------------------------------------------------------
+  #
+  # Los nombres `backend` y `frontend` son los del Compose: dentro de la red de
+  # Docker, el DNS embebido los resuelve. Estos nombres NO tienen sentido en el
+  # navegador, que siempre habla con el origen publicado por Traefik.
+  services:
+    backend:
+      loadBalancer:
+        servers:
+          - url: http://backend:8000
+        # El backend ya expone su propia sonda; aqui se comprueba para que
+        # Traefik no enrute hacia un contenedor que todavia esta arrancando.
+        healthCheck:
+          path: /health
+          interval: 10s
+          timeout: 3s
+
+    frontend:
+      loadBalancer:
+        servers:
+          - url: http://frontend:8080
+        healthCheck:
+          path: /
+          interval: 10s
+          timeout: 3s

@@ -1,0 +1,87 @@
+# ---------------------------------------------------------------------------
+# Traefik v3 — configuracion ESTATICA del entorno local (Task/007)
+#
+# D-05 eligio Traefik v3 como reverse proxy local (`Task/003`, aprobada). Esta
+# tarea lo implementa: es el unico proxy del entorno y la unica puerta de
+# entrada del navegador.
+#
+# CORRESPONDENCIA CON PRODUCCION
+#
+# Traefik es el equivalente LOCAL de Cloudflare + API Gateway HTTP API. No es
+# ninguno de los dos, no introduce conceptos de AWS y no se despliega en la
+# nube (target-production-architecture.md, seccion 19).
+#
+# POR QUE EL PROVEEDOR DE ARCHIVO Y NO EL DE DOCKER
+#
+# El descubrimiento por etiquetas de Docker exige montar el socket del daemon
+# en Traefik. Quien controla ese socket controla el host: puede crear, detener
+# y eliminar contenedores y volumenes de este y de cualquier otro proyecto de
+# la maquina. Hoy solo Portainer tiene ese privilegio, y ya esta registrado
+# como riesgo R-09; el emulador de `Task/025` lo agravara (R-22).
+#
+# Anadir un tercer componente privilegiado para ahorrar un archivo de veinte
+# lineas no es una compensacion razonable. El entorno tiene DOS rutas —sitio y
+# API— que no cambian solas, asi que el argumento de "descubrimiento
+# automatico" de D-05 no aporta aqui.
+#
+# Consecuencia asumida: al anadir un servicio HTTP nuevo hay que declararlo en
+# `dynamic/routes.yml`. Es el costo, y es bajo.
+# ---------------------------------------------------------------------------
+
+global:
+  # No consultar la version disponible al arrancar: el entorno local no debe
+  # hacer peticiones salientes por su cuenta.
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# --- Puntos de entrada ------------------------------------------------------
+#
+# Un unico entrypoint HTTP. Sin TLS a proposito: en local no hay certificados
+# reales, y fabricar una CA propia complicaria el entorno sin acercarlo a
+# produccion, donde el TLS lo gestionan Cloudflare y API Gateway
+# (local-to-cloud-mapping.md, diferencia 4).
+entryPoints:
+  web:
+    address: ':8080'
+
+  # Entrypoint INTERNO para la sonda de vivacidad. No se publica en el host
+  # (ver el Compose): solo es alcanzable desde dentro del contenedor, que es
+  # justo lo que necesita el healthcheck. Mantenerlo separado de `web` impide
+  # que `/ping` quede accesible desde el navegador.
+  ping:
+    address: ':8082'
+
+# --- Proveedor de configuracion dinamica ------------------------------------
+providers:
+  file:
+    directory: /etc/traefik/dynamic
+    # Recarga las rutas al cambiar el archivo, sin reiniciar el contenedor.
+    watch: true
+
+# --- API y panel ------------------------------------------------------------
+#
+# Deshabilitados. El panel de Traefik expondria la topologia del entorno y no
+# aporta nada que no resuelvan `docker compose ps`, los logs y Portainer.
+api:
+  dashboard: false
+  insecure: false
+
+# --- Sonda de vivacidad -----------------------------------------------------
+#
+# Habilita el endpoint interno que consulta `traefik healthcheck --ping`, el
+# comando del healthcheck del Compose. Sin esto el comando falla con
+# "please enable `ping` to use health check" y el contenedor queda `unhealthy`
+# aunque enrute correctamente.
+#
+# No se asocia a ningun entryPoint publicado: solo responde en la direccion
+# interna de Traefik, asi que NO queda expuesto en el puerto del navegador.
+ping:
+  entryPoint: ping
+
+# --- Registro ---------------------------------------------------------------
+log:
+  level: INFO
+
+# Log de acceso en JSON, coherente con el formato del backend (requisito O-01).
+accessLog:
+  format: json
