@@ -479,9 +479,15 @@ tests/
 └── conftest.py
 ```
 
-> **No se reorganizan ahora los tests de `Task/005`.** Esa tarea está aprobada y su estructura
-> actual (`tests/` con `tests/integration/`) funciona. La estructura evolucionará cuando
-> `Task/008` aporte volumen suficiente para que la separación sea útil, no por estética.
+> **Estado tras `Task/008`** (**aprobada** el 2026-08-25). `tests/unit/` **ya
+> existe**: lo trajo `Task/008` con las pruebas de dominio, que es cuando la separación
+> empezó a ser útil. `tests/contract/` **todavía no**, porque aún no hay contrato HTTP ni de
+> `ObjectStorage` que probar: llegará con `Task/009` y `Task/010`.
+>
+> **Los tests de `Task/005` no se movieron.** Siguen en la raíz de `tests/`, y no por
+> descuido: reorganizar pruebas aprobadas que funcionan tiene un riesgo real y ningún
+> beneficio inmediato. La estructura sigue evolucionando **al ritmo del volumen**, no de la
+> estética.
 
 ### 14.2 Nombres
 

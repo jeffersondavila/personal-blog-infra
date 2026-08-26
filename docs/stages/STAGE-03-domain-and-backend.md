@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 03 |
-| **Estado** | Pendiente |
+| **Estado** | **En curso** |
 | **Dependencias** | [ETAPA 02](STAGE-02-application-foundations.md) |
 | **Tareas** | 5 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | **1** |
+| **Avance** | **20 %** — 1 de 5 |
 | **Hito que completa** | Backend funcionalmente completo para el MVP. |
 
 ---
@@ -37,7 +37,7 @@ B-12). Formalizado en `Task/005.1-Formalizar-TDD-Backend`.
 
 ## Tareas
 
-### `Task/008-Modelo-de-Datos` — *Pendiente*
+### `Task/008-Modelo-de-Datos` — **Aprobada** (2026-08-25)
 
 Perfil, artículos, reviews de libros, videos, proyectos, etiquetas, medios,
 administrador y auditoría. Migraciones Alembic.
@@ -46,6 +46,11 @@ administrador y auditoría. Migraciones Alembic.
 **Test-first:** invariantes del modelo y transiciones de estado por prueba primero. Las
 migraciones se validan con integración real (`upgrade`, `downgrade`, reaplicación) contra el
 PostgreSQL local, nunca contra SQLite.
+
+> **Aprobada el 2026-08-25.** Modelo físico completo del MVP en **14 tablas**, migración
+> `0002` reversible, ciclo de vida de publicación en el dominio y escala de valoración
+> **1..5**. Documentado en [`data-model.md`](../architecture/data-model.md) — **Vigente**.
+> Primera tarea de la etapa aprobada: **1 de 5**.
 
 ### `Task/009-API-Publica` — *Pendiente*
 
