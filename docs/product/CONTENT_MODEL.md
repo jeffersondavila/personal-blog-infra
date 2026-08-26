@@ -3,16 +3,21 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 |
+| **Fecha** | 2026-07-26 · §3.3 y §6 actualizadas por `Task/008`, **aprobada** el 2026-08-25 |
 | **Nivel** | **Conceptual.** No es un diseño de base de datos. |
 
 > **Límite explícito de esta tarea.** Aquí se describen tipos, responsabilidades y
 > atributos **conceptuales**. **No** se diseñan tablas SQL, migraciones, claves foráneas,
 > índices físicos, tipos de columna ni estrategias de clave primaria. Eso corresponde a
 > `Task/008-Modelo-de-Datos`.
+>
+> **Ese límite sigue vigente.** `Task/008` **no** ha traído aquí el diseño físico: vive en
+> [`data-model.md`](../architecture/data-model.md). Lo único que se actualiza en este
+> documento son las decisiones que él mismo dejaba **explícitamente abiertas**.
 
 Relacionados: [MVP_SCOPE.md](MVP_SCOPE.md) · [USER_FLOWS.md](USER_FLOWS.md) ·
-[ADR-005 — Contenido en Markdown](../adr/ADR-005-markdown-content.md)
+[ADR-005 — Contenido en Markdown](../adr/ADR-005-markdown-content.md) ·
+[data-model.md](../architecture/data-model.md) — modelo **físico**
 
 ---
 
@@ -49,7 +54,7 @@ Los tipos publicables comparten un conjunto de atributos. **No todos aplican a t
 | `seo_description` | Descripción para buscadores; si falta, se usa `summary`. |
 | `created_at` | Fecha de creación. |
 | `updated_at` | Fecha de última modificación. |
-| `published_at` | Fecha de primera publicación. Nulo mientras sea `draft`. |
+| `published_at` | Fecha de **primera** publicación. Nulo mientras no se haya publicado nunca. |
 
 ### Aplicabilidad por tipo
 
@@ -137,8 +142,14 @@ públicamente si `status = published`.
 | `tags` | Etiquetas asociadas. |
 | `featured` | Destacado en Inicio. |
 
-**Reglas:** `title` (título de la review) puede diferir de `book_title`. La escala exacta
-de `rating` se fija en `Task/008`; el MVP asume un entero acotado.
+**Reglas:** `title` (título de la review) puede diferir de `book_title`.
+
+> **Escala de `rating` — cerrada en `Task/008`.** **Vigente** desde el 2026-08-25.
+> **Entero de 1 a 5, ambos inclusive.** Es la escala que el lector reconoce sin leyenda y
+> la que el listado público muestra (USER_FLOWS.md A.4). Puede estar **ausente** mientras
+> la review sea un borrador; exigirla para **publicar** es una validación de publicación y
+> pertenece a `Task/012`. Justificación completa en
+> [`data-model.md`](../architecture/data-model.md) §3, decisión D-D.
 
 ### 3.4 `Video`
 
@@ -276,7 +287,11 @@ AuditEvent        ──── referencia ─> cualquier tipo (por entity_type +
 
 ## 5. Invariantes del modelo
 
-1. Un contenido `published` **debe** tener `published_at`.
+1. Un contenido `published` **debe** tener `published_at`. Es la fecha de la **primera**
+   publicación: al despublicar **se conserva** (USER_FLOWS.md B.8), así que un `draft`
+   previamente publicado sí puede tenerla, y volver a publicarlo **no** la reescribe. La
+   restricción segura es `published → published_at IS NOT NULL`; la inversa rompería la
+   despublicación. *(Precisado en `Task/008`, **vigente** desde el 2026-08-25.)*
 2. Un contenido `draft` **no** aparece en ninguna respuesta pública.
 3. Un contenido `archived` **no** aparece en ninguna respuesta pública, pero se conserva.
 4. Los `slug` son **únicos por tipo** y estables: cambiarlos rompe URLs y SEO.
@@ -289,12 +304,17 @@ AuditEvent        ──── referencia ─> cualquier tipo (por entity_type +
 
 ---
 
-## 6. Qué queda para `Task/008`
+## 6. Qué quedaba para `Task/008`
 
-- Tablas, columnas, tipos y restricciones.
-- Estrategia de clave primaria (entero secuencial o UUID).
-- Índices, incluidos los de búsqueda.
-- Implementación de la relación muchos a muchos con `Tag`.
-- Escala concreta de `rating`.
-- Política de retención de `AuditEvent`.
-- Migraciones Alembic.
+> **Vigente** desde el 2026-08-25. Detalle completo y justificación en
+> [`data-model.md`](../architecture/data-model.md).
+
+| Punto | Estado | Resultado |
+| --- | --- | --- |
+| Tablas, columnas, tipos y restricciones | **Resuelto** | 14 tablas; ver `data-model.md` §4 |
+| Estrategia de clave primaria | **Resuelto** | **`UUID` v4**, generado en la aplicación (D-A) |
+| Índices | **Resuelto en parte** | Los de acceso por slug, listado público, uso de medios y auditoría. Los de **búsqueda** siguen abiertos: dependen del mecanismo que elija `Task/009` |
+| Relación muchos a muchos con `Tag` | **Resuelto** | Cuatro tablas puente con clave primaria compuesta (D-J) |
+| Escala concreta de `rating` | **Resuelto** | Entero **1..5**, ambos inclusive (D-D) |
+| Política de retención de `AuditEvent` | **Abierto** | El esquema no la impone. Corresponde a `Task/011` y a la operación |
+| Migraciones Alembic | **Resuelto** | Revisión `0002`, reversible y verificada contra PostgreSQL real |

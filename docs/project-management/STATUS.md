@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-23
+**Última actualización:** 2026-08-25
 
 ---
 
@@ -8,28 +8,82 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 03 — Dominio y Backend — **Pendiente**. ETAPAS 00, 01 y **02 completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/007` **aprobada** y cerrada; `Task/008` **no iniciada** |
+| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (1 de 5). ETAPAS 00, 01 y **02 completadas** |
+| **Tarea actual** | Ninguna en ejecución. `Task/008` **aprobada** y cerrada; `Task/009` **no iniciada** |
 | **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23 por jeffersondavila. **Completa la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
-| **Tarea aprobada anterior** | `Task/006-Fundacion-Frontend-React` — **Aprobada** el 2026-08-18. Fundación del frontend |
+| **Última tarea aprobada** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25 por jeffersondavila. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
+| **Tarea aprobada anterior** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23. **Completó la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
 | **Último mantenimiento aprobado** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/008-Modelo-de-Datos` — **Pendiente, no iniciada**. Primera tarea de la ETAPA 03 y primera sujeta a la **BACKEND TEST-FIRST LAW**. Como toda rama Task, **nacerá desde `main`** actualizado y limpio |
-| **Avance global** | **17 %** — 7 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/009-API-Publica` — **Pendiente, no iniciada**. Su dependencia, `Task/008`, ya está **Aprobada**. Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **20 %** — 8 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
 | **Decisiones abiertas** | **17** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` (2026-08-23) |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/007` ya cuenta**: fue
-> aprobada por el usuario el 2026-08-23, lo que lleva el avance a **7 de 41** y **completa
-> la ETAPA 02** (3 de 3). Lo que fija el recuento es **la aprobación del usuario**, no el
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/008` ya cuenta**: fue
+> aprobada por el usuario el 2026-08-25, lo que lleva el avance a **8 de 41** y abre la
+> ETAPA 03 con **1 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el
 > trámite posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
-## Última tarea aprobada — `Task/007-Integracion-Local`
+## Última tarea aprobada — `Task/008-Modelo-de-Datos`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/008-Modelo-de-Datos` |
+| **Etapa** | ETAPA 03 — Dominio y Backend |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41 |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-25 |
+| **Fecha de aprobación** | 2026-08-25 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/008-Modelo-de-Datos` |
+| **Depende de** | `Task/007-Integracion-Local` (**Aprobada**) |
+| **Repositorios modificados** | `personal-blog-backend` · `personal-blog-infra` (gobierno y documentación) |
+| **Repositorio no modificado** | `personal-blog-frontend` — **sin rama y sin cambios**: la tarea no le afecta |
+| **Ramas base** | **`main`** en ambos: `2290a9fb…` (backend) y `b23ad66d…` (infra). `HEAD == main` verificado inmediatamente tras crearlas |
+| **Alcance entregado** | Modelo físico completo del MVP: **14 tablas** para los nueve tipos conceptuales; entidades de dominio del ciclo de vida de publicación; escala de valoración; restricciones e índices reales; migración Alembic `0002` reversible |
+| **Test-first** | **Demostrado.** Matriz de casos previa en la ficha; RED registrado por *slice*; GREEN; refactor. Suite completa: **250 pasan, 1 omitida** (`time.tzset` no existe en Windows, preexistente), **0 advertencias** con `-W error` |
+| **PostgreSQL real** | `personal_blog_test`, con la guarda *fail-closed* de `Task/005.6`/`005.7` activa. **SQLite no se usó** |
+| **Decisiones que cierra** | Escala de `rating` (**1..5**), estrategia de clave primaria (**UUID**), semántica final de `published_at`, representación de estados, `social_links`, `technologies`, política de borrado de medios y cascadas de etiquetado. Todas **Vigentes** desde el 2026-08-25 |
+| **Decisiones que NO cierra** | Retención de `AuditEvent`; formato y generación del *slug* (`Task/012`); proveedores de vídeo permitidos (`Task/014`); mecanismo de búsqueda y sus índices (`Task/009`) |
+| **Fuera del alcance** | API pública (`Task/009`), `ObjectStorage` (`Task/010`), autenticación y auditoría operativa (`Task/011`), CRUD administrativo (`Task/012`), frontend, cloud |
+| **Datos sembrados** | **Ninguno.** La migración no contiene `INSERT`: el perfil y el administrador llevan datos personales y una credencial, que no se versionan |
+| **Efecto en el avance** | Avance global **8 de 41 (20 %)**; **ETAPA 03 abierta** con 1 de 5 |
+| **Ficha** | [TASK-008](../tasks/TASK-008-data-model.md) |
+| **Reporte** | [TASK-008-report](../task-reports/TASK-008-report.md) |
+| **Modelo físico** | [data-model.md](../architecture/data-model.md) — **Vigente** ✔ |
+
+### Hallazgos corregidos dentro de la tarea
+
+Cuatro defectos reales que la propia práctica test-first sacó a la luz. Ninguno era
+funcionalidad nueva; los cuatro dejan su prueba de regresión en la suite.
+
+| # | Hallazgo | Corrección |
+| --- | --- | --- |
+| 1 | `app/shared/errors/__init__.py` reexportaba los manejadores HTTP, así que **importar una excepción desde el dominio cargaba FastAPI**: la regla de dependencias de ADR-004 se rompía sin que ningún import lo delatara | El paquete exporta solo excepciones; los manejadores se importan de su módulo. Regresión: `tests/unit/test_independencia_del_dominio.py` |
+| 2 | `alembic/script.py.mako` no emitía los imports de dialecto de `--autogenerate`: la primera migración con un tipo `JSONB` habría fallado con `NameError` | Se añadió el marcador `${imports}` a la plantilla |
+| 3 | `tests/test_database.py` afirmaba `Base.metadata.tables == {}` — "el proyecto no tiene tablas de negocio" —, condenado a caducar exactamente igual que la prueba de migraciones que `Task/005.6` ya tuvo que rehacer | Sustituida por una afirmación que no caduca |
+| 4 | El descubrimiento de fixtures del harness usaba `hasattr`, y **`sqlalchemy.func` responde a cualquier atributo**: importarlo en un módulo de integración lo convertía en una "fixture" que no pasaba por la guarda | Se exige además que la marca provenga de pytest. La guarda anti-tautología existente sigue impidiendo que la condición deje fuera fixtures reales |
+
+### Hallazgos de la revisión correctiva pre-approval
+
+Cuatro más, encontrados **después** de la primera declaración `Lista para validación`. La
+cronología se deja escrita: es trazabilidad, no un demérito.
+
+| # | Hallazgo | Gravedad | Corrección |
+| --- | --- | --- | --- |
+| 5 | **El esquema contradecía USER_FLOWS.md B.2.** `book_title`, `book_author`, `provider` y `video_url` eran `NOT NULL`, así que crear un borrador de review o de vídeo obligaba a inventar datos | **Bloqueante** | Las cuatro admiten nulo, con RED → GREEN contra PostgreSQL real y una guarda estructural que recorre las columnas reales |
+| 6 | **Estado transitorio persistido como vigente** (WORKFLOW §6.1): `Task/009` aparecía condicionada a que el PR estuviera *"fusionado y normalizado"* | **Bloqueante** | Redacción durable: `Task/009` depende de que `Task/008` esté **Aprobada**; el estado de Git se consulta en vivo |
+| 7 | **La garantía de inmutabilidad de `AuditEvent` prometía de más**: el DML masivo del ORM la sortea | Precisión | Garantía reformulada al perímetro real y fijada por prueba en las dos direcciones. El endurecimiento restante es de **`Task/018`** |
+| 8 | El *owner* del *bootstrap* de `Profile`/`Administrator` estaba atribuido de forma vaga a *"`Task/012` o posterior"* | Precisión | El ROADMAP ya lo asigna: **`Task/036`** en producción y **`Task/022`** para la semilla local |
+
+---
+
+## Tarea aprobada anterior — `Task/007-Integracion-Local`
 
 | Campo | Valor |
 | --- | --- |
@@ -57,12 +111,16 @@
 > **Aprobada** por el usuario el 2026-08-23. Con ella **la ETAPA 02 queda completada** y el
 > avance pasa a **7 de 41 (17 %)**.
 >
-> **Queda una comprobación en manos del usuario:** la validación **visual autenticada** de
-> Portainer. Lo verificado técnicamente es que Portainer sigue operativo, que es el único
-> contenedor con el socket de Docker y que los seis contenedores existen en ese mismo
-> daemon; que se vean en su interfaz es una inferencia razonable, no una observación.
+> **Comprobación visual de Portainer: completada.** *Observado el 2026-08-25:* el usuario
+> validó en la interfaz autenticada de Portainer que los seis contenedores del entorno son
+> visibles y están sanos (`backend`, `frontend`, `traefik`, `postgres` y `minio` en
+> `healthy`; `portainer` en `running`).
+>
+> El reporte de `Task/007` sigue diciendo que estaba pendiente, y **eso no se corrige**:
+> era un hecho cierto en el momento en que se escribió. Lo que se actualiza aquí es el
+> estado **vivo**, con su fecha de observación ([WORKFLOW §6.1](WORKFLOW.md), regla 2).
 
-`Task/008-Modelo-de-Datos` sigue **Pendiente y no iniciada**. Es la primera tarea de la
+`Task/008-Modelo-de-Datos` fue **aprobada el 2026-08-25**: es la primera tarea de la
 ETAPA 03 y la primera sujeta a la **BACKEND TEST-FIRST LAW**.
 
 ---
@@ -569,7 +627,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
-| 03 — Dominio y Backend | 5 | 0 | 0 % |
+| 03 — Dominio y Backend | 5 | **1** | **20 %** |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
@@ -579,16 +637,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **7** | **17 %** |
+| **Total** | **41** | **8** | **20 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 34 |
+| Pendiente | 33 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **7** |
+| **Aprobada** | **8** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -713,7 +771,7 @@ Distribución por estado:
 | `Task/005-Fundacion-Backend-FastAPI` | 02 | backend, infra (documentación) | **Aprobada** |
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend, infra (documentación) | **Aprobada** |
 | `Task/007-Integracion-Local` | 02 | infra, frontend | **Aprobada** |
-| `Task/008-Modelo-de-Datos` | 03 | backend | Pendiente |
+| `Task/008-Modelo-de-Datos` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/009-API-Publica` | 03 | backend | Pendiente |
 | `Task/010-Almacenamiento-Compatible-S3` | 03 | backend | Pendiente |
 | `Task/011-Autenticacion-Administrativa` | 03 | backend | Pendiente |
