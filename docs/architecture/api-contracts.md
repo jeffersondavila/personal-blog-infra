@@ -3,13 +3,20 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 |
+| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) |
 | **Nivel** | **Convenciones conceptuales.** No es una especificación OpenAPI. |
 
 > **Límite explícito.** Este documento fija **convenciones** que toda la API debe
 > respetar. **No** es una especificación OpenAPI completa ni código a implementar. Los
 > esquemas concretos de petición y respuesta se definen al implementar `Task/009`
 > (API pública) y `Task/012` (API administrativa).
+>
+> **Estado tras `Task/009`.** Las decisiones que este documento dejaba abiertas para la
+> API **pública** —valores de `page_size`, política de parámetros desconocidos, lista
+> cerrada de `sort` y forma de los resultados de búsqueda— están **cerradas** y anotadas
+> abajo. Los esquemas campo a campo no se duplican aquí: viven en la ficha
+> [`TASK-009`](../tasks/TASK-009-public-api.md) §7.4 y en la especificación OpenAPI que
+> genera el backend, que es su fuente ejecutable.
 
 Relacionados: [USER_FLOWS.md](../product/USER_FLOWS.md) ·
 [software-architecture.md](software-architecture.md) ·
@@ -106,7 +113,7 @@ Parámetros de entrada:
 | Parámetro | Significado | Notas |
 | --- | --- | --- |
 | `page` | Página solicitada, comenzando en 1. | Por defecto 1. |
-| `page_size` | Elementos por página. | Valor por defecto y **máximo** definidos en implementación. |
+| `page_size` | Elementos por página. | Por defecto **12**; máximo **50**. Cerrados en `Task/009`. |
 
 Envoltura conceptual de colección paginada:
 
@@ -135,6 +142,13 @@ Reglas:
 - `page_size` por encima del máximo se recorta al máximo; no es un error.
 - Los parámetros no válidos (`page=0`, `page=abc`) devuelven `422`.
 
+**Valores cerrados en `Task/009`** (2026-08-26):
+
+| Valor | Elegido | Por qué |
+| --- | --- | --- |
+| `page_size` por defecto | **12** | Es el que usan todos los ejemplos canónicos: USER_FLOWS.md A.2, A.4, A.6 y A.8, y la envoltura de ejemplo de esta misma sección. |
+| `page_size` máximo | **50** | Ninguna fuente lo fijaba. Da holgura a un cliente que quiera menos viajes y acota la consulta (requisitos P-02 y P-08). Por encima **se recorta**; nunca es error. |
+
 > La paginación por cursor queda fuera del MVP. Si el volumen lo justifica, se
 > reconsidera con un ADR.
 
@@ -145,7 +159,7 @@ Reglas:
 | Parámetro | Aplica a | Significado |
 | --- | --- | --- |
 | `tag` | Listados de contenido | Filtra por slug de etiqueta. |
-| `featured` | Listados de contenido | Solo contenido destacado. |
+| `featured` | Listados de contenido | `true`: solo destacados. `false`: solo no destacados. Ausente: sin filtro. |
 | `q` | `/search` | Término de búsqueda. |
 | `status` | **Solo administrativo** | Filtra por `draft`, `published`, `archived`. |
 | `sort` | Listados | Campo de ordenación alternativo. Opcional. |
@@ -157,8 +171,24 @@ Reglas:
   devuelve `422`.
 - `status` **no existe** en la API pública: los listados públicos son siempre
   `published`.
-- Los filtros desconocidos se ignoran o se rechazan de forma consistente; la decisión se
-  fija en `Task/009`.
+- Los parámetros de consulta desconocidos **se rechazan** con `422`. Decisión cerrada en
+  `Task/009`; detalle abajo.
+
+### Decisiones cerradas en `Task/009` (2026-08-26)
+
+| Aspecto | Decisión | Por qué |
+| --- | --- | --- |
+| **Parámetros desconocidos** | **Se rechazan** con `422` y el envelope común | El proyecto ya es estricto de forma consistente ante claves desconocidas (`extra="forbid"` en la configuración). Ignorar convierte una errata del cliente —`?tagg=docker`— en un listado silenciosamente **sin filtrar**. Rechazar hace además que OpenAPI **sea** el contrato en lugar de describirlo, y cierra `status` por construcción: `?status=draft` no se ignora, se rechaza. **Coste aceptado:** un parámetro de analítica añadido a la URL de la API produciría `422`; el frontend no debe reenviarlos |
+| **Campos ordenables** | Lista cerrada: **`published_at` y `title`** | Uniforme en los cuatro listados. `title` es el único orden alternativo con sentido para un visitante; `rating` no lo pide ningún flujo y crearía una divergencia por tipo. Añadir un campo después es compatible |
+| **Dirección** | Prefijo `-`: `sort=title` ascendente, `sort=-title` descendente | `sort` es **un** parámetro. Un segundo parámetro `order` admitiría el estado inválido «dirección sin campo» |
+| **Desempate** | **`slug` ascendente** | `published_at` puede repetirse, y un `LIMIT`/`OFFSET` sobre un orden no total puede repetir u omitir filas entre páginas. `slug` es `UNIQUE NOT NULL` en las cuatro tablas: da orden total, es estable y es la identidad pública |
+| **`featured`** | Filtro booleano completo; solo los literales `true` y `false` | Un parámetro cuyo `false` no hiciera nada sería una trampa. Se rechazan `1`, `yes` y `on` para no heredar coerciones ambiguas |
+| **`tag` inexistente** | `200` con `items` vacío | Es un **filtro de colección**, no un segmento de ruta. Hace además indistinguible «la etiqueta no existe» de «no tiene contenido publicado», que es la misma postura de no filtración de §3 |
+| **`GET /tags`** | Solo etiquetas con **al menos un contenido publicado** | El endpoint existe para navegar. Devolver una etiqueta usada solo por borradores ofrecería un filtro vacío **y revelaría que existe contenido no publicado con ella** |
+| **Forma de `/search`** | Colección **plana**; cada elemento declara su `type` | USER_FLOWS.md A.8 admite agrupados **o** etiquetados por tipo. Agrupar no encaja en la envoltura única de §5 sin inventar una segunda forma de paginar. Plana, toda la API conserva una sola envoltura |
+| **Campos buscados** | `title` y `summary`; además `book_title` y `book_author` en reviews | Criterio: un resultado debe **mostrar dónde coincidió**. `content` queda fuera: una coincidencia enterrada en el Markdown produce un resultado en el que el visitante no ve el término por ninguna parte |
+| **Mecanismo de búsqueda** | `ILIKE`, con el término ligado y sus comodines escapados | `pg_trgm` es una extensión (prohibida por T-02); el *full-text* nativo no encuentra subcadenas —«doc» no encontraría «docker»—. Ningún servicio externo entra en el MVP |
+| **`GET /profile` sin perfil** | `404` `resource_not_found` | El recurso realmente no existe todavía. `200` con campos vacíos obligaría a inventar una identidad; `503` afirmaría que el servicio no funciona. Desaparece con `Task/022` (semilla local) y `Task/036` (producción) |
 
 ---
 
@@ -242,13 +272,18 @@ un único identificador.
 
 ## 11. Qué queda para las tareas de implementación
 
-| Elemento | Tarea |
-| --- | --- |
-| Esquemas concretos de petición y respuesta | `Task/009`, `Task/012` |
-| Valores por defecto y máximos de `page_size` | `Task/009` |
-| Forma exacta de las transiciones de estado | `Task/012` |
-| Cabecera concreta del correlation ID | `Task/017` |
-| Mecanismo de autenticación y forma de la sesión | `Task/011` |
-| Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` |
-| Configuración concreta de rate limiting | `Task/011`, `Task/018` |
-| Especificación OpenAPI generada | Resultado de `Task/009` y `Task/012` |
+| Elemento | Tarea | Estado |
+| --- | --- | --- |
+| Esquemas concretos de respuesta **pública** | `Task/009` | **Cerrado** (2026-08-26) — ficha `TASK-009` §7.4 y OpenAPI generada |
+| Esquemas de petición y respuesta **administrativas** | `Task/012` | Abierto |
+| Valores por defecto y máximos de `page_size` | `Task/009` | **Cerrado** (2026-08-26) — 12 y 50 |
+| Política de parámetros desconocidos | `Task/009` | **Cerrado** (2026-08-26) — se rechazan |
+| Lista cerrada de `sort` y su dirección | `Task/009` | **Cerrado** (2026-08-26) |
+| Forma de los resultados de `/search` | `Task/009` | **Cerrado** (2026-08-26) — colección plana con `type` |
+| Forma exacta de las transiciones de estado | `Task/012` | Abierto |
+| Cabecera concreta del correlation ID | `Task/017` | Abierto |
+| Mecanismo de autenticación y forma de la sesión | `Task/011` | Abierto |
+| Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | Abierto |
+| Configuración concreta de rate limiting | `Task/011`, `Task/018` | Abierto |
+| **Representación pública de una referencia a `MediaAsset`** | `Task/010` | Parcial — `Task/009` expone `alt_text`, `width` y `height`; el campo de acceso lo añade `Task/010` |
+| Especificación OpenAPI generada | `Task/009` y `Task/012` | Parcial — la parte pública ya se genera |

@@ -70,6 +70,10 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` *(mantenimiento)* | [TASK-005.7-report.md](TASK-005.7-report.md) | Aprobada (2026-08-16) |
 | `Task/006-Fundacion-Frontend-React` | [TASK-006-report.md](TASK-006-report.md) | Aprobada (2026-08-18) |
 | `Task/006.1-Corregir-Drift-Documental-Post-Merge` *(mantenimiento)* | [TASK-006.1-report.md](TASK-006.1-report.md) | Aprobada (2026-08-21) |
+| `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` *(mantenimiento)* | [TASK-006.2-report.md](TASK-006.2-report.md) | Aprobada (2026-08-23) |
+| `Task/007-Integracion-Local` | [TASK-007-report.md](TASK-007-report.md) | Aprobada (2026-08-23) |
+| `Task/008-Modelo-de-Datos` | [TASK-008-report.md](TASK-008-report.md) | Aprobada (2026-08-25) |
+| `Task/009-API-Publica` | [TASK-009-report.md](TASK-009-report.md) | Aprobada (2026-08-27) — remediacion TDD previa a la aprobacion |
 
 > Las tareas de **mantenimiento** llevan sufijo (`005.1`, `005.2`, `005.3`, `005.4`,
 > `005.5`, `005.6`, `005.7`, `006.1`) y **no cuentan** dentro de las 41 tareas del roadmap.

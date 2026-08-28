@@ -6,8 +6,8 @@
 | **Estado** | **En curso** |
 | **Dependencias** | [ETAPA 02](STAGE-02-application-foundations.md) |
 | **Tareas** | 5 |
-| **Aprobadas** | **1** |
-| **Avance** | **20 %** — 1 de 5 |
+| **Aprobadas** | **2** |
+| **Avance** | **40 %** — 2 de 5 |
 | **Hito que completa** | Backend funcionalmente completo para el MVP. |
 
 ---
@@ -52,15 +52,39 @@ PostgreSQL local, nunca contra SQLite.
 > **1..5**. Documentado en [`data-model.md`](../architecture/data-model.md) — **Vigente**.
 > Primera tarea de la etapa aprobada: **1 de 5**.
 
-### `Task/009-API-Publica` — *Pendiente*
+### `Task/009-API-Publica` — **Aprobada**
 
 Consultas públicas, paginación, filtros, búsqueda y exposición exclusiva de contenido
 publicado.
 
-**Depende de:** `Task/008`.
+**Depende de:** `Task/008` (**Aprobada**).
 **Test-first:** contrato HTTP, paginación y filtros especificados por prueba antes de
 implementar. Obligatorio el caso negativo que demuestra que **nunca** se expone contenido no
 publicado.
+
+> **Aprobada el 2026-08-27.** Los **diez** endpoints públicos del
+> contrato, con paginación (`page_size` 12 por defecto, 50 máximo), filtros `tag`,
+> `featured` y `sort` con lista cerrada, orden determinista con desempate por `slug`, y
+> búsqueda básica con `ILIKE` sobre contenido publicado. **No modifica el esquema
+> físico**: no hay migración nueva y `0002` sigue siendo `head`.
+>
+> La invariante 19 de [`data-model.md`](../architecture/data-model.md) —*contenido no
+> publicado nunca sale al público*— queda implementada **dentro de las consultas** y
+> cubierta por caso negativo en los cuatro tipos, en listados, detalles, filtro por
+> etiqueta, catálogo de etiquetas y búsqueda.
+>
+> Suite completa: **597 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0
+> advertencias** con `-W error`. Cobertura de `app/`: **100 %**.
+> Ficha: [TASK-009](../tasks/TASK-009-public-api.md) ·
+> Reporte: [TASK-009-report](../task-reports/TASK-009-report.md).
+>
+> **Remediación TDD antes de aprobar.** En la primera ejecución seis *slices* tuvieron
+> sus pruebas escritas después del código; la desviación se detectó **pre-approval** y esos
+> seis *slices* se reconstruyeron test-first —RED real sobre código inexistente— antes de
+> cualquier *commit*. La implementación aprobada es la reconstruida. Detalle en el
+> [reporte §I.2, §I.5 y §I.6](../task-reports/TASK-009-report.md).
+>
+> **Avance de la etapa: 2 de 5.**
 
 ### `Task/010-Almacenamiento-Compatible-S3` — *Pendiente*
 
@@ -123,7 +147,7 @@ transiciones antes de escribir el caso de uso.
 
 - [ ] El esquema cubre todas las secciones del blog previstas en el MVP.
 - [ ] Las migraciones aplican sobre base vacía y revierten.
-- [ ] La API pública nunca expone borradores ni contenido archivado.
+- [x] La API pública nunca expone borradores ni contenido archivado. *(`Task/009`, **Aprobada** el 2026-08-27.)*
 - [ ] Las imágenes se suben y recuperan desde MinIO a través de `ObjectStorage`.
 - [ ] **`MinIOStorage` y `S3Storage` existen y superan las mismas pruebas de contrato.**
 - [ ] **Nada persiste una URL prefirmada**: la base de datos y el Markdown guardan claves

@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-25
+**Última actualización:** 2026-08-27
 
 ---
 
@@ -8,28 +8,57 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (1 de 5). ETAPAS 00, 01 y **02 completadas** |
-| **Tarea actual** | Ninguna en ejecución. `Task/008` **aprobada** y cerrada; `Task/009` **no iniciada** |
-| **Estado de la tarea** | — |
-| **Última tarea aprobada** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25 por jeffersondavila. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
-| **Tarea aprobada anterior** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23. **Completó la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
+| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (2 de 5). ETAPAS 00, 01 y **02 completadas** |
+| **Tarea actual** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada**. `Task/009` quedó **Aprobada** el 2026-08-27; su pull request `Task/009-API-Publica → main` está **abierto y pendiente de que lo fusione el usuario** |
+| **Estado de la tarea** | `Task/009` **Aprobada**. `Task/010` **no se inicia** hasta que el usuario fusione el PR y se complete la normalización `main → dev` |
+| **Última tarea aprobada** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27 por jeffersondavila. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
+| **Tarea aprobada anterior** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
+| **Tarea aprobada previa** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23. **Completó la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
 | **Último mantenimiento aprobado** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/009-API-Publica` — **Pendiente, no iniciada**. Su dependencia, `Task/008`, ya está **Aprobada**. Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **20 %** — 8 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada**. No se inicia hasta que el usuario fusione el pull request de `Task/009` y se complete la normalización `main → dev`. Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **22 %** — 9 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
 | **Decisiones abiertas** | **17** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` (2026-08-23) |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/008` ya cuenta**: fue
-> aprobada por el usuario el 2026-08-25, lo que lleva el avance a **8 de 41** y abre la
-> ETAPA 03 con **1 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el
-> trámite posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/009` ya cuenta**: fue
+> aprobada por el usuario el 2026-08-27, lo que lleva el avance a **9 de 41** y la ETAPA 03
+> a **2 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
+> posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
-## Última tarea aprobada — `Task/008-Modelo-de-Datos`
+## Última tarea aprobada — `Task/009-API-Publica`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/009-API-Publica` |
+| **Etapa** | ETAPA 03 — Dominio y Backend |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41 |
+| **Estado** | **Aprobada** el 2026-08-27 |
+| **Fecha de inicio** | 2026-08-26 |
+| **Expresión de aprobación** | `approved: Task/009-API-Publica` |
+| **Depende de** | `Task/008-Modelo-de-Datos` (**Aprobada**) |
+| **Repositorios modificados** | `personal-blog-backend` · `personal-blog-infra` (gobierno y documentación) |
+| **Repositorio no modificado** | `personal-blog-frontend` — **sin rama y sin cambios** |
+| **Ramas base** | **`main`** en ambos: `0ada6a73…` (backend) y `71f56da2…` (infra). `HEAD == main` verificado inmediatamente tras crearlas |
+| **Alcance entregado** | Los **diez** endpoints públicos del contrato: perfil, artículos, reviews, videos, proyectos, etiquetas y búsqueda. Paginación compartida, filtros `tag`/`featured`/`sort` con lista cerrada, orden determinista y búsqueda básica sobre contenido publicado |
+| **Test-first** | **Cumplido para la implementación aprobada.** En la primera ejecución seis *slices* tuvieron sus pruebas escritas **después** del código; la desviación se detectó **pre-approval**, la tarea **no** se aprobó, y esos seis *slices* se **reconstruyeron test-first** —RED real sobre código inexistente— en un laboratorio limpio nacido del mismo SHA base, antes de cualquier *commit*. Lo aprobado es la implementación reconstruida. Detalle en el reporte §I.2, §I.5 y §I.6 |
+| **PostgreSQL real** | `personal_blog_test`, con la guarda *fail-closed* de `Task/005.6`/`005.7` activa. **SQLite no se usó** |
+| **Esquema físico** | **No se modifica.** Sin migración nueva; `0002` sigue siendo `head` |
+| **Decisiones que cierra** | **D-009-A** a **D-009-R**, todas **Vigentes** desde el 2026-08-27: `page_size` (12 / 50), política de parámetros desconocidos (**se rechazan**), lista cerrada de `sort` y su dirección, desempate por `slug`, semántica de `featured`, `tag` inexistente, visibilidad de `/tags`, forma y campos de `/search`, mecanismo de búsqueda e índices, respuesta de `/profile` sin perfil, y representación pública de una referencia a `MediaAsset` |
+| **Decisiones que NO cierra** | Acceso a medios (`Task/010`); autenticación y D-15 (`Task/011`); CRUD y transiciones (`Task/012`); render de Markdown (`Task/014`, `Task/015`); correlation ID de extremo a extremo (`Task/017`) |
+| **Fuera del alcance** | API administrativa, autenticación, `ObjectStorage`, frontend, cloud |
+| **Suite completa** | **597 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0 advertencias** con `-W error`. Cobertura de `app/`: **100 %** |
+| **Efecto en el avance** | Avance global **9 de 41 (22 %)**; ETAPA 03 en **2 de 5 (40 %)** |
+| **Ficha** | [TASK-009](../tasks/TASK-009-public-api.md) |
+| **Reporte** | [TASK-009-report](../task-reports/TASK-009-report.md) |
+
+---
+
+## Tarea aprobada anterior — `Task/008-Modelo-de-Datos`
 
 | Campo | Valor |
 | --- | --- |
@@ -83,7 +112,7 @@ cronología se deja escrita: es trazabilidad, no un demérito.
 
 ---
 
-## Tarea aprobada anterior — `Task/007-Integracion-Local`
+## Tarea aprobada previa — `Task/007-Integracion-Local`
 
 | Campo | Valor |
 | --- | --- |
@@ -627,7 +656,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
-| 03 — Dominio y Backend | 5 | **1** | **20 %** |
+| 03 — Dominio y Backend | 5 | **2** | **40 %** |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
@@ -637,16 +666,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **8** | **20 %** |
+| **Total** | **41** | **9** | **22 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 33 |
+| Pendiente | 32 |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **8** |
+| **Aprobada** | **9** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 
@@ -772,7 +801,7 @@ Distribución por estado:
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend, infra (documentación) | **Aprobada** |
 | `Task/007-Integracion-Local` | 02 | infra, frontend | **Aprobada** |
 | `Task/008-Modelo-de-Datos` | 03 | backend, infra (documentación) | **Aprobada** |
-| `Task/009-API-Publica` | 03 | backend | Pendiente |
+| `Task/009-API-Publica` | 03 | backend, infra (documentación) | **Lista para validación** |
 | `Task/010-Almacenamiento-Compatible-S3` | 03 | backend | Pendiente |
 | `Task/011-Autenticacion-Administrativa` | 03 | backend | Pendiente |
 | `Task/012-API-Administrativa` | 03 | backend | Pendiente |
