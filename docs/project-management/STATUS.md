@@ -9,15 +9,15 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (2 de 5). ETAPAS 00, 01 y **02 completadas** |
-| **Tarea actual** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada**. `Task/009` quedó **Aprobada** el 2026-08-27; su pull request `Task/009-API-Publica → main` está **abierto y pendiente de que lo fusione el usuario** |
-| **Estado de la tarea** | `Task/009` **Aprobada**. `Task/010` **no se inicia** hasta que el usuario fusione el PR y se complete la normalización `main → dev` |
+| **Tarea actual** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada** |
+| **Estado de la tarea** | **Pendiente, no iniciada.** La ETAPA 03 sigue **En curso**: `Task/010`, `Task/011` y `Task/012` quedan por aprobar |
 | **Última tarea aprobada** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27 por jeffersondavila. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
 | **Tarea aprobada anterior** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
 | **Tarea aprobada previa** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23. **Completó la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
-| **Último mantenimiento aprobado** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Mantenimiento previo** | `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion` — **Aprobada** el 2026-08-16. Hermeticidad del harness y *fail-closed* real de la integración. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada**. No se inicia hasta que el usuario fusione el pull request de `Task/009` y se complete la normalización `main → dev`. Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Último mantenimiento aprobado** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
+| **Mantenimiento anterior** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
+| **Mantenimiento previo** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
+| **Próxima tarea prevista** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada**. Depende de `Task/008-Modelo-de-Datos` (**Aprobada**), según el [ROADMAP](ROADMAP.md). Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
 | **Avance global** | **22 %** — 9 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
@@ -154,7 +154,35 @@ ETAPA 03 y la primera sujeta a la **BACKEND TEST-FIRST LAW**.
 
 ---
 
-## Último mantenimiento aprobado — `Task/006.2`
+## Último mantenimiento aprobado — `Task/009.1`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` |
+| **Tipo** | **Mantenimiento de gobierno documental** |
+| **Estado** | **Aprobada** ✔ |
+| **Fecha de inicio** | 2026-08-27 |
+| **Fecha de aprobación** | 2026-08-27 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/009.1-Corregir-Drift-Documental-Post-Merge` |
+| **Repositorios afectados** | `personal-blog-infra` (**únicamente**) |
+| **Rama** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` |
+| **Rama base** | **`main`**. SHA base: `e034e75`. Verificado `HEAD == main` inmediatamente después de crearla |
+| **Origen** | Auditoría focalizada del cierre post-merge de `Task/009`: **6 afirmaciones** presentaban como estado vigente un trámite de pull request y una normalización ya consumados, y **1 más** conservaba un estado durable obsoleto. Incumplimiento de [WORKFLOW §6.1](WORKFLOW.md), vigente desde `Task/005.6` |
+| **Alcance entregado** | Las 6 afirmaciones reescritas en forma **duradera** en `STATUS.md` (3), el reporte de `Task/009` (2) y su ficha (1); además, el estado de `Task/009` corregido a **Aprobada** en la tabla completa de tareas. Barrido posterior sobre los 8 documentos que `Task/009` modificó: **0 apariciones** de estado transitorio presentado como vigente |
+| **Prevención** | **Criterio 12** añadido a la [Definition of Done](DEFINITION_OF_DONE.md) §1: el cierre comprueba que la documentación no persista estado transitorio de Git o GitHub. Sigue el patrón del criterio 11 —comprobar el hecho y apuntar a la regla—, sin duplicar [WORKFLOW §6.1](WORKFLOW.md). `TASK_TEMPLATE.md` **no se toca** |
+| **Historia preservada** | La desviación TDD de `Task/009`, su remediación, el criterio 29 y las observaciones fechadas **no se reescriben**: son registros históricos válidos |
+| **Implementación** | **0 funcionalidad.** 0 código, 0 pruebas, 0 Compose, 0 Terraform, 0 ADR, 0 recursos cloud. `ROADMAP.md` y `STAGE-03` **sin cambios** |
+| **Roadmap** | **No cuenta** dentro de las 41 tareas. Avance global **9 de 41 (22 %)** y ETAPA 03 **2 de 5 (40 %)** **sin cambios** |
+| **Ficha** | [TASK-009.1](../tasks/TASK-009.1-correct-post-merge-documentation-drift.md) |
+| **Reporte** | [TASK-009.1-report](../task-reports/TASK-009.1-report.md) |
+
+`Task/010-Almacenamiento-Compatible-S3` sigue **Pendiente y no iniciada**, y **nacerá desde
+`main`**, como toda rama Task.
+
+---
+
+## Mantenimiento aprobado anterior — `Task/006.2`
 
 | Campo | Valor |
 | --- | --- |
@@ -200,7 +228,7 @@ como toda rama Task.
 
 ---
 
-## Último mantenimiento aprobado — `Task/006.1`
+## Mantenimiento aprobado previo — `Task/006.1`
 
 | Campo | Valor |
 | --- | --- |
@@ -801,7 +829,7 @@ Distribución por estado:
 | `Task/006-Fundacion-Frontend-React` | 02 | frontend, infra (documentación) | **Aprobada** |
 | `Task/007-Integracion-Local` | 02 | infra, frontend | **Aprobada** |
 | `Task/008-Modelo-de-Datos` | 03 | backend, infra (documentación) | **Aprobada** |
-| `Task/009-API-Publica` | 03 | backend, infra (documentación) | **Lista para validación** |
+| `Task/009-API-Publica` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/010-Almacenamiento-Compatible-S3` | 03 | backend | Pendiente |
 | `Task/011-Autenticacion-Administrativa` | 03 | backend | Pendiente |
 | `Task/012-API-Administrativa` | 03 | backend | Pendiente |

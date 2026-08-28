@@ -23,6 +23,7 @@ estos criterios:
 | 9 | **Registra riesgos y deuda pendiente.** | Secciones *Riesgos* y *Deuda técnica pendiente*; riesgos vivos replicados en `STATUS.md`. |
 | 10 | **No rompe tareas aprobadas anteriormente.** | Las validaciones de tareas previas siguen pasando. |
 | 11 | **La rama Task nació de `main`.** | `git rev-parse HEAD` coincidía con `git rev-parse main` al crearla, y el SHA base queda registrado en la ficha. |
+| 12 | **La documentación no persiste estado transitorio de Git o GitHub.** | Búsqueda dirigida en los documentos tocados: toda mención a un PR, una rama remota o una normalización es **historia fechada** o **regla permanente**, nunca estado vigente ni condición de la tarea siguiente. |
 
 Si un criterio **no aplica** a la tarea, debe declararse explícitamente con su
 justificación (por ejemplo: "criterio 4 no aplica: tarea exclusivamente documental").
@@ -31,6 +32,12 @@ justificación (por ejemplo: "criterio 4 no aplica: tarea exclusivamente documen
 > **`main`**; `dev` **nunca** lo es. Motivo y procedimiento completo:
 > [`WORKFLOW.md`](WORKFLOW.md) §2.1. Aquí solo se comprueba el hecho, no se duplica el
 > flujo.
+
+> **Criterio 12 — estado duradero.** Un cierre se redacta **antes** de que el usuario
+> fusione el PR, así que escribir el trámite en presente lo condena a ser falso. Regla
+> completa, tabla duradero/transitorio y forma correcta de redactarlo:
+> [`WORKFLOW.md`](WORKFLOW.md) §6.1. Aquí solo se comprueba el hecho, no se duplica la
+> regla.
 
 ---
 

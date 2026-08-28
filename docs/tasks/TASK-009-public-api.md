@@ -475,7 +475,10 @@ hizo. Detalle completo, y la historia original sin borrar, en el
 ## 13. Próxima tarea
 
 `Task/010-Almacenamiento-Compatible-S3` — interfaz `ObjectStorage`, `MinIOStorage` y
-`S3Storage`. **No se inicia** hasta que `Task/009` esté aprobada y normalizada.
+`S3Storage`. Permanece **Pendiente y no iniciada**; su dependencia es la que fija el
+[ROADMAP](../project-management/ROADMAP.md). Cuando se inicie, el estado real de Git se
+verifica **en vivo** y su rama **nace desde `main`** actualizado y limpio
+([WORKFLOW §2.1 y §6.1](../project-management/WORKFLOW.md)).
 
 ## 14. Aprobación
 
