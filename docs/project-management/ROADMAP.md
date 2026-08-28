@@ -16,7 +16,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **20 %** (8 de 41 tareas aprobadas)
+- **Avance global:** **22 %** (9 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -76,7 +76,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 00 | Fundación y Gobierno | 2 | 2 | 100 % | **Completada** | — |
 | 01 | Infraestructura Local | 2 | 2 | **100 %** | **Completada** | 00 ✔ |
 | 02 | Fundaciones de las Aplicaciones | 3 | 3 | **100 %** | **Completada** | 01 ✔ |
-| 03 | Dominio y Backend | 5 | **1** | **20 %** | **En curso** | 02 ✔ |
+| 03 | Dominio y Backend | 5 | **2** | **40 %** | **En curso** | 02 ✔ |
 | 04 | Experiencia del Usuario | 3 | 0 | 0 % | Pendiente | 03 |
 | 05 | Calidad y Seguridad | 3 | 0 | 0 % | Pendiente | 04 |
 | 06 | Integración Continua | 3 | 0 | 0 % | Pendiente | 05 |
@@ -86,7 +86,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **8** | **20 %** | | |
+| | **Total** | **41** | **9** | **22 %** | | |
 
 ---
 
@@ -173,7 +173,7 @@ infraestructura local.
 con almacenamiento de archivos y autenticación.
 
 **Dependencias:** Etapa 02.
-**Avance:** **1 de 5 aprobadas** (`Task/008`, el 2026-08-25). La siguiente es `Task/009`.
+**Avance:** **2 de 5 aprobadas** (`Task/008`, el 2026-08-25; `Task/009`, el 2026-08-27).
 **Hito que completa:** *Backend funcionalmente completo para el MVP.*
 **Ficha:** [STAGE-03-domain-and-backend.md](../stages/STAGE-03-domain-and-backend.md)
 
@@ -185,7 +185,7 @@ con almacenamiento de archivos y autenticación.
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/008-Modelo-de-Datos` | Perfil. Artículos. Reviews de libros. Videos. Proyectos. Etiquetas. Medios. Administrador. Auditoría. **Test-first**: invariantes y transiciones; migraciones validadas con integración real. | backend, infra (documentación) | 007 | **Aprobada** (2026-08-25) |
-| `Task/009-API-Publica` | Consultas públicas. Paginación. Filtros. Búsqueda. Contenido publicado. **Test-first**: contrato HTTP y el caso negativo de contenido no publicado. | backend | 008 | Pendiente |
+| `Task/009-API-Publica` | Consultas públicas. Paginación. Filtros. Búsqueda. Contenido publicado. **Test-first**: contrato HTTP y el caso negativo de contenido no publicado. | backend, infra (documentación) | 008 | **Aprobada** (2026-08-27) |
 | `Task/010-Almacenamiento-Compatible-S3` | Interfaz `ObjectStorage`, `MinIOStorage` **y el código de `S3Storage`**, con pruebas de contrato comunes — **sin AWS real**. Imágenes y miniaturas. Persiste **claves de objeto**, nunca URLs prefirmadas. **Test-first**: contrato primero, después integración con MinIO. | backend | 008 | Pendiente |
 | `Task/011-Autenticacion-Administrativa` | Login. Sesiones o tokens. Protección de endpoints. Rate limiting. Auditoría. **Resuelve D-15**: topología lógica de dominios y política de cookies/CORS. **Test-first**: casos negativos de acceso dentro del alcance. | backend | 008 | Pendiente |
 | `Task/012-API-Administrativa` | CRUD. Borradores. Publicación. Archivado. Gestión de imágenes. **Test-first**: matriz de transiciones antes del caso de uso. | backend | 009, 010, 011 | Pendiente |
@@ -432,7 +432,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `8 / 41 = 20 %`.
+Actualmente: `9 / 41 = 22 %`.
 
 Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`,
 `Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`, `Task/006.1`, `Task/006.2`) **no
