@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/008-Modelo-de-Datos` (2026-08-25) |
-| **Fecha** | 2026-08-25 · **Fecha de aprobación** 2026-08-25 |
+| **Fecha** | 2026-08-25 · **Fecha de aprobación** 2026-08-25 · §8 y §10 completadas por `Task/009-API-Publica` (2026-08-26) |
 | **Nivel** | **Físico.** Tablas, columnas, tipos, claves, restricciones e índices. |
 | **Migración** | `0002` (`personal-blog-backend/alembic/versions/*_0002_*.py`) |
 
@@ -30,7 +30,7 @@ comportamiento de aplicación:
 | Entidades de dominio del ciclo de vida de publicación | — |
 | Escala de valoración de reviews | — |
 | Migración `0002`, reversible | — |
-| — | Endpoints públicos, paginación, filtros, búsqueda → **`Task/009`** |
+| — | Endpoints públicos, paginación, filtros, búsqueda → **`Task/009`** *(entregado el 2026-08-26; no modifica el esquema físico)* |
 | — | `ObjectStorage`, MinIO, S3, subida, URL prefirmadas → **`Task/010`** |
 | — | Login, sesión, *hashing*, *rate limiting* → **`Task/011`** |
 | — | Servicio de auditoría y catálogo de acciones → **`Task/011`**, **`Task/012`** |
@@ -360,7 +360,7 @@ distinto, y eso se declara.
 | 16b | **Ninguna** ruta puede modificarlo ni eliminarlo | — | — | **`Task/018`** | Solo se consigue retirando `UPDATE`/`DELETE` al rol de base de datos (S-01) |
 | 17 | La auditoría no guarda secretos | — | — | **`Task/011`**, **`Task/012`** | Es una decisión sobre **qué se escribe**; el esquema no puede saberlo |
 | 18 | Campos mínimos para publicar | — | — | **`Task/012`** | Es validación de publicación (B.7) |
-| 19 | Contenido no publicado nunca sale al público | — | — | **`Task/009`** | Es una regla de consulta, no de esquema |
+| 19 | Contenido no publicado nunca sale al público | — | — | **`Task/009`** ✔ | Es una regla de consulta, no de esquema. **Implementada el 2026-08-26**: la condición vive dentro de cada consulta de lectura, no en el router, de modo que ningún camino puede saltársela. Cubierta por caso negativo en los cuatro tipos, en listados, detalles, filtro por etiqueta, catálogo de etiquetas y búsqueda |
 | 20 | Toda fecha en UTC | — | **sí** | — | `TIMESTAMP WITH TIME ZONE` en todas las columnas de fecha |
 
 ### 6.0 Qué garantiza exactamente la inmutabilidad de `AuditEvent`
@@ -468,9 +468,40 @@ Se diseñan por consulta prevista, no por intuición (requisito P-08).
 
 | Candidato | Por qué no |
 | --- | --- |
-| `featured` | Los listados de destacados son diminutos y siempre van combinados con `status`. `Task/009` implementa las consultas reales y medirá; añadirlo hoy sería optimización prematura |
-| Búsqueda de texto completo | La búsqueda básica es de `Task/009`; el mecanismo —`ILIKE`, `tsvector`, u otro— se decide allí, con la consulta delante |
+| `featured` | Los listados de destacados son diminutos y siempre van combinados con `status`. `Task/009` implementó las consultas reales y **confirmó la decisión**: el filtro se resuelve siempre junto a `status`, que ya está indexado |
+| Búsqueda de texto completo | **Resuelto en `Task/009`**: no se crea ninguno. Ver abajo |
 | `slug` en las tablas puente | No existe esa columna: el puente se recorre por identificador |
+
+### 8.1 Búsqueda: mecanismo elegido y por qué no lleva índice
+
+> **Cerrado en `Task/009-API-Publica`** (2026-08-26). `Task/008` dejó abiertos el
+> mecanismo de búsqueda **y** los índices que ese mecanismo necesitara. Los dos se
+> deciden juntos, porque el segundo depende del primero.
+
+**Mecanismo: `ILIKE '%término%'`**, con el término ligado como parámetro y sus comodines
+(`%`, `_`, `\`) escapados. Las alternativas se descartaron con motivo:
+
+| Alternativa | Por qué no |
+| --- | --- |
+| `pg_trgm` | Es una **extensión**, y el requisito T-02 restringe el proyecto al núcleo de PostgreSQL |
+| *Full-text* nativo (`tsvector`) | Obligaría a elegir configuración de idioma y aplica *stemming*, y **no encuentra subcadenas**: «doc» no encontraría «docker», que es justo lo que espera quien teclea en un buscador |
+| Elasticsearch, OpenSearch, Meilisearch, Algolia | Un servicio más que operar y pagar, para un blog personal. Fuera del MVP |
+
+**Índices: ninguno, y esa es la decisión.** Ningún índice B-tree sirve a un `LIKE` con
+comodín inicial; el que serviría exige `pg_trgm`, que está prohibido, o cambiar de
+mecanismo a `tsvector`. **Crear un índice que el planificador no va a usar es peor que no
+crearlo**: ocupa espacio, encarece cada escritura y sugiere una garantía de rendimiento
+que no existe.
+
+**Por tanto `Task/009` no modifica el esquema físico.** No añade migración: la revisión
+`0002` sigue siendo `head`.
+
+**Disparador de revisión.** La decisión es correcta para el volumen previsto —decenas de
+filas, donde el escaneo secuencial es irrelevante—, no para siempre. Se revisa cuando el
+contenido publicado supere el orden de **unos pocos miles de filas** o cuando la búsqueda
+aparezca como consulta lenta en observabilidad (`Task/017`). El camino en ese caso es
+`tsvector` con un índice GIN, ambos del **núcleo** de PostgreSQL, aceptando entonces de
+forma explícita el cambio de semántica: se ganan lexemas y se pierden las subcadenas.
 
 ---
 
@@ -490,9 +521,11 @@ en el frontend (ADR-005, decisiones 2 a 4) y son de `Task/014` y `Task/015`.
 | --- | --- | --- |
 | 1 | `updated_at` solo avanza en escrituras que pasan por el ORM. Un `UPDATE` a mano no la actualiza: haría falta un *trigger*, que es código de servidor que el proyecto evita | — (aceptado y documentado) |
 | 2 | La referencia polimórfica de auditoría no tiene integridad referencial (§6.1) | — (aceptado) |
-| 3 | `technologies` no tiene integridad sobre su contenido ni consulta relacional (D-G) | revisable en `Task/009` |
+| 3 | `technologies` no tiene integridad sobre su contenido ni consulta relacional (D-G) | **Revisado en `Task/009`: se mantiene.** La API pública lo transporta como lista de cadenas y **nadie consulta por tecnología**; el filtro público es por `Tag`, y funciona. Normalizarlo sigue siendo una migración sencilla el día que aparezca «filtrar por tecnología» |
 | 4 | La retención de `AuditEvent` sigue sin decidirse | `Task/011`, operación |
 | 5 | El perfil y el administrador reales no existen todavía | `Task/036` (producción) · `Task/022` (semilla local) |
 | 6 | La lista de proveedores de vídeo permitidos está abierta | `Task/014` |
 | 7 | El formato y la generación del *slug* no están implementados | `Task/012` |
 | 8 | SQLAlchemy no detecta mutaciones **en sitio** de un `JSONB`: hay que asignar un valor nuevo | — (documentado en el modelo) |
+| 9 | La búsqueda es `ILIKE` sin índice: correcta al volumen actual, revisable con su disparador (§8.1) | revisión futura |
+| 10 | Las referencias públicas a `MediaAsset` viajan **sin campo de acceso**: `alt_text`, `width` y `height`, nunca `object_key` ni una URL | **`Task/010`**, que añade el acceso como campo compatible |
