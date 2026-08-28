@@ -355,8 +355,10 @@ existen las dos cosas, y son cosas distintas.
 #### Traslado al repositorio oficial
 
 La implementación reconstruida se trasladó archivo a archivo al repositorio oficial y se
-revalidó **allí** (§P). El laboratorio se conserva íntegro —reconstrucción, evidencia y
-*backup* histórico— hasta que `Task/009` sea aprobada, fusionada y normalizada.
+revalidó **allí** (§P). El laboratorio —reconstrucción, evidencia y *backup* histórico— se
+preserva como respaldo de esta remediación. **Su eliminación requiere una decisión
+operativa explícita del usuario** y no forma parte de las dependencias de ninguna tarea
+siguiente.
 
 ### I.6 Causa raíz y guarda para las tareas siguientes
 
@@ -894,8 +896,12 @@ así que se registran como lo que son: lo observado al terminar la tarea.
 
 `Task/010-Almacenamiento-Compatible-S3` — interfaz `ObjectStorage`, `MinIOStorage` y el
 código de `S3Storage`, con pruebas de contrato comunes y sin AWS real. Permanece
-**Pendiente y no iniciada**, y **no se inicia** hasta que el usuario fusione el pull request
-de `Task/009` y se complete la normalización `main → dev`.
+**Pendiente y no iniciada**; su dependencia es la que fija el
+[ROADMAP](../project-management/ROADMAP.md).
+
+Cuando se inicie, el estado real de Git se verifica **en vivo** y su rama **nace desde
+`main`** actualizado y limpio, como toda rama Task
+([WORKFLOW §2.1 y §6.1](../project-management/WORKFLOW.md)).
 
 Se lleva además la guarda de §I.6: el agregador de routers se construye **incrementalmente**,
 un *slice* por vez, para que el RED sea observable.
