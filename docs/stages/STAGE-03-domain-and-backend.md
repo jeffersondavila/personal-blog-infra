@@ -6,8 +6,8 @@
 | **Estado** | **En curso** |
 | **Dependencias** | [ETAPA 02](STAGE-02-application-foundations.md) |
 | **Tareas** | 5 |
-| **Aprobadas** | **2** |
-| **Avance** | **40 %** — 2 de 5 |
+| **Aprobadas** | **3** |
+| **Avance** | **60 %** — 3 de 5 |
 | **Hito que completa** | Backend funcionalmente completo para el MVP. |
 
 ---
@@ -86,7 +86,7 @@ publicado.
 >
 > **Avance de la etapa: 2 de 5.**
 
-### `Task/010-Almacenamiento-Compatible-S3` — *Pendiente*
+### `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** (2026-08-28)
 
 Interfaz `ObjectStorage`, implementación `MinIOStorage` para local, **implementación
 `S3Storage`**, gestión de imágenes y miniaturas.
@@ -111,9 +111,40 @@ Interfaz `ObjectStorage`, implementación `MinIOStorage` para local, **implement
 > —que expira—. La URL de acceso se genera al servir. Aplica también al Markdown del
 > contenido.
 
-**Depende de:** `Task/008`.
+**Depende de:** `Task/008` (**Aprobada**).
 **Test-first:** primero las pruebas de **contrato** de `ObjectStorage`; después la
 integración real con MinIO.
+
+> **En progreso** desde el 2026-08-28. Interfaz `ObjectStorage` con cinco
+> operaciones, `MinIOStorage` y `S3Storage` **ambas con código real**, y una
+> suite de contrato de **13 casos ejecutada contra las dos** (26 ejecuciones)
+> contra el MinIO local. `S3Storage` se prueba contra ese mismo endpoint
+> S3-compatible: **sin AWS real y sin ningún recurso cloud**.
+>
+> Añade además la gestión de imágenes: validación por **decodificación** del
+> contenido, claves no predecibles, miniaturas WebP derivadas, persistencia de
+> `MediaAsset` con compensación ante fallo parcial, y el caso de uso de borrado
+> que dice **dónde** se usa un medio.
+>
+> **Cierra D-009-O**: `MedioPublico` gana `access_url`, un enlace temporal
+> generado al servir y nunca persistido, **y realmente consumible**: el
+> adaptador separa el endpoint **operativo** —el que usa el backend— del de
+> **acceso** —el que aparece en el enlace—, porque el anfitrión forma parte de
+> la firma SigV4 y no puede corregirse después. Verificado con un `GET` real
+> desde el host contra el backend recreado en Docker. La política cloud
+> concreta —**D-08**— sigue siendo de `Task/030`.
+>
+> **No modifica el esquema físico**: `0002` sigue siendo `head`.
+>
+> Ficha: [TASK-010](../tasks/TASK-010-s3-compatible-storage.md) ·
+> Reporte: [TASK-010-report](../task-reports/TASK-010-report.md).
+>
+> Devuelta una vez por la revisión externa con dos bloqueantes —el enlace local
+> no era consumible y el backend en Docker no se había recreado— y una
+> corrección de trazabilidad TDD. Los tres se resolvieron antes de aprobar;
+> detalle en el [reporte §S.1, §W.1 y §K.2](../task-reports/TASK-010-report.md).
+>
+> **Avance de la etapa: 3 de 5.**
 
 ### `Task/011-Autenticacion-Administrativa` — *Pendiente*
 
@@ -148,10 +179,11 @@ transiciones antes de escribir el caso de uso.
 - [ ] El esquema cubre todas las secciones del blog previstas en el MVP.
 - [ ] Las migraciones aplican sobre base vacía y revierten.
 - [x] La API pública nunca expone borradores ni contenido archivado. *(`Task/009`, **Aprobada** el 2026-08-27.)*
-- [ ] Las imágenes se suben y recuperan desde MinIO a través de `ObjectStorage`.
-- [ ] **`MinIOStorage` y `S3Storage` existen y superan las mismas pruebas de contrato.**
-- [ ] **Nada persiste una URL prefirmada**: la base de datos y el Markdown guardan claves
-      de objeto.
+- [x] Las imágenes se suben y recuperan desde MinIO a través de `ObjectStorage`. *(`Task/010`, **Aprobada** el 2026-08-28.)* *(Entregado en `Task/010`; se marca al aprobarse.)*
+- [x] **`MinIOStorage` y `S3Storage` existen y superan las mismas pruebas de contrato.** *(`Task/010`: 15 casos × 2 implementaciones.)* *(Entregado en `Task/010`; se marca al aprobarse.)*
+- [x] **Nada persiste una URL prefirmada**: la base de datos y el Markdown guardan claves
+      de objeto. *(`Task/010`; comprobado sobre las columnas reales.)* *(Entregado en `Task/010` para la base de datos, fijado por prueba sobre
+      las columnas reales; el Markdown del contenido es de `Task/012`.)*
 - [ ] **D-15 resuelta**: topología lógica de dominios y política de cookies/CORS decidida.
 - [ ] Ningún endpoint administrativo es accesible sin autenticación.
 - [ ] Las acciones administrativas quedan registradas en auditoría.

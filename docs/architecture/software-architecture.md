@@ -184,7 +184,7 @@ Reglas:
   implementación.
 - **La base de datos almacena metadatos y claves de objeto, nunca binarios.**
 - **Los videos solo almacenan URL, proveedor y metadatos**; jamás archivos de video.
-- **Validación futura de MIME y tamaño** en cada carga (`Task/010`, endurecida en
+- **Validación de MIME y tamaño** en cada carga (`Task/010`, endurecida en
   `Task/018`).
 - **Nombres de objeto no predecibles**, para que conocer una URL no permita adivinar
   otras.
@@ -192,6 +192,51 @@ Reglas:
 - **Bucket privado por defecto**; sin acceso público directo.
 
 Cambiar de MinIO a S3 debe requerir cambiar **configuración**, no código de dominio.
+
+#### Estado tras `Task/010` (2026-08-28)
+
+Las tres piezas existen con **código real** en `app/shared/storage/`, y las dos
+implementaciones superan **la misma** suite de contrato.
+
+| Elemento | Estado |
+| --- | --- |
+| `ObjectStorage` | Cinco operaciones: guardar, obtener, comprobar, eliminar y generar acceso temporal. Tipos de resultado propios: no se devuelve ningún objeto del SDK |
+| `MinIOStorage` | Local. Exige endpoint explícito y **rechaza** cualquier endpoint de AWS |
+| `S3Storage` | Producción. Funciona sin endpoint —lo resuelve el SDK— y **nunca** crea un bucket |
+| Selector | `app/shared/storage/fabrica.py`, único punto que sabe que hay más de una implementación. `BLOG_STORAGE_PROVIDER` la elige; `minio` está **prohibido** con `BLOG_APP_ENV=production` |
+
+**Un solo SDK, `boto3`, para las dos** (decisión D-010-A). MinIO implementa el
+protocolo S3, así que `boto3` lo ejerce de verdad; el SDK propio de MinIO
+arrastraría `pycryptodome` y `argon2-cffi` al único `requirements.txt` —y por
+tanto al artefacto de Lambda (P-07)— para código que allí nunca se ejecuta. Lo
+que impide que `MinIOStorage` sea un alias vacío de `S3Storage` no es el SDK:
+son sus **invariantes**, distintas y probadas por separado.
+
+**Dos endpoints, no uno.** El adaptador distingue el endpoint **operativo** —el
+que usa el backend para leer y escribir— del endpoint **de acceso**, contra el
+que se firma la URL temporal que se devuelve al cliente. En el entorno local no
+coinciden: el backend alcanza MinIO como `http://minio:9000` y el navegador del
+host, como `http://localhost:9000`.
+
+La separación es obligatoria, no una comodidad: el `Host` forma parte de la
+petición canónica de **AWS Signature Version 4**, así que reescribir el
+anfitrión de una URL ya firmada la invalida. El enlace tiene que firmarse contra
+el anfitrión externo **desde el principio**, lo que exige un cliente configurado
+con él. Construirlo no cuesta ninguna petición de red —prefirmar es aritmética
+local—, así que ese cliente funciona aunque su endpoint no sea alcanzable desde
+el proceso que lo usa.
+
+El endpoint de acceso es **opcional**: omitido, se firma contra el operativo. En
+producción se omite y el SDK resuelve el de AWS; si algún día hay un dominio
+propio o un CDN delante del bucket, el mecanismo ya existe, pero **la decisión
+es de `Task/030`** (**D-08**).
+
+**El contrato no conoce imágenes ni persistencia.** Importar
+`app.shared.storage` no carga SQLAlchemy, FastAPI ni el propio `boto3` —que se
+importa dentro de `_crear_cliente`—, y hay una prueba en subproceso que lo
+comprueba. La comprobación de uso previa al borrado vive en su caso de uso, no
+en el adaptador: meter conocimiento de claves foráneas dentro de un cliente de
+S3 rompería la separación que esta interfaz existe para mantener.
 
 ### 3.8 Configuración
 

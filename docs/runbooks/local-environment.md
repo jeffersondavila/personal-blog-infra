@@ -682,11 +682,148 @@ docker exec personal-blog-local-postgres `
 
 ---
 
-## 10. Límites vigentes de este entorno
+## 10. Bucket de medios del backend
+
+> **Vigente desde `Task/010`.** Necesario para que el backend pueda guardar
+> imágenes en el entorno local.
+
+### 10.1 Por qué hay que crearlo a mano
+
+**Ni `MinIOStorage` ni `S3Storage` crean buckets.** No es un olvido: crear un
+bucket es una operación de **infraestructura**, y en producción la hace
+Terraform (`Task/030`). Un adaptador que creara su bucket al arrancar
+convertiría un despliegue en una operación de infraestructura silenciosa, fuera
+de la fuente de verdad (AWS LOCAL PARITY LAW).
+
+En local, por tanto, se crea una vez y ya está.
+
+> **No hace falta para ejecutar las pruebas.** La suite crea y destruye **su
+> propio** bucket, con el prefijo `personal-blog-test-`. Este bucket es para
+> usar la aplicación, no para probarla.
+
+### 10.2 Crearlo
+
+Desde la consola web de MinIO, en `http://localhost:9001`, con las credenciales
+`MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` del `.env`: **Buckets → Create
+Bucket**, nombre `personal-blog-media`. **Sin acceso público**: el bucket es
+privado por diseño (security-boundaries.md, C-08) y las imágenes se sirven con
+URL prefirmada.
+
+O desde la línea de comandos, con el cliente que la propia imagen ya trae:
+
+```powershell
+docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && mc mb --ignore-existing local/personal-blog-media'
+```
+
+Comprobar:
+
+```powershell
+docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null && mc ls local'
+```
+
+El nombre debe coincidir con `BLOG_STORAGE_BUCKET`. Si no coincide, el backend
+arranca igual —el cliente se crea de forma perezosa— y falla en la primera
+subida.
+
+### 10.3 Los dos endpoints de MinIO, y por qué son dos
+
+El backend usa **dos direcciones** hacia el mismo MinIO, y no es una duplicación:
+
+| Variable | Valor en Compose | Quién lo usa |
+| --- | --- | --- |
+| `BLOG_STORAGE_ENDPOINT_URL` | `http://minio:9000` | El **backend**, para leer y escribir |
+| `BLOG_STORAGE_ACCESS_ENDPOINT_URL` | `http://localhost:9000` | Aparece en el enlace temporal que devuelve la API, y lo consume el **navegador del host** |
+
+El contenedor del backend alcanza MinIO por el nombre de servicio de la red de
+Docker; el navegador de la persona, no —`minio` no resuelve fuera de esa red—.
+
+**Y el enlace no se puede corregir después de emitirlo.** El anfitrión forma
+parte de la firma AWS Signature Version 4: cambiarlo en la URL ya firmada
+produce `403 SignatureDoesNotMatch`. Por eso el enlace se firma directamente
+contra el endpoint de acceso.
+
+El puerto sale de `MINIO_API_HOST_PORT`, así que cambiarlo ajusta los dos a la
+vez. **Si cambias cualquiera de las dos variables, recrea el backend:**
+
+```powershell
+docker compose up -d --build backend
+```
+
+Nunca con `down -v`: eso destruiría los volúmenes de PostgreSQL y de MinIO.
+
+Ejecutando el backend **directamente en el host** —fuera de Compose— los dos
+coinciden y `BLOG_STORAGE_ACCESS_ENDPOINT_URL` se puede omitir.
+
+### 10.4 Buckets residuales de pruebas
+
+La suite borra su bucket al terminar, pero esa limpieza vive en un `finally` y
+**no sobrevive a un `SIGKILL`**: si se corta la ejecución, queda el bucket con
+sus objetos. Es inofensivo y reconocible por el prefijo. Para purgarlos:
+
+```powershell
+docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null && mc ls local | grep personal-blog-test-'
+```
+
+Borrar **solo** los que lleven ese prefijo. `personal-blog-media` es el bucket
+de desarrollo y no se toca.
+
+---
+
+### 10.5 PostgreSQL no arranca: «ports are not available»
+
+Síntoma, tras reiniciar Docker Desktop o el equipo:
+
+```
+ports are not available: exposing port TCP 127.0.0.1:55432 -> ...
+bind: An attempt was made to access a socket in a way forbidden by its
+access permissions.
+```
+
+Y una variante más engañosa: el contenedor aparece **`Up (healthy)`** pero
+`docker compose ps` muestra `5432/tcp` **sin** `127.0.0.1:55432->`, así que el
+backend en Docker funciona y todo lo que ataque la base **desde el host** —las
+pruebas de integración, `psql`, un cliente gráfico— falla con *connection
+timeout*. Ocurre cuando el contenedor se creó mientras el puerto estaba libre y
+Docker ya no pudo re-establecer el enlace al reiniciarse.
+
+**Causa.** Windows reserva rangos de puertos dinámicos para Hyper-V y WSL, y
+uno de ellos puede acabar conteniendo el 55432. Comprobarlo:
+
+```powershell
+netsh interface ipv4 show excludedportrange protocol=tcp
+```
+
+Si aparece un intervalo que contiene 55432 —por ejemplo `55396–55495`—, el
+puerto no es de Docker mientras esa reserva exista.
+
+**Remedio**, en PowerShell **como administrador**:
+
+```powershell
+net stop winnat
+net start winnat
+```
+
+Después, sin privilegios:
+
+```powershell
+docker compose up -d postgres
+docker compose ps        # debe mostrar 127.0.0.1:55432->5432/tcp
+```
+
+**No hace falta `down -v`, y no debe usarse.** Los datos viven en el volumen con
+nombre `personal-blog-local_postgres_data`, que sobrevive a recrear el
+contenedor; `down -v` sí los destruiría.
+
+> Observado el 2026-08-30 durante `Task/010`. Si la reserva reaparece a menudo,
+> la alternativa sin administrador es publicar PostgreSQL en un puerto fuera de
+> los rangos reservados, lo que obliga a actualizar `POSTGRES_HOST_PORT` y las
+> referencias documentadas.
+
+## 11. Límites vigentes de este entorno
 
 | Elemento | Estado | Dónde se aborda |
 | --- | --- | --- |
-| Backend (FastAPI) | **Integrado** en el Compose (`Task/007`). Expone `/health`; los recursos de contenido llegan en `Task/009`. | `Task/009` |
+| Backend (FastAPI) | **Integrado** en el Compose. Expone `/health` y los diez recursos públicos (`Task/009`). Desde `Task/010` habla con MinIO a través de `ObjectStorage` y necesita el bucket de §10. | — |
 | Frontend (React) | **Integrado** en el Compose (`Task/007`). Pantalla provisional: consume `/health` y nada más. | `Task/013`, `Task/014` |
 | Reverse proxy | **Desplegado**: **Traefik v3** con enrutado explícito por archivo (D-05, `Task/003`; implementado en `Task/007`). | — |
 | Uso aplicativo de MinIO | **No existe.** MinIO está levantado y es alcanzable desde el backend, pero el backend **no lee ni escribe un solo objeto**: no hay `ObjectStorage`, ni SDK de S3, ni buckets de aplicación. | `Task/010` |
@@ -702,7 +839,7 @@ docker exec personal-blog-local-postgres `
 
 ---
 
-## 11. Documentos relacionados
+## 12. Documentos relacionados
 
 - [ADR-001 — Estrategia local-first](../adr/ADR-001-local-first.md)
 - [ADR-003 — Nube serverless de bajo costo](../adr/ADR-003-serverless-low-cost-cloud.md)

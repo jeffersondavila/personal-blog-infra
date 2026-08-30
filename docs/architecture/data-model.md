@@ -121,16 +121,22 @@ Todas las tablas de contenido comparten: `id UUID PK`, `created_at TIMESTAMPTZ N
 
 Metadatos y **clave del objeto**, nunca el binario y nunca una URL prefirmada.
 
+> **`Task/010` no modifica esta tabla.** La miniatura **no** tiene fila ni
+> columna propias: su clave se **deriva** de `object_key`
+> —`medios/<uuid>/original.<ext>` → `medios/<uuid>/thumbnail.webp`—, así que
+> persistirla crearía el segundo estado que **D-O** rechaza. La revisión `0002`
+> sigue siendo `head`.
+
 | Columna | Tipo | Nulo | Notas |
 | --- | --- | :---: | --- |
 | `id` | `UUID` | no | PK |
 | `object_key` | `VARCHAR(512)` | no | **`UNIQUE`**: dos filas no pueden reclamar el mismo objeto |
 | `original_filename` | `VARCHAR(255)` | no | informativo |
-| `mime_type` | `VARCHAR(127)` | no | validación de tipo: `Task/010` |
+| `mime_type` | `VARCHAR(127)` | no | validación de tipo **hecha en `Task/010`**: se decodifica la imagen y manda su formato real, nunca la extensión ni el `Content-Type` declarado. Permitidos: `image/jpeg`, `image/png`, `image/webp` |
 | `size_bytes` | `BIGINT` | no | `CHECK > 0` |
 | `width`, `height` | `INTEGER` | sí | `CHECK NULL OR > 0` |
-| `alt_text` | `VARCHAR(255)` | sí | accesibilidad (A-04); exigirlo es de `Task/010` |
-| `checksum` | `VARCHAR(64)` | sí | SHA-256 hex; **indexado** para detectar duplicados |
+| `alt_text` | `VARCHAR(255)` | sí | accesibilidad (A-04). **`Task/010` decidió no exigirlo al subir** (D-010-N): se escribe al **usar** la imagen, no al cargarla, y el flujo B.4 no lo pide. Exigirlo donde se usa es de `Task/012` y `Task/014` |
+| `checksum` | `VARCHAR(64)` | sí | SHA-256 hex; **indexado** para detectar duplicados. **`Task/010` lo calcula** sobre los bytes almacenados, pero **no deduplica** (D-010-J): reutilizar un medio en silencio haría que borrarlo afectara a contenidos que nunca lo subieron. Presentar el duplicado al administrador es de `Task/012` |
 | `created_at` | `TIMESTAMPTZ` | no | sin `updated_at`: CONTENT_MODEL.md solo declara la fecha de carga |
 
 **Checks:** `ck_media_assets_tamano_positivo`, `ck_media_assets_ancho_positivo`,
@@ -352,8 +358,8 @@ distinto, y eso se declara.
 | 9 | `status` dentro del contrato cerrado | **sí** | **sí** | — | El tipo lo impone en Python; el `CHECK`, en la base |
 | 10 | Asociación a etiqueta sin duplicados | — | **sí** | — | Clave primaria compuesta |
 | 11 | Eliminar `Tag` desasocia, no borra contenido | — | **sí** | — | `ON DELETE CASCADE` sobre la tabla puente |
-| 12 | Un `MediaAsset` en uso no se elimina | — | **sí** | **`Task/010`** | Base: `RESTRICT`, infranqueable. `Task/010`: comprobación previa que dice **dónde** se usa (B.5) |
-| 13 | La base guarda claves de objeto, no binarios ni URL prefirmadas | — | **sí** | **`Task/010`** | El esquema no tiene columna binaria ni de URL; generarla al servir es de `Task/010` |
+| 12 | Un `MediaAsset` en uso no se elimina | — | **sí** | ~~`Task/010`~~ **hecho** | Base: `RESTRICT`, infranqueable. **`Task/010` (2026-08-28)**: el caso de uso `EliminarMedio` consulta los cinco orígenes de referencia y rechaza con `MedioEnUsoError`, que enumera **dónde** se usa (tipo, `slug` y título) en `details.usos` (B.5). `Task/012` lo expondrá por HTTP |
+| 13 | La base guarda claves de objeto, no binarios ni URL prefirmadas | — | **sí** | ~~`Task/010`~~ **hecho** | El esquema no tiene columna binaria ni de URL. **`Task/010` (2026-08-28)**: la generación al servir está implementada y fijada por prueba, incluida la que comprueba sobre las columnas reales que la URL emitida **no** se persiste |
 | 14 | Como máximo un `Profile` / `Administrator` | — | **sí** | — | Cerrojo único |
 | 15 | Exactamente uno en operación | — | — | *bootstrap* | Ver §5 |
 | 16 | La **ruta normal del ORM** no modifica ni elimina un `AuditEvent` | — | — | **persistencia** (`Task/008`) | Guarda en el *mapper*, con el perímetro fijado por prueba (§6.2) |
@@ -528,4 +534,4 @@ en el frontend (ADR-005, decisiones 2 a 4) y son de `Task/014` y `Task/015`.
 | 7 | El formato y la generación del *slug* no están implementados | `Task/012` |
 | 8 | SQLAlchemy no detecta mutaciones **en sitio** de un `JSONB`: hay que asignar un valor nuevo | — (documentado en el modelo) |
 | 9 | La búsqueda es `ILIKE` sin índice: correcta al volumen actual, revisable con su disparador (§8.1) | revisión futura |
-| 10 | Las referencias públicas a `MediaAsset` viajan **sin campo de acceso**: `alt_text`, `width` y `height`, nunca `object_key` ni una URL | **`Task/010`**, que añade el acceso como campo compatible |
+| 10 | ~~Las referencias públicas a `MediaAsset` viajan **sin campo de acceso**~~ | **Resuelto por `Task/010`** (2026-08-28): se añadió `access_url`, un enlace **temporal** generado al servir. `object_key` sigue sin ser un campo del contrato; viaja **dentro** del enlace firmado, que es la ruta del recurso que se firma y no puede omitirse. Precisión completa en [`api-contracts.md`](api-contracts.md) §12 |

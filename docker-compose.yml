@@ -185,6 +185,44 @@ services:
       # La aplicacion sigue dependiendo unicamente de DATABASE_URL: no sabe si
       # detras hay Docker, un VPS o PgBouncer (ADR-007).
       BLOG_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Almacenamiento de objetos (`Task/010`).
+      #
+      # BLOG_STORAGE_BUCKET es, junto con BLOG_DATABASE_URL, uno de los dos
+      # campos SIN valor por defecto: el backend no arranca sin el. Por eso
+      # estas variables entran aqui y no son opcionales.
+      #
+      # Igual que con PostgreSQL, DENTRO de Docker el host es el NOMBRE DEL
+      # SERVICIO y el puerto es el INTERNO (9000), no el publicado en el host
+      # (tambien 9000, pero por 127.0.0.1). Apuntar aqui a 127.0.0.1 resolveria
+      # al propio contenedor del backend, no a MinIO.
+      #
+      # La aplicacion no sabe que hay MinIO detras: depende de la interfaz
+      # `ObjectStorage`, y estas variables son lo unico que elige la
+      # implementacion (software-architecture.md 3.7).
+      BLOG_STORAGE_PROVIDER: minio
+      BLOG_STORAGE_BUCKET: ${BLOG_STORAGE_BUCKET:-personal-blog-media}
+      BLOG_STORAGE_REGION: ${BLOG_STORAGE_REGION:-us-east-1}
+      BLOG_STORAGE_ENDPOINT_URL: http://minio:9000
+      # Endpoint DE ACCESO. Es el anfitrion que aparece en el enlace temporal
+      # (`access_url`) que la API devuelve, y su consumidor es el NAVEGADOR DEL
+      # HOST, que no resuelve el nombre de servicio `minio`.
+      #
+      # No es una duplicacion del de arriba: son dos direcciones distintas hacia
+      # el mismo MinIO, y el backend necesita las dos.
+      #
+      #   backend   -> minio:9000       (red de Docker, operaciones)
+      #   navegador -> localhost:9000   (puerto publicado, enlaces)
+      #
+      # El anfitrion entra en la firma SigV4, asi que reescribir el enlace
+      # despues de firmarlo lo invalida: tiene que firmarse ya con este.
+      #
+      # `localhost` y no ${LOCAL_BIND_ADDRESS}: es el nombre que teclea la
+      # persona en su navegador, la misma convencion que ya usa
+      # MINIO_BROWSER_REDIRECT_URL. El puerto sale de la variable canonica.
+      BLOG_STORAGE_ACCESS_ENDPOINT_URL: http://localhost:${MINIO_API_HOST_PORT}
+      BLOG_STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER}
+      BLOG_STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      BLOG_STORAGE_ACCESS_TTL_SECONDS: ${BLOG_STORAGE_ACCESS_TTL_SECONDS:-900}
       TZ: ${TZ}
     networks:
       - blog-data
@@ -193,6 +231,11 @@ services:
       postgres:
         # No basta con el orden de arranque: `service_healthy` espera a que
         # PostgreSQL acepte conexiones de verdad.
+        condition: service_healthy
+      minio:
+        # Mismo criterio. El backend no falla al arrancar si MinIO no responde
+        # —el cliente se crea de forma perezosa—, pero esperar a que este sano
+        # evita que la primera subida de una sesion local falle sin motivo.
         condition: service_healthy
     # El healthcheck lo define el Dockerfile del backend (`Task/005`): sonda
     # HTTP contra /health con la biblioteca estandar. No se redefine aqui.
