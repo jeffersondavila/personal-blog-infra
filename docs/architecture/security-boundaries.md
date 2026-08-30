@@ -129,7 +129,7 @@ de **nivel host**, no de nivel aplicación.
 | --- | --- | --- | --- |
 | Endpoint de login | Fuerza bruta, enumeración de usuarios | Rate limiting, bloqueo temporal, error genérico, auditoría | `Task/011` |
 | Endpoints administrativos | Acceso no autorizado | Autenticación obligatoria verificada en servidor | `Task/011`, `Task/012` |
-| Subida de imágenes | Archivo malicioso, agotamiento de espacio | Validación de MIME y tamaño, nombre no predecible, bucket privado | `Task/010`, `Task/018` |
+| Subida de imágenes | Archivo malicioso, agotamiento de espacio | **Implementado en `Task/010`**: el MIME se valida **decodificando** la imagen —nunca por extensión ni por `Content-Type` declarado—, con límite de bytes **y** de píxeles (guarda contra *decompression bomb*); la clave es un UUID v4 y el nombre recibido **no participa** en ella; bucket privado. `Task/018` endurece | `Task/010`, `Task/018` |
 | Renderizado de Markdown | XSS almacenado | Sanitización obligatoria en render y vista previa | `Task/014`, `Task/015` |
 | Embeds de video | Contenido de terceros no controlado | Lista cerrada de proveedores permitidos | `Task/014` |
 | Búsqueda | Inyección | Parámetros tratados como datos, nunca interpolados | `Task/009` |
@@ -174,7 +174,7 @@ de **nivel host**, no de nivel aplicación.
 | Mecanismo de autenticación y estrategia CSRF | `Task/011` |
 | Herramienta e implementación de rate limiting | `Task/011`, `Task/018` |
 | Cabeceras de seguridad concretas y sus valores | `Task/018` |
-| Lista definitiva de tipos MIME y tamaños permitidos | `Task/010`, `Task/018` |
+| ~~Lista de tipos MIME y tamaños permitidos~~ | **Base fijada en `Task/010`** (2026-08-28): `image/jpeg`, `image/png` y `image/webp`; 5 MiB y 40 millones de píxeles. **SVG excluido por seguridad** (XML con capacidad de script). La lista **definitiva** y su endurecimiento siguen siendo de `Task/018`, que restringe, no amplía |
 | Proveedores de video permitidos | `Task/014` |
 | Política IAM de la Lambda y del rol OIDC | `Task/028`, `Task/032` |
 | Política del bucket y expiración de URLs prefirmadas | `Task/030` |

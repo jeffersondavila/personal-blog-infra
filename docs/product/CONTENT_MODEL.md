@@ -219,6 +219,13 @@ la clave del objeto, nunca el binario.**
 borrar (flujo B.5). El acceso en producción se hace mediante **URL prefirmada** sobre un
 bucket privado.
 
+> **Implementado en `Task/010`** (2026-08-28). La comprobación de uso enumera
+> los cinco orígenes de referencia y el rechazo dice **dónde** se usa la imagen.
+> La carga valida el MIME **decodificando** el archivo, genera una clave no
+> predecible y una miniatura derivada, y persiste metadatos y clave —nunca el
+> binario ni la URL—. Formatos y límites: `image/jpeg`, `image/png`,
+> `image/webp`; 5 MiB. `Task/018` endurece.
+
 ### 3.8 `Administrator`
 
 | Atributo conceptual | Descripción |
@@ -300,6 +307,14 @@ AuditEvent        ──── referencia ─> cualquier tipo (por entity_type +
 7. Existe exactamente un `Administrator` en el MVP.
 8. Un `AuditEvent` nunca se modifica ni se elimina.
 9. Ningún tipo expone `password_hash` ni claves internas de objeto sin control.
+   *(Precisado en `Task/010`, **vigente** desde el 2026-08-28.)* «Sin control»
+   es la parte operativa: una URL prefirmada **es**
+   `<endpoint>/<bucket>/<object_key>?X-Amz-...` y no existe variante del
+   mecanismo —el que exige §3.7— que omita la clave. La garantía exacta es que
+   **ningún campo del contrato público transporta `object_key`** como dato, que
+   fuera del enlace firmado no aparece, y que conocerla no da acceso: el bucket
+   es privado y las claves son no predecibles. Detalle en
+   [`api-contracts.md`](../architecture/api-contracts.md) §12.
 10. Toda fecha se almacena y se expone en **UTC, formato ISO 8601**.
 
 ---
