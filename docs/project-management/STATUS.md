@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-27
+**Última actualización:** 2026-08-28
 
 ---
 
@@ -8,29 +8,76 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (2 de 5). ETAPAS 00, 01 y **02 completadas** |
-| **Tarea actual** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada** |
-| **Estado de la tarea** | **Pendiente, no iniciada.** La ETAPA 03 sigue **En curso**: `Task/010`, `Task/011` y `Task/012` quedan por aprobar |
-| **Última tarea aprobada** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27 por jeffersondavila. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
-| **Tarea aprobada anterior** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
-| **Tarea aprobada previa** | `Task/007-Integracion-Local` — **Aprobada** el 2026-08-23. **Completó la ETAPA 02**: frontend, backend, PostgreSQL, MinIO, Traefik v3 y Portainer integrados en un único entorno local |
+| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (3 de 5). ETAPAS 00, 01 y **02 completadas** |
+| **Tarea actual** | Ninguna en curso. `Task/010-Almacenamiento-Compatible-S3` quedó **Aprobada** el 2026-08-28 |
+| **Estado de la tarea** | **Aprobada.** La ETAPA 03 sigue **En curso**: quedan `Task/011` y `Task/012` por aprobar |
+| **Última tarea aprobada** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28 por jeffersondavila. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
+| **Tarea aprobada anterior** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
+| **Tarea aprobada previa** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
 | **Último mantenimiento aprobado** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/010-Almacenamiento-Compatible-S3` — **Pendiente, no iniciada**. Depende de `Task/008-Modelo-de-Datos` (**Aprobada**), según el [ROADMAP](ROADMAP.md). Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **22 %** — 9 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/011-Autenticacion-Administrativa` — **Pendiente, no iniciada**. Depende de `Task/008-Modelo-de-Datos` (**Aprobada**), según el [ROADMAP](ROADMAP.md). Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **24 %** — 10 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
 | **Decisiones abiertas** | **17** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` (2026-08-23) |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/009` ya cuenta**: fue
-> aprobada por el usuario el 2026-08-27, lo que lleva el avance a **9 de 41** y la ETAPA 03
-> a **2 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/010` ya cuenta**: fue
+> aprobada por el usuario el 2026-08-28, lo que lleva el avance a **10 de 41** y la ETAPA 03
+> a **3 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
 > posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
-## Última tarea aprobada — `Task/009-API-Publica`
+## Última tarea aprobada — `Task/010-Almacenamiento-Compatible-S3`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/010-Almacenamiento-Compatible-S3` |
+| **Etapa** | ETAPA 03 — Dominio y Backend |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41 |
+| **Estado** | **Aprobada** ✔ el 2026-08-28 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/010-Almacenamiento-Compatible-S3` |
+| **Fecha de inicio** | 2026-08-28 |
+| **Depende de** | `Task/008-Modelo-de-Datos` (**Aprobada**) |
+| **Repositorios modificados** | `personal-blog-backend` · `personal-blog-infra` (gobierno, documentación y `docker-compose.yml`) |
+| **Repositorio no modificado** | `personal-blog-frontend` — **sin rama y sin cambios** |
+| **Ramas base** | **`main`** en ambos: `81347758…` (backend) y `64e237cd…` (infra). `HEAD == main` verificado inmediatamente tras crearlas |
+| **Alcance entregado** | Interfaz `ObjectStorage` con cinco operaciones; `MinIOStorage` y `S3Storage` **ambas con código real**; suite de contrato **común** de 13 casos ejecutada contra las dos; configuración y selector por entorno; claves de objeto no predecibles; validación de imagen por **decodificación**; miniaturas WebP derivadas; caso de uso de subida con **compensación**; caso de uso de borrado con comprobación de uso; campo público `access_url` |
+| **Test-first** | **Demostrado, con su clasificación exacta.** Diez *slices*, cada uno con RED registrado antes de existir la implementación; el defecto corregido tras la revisión llevó su propio ciclo RED → GREEN → REFACTOR. En los *slices* 2/3, **siete** guardas produjeron RED propio y **cinco** guardas de ausencia se añadieron después y pasaron al escribirse: esas cinco se declaran **regresión, no evidencia RED**. **Seis comprobaciones de mutación** son evidencia **complementaria** de sensibilidad; **nunca** sustituto del RED |
+| **PostgreSQL real** | `personal_blog_test`, con la guarda *fail-closed* de `Task/005.6`/`005.7` activa. **SQLite no se usó** |
+| **MinIO real** | Entorno local de `Task/007`, con una guarda *fail-closed* **nueva**: solo anfitriones locales, bucket creado por la suite con prefijo `personal-blog-test-`, y borrado que vuelve a comprobar el prefijo |
+| **Docker verificado** | El backend se **reconstruyó y recreó** con la configuración nueva (`up -d --build backend`, sin `down -v`) y quedó `healthy`. Un *smoke* desde el contenedor emite un enlace que el **host descarga con `200`** y bytes idénticos |
+| **AWS** | **Ninguno.** Sin cuenta, sin credenciales, sin recursos. `S3Storage` se ejerce contra el endpoint S3-compatible local |
+| **Esquema físico** | **No se modifica.** Sin migración nueva; `0002` sigue siendo `head` |
+| **Decisiones que cierra** | **D-010-A** a **D-010-R** (ficha §12), todas **Vigentes** desde el 2026-08-28. Cierra **D-009-O** en la parte que le corresponde y precisa la **invariante 9** de CONTENT_MODEL.md |
+| **Decisiones que NO cierra** | **D-08** (política cloud, caché, TTL productivo y CDN) sigue en `Task/030`; el *wiring* en Lambda, en `Task/032`; los endpoints administrativos de medios, en `Task/012`; el endurecimiento de la subida, en `Task/018` |
+| **Fuera del alcance** | Recursos AWS, Terraform, SSM, Lambda, frontend, autenticación, API administrativa |
+| **Suite completa** | **792 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0 advertencias** con `-W error`. Cobertura de `app/`: **100 %** |
+| **Efecto en el avance** | Avance global **10 de 41 (24 %)**; ETAPA 03 en **3 de 5 (60 %)** |
+| **Ficha** | [TASK-010](../tasks/TASK-010-s3-compatible-storage.md) |
+| **Reporte** | [TASK-010-report](../task-reports/TASK-010-report.md) |
+
+### Hallazgo resuelto dentro de la tarea
+
+| # | Hallazgo | Resolución |
+| --- | --- | --- |
+| 2 | **El `access_url` local no era consumible.** Se firmaba contra `http://minio:9000` —correcto para el backend, inalcanzable para el navegador del host— y el anfitrión forma parte de la firma SigV4, así que reescribirlo produce `403`. Detectado por la **revisión externa** antes de aprobar | Se separaron el endpoint **operativo** y el **de acceso** (decisión **D-010-R**), con ciclo RED → GREEN → REFACTOR completo. El enlace se firma contra el externo **desde el principio**, sin reescrituras. Verificado con un `GET` real desde el host: `200` y bytes idénticos, más un control negativo que devuelve `403` al reescribir el anfitrión |
+| 1 | **Una URL prefirmada contiene `object_key` en su ruta.** La prueba de `Task/009` `test_la_portada_no_expone_la_clave_del_objeto` afirmaba que la clave no aparecía en el cuerpo, y esa afirmación deja de poder sostenerse en cuanto existe el campo de acceso que **la propia `Task/009` encargó a `Task/010`** | Se detuvo el trabajo y se contrastó con las fuentes canónicas antes de tocar ninguna expectativa. `CONTENT_MODEL.md` §3.7 y `security-boundaries.md` **imponen** la URL prefirmada, y no existe variante del mecanismo que omita la clave. La invariante 9 prohíbe exponerla *«sin control»*, y una URL firmada y con caducidad **es** la exposición controlada. Se precisó la invariante (decisión **D-010-Q**), se reescribió la prueba para afirmar la garantía real —ningún **campo** del contrato la transporta, y fuera del enlace firmado no aparece— y se documentó en `api-contracts.md` §12 |
+
+### Deuda registrada
+
+| # | Deuda | Propietario |
+| --- | --- | --- |
+| 1 | La limpieza del bucket de pruebas vive en un `finally` y **no sobrevive a un `SIGKILL`**: un corte por tiempo de espera deja el bucket. Observado durante la propia tarea. No corrompe nada y el prefijo `personal-blog-test-` lo hace inequívocamente descartable; purgarlo es una línea, documentada en el harness | Aceptado y documentado |
+| ~~2~~ | ~~La URL prefirmada local no es alcanzable desde el host~~ — **CERRADA dentro de `Task/010`**: era un defecto, no deuda. No se traslada a `Task/015` ni a `Task/016` | — |
+| 3 | La miniatura se almacena pero **no se expone** en la API pública: `Task/009` dejó pendiente **un** campo de acceso y añadir más sería ampliar el contrato por encima de lo que ninguna fuente vigente pide. Su clave se deriva de `object_key`, así que exponerla después es compatible | `Task/016` (rendimiento de listados) |
+
+---
+
+## Tarea aprobada anterior — `Task/009-API-Publica`
 
 | Campo | Valor |
 | --- | --- |
@@ -58,7 +105,7 @@
 
 ---
 
-## Tarea aprobada anterior — `Task/008-Modelo-de-Datos`
+## Tarea aprobada previa — `Task/008-Modelo-de-Datos`
 
 | Campo | Valor |
 | --- | --- |
@@ -112,7 +159,7 @@ cronología se deja escrita: es trazabilidad, no un demérito.
 
 ---
 
-## Tarea aprobada previa — `Task/007-Integracion-Local`
+## Tarea aprobada de la ETAPA 02 — `Task/007-Integracion-Local`
 
 | Campo | Valor |
 | --- | --- |
@@ -684,7 +731,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
-| 03 — Dominio y Backend | 5 | **2** | **40 %** |
+| 03 — Dominio y Backend | 5 | **3** | **60 %** |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
@@ -694,18 +741,21 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **9** | **22 %** |
+| **Total** | **41** | **10** | **24 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 32 |
+| Pendiente | 30 |
 | En progreso | 0 |
-| Lista para validación | 0 |
-| **Aprobada** | **9** |
+| Lista para validación | **0** |
+| **Aprobada** | **10** |
 | Bloqueada | 0 |
 | Descartada | 0 |
+
+> `Lista para validación` **no** suma al avance: el recuento de la tabla de
+> arriba solo cuenta tareas `Aprobada`, y quien aprueba es el usuario.
 
 > Esta distribución incluye únicamente las 41 tareas del roadmap. La tarea de
 > mantenimiento `Task/002.1` se registra por separado.

@@ -272,6 +272,23 @@ dato canónico*. La base de datos guarda `object_key`
 referencia estable, nunca una URL con expiración**. Propietarios: `Task/010` (persistencia y
 generación), `Task/012` (gestión de imágenes del contenido), `Task/016` (`og:image`).
 
+### Qué aportó `Task/010` (2026-08-28) — y qué **no** decidió
+
+D-08 **sigue abierta**. Lo que `Task/010` entregó es el **mecanismo**, no la
+política:
+
+| Entregado en `Task/010` | Sigue siendo de `Task/030` |
+| --- | --- |
+| El campo público de acceso existe: `access_url`, un enlace **temporal** | Si además hay una URL **estable** para el contenido publicado, y por qué vía |
+| Se genera al servir y **no se persiste** — fijado por prueba sobre las columnas reales | La **semántica de caché** de esas URLs y su compatibilidad con un CDN |
+| El TTL es **configuración** (`BLOG_STORAGE_ACCESS_TTL_SECONDS`, 900 s por defecto), no una constante del adaptador | El **valor productivo** del TTL |
+| `object_key` no es un campo del contrato; la precisión operativa de la invariante 9 está escrita en [`api-contracts.md`](api-contracts.md) §12 | Política del bucket, CORS y *lifecycle* |
+| — | Qué URL usa `og:image` (`Task/016`) |
+
+**Deliberadamente no se expuso `access_expires_at`**: declarar cuándo caduca el
+enlace *es* describir su semántica de caché, que es una de las preguntas de
+arriba. Añadirlo después sería compatible; retirarlo, no.
+
 ## D-09 — Herramienta concreta de rate limiting
 
 - **Se resuelve en:** `Task/011-Autenticacion-Administrativa`, reforzado en `Task/018`

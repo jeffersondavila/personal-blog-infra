@@ -283,7 +283,71 @@ un único identificador.
 | Forma exacta de las transiciones de estado | `Task/012` | Abierto |
 | Cabecera concreta del correlation ID | `Task/017` | Abierto |
 | Mecanismo de autenticación y forma de la sesión | `Task/011` | Abierto |
-| Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | Abierto |
+| Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | **Base cerrada** (2026-08-28) — 5 MiB y JPEG/PNG/WebP; `Task/018` endurece |
 | Configuración concreta de rate limiting | `Task/011`, `Task/018` | Abierto |
-| **Representación pública de una referencia a `MediaAsset`** | `Task/010` | Parcial — `Task/009` expone `alt_text`, `width` y `height`; el campo de acceso lo añade `Task/010` |
+| **Representación pública de una referencia a `MediaAsset`** | `Task/010` | **Cerrado** (2026-08-28) — `alt_text`, `width`, `height` y **`access_url`**; ver §12 |
 | Especificación OpenAPI generada | `Task/009` y `Task/012` | Parcial — la parte pública ya se genera |
+
+
+---
+
+## 12. Referencia pública a un medio — cerrada en `Task/010` (2026-08-28)
+
+`Task/009` dejó `MedioPublico` **sin campo de acceso** (**D-009-O**) porque la
+forma de ese acceso —bucket privado, URL prefirmada, expiración— correspondía a
+`Task/010`. Queda así:
+
+```json
+{
+  "alt_text": "Texto alternativo",
+  "width": 1200,
+  "height": 800,
+  "access_url": "https://<endpoint>/<bucket>/<clave>?X-Amz-Signature=..."
+}
+```
+
+| Campo | Significado |
+| --- | --- |
+| `alt_text` | Texto alternativo (requisito A-04). |
+| `width`, `height` | Dimensiones, para reservar el espacio antes de cargar. |
+| `access_url` | **Enlace temporal de lectura.** Se genera al servir la respuesta y **caduca**. No es un identificador estable y no debe almacenarse. |
+
+Es un cambio **compatible**: añade un campo opcional y no retira ni renombra
+ninguno (§10, regla 3).
+
+### `object_key` y la URL prefirmada — precisión de la invariante 9
+
+Una URL prefirmada **es** `<endpoint>/<bucket>/<object_key>?X-Amz-...`: la clave
+es la ruta del recurso que se firma, y **no existe ninguna variante del
+mecanismo que la omita**. El mecanismo tampoco es opcional:
+[CONTENT_MODEL.md](../product/CONTENT_MODEL.md) §3.7 y
+[security-boundaries.md](security-boundaries.md) lo imponen —el navegador
+alcanza el almacenamiento *«únicamente mediante URL prefirmada emitida por el
+backend»*—.
+
+La invariante 9 de CONTENT_MODEL.md prohíbe exponer claves de objeto **«sin
+control»**. La garantía exacta, y la única que puede afirmarse, es:
+
+1. **Ningún campo del contrato transporta `object_key`** como dato. Eso es lo
+   que la convertiría en parte del contrato `v1`, del que ya no podría
+   retirarse (§10, regla 2).
+2. Fuera del enlace firmado, la clave **no aparece** en ninguna respuesta.
+3. Conocerla **no da acceso**: el bucket es privado, hace falta la firma, y las
+   claves son no predecibles, así que ver una no permite adivinar otra.
+
+Está fijado por prueba en `tests/integration/test_acceso_publico_a_medios.py`,
+que inspecciona el JSON entero tras retirar los enlaces firmados.
+
+### Qué sigue abierto — **D-08**, `Task/030`
+
+| Pregunta | Propietario |
+| --- | --- |
+| Si existe además una URL **estable** para los medios del contenido publicado, y por qué vía | `Task/030` |
+| **Semántica de caché** de esas URLs y su compatibilidad con un CDN | `Task/030` |
+| **Valor productivo** del TTL (aquí es configuración: `BLOG_STORAGE_ACCESS_TTL_SECONDS`, 900 s por defecto) | `Task/030` |
+| Política del bucket, CORS y *lifecycle* | `Task/030` |
+| Qué URL usa `og:image` | `Task/016` |
+
+Por eso **no** se expone `access_expires_at`: declarar cuándo caduca el enlace es
+describir su semántica de caché, que es literalmente una de las preguntas de
+D-08. Añadirlo después sería compatible; retirarlo, no.
