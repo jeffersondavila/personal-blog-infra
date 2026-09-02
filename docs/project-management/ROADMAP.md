@@ -16,7 +16,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **22 %** (9 de 41 tareas aprobadas)
+- **Avance global:** **27 %** (11 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -173,7 +173,7 @@ infraestructura local.
 con almacenamiento de archivos y autenticación.
 
 **Dependencias:** Etapa 02.
-**Avance:** **3 de 5 aprobadas** (`Task/008`, el 2026-08-25; `Task/009`, el 2026-08-27; `Task/010`, el 2026-08-28).
+**Avance:** **4 de 5 aprobadas** (`Task/008`, el 2026-08-25; `Task/009`, el 2026-08-27; `Task/010`, el 2026-08-28; `Task/011`, el 2026-09-01).
 **Hito que completa:** *Backend funcionalmente completo para el MVP.*
 **Ficha:** [STAGE-03-domain-and-backend.md](../stages/STAGE-03-domain-and-backend.md)
 
@@ -187,7 +187,7 @@ con almacenamiento de archivos y autenticación.
 | `Task/008-Modelo-de-Datos` | Perfil. Artículos. Reviews de libros. Videos. Proyectos. Etiquetas. Medios. Administrador. Auditoría. **Test-first**: invariantes y transiciones; migraciones validadas con integración real. | backend, infra (documentación) | 007 | **Aprobada** (2026-08-25) |
 | `Task/009-API-Publica` | Consultas públicas. Paginación. Filtros. Búsqueda. Contenido publicado. **Test-first**: contrato HTTP y el caso negativo de contenido no publicado. | backend, infra (documentación) | 008 | **Aprobada** (2026-08-27) |
 | `Task/010-Almacenamiento-Compatible-S3` | Interfaz `ObjectStorage`, `MinIOStorage` **y el código de `S3Storage`**, con pruebas de contrato comunes — **sin AWS real**. Imágenes y miniaturas. Persiste **claves de objeto**, nunca URLs prefirmadas. **Test-first**: contrato primero, después integración con MinIO. | backend, infra (documentación y Compose) | 008 | **Aprobada** (2026-08-28) |
-| `Task/011-Autenticacion-Administrativa` | Login. Sesiones o tokens. Protección de endpoints. Rate limiting. Auditoría. **Resuelve D-15**: topología lógica de dominios y política de cookies/CORS. **Test-first**: casos negativos de acceso dentro del alcance. | backend | 008 | Pendiente |
+| `Task/011-Autenticacion-Administrativa` | Login. **Sesión opaca *server-side* con cookie `HttpOnly`**. Protección reutilizable de endpoints. **Rate limiting en PostgreSQL**. Auditoría. **Resuelve D-15, D-02 y D-09**. Migración `0003`. **Test-first**: casos negativos de acceso dentro del alcance. | backend, infra (documentación) | 008 | **Aprobada** (2026-09-01) |
 | `Task/012-API-Administrativa` | CRUD. Borradores. Publicación. Archivado. Gestión de imágenes. **Test-first**: matriz de transiciones antes del caso de uso. | backend | 009, 010, 011 | Pendiente |
 
 ---
