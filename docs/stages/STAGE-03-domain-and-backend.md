@@ -6,8 +6,8 @@
 | **Estado** | **En curso** |
 | **Dependencias** | [ETAPA 02](STAGE-02-application-foundations.md) |
 | **Tareas** | 5 |
-| **Aprobadas** | **3** |
-| **Avance** | **60 %** — 3 de 5 |
+| **Aprobadas** | **4** |
+| **Avance** | **80 %** — 4 de 5 |
 | **Hito que completa** | Backend funcionalmente completo para el MVP. |
 
 ---
@@ -146,7 +146,7 @@ integración real con MinIO.
 >
 > **Avance de la etapa: 3 de 5.**
 
-### `Task/011-Autenticacion-Administrativa` — *Pendiente*
+### `Task/011-Autenticacion-Administrativa` — **Aprobada**
 
 Login, sesiones o tokens, protección de endpoints, rate limiting y auditoría de accesos.
 
@@ -160,9 +160,44 @@ Login, sesiones o tokens, protección de endpoints, rate limiting y auditoría d
 > CORS resultante. **No se elige el dominio comercial real**: eso sigue siendo `Task/035`
 > (**D-07**), que materializa DNS y certificados sobre la topología ya decidida.
 
-**Depende de:** `Task/008`.
+**Depende de:** `Task/008` (**Aprobada**).
 **Test-first:** los casos negativos son parte del alcance, no un extra: no autenticado, sin
 permisos y credenciales inválidas se prueban antes de dar por protegido un endpoint.
+
+> **Aprobada** ✔ el **2026-09-01** por jeffersondavila. Resuelve **D-15**, **D-02** y
+> **D-09**, ya **Vigentes**.
+>
+> **D-15** — sitio y panel en el dominio raíz, API en un subdominio: **same-site** y
+> **cross-origin**, con cookie *first-party*. Los nombres reales siguen siendo **D-07**
+> (`Task/035`).
+>
+> **D-02** — **sesión opaca *server-side* con cookie `HttpOnly`**. No se eligió por ser
+> la opción más simple: es la única que satisface el contrato de USER_FLOWS.md B.12
+> —cerrar sesión invalida **en el servidor**— sin coste añadido. Un JWT no puede hacerlo
+> por construcción, y añadirle una lista de revocación le quita su única ventaja mientras
+> le deja todos sus costes.
+>
+> **D-09** — **contador de ventana fija en PostgreSQL**, por IP: 10 intentos / 300 s, con
+> `Retry-After`. Lo eligió la restricción escrita en la propia decisión —*«cualquier
+> contador debe vivir fuera del proceso»*—, que descarta las bibliotecas en memoria. **No
+> se confunde con el bloqueo de cuenta**, que es la otra mitad y usa `failed_login_attempts`
+> y `locked_until`.
+>
+> Entrega los tres endpoints del contrato, **Argon2id**, bloqueo de cuenta seguro ante
+> concurrencia (`SELECT … FOR UPDATE`, con prueba de dos conexiones reales), auditoría de
+> cuatro acciones **sin secretos**, defensa CSRF en dos capas y la protección reutilizable
+> `AdministradorRequerido` que `Task/012` aplicará a todos sus endpoints.
+>
+> **Modifica el esquema físico**: migración **`0003`** con `administrator_sessions` y
+> `login_rate_limits`, reversible y verificada contra PostgreSQL real. `0001` y `0002`
+> quedan intactas.
+>
+> Suite completa: **1046 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0
+> advertencias** con `-W error`. Cobertura de `app/`: **100 %**.
+> Ficha: [TASK-011](../tasks/TASK-011-administrative-authentication.md) ·
+> Reporte: [TASK-011-report](../task-reports/TASK-011-report.md).
+>
+> **Avance de la etapa: 4 de 5.**
 
 ### `Task/012-API-Administrativa` — *Pendiente*
 
@@ -184,8 +219,8 @@ transiciones antes de escribir el caso de uso.
 - [x] **Nada persiste una URL prefirmada**: la base de datos y el Markdown guardan claves
       de objeto. *(`Task/010`; comprobado sobre las columnas reales.)* *(Entregado en `Task/010` para la base de datos, fijado por prueba sobre
       las columnas reales; el Markdown del contenido es de `Task/012`.)*
-- [ ] **D-15 resuelta**: topología lógica de dominios y política de cookies/CORS decidida.
-- [ ] Ningún endpoint administrativo es accesible sin autenticación.
+- [x] **D-15 resuelta**: topología lógica de dominios y política de cookies/CORS decidida. *(`Task/011`, **Aprobada** el 2026-09-01.)*
+- [x] Ningún endpoint administrativo es accesible sin autenticación. *(`Task/011`, **Aprobada** el 2026-09-01: `login` es el único público, y una prueba recorre la especificación OpenAPI entera.)*
 - [ ] Las acciones administrativas quedan registradas en auditoría.
 - [ ] Cobertura de pruebas en la lógica de dominio y en los endpoints críticos.
 - [ ] **Cada tarea de la etapa demuestra su ciclo test-first**: matriz de casos, evidencia de

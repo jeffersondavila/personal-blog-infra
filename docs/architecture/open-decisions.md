@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-08-23 (`Task/006.2` — **D-17** a **D-20** añadidas; **aprobada**) |
-| **Decisiones abiertas** | **17** — D-05, D-14 y D-01 **resueltas** |
-| **Decisiones resueltas** | **3** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15) |
+| **Última actualización** | 2026-09-01 (`Task/011` — **D-02**, **D-09** y **D-15** resueltas y **Vigentes**, aprobadas por el usuario el 2026-09-01) |
+| **Decisiones abiertas** | **14** — D-05, D-14, D-01, **D-15**, **D-02** y **D-09** resueltas |
+| **Decisiones resueltas** | **6** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15), **D-15**, **D-02** y **D-09** (2026-09-01) |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
@@ -28,20 +28,20 @@ ADR.
 | # | Decisión | Se resuelve en | Estado |
 | --- | --- | --- | --- |
 | D-01 | Modelo de PostgreSQL de producción | `Task/005.3` (modelo) · `Task/029` (proveedor) | **Resuelta** (2026-08-15) — **autogestionado en VPS externo**. Proveedor pendiente en `Task/029` |
-| D-02 | Mecanismo concreto de autenticación | `Task/011` | Abierta |
+| D-02 | Mecanismo concreto de autenticación | `Task/011` | **Resuelta** (2026-09-01) — **sesión opaca *server-side* con cookie `HttpOnly`** |
 | D-03 | Biblioteca de componentes visuales | `Task/013` | Abierta |
 | D-04 | Editor Markdown | `Task/015` | Abierta |
 | D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
 | D-06 | Backend de estado de Terraform | `Task/025` | Abierta |
 | D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
 | D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | Abierta |
-| D-09 | Herramienta concreta de rate limiting | `Task/011` | Abierta |
+| D-09 | Herramienta concreta de rate limiting | `Task/011` · reforzado en `Task/018` | **Resuelta** (2026-09-01) — **contador de ventana fija en PostgreSQL**, por IP |
 | D-10 | Estrategia de backups cloud | `Task/029` | Abierta |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
 | D-12 | Límites exactos de Lambda | `Task/032` | Abierta |
 | D-13 | Presupuesto mensual objetivo | `Task/027` | Abierta |
 | D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
-| D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | Abierta |
+| D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | **Resuelta** (2026-09-01) — **mismo *site***: sitio y panel en el dominio raíz, API en subdominio |
 | D-16 | **Mecanismo de identidad del VPS hacia AWS** para los backups | `Task/029` (decide) · `Task/030` (materializa) | Abierta |
 | D-17 | **Herramienta de gestión de secretos cifrados del VPS** | `Task/029` | Abierta |
 | D-18 | **Mecanismo de configuración interna del sistema operativo del VPS** | `Task/029` | Abierta |
@@ -126,7 +126,35 @@ D-01 responde **qué modelo**, no **con qué proveedor**. Siguen pendientes y se
   es que **RDS deja de ser el destino de producción**. Ver
   [aws-local-parity.md](aws-local-parity.md) §8.
 
-## D-02 — Mecanismo concreto de autenticación
+## D-02 — Mecanismo concreto de autenticación — **RESUELTA**
+
+> **RESUELTA** en `Task/011` (2026-09-01). **Sesión opaca *server-side* con cookie
+> `HttpOnly`.** Alternativas comparadas y motivo completo en la
+> [ficha de `Task/011`](../tasks/TASK-011-administrative-authentication.md), sección
+> *Decision Brief*; evidencia en el
+> [reporte §C](../task-reports/TASK-011-report.md).
+>
+> **El argumento decisivo no fue la simplicidad.** USER_FLOWS.md B.12 exige que cerrar
+> sesión **invalide en el servidor**, y un JWT no puede hacerlo por construcción: es una
+> afirmación autocontenida, válida hasta su expiración. Cumplir ese contrato con JWT
+> obliga a consultar una lista de revocación en cada petición, y ahí el JWT **pierde su
+> única ventaja** —no consultar estado compartido— y **conserva todos sus costes**: un
+> secreto de firma que custodiar y rotar, y *claims* que este proyecto no necesita porque
+> hay un solo administrador sin roles.
+>
+> | Aspecto | Valor decidido |
+> | --- | --- |
+> | Credencial | `secrets.token_urlsafe(32)` — 256 bits, opaca |
+> | Almacenamiento en la base | **`sha256(token)`**, nunca la credencial |
+> | Transporte | Cookie `HttpOnly`, `SameSite=Lax`, `Path` administrativo, sin `Domain`, `Secure` obligatorio en producción |
+> | Duración | **12 h absolutas**, sin renovación deslizante ni caducidad por inactividad |
+> | Sesiones simultáneas | Permitidas; `logout` revoca **la actual** |
+> | Hash de contraseñas | **Argon2id** (`argon2-cffi`), parámetros mínimos de OWASP |
+> | CSRF | `SameSite=Lax` **+** validación de `Origin`, sin *token* sincronizado |
+> | Secreto de firma | **Ninguno**: la arquitectura elegida no firma nada |
+>
+> **Sigue abierto para `Task/018`:** el endurecimiento (cabeceras de seguridad, CORS
+> efectivo). **Para `Task/015`:** el consumo desde el panel.
 
 - **Se resuelve en:** `Task/011-Autenticacion-Administrativa`
 - **Qué está decidido ya:** un solo administrador; todos los endpoints administrativos
@@ -289,7 +317,32 @@ política:
 enlace *es* describir su semántica de caché, que es una de las preguntas de
 arriba. Añadirlo después sería compatible; retirarlo, no.
 
-## D-09 — Herramienta concreta de rate limiting
+## D-09 — Herramienta concreta de rate limiting — **RESUELTA**
+
+> **RESUELTA** en `Task/011` (2026-09-01). **Contador de ventana fija en PostgreSQL**,
+> particionado por dirección IP, aplicado a `POST /api/v1/admin/auth/login`: **10
+> intentos por 300 s**, resuelto con un único `INSERT … ON CONFLICT DO UPDATE` atómico y
+> respondido con `429` más `Retry-After`.
+>
+> **La restricción escrita en esta misma decisión es la que eligió el mecanismo:** *«el
+> backend es stateless; cualquier contador debe vivir fuera del proceso»*. Eso descarta
+> las bibliotecas en memoria —con `N` instancias tibias el límite efectivo sería
+> `N × límite`, y llamarlo «límite global» sería falso—. Redis daría lo mismo a cambio de
+> un servicio con estado, su costo y su operación **para un endpoint de un blog con un
+> usuario**.
+>
+> **No se confunde con el bloqueo de cuenta**, que es la otra mitad y protege una cuenta
+> concreta frente a la adivinación de su contraseña usando `failed_login_attempts` y
+> `locked_until`. Ninguno sustituye al otro: un atacante con muchas IP burla el límite de
+> tasa pero no el bloqueo.
+>
+> **Límites declarados, no disimulados:** la ventana fija admite hasta **2 × límite** en
+> su frontera; no protege frente a un atacante distribuido que rote direcciones; y las
+> filas caducadas **no se purgan**, porque no hay procesos residentes.
+>
+> **El *throttling* de API Gateway sigue siendo un refuerzo futuro de `Task/033`**, no el
+> mecanismo: es por etapa o clave de uso, no conoce la IP como partición y no existe en
+> el entorno local.
 
 - **Se resuelve en:** `Task/011-Autenticacion-Administrativa`, reforzado en `Task/018`
 - **Información necesaria:** si basta con el throttling de API Gateway o hace falta
@@ -398,12 +451,35 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
   2026-08-15. Por ser una decisión estructural de infraestructura, sí exige registro
   arquitectónico.
 
-## D-15 — Topología lógica de dominios y política de cookies/CORS
+## D-15 — Topología lógica de dominios y política de cookies/CORS — **RESUELTA**
 
 > **Añadida en `Task/005.5`** (2026-08-16). No es una decisión nueva del proyecto: es la
 > **mitad temprana de D-07**, que estaba diferida hasta `Task/035` pese a que `Task/011`,
 > `Task/016` y `Task/018` la necesitan antes. Separarla **elimina una dependencia
 > invertida** sin adelantar ningún gasto.
+
+> **RESUELTA** en `Task/011` (2026-09-01). **Mismo *site*, distinto origen:** el sitio
+> público y el panel comparten el dominio raíz —el panel en la ruta `/admin`— y el API
+> vive en un **subdominio** (`api.<dominio>`).
+>
+> | Aspecto | Valor decidido |
+> | --- | --- |
+> | Relación de sitio | **Same-site** — mismo esquema y mismo dominio registrable |
+> | Relación de origen | **Cross-origin** — difiere el anfitrión |
+> | Cookies | ***First-party*, host-only** (sin `Domain`). Al ser la petición *same-site*, `SameSite=Lax` **viaja igualmente**, también en `POST` |
+> | CORS | Lista **explícita** del origen del panel, con credenciales. **`*` prohibido**: la configuración **no arranca si se declara `*` como origen permitido**. Declarar orígenes concretos es lo normal y no impide arrancar |
+>
+> **Por qué no dominios separados:** la cookie sería *cross-site*, es decir **de
+> terceros**, y la autenticación pasaría a depender de políticas de privacidad y de
+> configuraciones que **varían entre navegadores y entre usuarios**. Esa dependencia es
+> innecesaria aquí: la topología *same-site* mantiene la cookie como *first-party* y
+> reduce fragilidad **sin introducir ningún componente adicional**. **Por qué no mismo
+> origen con proxy:** eliminaría CORS y el CSRF *cross-origin*, pero exige interponer un
+> componente nuevo delante del API Gateway que **no figura en la arquitectura objetivo
+> aprobada**; queda registrado como alternativa si `Task/035` pone un CDN delante.
+>
+> **No decide los nombres reales**, que siguen siendo **D-07** (`Task/035`), ni el CORS
+> efectivo, que sigue siendo de `Task/018`.
 
 - **Se resuelve en:** `Task/011-Autenticacion-Administrativa`
 - **Qué decide:** si el sitio público y el API viven en el **mismo *site*** —dominio raíz

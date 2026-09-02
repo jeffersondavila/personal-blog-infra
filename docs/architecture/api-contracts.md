@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) |
+| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) · §13 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) |
 | **Nivel** | **Convenciones conceptuales.** No es una especificación OpenAPI. |
 
 > **Límite explícito.** Este documento fija **convenciones** que toda la API debe
@@ -87,9 +87,9 @@ Todos requieren autenticación **excepto `login`**.
 
 | Recurso | Propósito |
 | --- | --- |
-| `POST /api/v1/admin/auth/login` | Iniciar sesión. Único endpoint administrativo público. |
-| `POST /api/v1/admin/auth/logout` | Cerrar sesión e invalidarla en el servidor. |
-| `GET /api/v1/admin/auth/me` | Consultar la sesión actual. |
+| `POST /api/v1/admin/auth/login` | Iniciar sesión. Único endpoint administrativo público. **Contrato cerrado en `Task/011`** (§13). |
+| `POST /api/v1/admin/auth/logout` | Cerrar sesión e invalidarla en el servidor. **Contrato cerrado en `Task/011`** (§13). |
+| `GET /api/v1/admin/auth/me` | Consultar la sesión actual. **Contrato cerrado en `Task/011`** (§13). |
 | `/api/v1/admin/profile` | Consultar y editar el perfil. |
 | `/api/v1/admin/posts` | Gestión completa de artículos. |
 | `/api/v1/admin/book-reviews` | Gestión completa de reviews. |
@@ -282,9 +282,9 @@ un único identificador.
 | Forma de los resultados de `/search` | `Task/009` | **Cerrado** (2026-08-26) — colección plana con `type` |
 | Forma exacta de las transiciones de estado | `Task/012` | Abierto |
 | Cabecera concreta del correlation ID | `Task/017` | Abierto |
-| Mecanismo de autenticación y forma de la sesión | `Task/011` | Abierto |
+| Mecanismo de autenticación y forma de la sesión | `Task/011` | **Cerrado** (2026-09-01) — sesión opaca en cookie `HttpOnly`; ver §13 |
 | Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | **Base cerrada** (2026-08-28) — 5 MiB y JPEG/PNG/WebP; `Task/018` endurece |
-| Configuración concreta de rate limiting | `Task/011`, `Task/018` | Abierto |
+| Configuración concreta de rate limiting | `Task/011`, `Task/018` | **Cerrada para `login`** (2026-09-01) — 10 intentos / 300 s por IP, con `Retry-After`; `Task/018` endurece |
 | **Representación pública de una referencia a `MediaAsset`** | `Task/010` | **Cerrado** (2026-08-28) — `alt_text`, `width`, `height` y **`access_url`**; ver §12 |
 | Especificación OpenAPI generada | `Task/009` y `Task/012` | Parcial — la parte pública ya se genera |
 
@@ -351,3 +351,87 @@ que inspecciona el JSON entero tras retirar los enlaces firmados.
 Por eso **no** se expone `access_expires_at`: declarar cuándo caduca el enlace es
 describir su semántica de caché, que es literalmente una de las preguntas de
 D-08. Añadirlo después sería compatible; retirarlo, no.
+
+---
+
+## 13. Autenticación administrativa — cerrada en `Task/011` (2026-09-01)
+
+### 13.1 Los tres endpoints
+
+| Endpoint | Método | Éxito | Autenticación | Caché |
+| --- | --- | --- | --- | --- |
+| `/api/v1/admin/auth/login` | `POST` | `200` | **Ninguna** | `no-store` |
+| `/api/v1/admin/auth/logout` | `POST` | `204` | Cookie de sesión | `no-store` |
+| `/api/v1/admin/auth/me` | `GET` | `200` | Cookie de sesión | `no-store` |
+
+**No existen** `register`, `forgot-password`, `reset-password` ni `change-password`:
+ninguna fuente canónica los asigna, y no hay registro público en el producto.
+
+### 13.2 Petición y respuesta
+
+```json
+// POST /admin/auth/login
+{ "email": "...", "password": "..." }
+```
+
+```json
+// 200 — login y me. Son EXACTAMENTE estos tres campos.
+{ "id": "uuid", "email": "...", "display_name": "..." }
+```
+
+**La credencial de sesión no aparece en ningún cuerpo.** Viaja **solo** en la cookie
+`HttpOnly`, que es la razón entera de haberla elegido: si estuviera también en el JSON,
+JavaScript podría leerla. Tampoco salen `password_hash`, `failed_login_attempts` ni
+`locked_until`: el estado defensivo no es asunto del cliente.
+
+`logout` responde `204` **sin cuerpo**.
+
+### 13.3 Cookie de sesión
+
+| Atributo | Valor |
+| --- | --- |
+| Nombre | `blog_admin_session` |
+| `HttpOnly` | Siempre |
+| `Secure` | Sí, y **obligatorio en producción** — el proceso no arranca sin él |
+| `SameSite` | `Lax` |
+| `Path` | El prefijo administrativo (`/api/v1/admin`) |
+| `Domain` | **Ausente** → *host-only* |
+| `Max-Age` | La duración de la sesión (12 h por defecto) |
+
+### 13.4 Códigos de error
+
+| Código | `code` | Cuándo |
+| --- | --- | --- |
+| `401` | `invalid_credentials` | Correo inexistente, contraseña incorrecta **o cuenta bloqueada** |
+| `401` | `unauthenticated` | Sesión ausente, desconocida, caducada o revocada |
+| `403` | `forbidden` | `Origin` no permitido en un método que cambia estado |
+| `422` | `validation_error` | Cuerpo inválido, con la envoltura de §7 |
+| `429` | `too_many_requests` | Límite de tasa superado. **Lleva `Retry-After`** |
+
+**Los tres casos de `invalid_credentials` son indistinguibles**: mismo estado, mismo
+`code` y mismo `message`. Que la cuenta bloqueada no se distinga **es deliberado**: si lo
+hiciera, bastaría con enviar el umbral de intentos a un correo para saber si existe.
+
+**Los cuatro casos de `unauthenticated` también.** Cuál ocurrió es estado interno del
+servidor, y al cliente le sirve para lo mismo en los cuatro: volver a iniciar sesión.
+
+### 13.5 CORS y `Origin`
+
+La **topología lógica** (**D-15**) sitúa el sitio y el panel en el dominio raíz y el API
+en un subdominio: **same-site**, **cross-origin**. La lista de orígenes del panel es
+**explícita** y `*` está prohibido junto a credenciales: la configuración **no arranca si
+se declara `*` como origen permitido**. Declarar orígenes concretos es el uso previsto.
+
+`Task/011` implementa la **validación de `Origin`** en los métodos que cambian estado
+bajo `/admin`; el **middleware CORS efectivo** y las cabeceras de seguridad siguen siendo
+de `Task/018`, y el dominio real, de `Task/035` (**D-07**).
+
+### 13.6 Qué sigue abierto
+
+| Pregunta | Propietario |
+| --- | --- |
+| Esquemas de petición y respuesta del **CRUD administrativo** | `Task/012` |
+| Cabecera concreta del correlation ID y su propagación completa | `Task/017` |
+| CORS efectivo y cabeceras de seguridad | `Task/018` |
+| *Throttling* del borde | `Task/033` |
+| Dominio real, DNS y certificados (**D-07**) | `Task/035` |

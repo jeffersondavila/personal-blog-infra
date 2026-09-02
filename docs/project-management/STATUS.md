@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-08-28
+**Última actualización:** 2026-09-01
 
 ---
 
@@ -8,29 +8,89 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (3 de 5). ETAPAS 00, 01 y **02 completadas** |
-| **Tarea actual** | Ninguna en curso. `Task/010-Almacenamiento-Compatible-S3` quedó **Aprobada** el 2026-08-28 |
-| **Estado de la tarea** | **Aprobada.** La ETAPA 03 sigue **En curso**: quedan `Task/011` y `Task/012` por aprobar |
-| **Última tarea aprobada** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28 por jeffersondavila. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Tarea aprobada anterior** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
-| **Tarea aprobada previa** | `Task/008-Modelo-de-Datos` — **Aprobada** el 2026-08-25. **Primera tarea de la ETAPA 03** y primera sujeta a la **BACKEND TEST-FIRST LAW**: modelo físico completo del MVP en 14 tablas, con migración reversible |
+| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (4 de 5). ETAPAS 00, 01 y **02 completadas** |
+| **Tarea actual** | Ninguna en curso. `Task/011-Autenticacion-Administrativa` quedó **Aprobada** el 2026-09-01 |
+| **Estado de la tarea** | **Aprobada.** La ETAPA 03 sigue **En curso**: queda `Task/012` por aprobar |
+| **Última tarea aprobada** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01 por jeffersondavila. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
+| **Tarea aprobada anterior** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
+| **Tarea aprobada previa** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
 | **Último mantenimiento aprobado** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/011-Autenticacion-Administrativa` — **Pendiente, no iniciada**. Depende de `Task/008-Modelo-de-Datos` (**Aprobada**), según el [ROADMAP](ROADMAP.md). Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **24 %** — 10 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/012-API-Administrativa` — **Pendiente, no iniciada**. Depende de `Task/009`, `Task/010` y `Task/011`, **las tres Aprobadas**, según el [ROADMAP](ROADMAP.md). Aprobar `Task/011` **no** autoriza iniciarla. Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **27 %** — 11 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
-| **Riesgos abiertos** | **40** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** **abiertos** desde el 2026-08-23, `Task/006.2`) |
-| **Decisiones abiertas** | **17** — D-05, D-14 y D-01 resueltas; **D-15** y **D-16** añadidas en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` (2026-08-23) |
+| **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
+| **Decisiones abiertas** | **14** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/010` ya cuenta**: fue
-> aprobada por el usuario el 2026-08-28, lo que lleva el avance a **10 de 41** y la ETAPA 03
-> a **3 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el trámite
-> posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/011` ya cuenta**: fue
+> aprobada por el usuario el 2026-09-01, lo que lleva el avance a **11 de 41** y la
+> ETAPA 03 a **4 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el
+> trámite posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
-## Última tarea aprobada — `Task/010-Almacenamiento-Compatible-S3`
+## Última tarea aprobada — `Task/011-Autenticacion-Administrativa`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/011-Autenticacion-Administrativa` |
+| **Etapa** | ETAPA 03 — Dominio y Backend |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41 |
+| **Estado** | **Aprobada** ✔ el 2026-09-01 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/011-Autenticacion-Administrativa` |
+| **Fecha de inicio** | 2026-08-30 |
+| **Depende de** | `Task/008-Modelo-de-Datos` (**Aprobada**) |
+| **Repositorios modificados** | `personal-blog-backend` · `personal-blog-infra` (gobierno, arquitectura y documentación) |
+| **Repositorio no modificado** | `personal-blog-frontend` — **sin rama y sin cambios** |
+| **Ramas base** | **`main`** en ambos: `c1bc0c8b…` (backend) y `90469ecf…` (infra). `HEAD == main` verificado inmediatamente tras crearlas |
+| **Alcance entregado** | Los **tres** endpoints de autenticación del contrato; **Argon2id**; sesión opaca con credencial CSPRNG de 256 bits y huella SHA-256; bloqueo de cuenta seguro ante concurrencia; límite de tasa compartido en PostgreSQL; auditoría de cuatro acciones sin secretos; cookie `HttpOnly` con política completa; defensa CSRF en dos capas; y la protección reutilizable `AdministradorRequerido` para `Task/012` |
+| **Decisiones que cierra** | **D-15** (topología lógica: mismo *site*, API en subdominio), **D-02** (sesión opaca *server-side* con cookie `HttpOnly`) y **D-09** (contador de ventana fija en PostgreSQL, por IP), más **D-011-A** a **D-011-R** en la ficha. Todas **Vigentes** desde el 2026-09-01 |
+| **Decisiones que NO cierra** | **D-07** (dominio real y DNS) sigue en `Task/035`; **D-08**, en `Task/030`; el CORS efectivo y las cabeceras de seguridad, en `Task/018`; el *throttling* del borde, en `Task/033` |
+| **Test-first** | **Demostrado, con su clasificación exacta.** Doce *slices*, cada uno con su RED registrado antes de existir la implementación y su motivo textual. **Quince pruebas pasaron al escribirse y se declaran regresión, no evidencia RED**, enumeradas una a una en el reporte §S. **No se usó mutation testing** en ninguna forma |
+| **PostgreSQL real** | `personal_blog_test`, con la guarda *fail-closed* activa. **SQLite no se usó.** `personal_blog` **no se tocó** |
+| **Esquema físico** | **Modificado**: migración **`0003`** con `administrator_sessions` y `login_rate_limits`. `upgrade` → `downgrade` → `upgrade` y `compare_metadata` verificados. `0001` y `0002` **intactas** |
+| **Docker** | **No se recreó nada.** Ni `down`, ni `up --build`, ni `prune`. La imagen del backend **no se reconstruyó**: se verificó en su lugar que existe rueda `manylinux` de `argon2-cffi` para el destino Linux/Lambda |
+| **AWS** | **Ninguno.** Sin cuenta, sin credenciales, sin recursos |
+| **Fuera del alcance** | CRUD administrativo (`Task/012`), panel React (`Task/015`), CORS efectivo y cabeceras (`Task/018`), dominio real (`Task/035`), administrador de producción (`Task/036`), semilla local (`Task/022`), SSM (`Task/032`) |
+| **Suite completa** | **1046 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0 advertencias** con `-W error`. Cobertura de `app/`: **100 %** |
+| **Efecto en el avance** | Avance global **11 de 41 (27 %)**; ETAPA 03 en **4 de 5 (80 %)** |
+| **Ficha** | [TASK-011](../tasks/TASK-011-administrative-authentication.md) |
+| **Reporte** | [TASK-011-report](../task-reports/TASK-011-report.md) |
+
+### Por qué la decisión de D-02 no fue «lo más simple»
+
+El contrato vigente —USER_FLOWS.md B.12— exige que cerrar sesión **invalide en el
+servidor**. Un JWT no puede hacerlo por construcción: es una afirmación autocontenida y
+válida hasta su expiración. Cumplirlo con JWT obliga a consultar una lista de revocación
+en cada petición, y en ese momento el JWT **ha perdido su única ventaja** —no consultar
+estado compartido— y **conserva todos sus costes**: un secreto de firma que custodiar y
+rotar, y *claims* que este proyecto no necesita porque hay **un solo administrador sin
+roles**.
+
+### Defectos encontrados durante la integración
+
+| # | Defecto | Resolución |
+| --- | --- | --- |
+| 1 | **Contaminación entre pruebas.** La primera suite completa dio **48 fallos que no aparecían al ejecutar los módulos por separado**: la limpieza borraba el administrador **antes** que sus eventos de auditoría, la clave foránea `ON DELETE RESTRICT` de `Task/008` lo rechazaba dentro de un `finally`, y la fila superviviente bloqueaba —por el `UNIQUE` del *singleton*— a todas las pruebas posteriores | Helper `limpiar_autenticacion`, que borra en orden de dependencias. **Es un defecto del andamiaje, no del código productivo**, y lo que demuestra es que el `RESTRICT` funciona |
+| 2 | **Un nombre de cookie configurable habría hecho mentir a OpenAPI**: FastAPI construye el esquema de seguridad al definir las rutas, así que un despliegue que cambiara la variable publicaría una especificación que declara una cookie distinta de la que el servidor usa | El nombre pasó a **constante** y la variable se retiró |
+| 3 | **Una prueba de partición del límite de tasa mezclaba los dos alcances** de protección y no medía lo que decía medir | El atacante usa un correo inexistente, aislando la partición del bloqueo de cuenta |
+| 4 | **Dos aserciones afirmaban cosas que el almacenamiento no garantiza**: el orden de dos eventos de la misma transacción y una IP que en realidad no es una IP | Sustituidas por comprobaciones de lo que sí está garantizado |
+
+### Deuda registrada
+
+| # | Deuda | Propietario |
+| --- | --- | --- |
+| 1 | **Las tablas de estado de autenticación no se purgan** (**R-44**). `login_rate_limits` crece por **dirección IP observada** y es la fuente de crecimiento potencialmente mayor; `administrator_sessions` crece por **inicio de sesión con éxito**, y las filas caducadas o revocadas permanecen. No hay procesos residentes que las limpien; el volumen es despreciable con un único administrador, pero el crecimiento es monótono | `Task/018` o `Task/029` |
+| 2 | **La imagen Docker no se reconstruyó** tras añadir `argon2-cffi`, que es una dependencia binaria. La rueda `manylinux_2_17_x86_64` **existe y se verificó descargándola**; falta la construcción real | Comprobación del usuario · `Task/024`/`Task/032` |
+| 3 | **El inicio de sesión desde navegador en local exige DOS variables, todavía no cableadas en el Compose local.** (A) **`BLOG_ADMIN_ALLOWED_ORIGINS`** con el origen real del panel: es *fail-closed*, y sin él la validación de `Origin` rechaza los `POST` del navegador. (B) **`BLOG_AUTH_COOKIE_SECURE=false`**, porque el entorno local actual sirve por **HTTP** y una cookie `Secure` no se conserva ni se reenvía sobre HTTP. **Hacen falta las dos**: con una sola, el inicio de sesión desde navegador sigue sin funcionar. No se añaden aquí porque el consumidor real del contrato todavía no existe | `Task/015` |
+| 4 | **La resistencia al análisis temporal no está medida.** Se garantiza que no queda ningún camino que evite el trabajo criptográfico; nada más se afirma | `Task/018`, si algún día se mide |
+| 5 | **Los saltos de proxy de confianza no están fijados** para Traefik ni para API Gateway. El mecanismo existe, con el valor seguro por defecto (`0`, que ignora `X-Forwarded-For`) | Runbook local · `Task/033` |
+
+---
+
+## Tarea aprobada anterior — `Task/010-Almacenamiento-Compatible-S3`
 
 | Campo | Valor |
 | --- | --- |
@@ -77,7 +137,7 @@
 
 ---
 
-## Tarea aprobada anterior — `Task/009-API-Publica`
+## Tarea aprobada previa — `Task/009-API-Publica`
 
 | Campo | Valor |
 | --- | --- |
@@ -105,7 +165,7 @@
 
 ---
 
-## Tarea aprobada previa — `Task/008-Modelo-de-Datos`
+## Tarea aprobada de la ETAPA 03 — `Task/008-Modelo-de-Datos`
 
 | Campo | Valor |
 | --- | --- |
@@ -441,7 +501,7 @@ El PR `#5` fue fusionado por el usuario y la normalización `main → dev` se co
 | **Corrección principal de workflow** | Backend y frontend seguían ordenando crear ramas Task **desde `dev`**, contradiciendo el invariante de `Task/005.4`. **6 reglas operativas corregidas** |
 | **Correcciones de secuencia** | `Task/025` pasa a depender también de **`Task/024`** · `Task/029` deja de exigir evidencia que solo existe tras `Task/030`/`Task/032` · `Task/021` deja de prometer Terraform inexistente · la topología de dominios deja de depender de `Task/035` |
 | **Propietarios asignados** | `S3Storage` · backup productivo · identidad del VPS hacia AWS · certificado TLS · observabilidad del VPS · migraciones en producción · medios públicos · credenciales CI multi-provider |
-| **Decisiones nuevas** | **D-15** (topología lógica de dominios, `Task/011`) y **D-16** (identidad del VPS hacia AWS, `Task/029`). Ambas **abiertas** |
+| **Decisiones nuevas** | **D-15** (topología lógica de dominios, `Task/011`) y **D-16** (identidad del VPS hacia AWS, `Task/029`). *Observado el 2026-08-16: ambas abiertas.* **D-15 quedó resuelta en `Task/011`** (2026-09-01); **D-16 sigue abierta** |
 | **ADR** | **Ninguno nuevo.** No apareció ninguna decisión arquitectónica independiente: se corrigieron *ownership* y secuencia, no arquitectura |
 | **Arquitectura** | **Sin cambios.** Cloudflare Pages, API Gateway, Lambda, S3, SSM, IAM, CloudWatch, PgBouncer, PostgreSQL en VPS, Terraform, Floci y `ObjectStorage` siguen exactamente igual |
 | **Implementación** | **Ninguna.** 0 código funcional, 0 Terraform, 0 Compose, 0 recursos cloud, 0 VPS, 0 GitHub Actions |
@@ -731,7 +791,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
-| 03 — Dominio y Backend | 5 | **3** | **60 %** |
+| 03 — Dominio y Backend | 5 | **4** | **80 %** |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
@@ -741,18 +801,21 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **10** | **24 %** |
+| **Total** | **41** | **11** | **27 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | 30 |
+| Pendiente | **29** |
 | En progreso | 0 |
-| Lista para validación | **0** |
-| **Aprobada** | **10** |
+| Lista para validación | 0 |
+| **Aprobada** | **11** |
 | Bloqueada | 0 |
 | Descartada | 0 |
+
+> `Lista para validación` **no suma avance**: el porcentaje solo cuenta tareas
+> `Aprobada`, y solo el usuario aprueba.
 
 > `Lista para validación` **no** suma al avance: el recuento de la tabla de
 > arriba solo cuenta tareas `Aprobada`, y quien aprueba es el usuario.
@@ -797,6 +860,19 @@ Distribución por estado:
 | R-17 | Una práctica escrita puede no aplicarse: el ciclo **RED → GREEN** es fácil de saltarse si nadie exige la evidencia, y las pruebas acabarían escribiéndose después del código. | Medio | La evidencia de RED y GREEN es un **criterio de la Definition of Done** (B-2 y B-3), no una recomendación: sin ella la tarea no puede marcarse `Lista para validación`. `Task/020-CI-Backend` podrá reforzarlo automáticamente. Detectado en `Task/005.1`. | Abierto |
 | R-18 | El coste de escribir primero la prueba puede empujar a **matrices superficiales** que aparenten cumplimiento sin cubrir edge cases ni casos negativos. | Bajo | La matriz obligatoria exige explícitamente edge cases, errores y seguridad ([BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md) §6), y la revisión del usuario es el control final. Detectado en `Task/005.1`. | Abierto |
 | R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
+
+### Riesgos introducidos por `Task/011` — autenticación administrativa
+
+> **Abiertos** desde la aprobación de `Task/011`, el 2026-09-01.
+
+| # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
+| --- | --- | --- | --- | --- | --- |
+| R-43 | **El bloqueo de cuenta puede dejar fuera al único administrador.** Cinco fallos consecutivos bloquean la cuenta quince minutos, y durante ese tiempo la API responde **exactamente igual** que ante unas credenciales inválidas —decisión deliberada, porque distinguirlo permitiría averiguar que ese correo existe—. El propietario que se equivoque cinco veces verá «credenciales inválidas» sin saber por qué. | Medio | El bloqueo es **temporal y no se alarga**: un intento durante el bloqueo no desplaza `locked_until`, así que nadie puede mantenerlo indefinidamente. Umbral y duración son configurables. El motivo real queda en la auditoría (`authentication.account_locked`) y en el log, que es donde el operador puede consultarlo. | `Task/018` (endurecimiento) · `Task/022` (validación local *production-like*) | **Abierto** |
+| R-44 | **Las tablas de estado de autenticación crecen de forma monótona.** **Ninguna** tiene purga productiva: no hay procesos residentes, porque el backend debe funcionar igual en Lambda (software-architecture.md §6). (a) **`login_rate_limits`** —**la fuente de crecimiento potencialmente mayor**— escribe una fila por dirección IP observada, así que con tráfico hostil sostenido acumula filas indefinidamente. (b) **`administrator_sessions`** escribe una fila por **inicio de sesión con éxito**, y las caducadas o revocadas **no desaparecen**: `RepositorioSqlDeSesiones` solo crea, busca la vigente y revoca. | Bajo | El volumen es despreciable en un blog personal —una dirección por fila en (a); con un único administrador, la tasa de (b) es pequeña— y ninguna de las dos tablas alimenta un listado. La purga es una sentencia periódica sobre filas caducadas o revocadas; corresponde a operación, no a la aplicación. | `Task/018` o `Task/029` (operación) | **Abierto** |
+| R-45 | **La imagen de despliegue incorpora una dependencia binaria nueva.** `argon2-cffi` no es Python puro: necesita una rueda compilada para el destino Linux/Lambda. Un empaquetado en una plataforma equivocada produciría un artefacto que **no arranca en producción**, y el fallo aparecería en el despliegue, no en el desarrollo. | Medio | Verificado en `Task/011` que **existe rueda `manylinux_2_17_x86_64`** para Python 3.12 —`argon2_cffi_bindings-…-cp36-abi3-manylinux…whl`, 86 KB, `abi3`, por tanto independiente de la versión concreta de CPython—, descargándola explícitamente con `--platform`. **La imagen no se reconstruyó** en esta tarea. | Comprobación del usuario · `Task/024` y `Task/032` al empaquetar | **Abierto** |
+| R-46 | **La confianza en proxies no está fijada para ningún despliegue real.** `BLOG_TRUSTED_PROXY_HOP_COUNT` vale `0` por defecto, lo que **ignora `X-Forwarded-For`** y usa la dirección del par TCP. Detrás de Traefik o de API Gateway esa dirección es la del proxy, así que **todo el tráfico caería en una única partición** del límite de tasa y la auditoría registraría siempre la misma IP. | Medio | El valor por defecto es el **seguro**: creerse la cabecera sin proxy de confianza permitiría falsificar una dirección por intento y anular el límite. El mecanismo existe y está probado en ambos sentidos; lo que falta es **decidir el número de saltos** de cada despliegue. | Runbook del entorno local · `Task/033` (API Gateway) | **Abierto** |
+
+---
 
 ### Riesgo introducido por `Task/005.6` — redacción de secretos en el log
 
@@ -881,7 +957,7 @@ Distribución por estado:
 | `Task/008-Modelo-de-Datos` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/009-API-Publica` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/010-Almacenamiento-Compatible-S3` | 03 | backend | Pendiente |
-| `Task/011-Autenticacion-Administrativa` | 03 | backend | Pendiente |
+| `Task/011-Autenticacion-Administrativa` | 03 | backend, infra | **Aprobada** |
 | `Task/012-API-Administrativa` | 03 | backend | Pendiente |
 | `Task/013-Sistema-de-Diseno` | 04 | frontend | Pendiente |
 | `Task/014-Sitio-Publico` | 04 | frontend | Pendiente |
@@ -1106,8 +1182,19 @@ igualmente **desde `main`**, con `HEAD == main` verificado.
   inalcanzable y describía un comportamiento inexistente. `304` no figura en
   [api-contracts.md](../architecture/api-contracts.md) §8 y el proyecto no hace peticiones
   condicionales: se retiró del conjunto y quedó **prueba de regresión permanente**.
-- **La funcionalidad del blog sigue sin empezar:** no hay modelo de datos, ni endpoints de
-  contenido, ni autenticación. Llegan a partir de `Task/008`.
+- **`Task/011` cierra la autenticación administrativa del backend:** `personal-blog-backend`
+  tiene los tres endpoints del contrato, **Argon2id**, sesión opaca *server-side* con cookie
+  `HttpOnly`, bloqueo de cuenta seguro ante concurrencia, límite de tasa compartido en
+  PostgreSQL y auditoría sin secretos, más la protección reutilizable `AdministradorRequerido`
+  que consumirá `Task/012`. Está **`Aprobada`** desde el 2026-09-01, lo que lleva el avance a
+  **11 de 41 (27 %)** y la ETAPA 03 a **4 de 5 (80 %)**. Resuelve **D-15**, **D-02** y **D-09**.
+  Su alcance **no** incluye CRUD administrativo, panel React, CORS efectivo ni dominio real.
+- **La funcionalidad del blog ya no está sin empezar.** *(Corregido al aprobar `Task/011`:
+  esta nota afirmaba «no hay modelo de datos, ni endpoints de contenido, ni autenticación»,
+  lo que dejó de ser cierto con `Task/008`, `Task/009` y `Task/011`.)* Existen el modelo de
+  datos (`Task/008`), los diez endpoints públicos (`Task/009`), el almacenamiento de objetos
+  (`Task/010`) y la autenticación administrativa (`Task/011`). **Sigue faltando** el CRUD
+  administrativo, que es `Task/012`.
 - **`Task/003` produjo el primer artefacto ejecutable del proyecto:** un
   `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE, **aprobado** y fusionado en
   `main`.

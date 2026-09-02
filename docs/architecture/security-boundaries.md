@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) |
+| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) · §11 añadida por `Task/011` (2026-09-01) |
 
 Identifica los **componentes** del sistema, qué comunicaciones entre ellos están
 permitidas y cuáles están explícitamente prohibidas.
@@ -127,7 +127,7 @@ de **nivel host**, no de nivel aplicación.
 
 | Superficie | Riesgo principal | Control previsto | Tarea |
 | --- | --- | --- | --- |
-| Endpoint de login | Fuerza bruta, enumeración de usuarios | Rate limiting, bloqueo temporal, error genérico, auditoría | `Task/011` |
+| Endpoint de login | Fuerza bruta, enumeración de usuarios | **Implementado en `Task/011`**: límite de tasa por IP en PostgreSQL (10 / 300 s), bloqueo temporal de cuenta (5 fallos / 15 min), error genérico **indistinguible** en los tres casos —correo inexistente, contraseña incorrecta y cuenta bloqueada— y auditoría. Ver §11 | `Task/011`, `Task/018` |
 | Endpoints administrativos | Acceso no autorizado | Autenticación obligatoria verificada en servidor | `Task/011`, `Task/012` |
 | Subida de imágenes | Archivo malicioso, agotamiento de espacio | **Implementado en `Task/010`**: el MIME se valida **decodificando** la imagen —nunca por extensión ni por `Content-Type` declarado—, con límite de bytes **y** de píxeles (guarda contra *decompression bomb*); la clave es un UUID v4 y el nombre recibido **no participa** en ella; bucket privado. `Task/018` endurece | `Task/010`, `Task/018` |
 | Renderizado de Markdown | XSS almacenado | Sanitización obligatoria en render y vista previa | `Task/014`, `Task/015` |
@@ -171,8 +171,8 @@ de **nivel host**, no de nivel aplicación.
 
 | Elemento | Tarea |
 | --- | --- |
-| Mecanismo de autenticación y estrategia CSRF | `Task/011` |
-| Herramienta e implementación de rate limiting | `Task/011`, `Task/018` |
+| ~~Mecanismo de autenticación y estrategia CSRF~~ | **Cerrado en `Task/011`** (2026-09-01): sesión opaca en cookie `HttpOnly`, `SameSite=Lax` **+** validación de `Origin`. Ver §11 |
+| ~~Herramienta e implementación de rate limiting~~ | **Cerrada en `Task/011`**: contador de ventana fija en PostgreSQL, por IP. `Task/018` endurece; `Task/033` añade el *throttling* del borde |
 | Cabeceras de seguridad concretas y sus valores | `Task/018` |
 | ~~Lista de tipos MIME y tamaños permitidos~~ | **Base fijada en `Task/010`** (2026-08-28): `image/jpeg`, `image/png` y `image/webp`; 5 MiB y 40 millones de píxeles. **SVG excluido por seguridad** (XML con capacidad de script). La lista **definitiva** y su endurecimiento siguen siendo de `Task/018`, que restringe, no amplía |
 | Proveedores de video permitidos | `Task/014` |
@@ -398,3 +398,54 @@ Un **agente** que empuja hacia fuera no tiene ninguno de los dos.
 - **La aplicación no cambia.** Emite logs JSON con correlation ID por `stdout`; quién los
   recoge es decisión de infraestructura.
 - **No relaja** ninguna regla existente de este documento; añade las suyas.
+
+---
+
+## 11. Autenticación administrativa — reglas explícitas
+
+> **Añadida por `Task/011`** (2026-09-01). Decisiones **D-02**, **D-09** y **D-15**.
+> Detalle completo: [ficha de `Task/011`](../tasks/TASK-011-administrative-authentication.md).
+
+### 11.1 Topología (D-15)
+
+Sitio público y panel comparten el **dominio raíz**; el API vive en un **subdominio**.
+Es **same-site** y **cross-origin**: la cookie es *first-party* y `SameSite=Lax` viaja
+igualmente. Los **nombres reales** siguen siendo **D-07** (`Task/035`).
+
+### 11.2 Reglas
+
+| # | Regla | Detalle |
+| --- | --- | --- |
+| A-01 | **La contraseña nunca se almacena, se registra ni se devuelve** | Solo `password_hash`, con **Argon2id**. Prueba con `caplog` a nivel `DEBUG` en todas las ramas |
+| A-02 | **La credencial de sesión no se persiste en claro** | La base guarda `sha256(token)`. Un volcado de `administrator_sessions` **no permite suplantar a nadie** |
+| A-03 | **La credencial no viaja en ningún cuerpo JSON** | Solo en la cookie `HttpOnly`. Si estuviera en el cuerpo, JavaScript podría leerla y `HttpOnly` no protegería nada |
+| A-04 | **Cerrar sesión invalida en el servidor** | `revoked_at`. Borrar la cookie del navegador **no cuenta**: una credencial copiada antes seguiría autenticando |
+| A-05 | **Los errores de autenticación no permiten enumerar** | Correo inexistente, contraseña incorrecta y **cuenta bloqueada** comparten estado, código y mensaje. Se ejecuta siempre el trabajo criptográfico, con **verificación señuelo** cuando el correo no existe |
+| A-06 | **El bloqueo es temporal y no se alarga** | Un intento durante el bloqueo no desplaza `locked_until`: si lo hiciera, cualquiera podría dejar al **único** administrador fuera de su panel indefinidamente |
+| A-07 | **El estado defensivo no se pierde con el error** | El caso de uso confirma su transacción también al fallar. Sin eso, el contador volvería a cero en cada intento |
+| A-08 | **El contador de intentos es seguro ante concurrencia** | `SELECT … FOR UPDATE`. El cerrojo lo da el motor, así que funciona con varios *workers* y varias instancias |
+| A-09 | **El límite de tasa vive fuera del proceso** | En PostgreSQL, con una sentencia atómica. Un contador en memoria daría `N × límite` con `N` instancias |
+| A-10 | **`X-Forwarded-For` no se cree por defecto** | Es una cabecera que escribe el cliente. Con `hops = 0` se ignora; con `n > 0` se cuenta **desde la derecha**. Una dirección irreconocible cae en una partición compartida (*fail-closed*) |
+| A-11 | **CSRF en dos capas** | `SameSite=Lax` **más** validación de `Origin` en los métodos que cambian estado. **No** se afirma que `SameSite` baste por sí solo |
+| A-12 | **Sin origen declarado no se escribe** | Con la lista vacía, cualquier petición de navegador que cambie estado se rechaza. No existe un origen por defecto seguro |
+| A-13 | **La auditoría no contiene secretos** | Ni contraseña, ni hash, ni credencial, ni huella. **Tampoco el correo intentado**: sería recolectar datos personales de terceros (O-09) |
+| A-14 | **La auditoría solo se crea** | Las guardas de inmutabilidad de `Task/008` siguen intactas |
+| A-15 | **`Secure` es obligatorio en producción** | El proceso **no arranca** con `BLOG_APP_ENV=production` y la cookie sin `Secure` |
+| A-16 | **Ningún secreto nuevo** | La arquitectura elegida no firma nada: no hay clave de firma que custodiar ni rotar |
+
+### 11.3 Lo que NO se afirma
+
+- **No se promete resistencia criptográfica al análisis temporal.** No se ha medido. Lo
+  que se afirma y se prueba es que **no queda ningún camino que evite el trabajo
+  criptográfico**, que es la diferencia observable grande.
+- **El límite de tasa no protege frente a un atacante distribuido** que rote direcciones.
+  Esa dimensión la cubre el bloqueo de cuenta.
+- **La ventana fija admite hasta el doble del límite** en su frontera.
+
+### 11.4 Qué NO cambia
+
+- **`login` sigue siendo el único endpoint administrativo público** (§2).
+- **La API pública sigue siendo anónima.** No se añade ningún middleware global.
+- **`Task/018` sigue siendo el propietario** del CORS efectivo y de las cabeceras de
+  seguridad; `Task/033`, del *throttling* del borde; `Task/035`, del dominio real.
+- **No relaja** ninguna regla de este documento; añade las suyas.
