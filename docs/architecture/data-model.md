@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/008-Modelo-de-Datos` (2026-08-25) |
-| **Fecha** | 2026-08-25 · **Fecha de aprobación** 2026-08-25 · §8 y §10 completadas por `Task/009-API-Publica` (2026-08-26) |
+| **Fecha** | 2026-08-25 · **Fecha de aprobación** 2026-08-25 · §8 y §10 completadas por `Task/009-API-Publica` (2026-08-26) · §4.12 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) |
 | **Nivel** | **Físico.** Tablas, columnas, tipos, claves, restricciones e índices. |
-| **Migración** | `0002` (`personal-blog-backend/alembic/versions/*_0002_*.py`) |
+| **Migración** | `0002` — modelo del MVP · **`0003`** — sesiones administrativas y límite de acceso (`Task/011`) |
 
 > **Relación con el modelo conceptual.** El nivel conceptual —qué tipos existen, qué
 > significan y qué atributos tienen— vive en
@@ -81,7 +81,10 @@ comportamiento de aplicación:
                                           referencia polimórfica, SIN clave foránea
 ```
 
-**14 tablas:** 9 para los tipos conceptuales, 4 puentes de etiquetado y 1 dependiente
+**16 tablas:** 9 para los tipos conceptuales, 4 puentes de etiquetado, 1 dependiente
+y **2 operativas de autenticación** añadidas por `Task/011` (§4.12)
+
+**14 tablas hasta `Task/010`:** 9 para los tipos conceptuales, 4 puentes y 1 dependiente
 (`profile_social_links`).
 
 ---
@@ -274,11 +277,11 @@ Todo lo de `posts`, más:
 | --- | --- | :---: | --- |
 | `is_singleton` | `BOOLEAN` | no | cerrojo, igual que `profiles` |
 | `email` | `VARCHAR(254)` | no | **`UNIQUE`** |
-| `password_hash` | `VARCHAR(255)` | no | **columna, no credencial**: el algoritmo es de `Task/011` |
+| `password_hash` | `VARCHAR(255)` | no | **Argon2id** desde `Task/011`. Holgura suficiente: el hash real ocupa ~97 caracteres |
 | `display_name` | `VARCHAR(120)` | no | |
-| `last_login_at` | `TIMESTAMPTZ` | sí | lo escribe `Task/011` |
-| `failed_login_attempts` | `INTEGER` | no | `DEFAULT 0`, `CHECK >= 0` |
-| `locked_until` | `TIMESTAMPTZ` | sí | lo escribe `Task/011` |
+| `last_login_at` | `TIMESTAMPTZ` | sí | lo escribe el acceso correcto (`Task/011`) |
+| `failed_login_attempts` | `INTEGER` | no | `DEFAULT 0`, `CHECK >= 0`. **En uso desde `Task/011`**: 5 fallos activan el bloqueo |
+| `locked_until` | `TIMESTAMPTZ` | sí | **En uso desde `Task/011`**: bloqueo de 15 min, nunca permanente |
 
 ### 4.10 `audit_events`
 
@@ -286,7 +289,7 @@ Todo lo de `posts`, más:
 | --- | --- | :---: | --- |
 | `occurred_at` | `TIMESTAMPTZ` | no | `DEFAULT now()`, **indexado** |
 | `actor_id` | `UUID` | sí | → `administrators`, `RESTRICT`, indexado. Nulo: un intento de acceso fallido se audita sin actor conocido |
-| `action` | `VARCHAR(64)` | no | **sin `CHECK`**: el catálogo es de `Task/011`/`Task/012` |
+| `action` | `VARCHAR(64)` | no | **sin `CHECK`**. `Task/011` cierra las cuatro acciones de autenticación (`authentication.login_succeeded`, `…login_failed`, `…logout`, `…account_locked`); el CRUD es de `Task/012` |
 | `entity_type` | `VARCHAR(64)` | no | parte de la referencia polimórfica |
 | `entity_id` | `UUID` | sí | nulo: iniciar sesión no afecta a ningún elemento |
 | `request_id` | `VARCHAR(64)` | sí | correlation ID; **indexado** |
@@ -307,6 +310,58 @@ fecharse.
 
 El índice de la PK empieza por la columna de contenido y no sirve para la consulta
 inversa —"qué contenido lleva esta etiqueta"—, que es el filtro público por etiqueta.
+
+---
+
+### 4.12 Tablas de autenticación — añadidas por `Task/011` (migración `0003`)
+
+#### `administrator_sessions`
+
+| Columna | Tipo | Nulo | Notas |
+| --- | --- | :---: | --- |
+| `administrator_id` | `UUID` | no | → `administrators`, **`CASCADE`** |
+| `token_hash` | `VARCHAR(64)` | no | **`UNIQUE`**. Huella **SHA-256** de la credencial |
+| `expires_at` | `TIMESTAMPTZ` | no | Expiración **absoluta**, exclusiva |
+| `revoked_at` | `TIMESTAMPTZ` | sí | Marca de revocación: con valor, la sesión ya no autoriza |
+| `created_at` | `TIMESTAMPTZ` | no | `DEFAULT now()` |
+
+**La credencial en claro no está aquí, y no hay columna donde ponerla.** Quien lea esta
+tabla **no puede suplantar a nadie**: de la huella no se vuelve a la credencial. Se usa
+SHA-256 y no un KDF lento —al revés que con las contraseñas— porque la credencial tiene
+**256 bits de azar** y no admite ataque por diccionario; un hash lento solo añadiría
+latencia a cada petición administrativa.
+
+**`CASCADE` aquí y `RESTRICT` en la auditoría**, y la asimetría es deliberada: un evento
+de auditoría es **historial** y debe sobrevivir a lo que describe; una sesión es **estado
+vivo**, y una que sobreviviera a su administrador sería una credencial que autoriza en
+nombre de nadie.
+
+**Sin `updated_at`**: lo único que cambia en una sesión es su revocación, y eso ya lo
+fecha `revoked_at`. **Sin índice sobre `administrator_id` ni sobre `expires_at`**:
+ninguna consulta del alcance vigente los recorre —la sesión se resuelve **siempre** por
+la huella—, y un índice sin consulta es coste de escritura a cambio de nada (M-06).
+
+#### `login_rate_limits`
+
+| Columna | Tipo | Nulo | Notas |
+| --- | --- | :---: | --- |
+| `client_key` | `VARCHAR(45)` | no | **Clave primaria.** Dirección IP del cliente, o el literal `unknown` |
+| `window_started_at` | `TIMESTAMPTZ` | no | Inicio de la ventana fija vigente |
+| `attempts` | `INTEGER` | no | `DEFAULT 0`, `CHECK >= 0` |
+
+**La clave primaria *es* la partición**, y eso no es un detalle de estilo: permite
+resolver el contador con un único `INSERT … ON CONFLICT DO UPDATE` **atómico**, en lugar
+de con una lectura seguida de una escritura — que es la forma con la que dos peticiones
+simultáneas pierden actualizaciones, justo cuando el límite tiene algo que hacer.
+
+**No guarda ninguna identidad.** Ni el correo intentado, ni el administrador, ni el
+agente de usuario: quién intentó entrar es asunto de la auditoría. Convertir un contador
+operativo en un almacén de datos personales alimentado por cualquiera desde fuera sería
+recolectar lo que nadie ha pedido (requisito O-09).
+
+**Sin purga automática.** No hay procesos residentes (software-architecture.md §6). Es
+una fila por dirección que haya intentado entrar; su limpieza queda como deuda con
+propietario.
 
 ---
 

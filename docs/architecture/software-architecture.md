@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 |
+| **Fecha** | 2026-07-26 · §3.4 precisada y §3.9 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) |
 
 Define **cómo se organiza el código** de backend y frontend, y cómo se reparten las
 responsabilidades entre los tres repositorios.
@@ -115,13 +115,26 @@ Cada módulo **puede** contener, según corresponda:
 | --- | --- |
 | `database` | Sesión, unidad de trabajo, base de los modelos ORM. |
 | `storage` | Interfaz `ObjectStorage` y sus implementaciones. |
-| `security` | Hash de contraseñas, dependencias de autorización, cabeceras de seguridad. |
+| `security` | Hash de contraseñas, política de `Origin`, resolución de la dirección del cliente y cabeceras de seguridad. **Primitivas transversales**; la dependencia de autorización vive en el módulo `authentication` (precisión de `Task/011`, abajo). |
 | `logging` | Logs JSON y propagación del correlation ID. |
 | `pagination` | Parámetros y envoltura de colección paginada. |
 | `errors` | Jerarquía de errores de dominio y su traducción a HTTP. |
 | `configuration` | Carga y validación de configuración desde variables de entorno. |
 
 `shared` contiene **capacidades técnicas transversales**, nunca reglas de negocio.
+
+> **Precisión de `Task/011` sobre la dependencia de autorización.** Esta tabla asignaba a
+> `shared/security` las *dependencias de autorización*. Resolver una exige consultar
+> **sesiones y administradores**, que son del módulo `authentication`, así que colocarla
+> en `shared` obligaría a que `shared` importara un módulo de negocio — justo lo que la
+> regla de dependencias de §3.2 prohíbe.
+>
+> Queda así: `shared/security` conserva las **primitivas que no conocen ningún módulo**
+> —hash de contraseñas, política de `Origin`, dirección del cliente—, y la dependencia
+> `requiere_administrador` vive en
+> `app/modules/authentication/presentation/`, exportada como **interfaz pública del
+> módulo** para que `Task/012` la reutilice sin conocer sus entrañas. Las **cabeceras de
+> seguridad** siguen siendo de `Task/018`.
 
 ### 3.5 Principios obligatorios
 
@@ -238,7 +251,45 @@ comprueba. La comprobación de uso previa al borrado vive en su caso de uso, no
 en el adaptador: meter conocimiento de claves foráneas dentro de un cliente de
 S3 rompería la separación que esta interfaz existe para mantener.
 
-### 3.8 Configuración
+### 3.8 Autenticación administrativa — cerrada en `Task/011` (2026-09-01)
+
+**Sesión opaca *server-side* con cookie `HttpOnly`** (**D-02**). El mecanismo no se
+eligió por ser el más simple, sino porque es **el único que satisface el contrato
+vigente sin coste añadido**: USER_FLOWS.md B.12 exige que cerrar sesión invalide **en el
+servidor**, y un token autocontenido no puede hacerlo por construcción.
+
+```
+POST /api/v1/admin/auth/login     unico endpoint administrativo publico
+POST /api/v1/admin/auth/logout    revoca la sesion EN EL SERVIDOR
+GET  /api/v1/admin/auth/me        identidad derivada de la sesion
+```
+
+| Pieza | Dónde vive | Qué garantiza |
+| --- | --- | --- |
+| `shared/security/contrasenas.py` | `shared` | **Argon2id** con los parámetros mínimos de OWASP; verificación, rehash y **verificación señuelo** |
+| `shared/security/origen.py` | `shared` | Política de `Origin` para los métodos que cambian estado |
+| `shared/security/peticiones.py` | `shared` | Dirección del cliente con **confianza en proxies explícita** y *fail-closed* |
+| `authentication/domain/` | módulo | Credencial CSPRNG, huella SHA-256, vigencia de la sesión y reglas de bloqueo. **Python plano** |
+| `authentication/application/` | módulo | `IniciarSesion` y `CerrarSesion`. Reciben **puertos**, no adaptadores |
+| `authentication/infrastructure/` | módulo | Repositorios, limitador de tasa y reloj |
+| `authentication/presentation/` | módulo | Los tres endpoints y **`AdministradorRequerido`**, la protección que reutiliza `Task/012` |
+| `audit/domain/acciones.py` | módulo | Catálogo cerrado de las **cuatro** acciones de autenticación |
+
+**Sin middleware de autenticación global.** Proteger `/api/v1` entero convertiría en
+privados los diez endpoints públicos de `Task/009`. La protección se aplica **endpoint a
+endpoint** mediante una dependencia, y hay una prueba que recorre la especificación
+OpenAPI exigiendo que ninguna ruta pública declare seguridad.
+
+**El límite transaccional lo decide `application`.** Un intento fallido **escribe**
+—contador, bloqueo, contador de tasa y auditoría—, así que el caso de uso confirma su
+propia transacción también en el camino de fallo: señalarlo lanzando haría que la
+dependencia de sesión revirtiera todo ese estado defensivo, y el bloqueo no llegaría a
+existir nunca.
+
+**Ningún secreto nuevo.** La arquitectura elegida no firma nada, así que no hay clave de
+firma que custodiar, rotar ni filtrar.
+
+### 3.9 Configuración
 
 Toda la configuración se lee de **variables de entorno**, se valida al arrancar y falla
 rápido si falta algo obligatorio. En local proviene de `.env`; en producción, de SSM
@@ -317,7 +368,7 @@ pages → features → entities → components
 | Base | `/api/v1` (ver [api-contracts.md](api-contracts.md)). |
 | Errores | Modelo común de error con `request_id`. |
 | Colecciones | Siempre paginadas. |
-| Autenticación | Solo en `/api/v1/admin/*`. Mecanismo concreto pendiente (`Task/011`). |
+| Autenticación | Solo en `/api/v1/admin/*`, salvo `login`. **Sesión opaca en cookie `HttpOnly`**, decidida en `Task/011` (§3.8). |
 | CORS | Restringido por ambiente. |
 | Correlación | Cada petición lleva o recibe un `request_id` propagado a los logs. |
 
@@ -355,7 +406,7 @@ lo desconoce.
 ## 7. Qué no define este documento
 
 - Esquema físico de base de datos → `Task/008`.
-- Mecanismo de autenticación → `Task/011`.
+- ~~Mecanismo de autenticación~~ → **cerrado en `Task/011`** (§3.8).
 - Biblioteca de componentes visuales y diseño → `Task/013`.
 - Editor Markdown concreto → `Task/015`.
 - Especificación OpenAPI completa → surge de la implementación (`Task/009`, `Task/012`).
