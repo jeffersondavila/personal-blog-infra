@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-01
+**Última actualización:** 2026-09-03
 
 ---
 
@@ -8,29 +8,81 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 03 — Dominio y Backend — **En curso** (4 de 5). ETAPAS 00, 01 y **02 completadas** |
-| **Tarea actual** | Ninguna en curso. `Task/011-Autenticacion-Administrativa` quedó **Aprobada** el 2026-09-01 |
-| **Estado de la tarea** | **Aprobada.** La ETAPA 03 sigue **En curso**: queda `Task/012` por aprobar |
-| **Última tarea aprobada** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01 por jeffersondavila. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
-| **Tarea aprobada anterior** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Tarea aprobada previa** | `Task/009-API-Publica` — **Aprobada** el 2026-08-27. Los **diez** endpoints públicos del contrato, sobre la implementación **reconstruida test-first** |
+| **Etapa actual** | ETAPA 03 — Dominio y Backend — **Completada** ✔ el 2026-09-03 (5 de 5). ETAPAS 00, 01, 02 y **03 completadas**. La siguiente es la **ETAPA 04 — Experiencia del Usuario** |
+| **Tarea actual** | **Ninguna en curso.** `Task/012` quedó aprobada y cerrada; `Task/013-Sistema-de-Diseno` **no se ha iniciado** |
+| **Estado de la tarea** | `Task/012-API-Administrativa` — **Aprobada** ✔ el 2026-09-03. Cuenta en el avance: **12 de 41** |
+| **Última tarea aprobada** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
+| **Tarea aprobada anterior** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
+| **Tarea aprobada previa** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
 | **Último mantenimiento aprobado** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/012-API-Administrativa` — **Pendiente, no iniciada**. Depende de `Task/009`, `Task/010` y `Task/011`, **las tres Aprobadas**, según el [ROADMAP](ROADMAP.md). Aprobar `Task/011` **no** autoriza iniciarla. Al iniciarse, el estado real de Git se verifica **en vivo** y su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **27 %** — 11 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/013-Sistema-de-Diseno` — **Pendiente, no iniciada**. Depende de `Task/012`, ahora **Aprobada**, según el [ROADMAP](ROADMAP.md). Abre la **ETAPA 04** y se ejecuta en `personal-blog-frontend`. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **29 %** — 12 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
 | **Decisiones abiertas** | **14** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/011` ya cuenta**: fue
-> aprobada por el usuario el 2026-09-01, lo que lleva el avance a **11 de 41** y la
-> ETAPA 03 a **4 de 5**. Lo que fija el recuento es **la aprobación del usuario**, no el
-> trámite posterior de fusionar el pull request ([WORKFLOW §6.1](WORKFLOW.md)).
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/012` ya cuenta**: fue
+> aprobada por el usuario el 2026-09-03, lo que lleva el avance a **12 de 41** y la
+> ETAPA 03 a **5 de 5** —**completada**—. Lo que fija el recuento es **la aprobación del
+> usuario**, no el trámite posterior de fusionar el pull request
+> ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
-## Última tarea aprobada — `Task/011-Autenticacion-Administrativa`
+## Última tarea aprobada — `Task/012-API-Administrativa`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/012-API-Administrativa` |
+| **Etapa** | ETAPA 03 — Dominio y Backend |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41 |
+| **Estado** | **Aprobada** ✔ el 2026-09-03 |
+| **Aprobado por** | jeffersondavila (usuario) |
+| **Expresión de aprobación** | `approved: Task/012-API-Administrativa` |
+| **Fecha de inicio** | 2026-09-01 |
+| **Depende de** | `Task/009`, `Task/010` y `Task/011` — **las tres Aprobadas** |
+| **Repositorios modificados** | `personal-blog-backend` · `personal-blog-infra` (gobierno, arquitectura y contratos) |
+| **Repositorio no modificado** | `personal-blog-frontend` — **sin rama y sin cambios** |
+| **Ramas base** | **`main`** en ambos: `561128b5…` (backend) y `eceb5b35…` (infra). `HEAD == main` verificado inmediatamente tras crearlas |
+| **Alcance entregado** | Las **23 rutas administrativas** del contrato: perfil singleton, CRUD y ciclo de vida de artículos, reviews, vídeos y proyectos, gestión de etiquetas y biblioteca de medios. Validación de publicación por tipo, generación y estabilidad del *slug*, asociaciones M:N transaccionales, transiciones seguras ante concurrencia, **exigencia del texto alternativo donde se usa la imagen** (requisito A-04) y auditoría de **once** acciones nuevas |
+| **Decisiones que cierra** | **D-012-A** a **D-012-AA** en la ficha, y con ellas cinco materias que las fuentes canónicas asignaban por nombre: forma de las transiciones (`api-contracts.md` §4), campos mínimos para publicar (invariante 18), formato y generación del *slug* (invariante 8, deuda 7), **exigencia del texto alternativo donde se usa la imagen** (`data-model.md` §4.1) y catálogo de auditoría del CRUD (`CONTENT_MODEL.md` §3.9) |
+| **Decisiones que NO cierra** | Proveedores de vídeo permitidos (`Task/014`); modificar el `alt_text` de una imagen ya cargada (`Task/014`/`Task/018`); CORS efectivo y cabeceras (`Task/018`); privilegio mínimo sobre `audit_events` (`Task/018`); correlation ID de extremo a extremo (`Task/017`); **D-08** (`Task/030`) |
+| **Test-first** | **12 *slices* totales: `SLICE 0` contract-first —sin código productivo, y por tanto sin RED— más **11** *slices* de implementación y validación, cada uno con su RED registrado y su motivo textual.** Las pruebas que pasaron al escribirse se declaran **regresión, no evidencia RED**, y se enumeran una a una en el reporte §S. **No se usó mutation testing** en ninguna forma |
+| **PostgreSQL real** | `personal_blog_test`, con la guarda *fail-closed* activa. **SQLite no se usó.** `personal_blog` **no se tocó**: no se creó ningún administrador ni perfil en ella |
+| **Esquema físico** | **No se modifica.** No hay migración nueva; `0003` sigue siendo `head` y `0001`–`0003` quedan intactas |
+| **Dependencias** | **Una nueva**: `python-multipart==0.0.32`, que FastAPI exige para leer un archivo subido. Python puro, ~164 KB, sin dependencias transitivas |
+| **Docker** | Imagen del backend **reconstruida y contenedor recreado** durante la integración, justificado: sin la dependencia nueva FastAPI falla al definir la ruta de carga y el contenedor no arrancaría. En el endurecimiento de concurrencia se usó además `docker exec` **de solo lectura** para consultar `SHOW default_transaction_isolation` y `pg_constraint`. **No** se ejecutó `down`, `down -v`, `restart` ni ningún `prune`; PostgreSQL y MinIO no se tocaron |
+| **AWS** | **Ninguno.** Sin cuenta, sin credenciales, sin recursos |
+| **Fuera del alcance** | Panel React y dashboard (`Task/015`), render de Markdown (`Task/014`, `Task/015`), semilla local (`Task/022`), perfil y administrador de producción (`Task/036`) |
+| **Suite completa** | **1527 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0 advertencias** con `-W error`. Cobertura de `app/`: **100 %** |
+| **Efecto en el avance** | Avance global **12 de 41 (29 %)**; ETAPA 03 en **5 de 5 (100 %)** — **etapa completada** |
+| **Ficha** | [TASK-012](../tasks/TASK-012-administrative-api.md) |
+| **Reporte** | [TASK-012-report](../task-reports/TASK-012-report.md) |
+
+### Defectos encontrados durante la integración
+
+| # | Defecto | Cómo se detectó |
+| --- | --- | --- |
+| 1 | Reemplazar los enlaces sociales del perfil violaba `uq_profile_social_links_profile_id_display_order`: la unidad de trabajo emite los `INSERT` antes que los `DELETE` de los huérfanos | Prueba de integración contra PostgreSQL real. Ningún doble lo habría mostrado |
+| 2 | La primera versión de la prueba de orden de la biblioteca de medios era **inestable**: `created_at` es la hora de inicio de la transacción, así que dos cargas de la misma prueba la comparten y decidía el desempate. Fallaba 4 de cada 6 ejecuciones | Se ejecutó seis veces seguidas antes de darla por buena |
+| 3 | **Borrar un medio podía dejar la fila apuntando a objetos inexistentes.** `EliminarMedio` borra la fila con `flush` y después los objetos; si la auditoría fallaba justo después, la transacción devolvía la fila y los objetos ya no volvían — la *«imagen rota en el blog publicado»* que **D-010-P** eligió su orden para evitar. Corregido auditando **antes** de borrar (**D-012-X**), en la frontera de composición y sin tocar `Task/010` | Inyección de fallo en la auditoría, contra PostgreSQL y MinIO reales (revisión correctiva) |
+| 4 | **`alt_text` no se exigía en ninguna parte**, y la deuda se había trasladado a `Task/014`/`Task/018` sin base: las fuentes anteriores a `Task/012` le asignan a **ella** *exigirlo donde se usa*, y `Task/018` nunca fue propietaria. Corregido: se exige al publicar y, en el perfil, al editar | Relectura de las fuentes **desde `main`**, no del árbol de trabajo (revisión correctiva) |
+| 5 | **Exigir el texto no era escribirlo.** Las fuentes dicen que `alt_text` *«se escribe al usar la imagen, no al cargarla»*, y no existía ningún momento posterior a la carga en el que pudiera escribirse: en la práctica obligaba a anticiparlo al subir, justo lo contrario. Corregido: el **primer uso** lo escribe (D-012-Y), sin ampliar `/admin/media` | Segunda revisión externa |
+| 6 | **La escritura en el primer uso tenía una carrera.** Es una lectura-decisión-escritura, y se demostró con dos transacciones reales que **ambas** terminaban en éxito con textos distintos: *last-write-wins*, y con ello **D-012-Z era falsa bajo concurrencia**. Corregido: la decisión se serializa sobre la fila `MediaAsset` con `SELECT … FOR UPDATE` (**D-012-AA**), en los cinco consumidores y sin bloquear ninguna lectura pública | Tercera revisión externa |
+
+### Deuda registrada
+
+| # | Deuda | Propietario |
+| --- | --- | --- |
+| 1 | Sin semilla, `GET`/`PUT /admin/profile` responden `404`: el perfil **no se crea por API** (D-012-U) | `Task/022` (local) · `Task/036` (producción) |
+| 2 | **Corregir a propósito** un `alt_text` ya escrito y compartido. Fijarlo por primera vez **ya funciona** (D-012-Y), y **D-012-Z** —rechazar un texto distinto— está **aceptada para el MVP**: la revisión externa la aceptó. Relajarla sería una mejora deliberada, no una contradicción | **mejora futura**, sin propietario ni plazo |
+| 3 | La edición concurrente no tiene cerrojo optimista (*last-write-wins*) | revisión futura |
+
+---
+
+## Tarea aprobada anterior — `Task/011-Autenticacion-Administrativa`
 
 | Campo | Valor |
 | --- | --- |
@@ -90,7 +142,7 @@ roles**.
 
 ---
 
-## Tarea aprobada anterior — `Task/010-Almacenamiento-Compatible-S3`
+## Tarea aprobada previa — `Task/010-Almacenamiento-Compatible-S3`
 
 | Campo | Valor |
 | --- | --- |
@@ -137,7 +189,7 @@ roles**.
 
 ---
 
-## Tarea aprobada previa — `Task/009-API-Publica`
+## Tarea aprobada de la ETAPA 03 — `Task/009-API-Publica`
 
 | Campo | Valor |
 | --- | --- |
@@ -165,7 +217,7 @@ roles**.
 
 ---
 
-## Tarea aprobada de la ETAPA 03 — `Task/008-Modelo-de-Datos`
+## Primera tarea aprobada de la ETAPA 03 — `Task/008-Modelo-de-Datos`
 
 | Campo | Valor |
 | --- | --- |
@@ -791,7 +843,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 00 — Fundación y Gobierno | 2 | 2 | **100 %** |
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
-| 03 — Dominio y Backend | 5 | **4** | **80 %** |
+| 03 — Dominio y Backend | 5 | **5** | **100 %** — **completada** |
 | 04 — Experiencia del Usuario | 3 | 0 | 0 % |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
@@ -801,7 +853,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **11** | **27 %** |
+| **Total** | **41** | **12** | **29 %** |
 
 Distribución por estado:
 
@@ -809,10 +861,11 @@ Distribución por estado:
 | --- | --- |
 | Pendiente | **29** |
 | En progreso | 0 |
-| Lista para validación | 0 |
-| **Aprobada** | **11** |
+| Lista para validación | **0** |
+| **Aprobada** | **12** |
 | Bloqueada | 0 |
 | Descartada | 0 |
+| **Total** | **41** |
 
 > `Lista para validación` **no suma avance**: el porcentaje solo cuenta tareas
 > `Aprobada`, y solo el usuario aprueba.
@@ -956,9 +1009,9 @@ Distribución por estado:
 | `Task/007-Integracion-Local` | 02 | infra, frontend | **Aprobada** |
 | `Task/008-Modelo-de-Datos` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/009-API-Publica` | 03 | backend, infra (documentación) | **Aprobada** |
-| `Task/010-Almacenamiento-Compatible-S3` | 03 | backend | Pendiente |
+| `Task/010-Almacenamiento-Compatible-S3` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/011-Autenticacion-Administrativa` | 03 | backend, infra | **Aprobada** |
-| `Task/012-API-Administrativa` | 03 | backend | Pendiente |
+| `Task/012-API-Administrativa` | 03 | backend, infra | **Aprobada** (2026-09-03) |
 | `Task/013-Sistema-de-Diseno` | 04 | frontend | Pendiente |
 | `Task/014-Sitio-Publico` | 04 | frontend | Pendiente |
 | `Task/015-Panel-Administrativo` | 04 | frontend | Pendiente |
@@ -997,6 +1050,22 @@ Distribución por estado:
 > `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
 > El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
 > `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
+
+**Observado el 2026-09-03**, al ejecutar el cierre aprobado de `Task/012`:
+
+- Las dos ramas `Task/012-API-Administrativa` —backend e infra— nacieron **desde `main`**,
+  con `HEAD == main` verificado inmediatamente después de crearlas: `561128b5…` (backend) y
+  `eceb5b35…` (infra).
+- Antes del commit de cierre, ninguna de las dos tenía commits propios sobre `main`
+  (`git rev-list --count main..HEAD` = **0**) ni nada en *staging*.
+- `personal-blog-frontend` **no participó**: en `main`, worktree limpio, sin rama Task.
+- El cierre integra cada rama en `dev` con merge `--no-ff`, publica `dev` y la rama Task, y
+  abre el pull request **`Task/012-API-Administrativa → main`**. **Ningún PR usa `dev` como
+  *head*** y **ninguno lo fusiona Claude**.
+- **El estado vivo** —si el PR sigue abierto o ya se fusionó, si la rama remota existe, los
+  SHA concretos— **no se escribe aquí**: se consulta con `git fetch --prune`,
+  `git ls-remote --heads origin "Task/*"` y `gh pr list`
+  ([WORKFLOW §6.1](WORKFLOW.md)).
 
 **Observado el 2026-08-18**, tras el cierre aprobado de `Task/006`:
 

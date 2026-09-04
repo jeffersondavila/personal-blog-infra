@@ -4,7 +4,7 @@
 | --- | --- |
 | **Número** | 04 |
 | **Estado** | Pendiente |
-| **Dependencias** | [ETAPA 03](STAGE-03-domain-and-backend.md) |
+| **Dependencias** | [ETAPA 03](STAGE-03-domain-and-backend.md) — **Completada** ✔ (2026-09-03) |
 | **Tareas** | 3 |
 | **Aprobadas** | 0 |
 | **Avance** | 0 % |

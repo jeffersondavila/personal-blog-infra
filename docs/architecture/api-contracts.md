@@ -3,13 +3,14 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) · §13 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) |
+| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) · §13 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) · §14 añadida por `Task/012-API-Administrativa` (2026-09-01) |
 | **Nivel** | **Convenciones conceptuales.** No es una especificación OpenAPI. |
 
 > **Límite explícito.** Este documento fija **convenciones** que toda la API debe
 > respetar. **No** es una especificación OpenAPI completa ni código a implementar. Los
-> esquemas concretos de petición y respuesta se definen al implementar `Task/009`
-> (API pública) y `Task/012` (API administrativa).
+> esquemas concretos de petición y respuesta se definieron al implementar `Task/009`
+> (API pública) y `Task/012` (API administrativa), y viven en sus fichas y en la
+> especificación OpenAPI que genera el backend, que es su fuente ejecutable.
 >
 > **Estado tras `Task/009`.** Las decisiones que este documento dejaba abiertas para la
 > API **pública** —valores de `page_size`, política de parámetros desconocidos, lista
@@ -101,8 +102,10 @@ Todos requieren autenticación **excepto `login`**.
 Los recursos administrativos operan sobre **identificadores internos**, no sobre slugs:
 el slug puede cambiar mientras se edita un borrador.
 
-La forma exacta de las transiciones de estado (publicar, despublicar, archivar) —
-subrecurso dedicado o actualización del campo `status` — se decide en `Task/012`.
+La forma exacta de las transiciones de estado (publicar, despublicar, archivar) quedó
+**cerrada en `Task/012`**: son **subrecursos dedicados** (`POST /{id}/publish`,
+`/unpublish`, `/archive`), no una actualización del campo `status`. Detalle y motivo en
+§14.
 
 ---
 
@@ -275,18 +278,18 @@ un único identificador.
 | Elemento | Tarea | Estado |
 | --- | --- | --- |
 | Esquemas concretos de respuesta **pública** | `Task/009` | **Cerrado** (2026-08-26) — ficha `TASK-009` §7.4 y OpenAPI generada |
-| Esquemas de petición y respuesta **administrativas** | `Task/012` | Abierto |
+| Esquemas de petición y respuesta **administrativas** | `Task/012` | **Cerrado** (2026-09-01) — §14 y ficha `TASK-012` §7.0 |
 | Valores por defecto y máximos de `page_size` | `Task/009` | **Cerrado** (2026-08-26) — 12 y 50 |
 | Política de parámetros desconocidos | `Task/009` | **Cerrado** (2026-08-26) — se rechazan |
 | Lista cerrada de `sort` y su dirección | `Task/009` | **Cerrado** (2026-08-26) |
 | Forma de los resultados de `/search` | `Task/009` | **Cerrado** (2026-08-26) — colección plana con `type` |
-| Forma exacta de las transiciones de estado | `Task/012` | Abierto |
+| Forma exacta de las transiciones de estado | `Task/012` | **Cerrado** (2026-09-01) — **subrecursos dedicados**; ver §14.2 |
 | Cabecera concreta del correlation ID | `Task/017` | Abierto |
 | Mecanismo de autenticación y forma de la sesión | `Task/011` | **Cerrado** (2026-09-01) — sesión opaca en cookie `HttpOnly`; ver §13 |
 | Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | **Base cerrada** (2026-08-28) — 5 MiB y JPEG/PNG/WebP; `Task/018` endurece |
 | Configuración concreta de rate limiting | `Task/011`, `Task/018` | **Cerrada para `login`** (2026-09-01) — 10 intentos / 300 s por IP, con `Retry-After`; `Task/018` endurece |
 | **Representación pública de una referencia a `MediaAsset`** | `Task/010` | **Cerrado** (2026-08-28) — `alt_text`, `width`, `height` y **`access_url`**; ver §12 |
-| Especificación OpenAPI generada | `Task/009` y `Task/012` | Parcial — la parte pública ya se genera |
+| Especificación OpenAPI generada | `Task/009` y `Task/012` | **Completa para el MVP** (2026-09-01) — 11 rutas públicas, 3 de acceso y 23 administrativas |
 
 
 ---
@@ -430,8 +433,269 @@ de `Task/018`, y el dominio real, de `Task/035` (**D-07**).
 
 | Pregunta | Propietario |
 | --- | --- |
-| Esquemas de petición y respuesta del **CRUD administrativo** | `Task/012` |
+| ~~Esquemas de petición y respuesta del **CRUD administrativo**~~ | **Cerrado** por `Task/012` (§14) |
 | Cabecera concreta del correlation ID y su propagación completa | `Task/017` |
 | CORS efectivo y cabeceras de seguridad | `Task/018` |
 | *Throttling* del borde | `Task/033` |
 | Dominio real, DNS y certificados (**D-07**) | `Task/035` |
+
+---
+
+## 14. API administrativa — cerrada en `Task/012` (2026-09-01)
+
+### 14.1 Las 23 rutas
+
+Todas bajo `/api/v1/admin`, todas con **sesión obligatoria**. `login` sigue siendo el
+único endpoint administrativo público (§13, security-boundaries.md §11.4).
+
+| Recurso | Operaciones |
+| --- | --- |
+| `/admin/profile` | `GET`, `PUT` |
+| `/admin/posts` | `GET`, `POST` · `/{post_id}`: `GET`, `PUT` · `/{post_id}/{publish,unpublish,archive}`: `POST` |
+| `/admin/book-reviews` | Igual que artículos, **incluido `unpublish`** |
+| `/admin/videos` | Igual, **sin `unpublish`** |
+| `/admin/projects` | Igual, **sin `unpublish`** |
+| `/admin/tags` | `GET`, `POST` · `/{tag_id}`: `PUT`, `DELETE` |
+| `/admin/media` | `GET`, `POST` (multipart) · `/{media_id}`: `DELETE` (audita **antes** de borrar; ver §14.10) |
+
+**No existe `DELETE` de contenido.** MVP_SCOPE.md §3.1 enumera las capacidades sobre un
+contenido —crear, editar, previsualizar, publicar, despublicar, archivar— y **eliminar no
+está**; la invariante 3 de CONTENT_MODEL.md dice además que lo archivado *se conserva*.
+El retiro es `archive`, y no se introduce ningún `deleted_at`. `DELETE` existe solo donde
+una fuente lo concede: etiquetas (B.11) y medios (B.5).
+
+### 14.2 Transiciones de estado — **subrecursos dedicados**
+
+Cierra la pregunta que §4 y USER_FLOWS.md B.7 dejaban abierta.
+
+```
+POST /api/v1/admin/{recurso}/{id}/publish
+POST /api/v1/admin/{recurso}/{id}/unpublish     solo artículos y reviews
+POST /api/v1/admin/{recurso}/{id}/archive
+```
+
+Por qué, y no un campo `status` dentro del `PUT`:
+
+1. Una transición tiene **precondición**, validación propia —los campos mínimos—, error
+   propio (`409`) y acción de auditoría propia. Nada de eso encaja en un campo.
+2. Mezclarlas con la edición contradiría B.3: *«editar un contenido `published`… no lo
+   despublica implícitamente»*.
+3. `Video` y `Project` **no** admiten `published → draft`. `Task/008` expresó esa
+   diferencia por **ausencia del método** en el dominio; con subrecursos la ruta
+   sencillamente no existe, y OpenAPI tampoco la anuncia.
+
+**Consecuencia:** `status` y `published_at` **no son escribibles**. Todo contenido nace
+`draft` (B.2), y enviar cualquiera de los dos produce `422`.
+
+**Repetir una transición es `409`, no una operación idempotente.** No lo decide esta
+tarea: el dominio aprobado en `Task/008` ya lanza al publicar algo no-`draft` o archivar
+algo ya archivado.
+
+### 14.3 Identidad, referencias y campos
+
+| Aspecto | Contrato |
+| --- | --- |
+| Identidad en la ruta | **`id` (UUID)**, nunca el slug (§4) |
+| Etiquetas | `tag_ids: [UUID]`; reemplazo **completo** en cada escritura |
+| Portada / miniatura | `cover_id` (`thumbnail_id` en vídeo), `UUID` o `null` |
+| Referencia desconocida | `422` `unknown_reference`, con `details.campo` y `details.valores` |
+| Verbo de edición | **`PUT`**: representación completa. Omitir un campo opcional lo deja nulo |
+| Enlaces sociales del perfil | Array ordenado de `{label, url}`; el orden de presentación es **el índice**, no un campo |
+
+### 14.4 Slug
+
+- **Opcional** en la petición: si falta, se **deriva del título** (B.2).
+- Formato: minúsculas ASCII, dígitos y guiones simples, sin guion inicial ni final,
+  1–160 caracteres. Un slug explícito mal formado se **rechaza** (`422 invalid_slug`); no
+  se corrige en silencio.
+- Un título del que no sale ningún carácter útil produce `422`: no se inventa la
+  identidad pública de un contenido.
+- **Mutable mientras `published_at` sea nulo**; después, `409 slug_is_immutable`. Es la
+  lectura conjunta de §4 —*«puede cambiar mientras se edita un borrador»*— y de la
+  invariante 4 de CONTENT_MODEL.md. La frontera es **haber sido público alguna vez**: un
+  borrador despublicado ya tuvo URL indexada.
+- Duplicado: `409 slug_already_exists`. La unicidad es **por tipo**.
+- El slug de una **etiqueta** es inmutable desde su creación: aparece en las URL de filtro
+  que un visitante puede compartir (A.9).
+
+### 14.5 Validación de publicación
+
+`409 cannot_publish_incomplete_draft`, con los campos que faltan en `details.campos` —
+todos a la vez, no de uno en uno. Es `409` y no `422` porque la petición está bien formada
+y vacía: lo que impide la operación es el **estado del recurso**.
+
+| Tipo | Exige al publicar |
+| --- | --- |
+| Los cuatro | `title`, `slug`, y una descripción SEO **resoluble** (`seo_description` **o** `summary`) |
+| `Post`, `BookReview`, `Project` | `content` no vacío |
+| `BookReview` | además `book_title`, `book_author` y `rating` |
+| `Video` | `video_url` y `provider` — su equivalente del *contenido*; **no** tiene Markdown |
+
+*«SEO si corresponde»* (B.7) **no** significa exigir los campos SEO: contradiría los
+*fallbacks* de CONTENT_MODEL.md §2. Significa que la descripción SEO se pueda resolver.
+
+**Texto alternativo de la imagen.** Si el contenido referencia una portada o una
+miniatura, esa imagen debe tener `alt_text` no vacío: `409` con `cover_alt_text` o
+`thumbnail_alt_text` en `details.campos`. Es el requisito **A-04**, exigido **donde se
+usa** la imagen, que `data-model.md` §4.1 y la decisión **D-010-N** de `Task/010`
+asignaron a `Task/012` y `Task/014`. Un `alt` en blanco cuenta como ausente.
+
+**El perfil lo exige al editar, no al publicar**, y no es una excepción: no tiene
+`status` —*«siempre existe y siempre está visible»*, CONTENT_MODEL.md §2—, así que
+asignar la foto **es** usarla. `PUT /admin/profile` con una imagen sin `alt_text`
+responde `422 media_without_alt_text`.
+
+**Cargar sin `alt_text` sigue permitido** (decisión **D-010-N**, de `Task/010`): se
+escribe **al usar** la imagen, no al cargarla — y eso es literal, no una figura: ver
+§14.11.
+
+`published_at` se fija en la **primera** publicación, se conserva al despublicar y al
+archivar, y **no se reescribe** al volver a publicar (data-model.md §7).
+
+### 14.6 Listados administrativos
+
+| Aspecto | Contrato |
+| --- | --- |
+| Envoltura | **La misma** de §5: `items`, `page`, `page_size`, `total`, `pages` |
+| Estados | Los **tres**. Es lo contrario del listado público |
+| Filtro | **Solo `status`**, el único que §6 declara administrativo |
+| Orden | `updated_at` descendente, desempate por `slug` ascendente |
+| Etiquetas | El listado administrativo incluye las que **no** tienen contenido publicado |
+| Medios | `created_at` descendente, desempate por `object_key` |
+
+El orden público no sirve aquí: un borrador **no tiene** `published_at`. MVP_SCOPE.md §3.3
+describe el panel por *«últimos elementos modificados»*.
+
+### 14.7 Respuestas administrativas
+
+Añaden sobre el contrato público, y cada adición se justifica: `id` —el panel opera sobre
+identificadores internos—, `status`, `created_at` y `updated_at` —MVP_SCOPE.md §3.1 pide
+las fechas de gestión—, y un `MedioAdministrativo` con `id`, `original_filename`,
+`mime_type`, `size_bytes` y `checksum`, que es lo que permite reconocer y elegir una
+imagen de la biblioteca.
+
+**No exponen** `object_key`, `is_singleton`, ninguna clave foránea (`cover_id`,
+`photo_id`, `thumbnail_id`), `password_hash`, `token_hash` ni el estado defensivo de la
+cuenta. La invariante 9 de CONTENT_MODEL.md no hace excepción para el administrador.
+
+### 14.8 Errores administrativos
+
+| Código | `code` | Cuándo |
+| --- | --- | --- |
+| `401` | `unauthenticated` | Sin sesión válida |
+| `403` | `forbidden` | `Origin` no permitido en un método que cambia estado (§13.5) |
+| `404` | `resource_not_found` | El recurso de la ruta no existe |
+| `409` | `slug_already_exists` | Otro contenido del mismo tipo usa ese slug |
+| `409` | `slug_is_immutable` | El contenido ya se publicó alguna vez |
+| `409` | `cannot_publish_incomplete_draft` | Faltan campos mínimos; van en `details.campos` |
+| `409` | `invalid_{post,book_review,video,project}_state` | Transición no válida para el estado actual |
+| `409` | `media_in_use` | La imagen está referenciada; los usos van en `details.usos` |
+| `409` | `alt_text_conflict` | Se propuso un texto alternativo distinto del que la imagen ya tiene. **No se sobrescribe** |
+| `413` / `415` | `payload_too_large` / `unsupported_image_type` | Límites de carga (`Task/010`) |
+| `422` | `media_without_alt_text` | El perfil referencia una imagen sin texto alternativo, y siempre es visible |
+| `422` | `invalid_slug`, `invalid_image`, `invalid_rating`, `unknown_reference`, `validation_error` | Contenido de la petición |
+
+### 14.9 Qué sigue abierto
+
+| Pregunta | Propietario |
+| --- | --- |
+| Lista cerrada de proveedores de vídeo permitidos | `Task/014` |
+| **Corregir a propósito** un `alt_text` ya escrito y compartido por varios contenidos. Fijarlo por primera vez **ya funciona** (§14.11) y **D-012-Z** —rechazar la sobrescritura— está **aceptada para el MVP**: relajarla sería una mejora deliberada, no una corrección | **mejora futura**, sin propietario |
+| Cabecera concreta del correlation ID | `Task/017` |
+| CORS efectivo y cabeceras de seguridad | `Task/018` |
+| URL estable de medios y CDN (**D-08**) | `Task/030` |
+
+### 14.10 Auditoría y almacenamiento: por qué el borrado de un medio audita primero
+
+Es la única operación administrativa que toca **dos sistemas sin transacción común**, y
+el orden deja de ser indiferente.
+
+`EliminarMedio` (`Task/010`) borra la fila y **después** los objetos, y eligió ese orden a
+propósito (**D-010-P**): de los dos estados a medias posibles, *objetos sin fila* es basura
+recuperable y *fila sin objetos* es **una imagen rota en el blog publicado**.
+
+Pero ese borrado de fila queda en un `flush`, no confirmado. Con el orden *borrar y después
+auditar*, un fallo del historial haría que la transacción de la petición **devolviera la
+fila** mientras los objetos de MinIO ya no estarían: exactamente el estado que aquel orden
+existía para evitar, reintroducido por la composición.
+
+Por eso `Task/012` **audita antes de borrar**. Un fallo del historial ocurre entonces antes
+de tocar nada; y si lo que falla es el borrado, la transacción se lleva también el evento,
+de modo que no queda rastro de algo que no ocurrió. Es el mismo orden, y por la misma
+razón, que usa el borrado de una etiqueta.
+
+**La carga no necesita este cuidado.** Allí la fila es el último paso, así que un fallo
+posterior de la auditoría revierte la fila y deja, como mucho, objetos huérfanos — el coste
+que **D-010-P** acepta por escrito. Está comprobado con inyección de fallo contra
+PostgreSQL y MinIO reales.
+
+### 14.11 `alt_text` se escribe **al usar** la imagen
+
+`data-model.md` §4.1 y la decisión **D-010-N** de `Task/010` dicen que `alt_text` *«se
+escribe al **usar** la imagen, no al cargarla»*, y que *«exigirlo donde se usa es de
+`Task/012` y `Task/014`»*. **Comprobar que existe no es escribirlo**: si el único momento
+posible de escritura fuera la carga, esa frase sería falsa y el administrador tendría que
+anticipar el texto sin saber todavía en qué contenido va a aparecer la imagen — que es
+justo lo que `Task/010` rechazó.
+
+**No se añade ninguna operación a `/admin/media`.** El recurso conserva sus tres
+operaciones. Lo que gana un campo es el cuerpo de quien **usa** la imagen:
+
+| Recurso | Campo | Acompaña a |
+| --- | --- | --- |
+| `/admin/posts`, `/admin/book-reviews`, `/admin/projects` | `cover_alt_text` | `cover_id` |
+| `/admin/videos` | `thumbnail_alt_text` | `thumbnail_id` |
+| `/admin/profile` | `photo_alt_text` | `photo_id` |
+
+### Reglas
+
+| Estado de la imagen | Cuerpo | Resultado |
+| --- | --- | --- |
+| sin `alt_text` | con texto | **Se escribe** en `media_assets`, en la misma transacción que la referencia |
+| sin `alt_text` | sin texto | Un borrador **sí** puede quedarse así; publicarlo, no (§14.5) |
+| con `alt_text` | sin texto | **Se reutiliza** el que hay: el texto es del asset |
+| con `alt_text` | el **mismo** | Aceptado, sin escritura. Un panel que devuelve lo que mostró no está pidiendo un cambio |
+| con `alt_text` | uno **distinto** | **`409 alt_text_conflict`.** No se sobrescribe |
+| sin imagen | con texto | `422`: un texto alternativo sin imagen no describe nada, y aceptarlo en silencio haría creer al panel que guardó algo |
+
+**Por qué un texto distinto se rechaza (decisión D-012-Z, aceptada para el MVP).**
+`alt_text` vive en `media_assets`, no en la asociación: cambiarlo cambiaría también el
+texto que ya usa otro contenido. Ninguna fuente vigente define qué debe ocurrir; lo que sí
+existe es el riesgo, descrito por **D-010-J** para el caso análogo de la deduplicación —
+*«reutilizar en silencio haría que borrar un medio afectara a contenidos que nunca lo
+subieron»*—.
+
+Rechazar **también es una decisión de comportamiento**, no la ausencia de una. Ante la
+ausencia de una semántica canónica previa, `Task/012` adopta para el MVP la política
+conservadora de rechazar una sobrescritura diferente. La revisión externa acepta
+**D-012-Z**. La política es explícita, reversible y evita modificar en silencio un
+`MediaAsset` que puede estar siendo utilizado por otro contenido.
+
+### La decisión es atómica (D-012-AA)
+
+*Set-on-first-use* es una **lectura-decisión-escritura**, así que sin exclusión la regla
+anterior sería falsa en cuanto dos administradores usaran la misma imagen a la vez: ambos
+leerían `NULL`, ambos se creerían el primero y el segundo `UPDATE` pisaría al primero. Se
+comprobó con dos transacciones reales contra PostgreSQL: las dos terminaban en éxito.
+
+La decisión *set-on-first-use* **se serializa sobre la fila `MediaAsset`**: la lectura que
+decide es un `SELECT … FOR UPDATE`, por lo que dos primeros usos concurrentes **no pueden
+fijar textos distintos**. En `READ COMMITTED` el segundo espera al cerrojo y relee la
+última versión confirmada, así que ve el texto del ganador y esta misma tabla decide:
+`409` si es distinto, aceptación sin escritura si es el mismo. El cerrojo lo da el motor,
+de modo que la garantía sobrevive a varios *workers* y varias instancias.
+
+**Ninguna lectura pública se bloquea.** El `GET` público, el listado de la biblioteca, la
+`access_url` y la validación de publicación siguen leyendo sin cerrojo: la exclusión
+existe solo en la operación que decide y escribe `alt_text`.
+
+### El recorrido completo, que es lo que estas reglas hacen posible
+
+1. Cargar la imagen **sin** `alt_text` — permitido, D-010-N.
+2. Asociarla a un borrador **más tarde** — es lo que describe B.5.
+3. Dar el texto **en ese uso** — se persiste en `media_assets`.
+4. Publicar — prospera.
+
+La validación de publicación de §14.5 sigue siendo la **última guarda**, no el único
+mecanismo: ya no puede ocurrir que un contenido sea impublicable porque nunca hubo forma
+de escribir el dato.

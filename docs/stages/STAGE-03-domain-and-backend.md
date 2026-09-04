@@ -3,12 +3,15 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 03 |
-| **Estado** | **En curso** |
-| **Dependencias** | [ETAPA 02](STAGE-02-application-foundations.md) |
+| **Estado** | **Completada** ✔ |
+| **Dependencias** | [ETAPA 02](STAGE-02-application-foundations.md) — **Completada** ✔ (2026-08-23) |
 | **Tareas** | 5 |
-| **Aprobadas** | **4** |
-| **Avance** | **80 %** — 4 de 5 |
+| **Aprobadas** | **5** |
+| **Avance** | **100 %** — 5 de 5 |
 | **Hito que completa** | Backend funcionalmente completo para el MVP. |
+| **Inicio** | 2026-08-25 |
+| **Fin** | 2026-09-03 |
+| **Última actualización** | 2026-09-03 (`Task/012-API-Administrativa` — **Aprobada**; etapa completada) |
 
 ---
 
@@ -199,20 +202,46 @@ permisos y credenciales inválidas se prueban antes de dar por protegido un endp
 >
 > **Avance de la etapa: 4 de 5.**
 
-### `Task/012-API-Administrativa` — *Pendiente*
+### `Task/012-API-Administrativa` — **Aprobada** (2026-09-03)
 
 CRUD de contenido, borradores, publicación, archivado y gestión de imágenes.
 
-**Depende de:** `Task/009`, `Task/010`, `Task/011`.
+**Depende de:** `Task/009` (**Aprobada**), `Task/010` (**Aprobada**), `Task/011`
+(**Aprobada**).
 **Test-first:** las reglas de borrador, publicación y archivado se especifican como matriz de
 transiciones antes de escribir el caso de uso.
+
+> **Aprobada** el 2026-09-03 por jeffersondavila. Con ella la etapa llega a **5 de 5** y
+> queda **completada**. Estuvo *Lista para validación* desde el 2026-09-01.
+>
+> Entrega las **23 rutas administrativas** del contrato —perfil, artículos, reviews,
+> vídeos, proyectos, etiquetas y medios—, todas protegidas por la dependencia reutilizable
+> de `Task/011`. Cierra las materias que las fuentes canónicas le habían asignado por
+> nombre: la **forma de las transiciones** (subrecursos dedicados), los **campos mínimos
+> para publicar** (invariante 18), el **formato y la generación del slug** (invariante 8 y
+> deuda 7), la **exposición HTTP** de la comprobación de uso de medios (invariante 12), la
+> **escritura y exigencia del texto alternativo donde se usa la imagen** (§4.1, requisito A-04) y el
+> **catálogo de acciones auditadas** del CRUD.
+>
+> **No modifica el esquema físico**: no hay migración nueva y `0003` sigue siendo `head`.
+>
+> **Reutiliza, no duplica**: `AdministradorRequerido`, la validación de `Origin`, el
+> `request_id` y la política de IP de `Task/011`; `SubirImagen` y `EliminarMedio` de
+> `Task/010`; la paginación y la envoltura de error de `Task/009`.
+>
+> Suite completa: **1527 pasan, 1 omitida** (`time.tzset` en Windows, preexistente), **0
+> advertencias** con `-W error`. Cobertura de `app/`: **100 %**.
+> Ficha: [TASK-012](../tasks/TASK-012-administrative-api.md) ·
+> Reporte: [TASK-012-report](../task-reports/TASK-012-report.md).
+>
+> **Avance de la etapa: 5 de 5.**
 
 **Repositorio de toda la etapa:** `personal-blog-backend`.
 
 ## Criterios de salida de la etapa
 
-- [ ] El esquema cubre todas las secciones del blog previstas en el MVP.
-- [ ] Las migraciones aplican sobre base vacía y revierten.
+- [x] El esquema cubre todas las secciones del blog previstas en el MVP. *(`Task/008`, **Aprobada** el 2026-08-25: 16 tablas. `Task/012` no necesitó ninguna columna nueva, que es la comprobación más fuerte de que el esquema estaba completo.)*
+- [x] Las migraciones aplican sobre base vacía y revierten. *(`upgrade head` → `downgrade base` → `upgrade head` y `compare_metadata`, en la suite de integración. `0003` es `head`.)*
 - [x] La API pública nunca expone borradores ni contenido archivado. *(`Task/009`, **Aprobada** el 2026-08-27.)*
 - [x] Las imágenes se suben y recuperan desde MinIO a través de `ObjectStorage`. *(`Task/010`, **Aprobada** el 2026-08-28.)* *(Entregado en `Task/010`; se marca al aprobarse.)*
 - [x] **`MinIOStorage` y `S3Storage` existen y superan las mismas pruebas de contrato.** *(`Task/010`: 15 casos × 2 implementaciones.)* *(Entregado en `Task/010`; se marca al aprobarse.)*
@@ -221,10 +250,11 @@ transiciones antes de escribir el caso de uso.
       las columnas reales; el Markdown del contenido es de `Task/012`.)*
 - [x] **D-15 resuelta**: topología lógica de dominios y política de cookies/CORS decidida. *(`Task/011`, **Aprobada** el 2026-09-01.)*
 - [x] Ningún endpoint administrativo es accesible sin autenticación. *(`Task/011`, **Aprobada** el 2026-09-01: `login` es el único público, y una prueba recorre la especificación OpenAPI entera.)*
-- [ ] Las acciones administrativas quedan registradas en auditoría.
-- [ ] Cobertura de pruebas en la lógica de dominio y en los endpoints críticos.
-- [ ] **Cada tarea de la etapa demuestra su ciclo test-first**: matriz de casos, evidencia de
-      RED, evidencia de GREEN y refactor ejecutado o declarado innecesario.
+- [x] Las acciones administrativas quedan registradas en auditoría. *(`Task/012`, **Aprobada** el 2026-09-03: once acciones nuevas, con productor real y sin secretos.)*
+- [x] Cobertura de pruebas en la lógica de dominio y en los endpoints críticos. *(Cobertura de `app/` al **100 %**, con **1527** pruebas al cerrar la etapa.)*
+- [x] **Cada tarea de la etapa demuestra su ciclo test-first**: matriz de casos, evidencia de
+      RED, evidencia de GREEN y refactor ejecutado o declarado innecesario. *(Las cinco
+      tareas conservan matriz, RED y GREEN en su reporte.)*
 
 ## Fuera del alcance de la etapa
 

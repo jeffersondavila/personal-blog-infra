@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §3.4 precisada y §3.9 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) |
+| **Fecha** | 2026-07-26 · §3.4 precisada y §3.9 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) · §3.10 añadida por `Task/012-API-Administrativa` (2026-09-01) |
 
 Define **cómo se organiza el código** de backend y frontend, y cómo se reparten las
 responsabilidades entre los tres repositorios.
@@ -66,6 +66,8 @@ app/
     ├── logging/
     ├── pagination/
     ├── errors/
+    ├── slug.py                 formato y generacion del slug (`Task/012`)
+    ├── reloj.py                fuente del instante actual (`Task/012`)
     └── configuration/
 ```
 
@@ -120,6 +122,8 @@ Cada módulo **puede** contener, según corresponda:
 | `pagination` | Parámetros y envoltura de colección paginada. |
 | `errors` | Jerarquía de errores de dominio y su traducción a HTTP. |
 | `configuration` | Carga y validación de configuración desde variables de entorno. |
+| `slug` | Formato y generación del *slug* (`Task/012`). Transformación de texto: no conoce ninguna tabla. |
+| `reloj` | Fuente del instante actual (`Task/012`). Mudada desde `authentication` al pasar de un consumidor a cinco. |
 
 `shared` contiene **capacidades técnicas transversales**, nunca reglas de negocio.
 
@@ -407,8 +411,82 @@ lo desconoce.
 
 - Esquema físico de base de datos → `Task/008`.
 - ~~Mecanismo de autenticación~~ → **cerrado en `Task/011`** (§3.8).
+- ~~Forma de la API administrativa~~ → **cerrada en `Task/012`** (§3.10).
 - Biblioteca de componentes visuales y diseño → `Task/013`.
 - Editor Markdown concreto → `Task/015`.
 - Especificación OpenAPI completa → surge de la implementación (`Task/009`, `Task/012`).
 
 Registro completo: [open-decisions.md](open-decisions.md).
+
+---
+
+## 3.10 API administrativa — cerrada en `Task/012` (2026-09-01)
+
+Es la última pieza del backend funcional del MVP. Contrato completo en
+[`api-contracts.md`](api-contracts.md) §14.
+
+### Dónde vive cada cosa
+
+| Pieza | Dónde | Qué garantiza |
+| --- | --- | --- |
+| `app/api/admin.py` | `api` | La **postura común**: `requiere_administrador`, validación de `Origin`, `no-store` y rechazo de parámetros desconocidos. Un router creado con `router_administrativo()` la trae por el hecho de crearse así |
+| `<modulo>/domain/publicacion.py` | módulo | Campos mínimos para publicar, uno por tipo. Python plano |
+| `<modulo>/application/administracion.py` | módulo | Casos de uso con nombre propio: crear, actualizar, publicar, despublicar, archivar |
+| `<modulo>/infrastructure/repositorio.py` | módulo | Persistencia, incluido el `SELECT … FOR UPDATE` de las transiciones |
+| `<modulo>/presentation/{router,schemas}_admin.py` | módulo | Endpoints delgados y DTO de entrada y salida |
+| `app/shared/slug.py` | `shared` | Formato y derivación del slug |
+| `app/shared/reloj.py` | `shared` | Fuente del instante actual, mudada aquí desde `authentication` |
+| `audit/domain/puertos.py` | módulo `audit` | `RegistroDeAuditoria` y `ContextoDeAuditoria`, mudados aquí desde `authentication` |
+
+**`app/api/admin.py` no sabe nada del modelo de negocio.** Si lo supiera sería el
+constructor genérico que **D-009-R** rechazó por concentrar en `app/api` conocimiento que
+ADR-004 reparte entre módulos. Sabe de seguridad y de transporte, y nada más.
+
+### Por qué los cuatro tipos publicables repiten su código
+
+Es la misma postura de **D-P** en `data-model.md` —*«una tabla por tipo, columnas
+repetidas»*— y de **D-009-R** en las consultas públicas. Una base común entre tipos
+tendría que conocer la validación de publicación, las tablas puente y el ciclo de vida de
+los cuatro, que son **reglas de negocio**, y alojarlas fuera de su módulo es justo lo que
+ADR-004 prohíbe. Los cuatro tipos, además, **no son el mismo**: `Video` no tiene Markdown
+ni se despublica, `BookReview` tiene libro y valoración, `Project` tiene un segundo estado.
+
+Lo que **sí** se comparte es lo genuinamente agnóstico: el slug, el reloj, la paginación,
+la envoltura de error y la postura de seguridad.
+
+### Dos mudanzas de `Task/011` a su dueño
+
+Las dos son **refactores sin cambio de comportamiento**: `authentication` reexporta ambas
+piezas, así que ninguna de sus firmas cambia.
+
+| Pieza | Estaba en | Está en | Por qué |
+| --- | --- | --- | --- |
+| `RegistroDeAuditoria`, `ContextoDeAuditoria` | `authentication/domain/puertos.py` | `audit/domain/puertos.py` | Pasó de un consumidor a ocho. Que los cuatro tipos de contenido, el perfil, las etiquetas y los medios importaran el módulo de **autenticación** para escribir en el historial sería una dependencia que no describe ninguna relación real |
+| `Reloj`, `RelojDelSistema` | `authentication/{domain,infrastructure}` | `app/shared/reloj.py` | Un reloj no conoce ninguna regla de negocio. Lo necesitan además los cuatro tipos, para fijar `published_at` — que **D-H** describe como *«un momento de negocio que fija el caso de uso con su reloj inyectado»* |
+
+### Límite transaccional
+
+**La petición.** `get_session` confirma al salir y revierte ante cualquier excepción, así
+que crear un contenido, asociar sus etiquetas, resolver su portada y auditar es atómico
+sin ningún mecanismo nuevo.
+
+`Task/011` confirma **dentro** del caso de uso, pero por una razón que aquí no aplica: su
+camino de fallo debe persistir estado defensivo. Aquí un fallo debe revertirlo todo.
+
+### Concurrencia
+
+Las transiciones cargan la fila con `SELECT … FOR UPDATE`: publicar es una
+lectura-modificación-escritura sobre el estado, y sin cerrojo dos peticiones simultáneas
+prosperan las dos. Es el mismo mecanismo que `Task/011` usó para el contador de intentos
+fallidos, no uno nuevo.
+
+**La edición no lleva cerrojo optimista**, y es deliberado: exigiría una columna de
+versión —cambio de esquema— para un MVP con **un** administrador. Queda registrado como
+deuda.
+
+### Dependencia nueva
+
+**`python-multipart==0.0.32`**, la única de la tarea. La exige FastAPI para leer un
+archivo subido: sin ella no se puede declarar `UploadFile`. Es Python puro —rueda
+`py3-none-any`—, ocupa ~164 KB y no arrastra dependencias transitivas, así que su impacto
+en el artefacto de Lambda es despreciable (P-07).
