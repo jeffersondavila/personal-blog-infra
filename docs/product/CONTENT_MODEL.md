@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §3.3 y §6 actualizadas por `Task/008`, **aprobada** el 2026-08-25 |
+| **Fecha** | 2026-07-26 · §3.3 y §6 actualizadas por `Task/008`, **aprobada** el 2026-08-25 · §3.3 y §3.9 completadas por `Task/012-API-Administrativa` (2026-09-01) |
 | **Nivel** | **Conceptual.** No es un diseño de base de datos. |
 
 > **Límite explícito de esta tarea.** Aquí se describen tipos, responsabilidades y
@@ -148,7 +148,7 @@ públicamente si `status = published`.
 > **Entero de 1 a 5, ambos inclusive.** Es la escala que el lector reconoce sin leyenda y
 > la que el listado público muestra (USER_FLOWS.md A.4). Puede estar **ausente** mientras
 > la review sea un borrador; exigirla para **publicar** es una validación de publicación y
-> pertenece a `Task/012`. Justificación completa en
+> **`Task/012` la implementó** (2026-09-01), junto con `book_title` y `book_author`. Justificación completa en
 > [`data-model.md`](../architecture/data-model.md) §3, decisión D-D.
 
 ### 3.4 `Video`
@@ -260,8 +260,16 @@ Registro **inmutable** de acciones administrativas relevantes.
 | `ip_address` | Origen de la petición, si se decide conservar. |
 
 **Reglas:** solo se crea y se lee — **nunca se edita ni se elimina** desde la aplicación.
-No registra contraseñas, tokens ni secretos. Qué acciones exactas se auditan se cierra en
-`Task/011` y `Task/012`.
+No registra contraseñas, tokens ni secretos.
+
+> **Catálogo cerrado.** `Task/011` (2026-09-01) cerró las **cuatro** acciones de
+> autenticación y `Task/012` (2026-09-01) las **once** del CRUD administrativo:
+> `content.created`, `content.updated`, `content.published`, `content.unpublished`,
+> `content.archived`, `profile.updated`, `tag.created`, `tag.updated`, `tag.deleted`,
+> `media.uploaded` y `media.deleted`. El **tipo** del elemento lo dice `entity_type`, no el
+> nombre de la acción: repetirlo daría dos fuentes para el mismo hecho. Las **lecturas no
+> se auditan** — USER_FLOWS.md audita *«todo flujo administrativo que **modifica**
+> datos»*—. Detalle en [`api-contracts.md`](../architecture/api-contracts.md) §14.
 
 ---
 
