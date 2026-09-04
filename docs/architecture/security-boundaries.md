@@ -128,7 +128,7 @@ de **nivel host**, no de nivel aplicación.
 | Superficie | Riesgo principal | Control previsto | Tarea |
 | --- | --- | --- | --- |
 | Endpoint de login | Fuerza bruta, enumeración de usuarios | **Implementado en `Task/011`**: límite de tasa por IP en PostgreSQL (10 / 300 s), bloqueo temporal de cuenta (5 fallos / 15 min), error genérico **indistinguible** en los tres casos —correo inexistente, contraseña incorrecta y cuenta bloqueada— y auditoría. Ver §11 | `Task/011`, `Task/018` |
-| Endpoints administrativos | Acceso no autorizado | Autenticación obligatoria verificada en servidor | `Task/011`, `Task/012` |
+| Endpoints administrativos | Acceso no autorizado | Autenticación obligatoria verificada en servidor | `Task/011` ✔, `Task/012` ✔ (2026-09-01, §12) |
 | Subida de imágenes | Archivo malicioso, agotamiento de espacio | **Implementado en `Task/010`**: el MIME se valida **decodificando** la imagen —nunca por extensión ni por `Content-Type` declarado—, con límite de bytes **y** de píxeles (guarda contra *decompression bomb*); la clave es un UUID v4 y el nombre recibido **no participa** en ella; bucket privado. `Task/018` endurece | `Task/010`, `Task/018` |
 | Renderizado de Markdown | XSS almacenado | Sanitización obligatoria en render y vista previa | `Task/014`, `Task/015` |
 | Embeds de video | Contenido de terceros no controlado | Lista cerrada de proveedores permitidos | `Task/014` |
@@ -448,4 +448,62 @@ igualmente. Los **nombres reales** siguen siendo **D-07** (`Task/035`).
 - **La API pública sigue siendo anónima.** No se añade ningún middleware global.
 - **`Task/018` sigue siendo el propietario** del CORS efectivo y de las cabeceras de
   seguridad; `Task/033`, del *throttling* del borde; `Task/035`, del dominio real.
+- **No relaja** ninguna regla de este documento; añade las suyas.
+
+---
+
+## 12. API administrativa — reglas explícitas
+
+> **Añadida por `Task/012`** (2026-09-01). Contrato completo:
+> [`api-contracts.md`](api-contracts.md) §14.
+
+### 12.1 Reglas
+
+| # | Regla | Detalle |
+| --- | --- | --- |
+| B-01 | **Todo endpoint bajo `/api/v1/admin` exige sesión, salvo `login`** | La protección es la de `Task/011` reutilizada, no una nueva. Una prueba recorre la especificación OpenAPI **entera** y falla si una sola operación se queda sin ella |
+| B-02 | **La comprobación es transversal, no endpoint a endpoint** | Probar un endpoint no detecta el router que todavía no existe. Se verificó dejando un endpoint sin proteger: la prueba se pone roja |
+| B-03 | **La API pública sigue siendo anónima** | La comprobación es simétrica: ninguna ruta fuera de `/admin` declara seguridad, y ninguna admite más método que `GET` |
+| B-04 | **La defensa CSRF de `Task/011` cubre también el CRUD** | Validación de `Origin` en todos los métodos que cambian estado, aplicada por el propio router |
+| B-05 | **Ninguna respuesta administrativa expone estado interno** | Ni `object_key`, ni `is_singleton`, ni claves foráneas, ni `password_hash`, ni `token_hash`, ni el contador de fallos. La invariante 9 de CONTENT_MODEL.md no hace excepción para el administrador |
+| B-06 | **El rechazo por medio en uso no filtra nombres internos** | Dice el tipo, el `slug` y el título del contenido que lo usa. No la tabla, ni la columna, ni la clave del objeto (requisito S-07) |
+| B-07 | **La auditoría no guarda contenido** | Metadatos mínimos: el `slug`, los dos estados de una transición o el nombre original de un archivo. Nunca Markdown, contraseñas, credenciales ni claves de objeto |
+| B-08 | **La auditoría sigue siendo solo-creación** | No existe ninguna ruta `/admin/audit`, en ninguna forma. Las guardas de inmutabilidad de `Task/008` quedan intactas |
+| B-09 | **El identificador de petición y la política de IP son los de `Task/011`** | No hay un segundo mecanismo de correlación ni una segunda política de confianza en proxies |
+| B-10 | **El estado de publicación no es escribible** | Vive en subrecursos con su propia precondición y validación. No existe un `PUT` que publique de rebote |
+| B-11 | **Las transiciones son seguras ante concurrencia** | `SELECT … FOR UPDATE`. Comprobado con dos conexiones reales: una publica, la otra recibe `409`, y queda **un** evento |
+| B-12 | **El contenido no se elimina** | No hay `DELETE` de contenido en ninguna ruta; el retiro es `archive`, que conserva |
+| B-13 | **Las respuestas administrativas no se cachean** | `Cache-Control: no-store` en todo el prefijo, por la misma razón que en `Task/011` |
+| B-14 | **El borrado de un medio se audita *antes* de borrar** | Es la única operación que toca dos sistemas sin transacción común. Con el orden contrario, un fallo del historial devolvería la fila y dejaría los objetos borrados: la *«imagen rota en el blog publicado»* que **D-010-P** prohíbe. Comprobado con inyección de fallo contra PostgreSQL y MinIO reales |
+| B-15 | **Ninguna imagen sin texto alternativo llega a ser visible** | Requisito A-04, exigido **donde se usa**: al publicar en los cuatro tipos, y al editar en el perfil, que siempre está visible. Cargar sin él sigue permitido (**D-010-N**) |
+| B-16 | **El texto alternativo se puede escribir en el primer uso, y no se sobrescribe** | Quien usa la imagen puede fijar su texto si aún no lo tiene (**D-012-Y**), en la misma transacción. Proponer uno **distinto** del que ya tiene se rechaza con `409`: es metadato del asset y cambiarlo afectaría a los contenidos que lo comparten (**D-012-Z**, aceptada para el MVP) |
+| B-17 | **Dos primeros usos simultáneos no pueden fijar textos distintos** | La decisión se **serializa sobre la fila `MediaAsset`** con `SELECT … FOR UPDATE` (**D-012-AA**), así que B-16 sigue siendo cierta bajo concurrencia y con varias instancias. Ninguna lectura pública se bloquea: la exclusión existe solo donde se decide y escribe `alt_text` |
+
+### 12.2 Lo que NO se afirma
+
+- **No hay control de acceso por roles.** Hay **un** administrador en el MVP, y quien
+  tiene sesión puede hacer todo lo administrativo. RBAC está fuera del alcance.
+- **La edición concurrente no está protegida.** Dos ediciones simultáneas del mismo
+  contenido siguen un *last-write-wins*. Es deliberado —un cerrojo optimista exigiría una
+  columna de versión— y está registrado como deuda.
+- **No se valida el destino de `video_url`, `repository_url` ni `demo_url`.** Se acepta
+  cualquier cadena dentro del ancho de su columna. La lista de proveedores permitidos es
+  de `Task/014`, y el endurecimiento general, de `Task/018`.
+- **No se afirma que el `alt_text` sea *bueno*.** Se exige que exista y no esté en blanco;
+  que describa la imagen no es comprobable por una máquina.
+- **No se afirma que un texto alternativo pueda corregirse.** Fijarlo por primera vez sí
+  funciona; cambiarlo por otro distinto se rechaza **a propósito** (D-012-Z, aceptada para el
+  MVP). Poder corregirlo deliberadamente es una mejora futura, no un agujero.
+- **No se afirma que la exclusión cubra nada más que `alt_text`.** El cerrojo de B-17 protege
+  esa decisión concreta; el resto de la concurrencia administrativa sigue apoyándose en
+  D-012-P y en las restricciones de la base de datos.
+- **La carga de un medio puede dejar objetos huérfanos** si la auditoría falla justo
+  después. Es el coste que **D-010-P** acepta por escrito —basura recuperable frente a una
+  imagen rota— y está comprobado que no produce nunca una fila sin objeto.
+
+### 12.3 Qué NO cambia
+
+- **`login` sigue siendo el único endpoint administrativo público** (§2, §11.4).
+- **`Task/018` sigue siendo el propietario** del CORS efectivo, de las cabeceras de
+  seguridad y del privilegio mínimo sobre `audit_events` (invariante 16b).
 - **No relaja** ninguna regla de este documento; añade las suyas.

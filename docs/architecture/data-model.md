@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/008-Modelo-de-Datos` (2026-08-25) |
-| **Fecha** | 2026-08-25 · **Fecha de aprobación** 2026-08-25 · §8 y §10 completadas por `Task/009-API-Publica` (2026-08-26) · §4.12 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) |
+| **Fecha** | 2026-08-25 · **Fecha de aprobación** 2026-08-25 · §8 y §10 completadas por `Task/009-API-Publica` (2026-08-26) · §4.12 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) · invariantes 8, 12, 17 y 18 y deuda 7 cerradas por `Task/012-API-Administrativa` (2026-09-01) |
 | **Nivel** | **Físico.** Tablas, columnas, tipos, claves, restricciones e índices. |
 | **Migración** | `0002` — modelo del MVP · **`0003`** — sesiones administrativas y límite de acceso (`Task/011`) |
 
@@ -138,7 +138,7 @@ Metadatos y **clave del objeto**, nunca el binario y nunca una URL prefirmada.
 | `mime_type` | `VARCHAR(127)` | no | validación de tipo **hecha en `Task/010`**: se decodifica la imagen y manda su formato real, nunca la extensión ni el `Content-Type` declarado. Permitidos: `image/jpeg`, `image/png`, `image/webp` |
 | `size_bytes` | `BIGINT` | no | `CHECK > 0` |
 | `width`, `height` | `INTEGER` | sí | `CHECK NULL OR > 0` |
-| `alt_text` | `VARCHAR(255)` | sí | accesibilidad (A-04). **`Task/010` decidió no exigirlo al subir** (D-010-N): se escribe al **usar** la imagen, no al cargarla, y el flujo B.4 no lo pide. Exigirlo donde se usa es de `Task/012` y `Task/014` |
+| `alt_text` | `VARCHAR(255)` | sí | accesibilidad (A-04). **`Task/010` decidió no exigirlo al subir** (D-010-N): se escribe al **usar** la imagen, no al cargarla, y el flujo B.4 no lo pide. Exigirlo donde se usa es de `Task/012` y `Task/014`. **`Task/012` (2026-09-01) cumplió su mitad, y de las dos formas que exige la frase**: (1) **se escribe al usar** — los cuerpos administrativos aceptan `cover_alt_text`, `thumbnail_alt_text` y `photo_alt_text`, y el **primer uso** lo persiste aquí, en la misma transacción que la referencia (D-012-Y); (2) **se exige donde se usa** — publicar con una imagen sin texto se rechaza con `409`, y el perfil, que siempre está visible, con `422 media_without_alt_text`. Cargar sin él sigue permitido (D-010-N, intacta). **No se sobrescribe** un texto distinto del que la imagen ya tiene (D-012-Z) |
 | `checksum` | `VARCHAR(64)` | sí | SHA-256 hex; **indexado** para detectar duplicados. **`Task/010` lo calcula** sobre los bytes almacenados, pero **no deduplica** (D-010-J): reutilizar un medio en silencio haría que borrarlo afectara a contenidos que nunca lo subieron. Presentar el duplicado al administrador es de `Task/012` |
 | `created_at` | `TIMESTAMPTZ` | no | sin `updated_at`: CONTENT_MODEL.md solo declara la fecha de carga |
 
@@ -376,7 +376,7 @@ La distinción importa y se registra sin adornos.
 | El correo del administrador es único | **PostgreSQL** | `UNIQUE (email)` |
 | **Exactamente un** `Profile` y un `Administrator` en **producción** | **`Task/036-Publicar-Primer-Contenido`** | enumera explícitamente "migraciones, **administrador**, **perfil**, artículo, review, video, imágenes" |
 | Datos **semilla** en el entorno local | **`Task/022-Validacion-Local-Production-Like`** | incluye la "carga de datos semilla" |
-| El perfil no se crea ni se elimina por API | **`Task/012`** | solo expone lectura y edición |
+| El perfil no se crea ni se elimina por API | **`Task/012`** ✔ | solo expone lectura y edición: `GET` y `PUT`, y ningún `POST` ni `DELETE` (2026-09-01) |
 
 **Por qué el esquema no puede prometer "exactamente uno".** Una base recién migrada está
 vacía, y garantizarlo exigiría sembrar una fila. Esa fila contendría el nombre real, el
@@ -409,18 +409,18 @@ distinto, y eso se declara.
 | 5 | `archived` es terminal en el MVP | **sí** | — | `Task/012`+ | Restaurar no es obligatorio en el MVP; no se implementa por anticipado |
 | 6 | `rating` entre 1 y 5 | **sí** | **sí** | — | Dominio: rechazo inmediato y sin base de datos. Base: última línea frente a cargas manuales |
 | 7 | `slug` único por tipo | — | **sí** | — | Es unicidad, exactamente lo que un índice único garantiza |
-| 8 | Formato y generación del `slug` | — | — | **`Task/012`** | El slug se propone desde el título al crear el borrador (B.2) |
+| 8 | Formato y generación del `slug` | — | — | ~~`Task/012`~~ **hecho** | El slug se propone desde el título al crear el borrador (B.2). **`Task/012` (2026-09-01)**: `app/shared/slug.py` deriva, valida y resuelve; minúsculas ASCII, dígitos y guiones simples, 1–160. **Mutable solo mientras `published_at` sea nulo** (decisión D-012-F); después, `409 slug_is_immutable` |
 | 9 | `status` dentro del contrato cerrado | **sí** | **sí** | — | El tipo lo impone en Python; el `CHECK`, en la base |
 | 10 | Asociación a etiqueta sin duplicados | — | **sí** | — | Clave primaria compuesta |
 | 11 | Eliminar `Tag` desasocia, no borra contenido | — | **sí** | — | `ON DELETE CASCADE` sobre la tabla puente |
-| 12 | Un `MediaAsset` en uso no se elimina | — | **sí** | ~~`Task/010`~~ **hecho** | Base: `RESTRICT`, infranqueable. **`Task/010` (2026-08-28)**: el caso de uso `EliminarMedio` consulta los cinco orígenes de referencia y rechaza con `MedioEnUsoError`, que enumera **dónde** se usa (tipo, `slug` y título) en `details.usos` (B.5). `Task/012` lo expondrá por HTTP |
+| 12 | Un `MediaAsset` en uso no se elimina | — | **sí** | ~~`Task/010`~~ **hecho** | Base: `RESTRICT`, infranqueable. **`Task/010` (2026-08-28)**: el caso de uso `EliminarMedio` consulta los cinco orígenes de referencia y rechaza con `MedioEnUsoError`, que enumera **dónde** se usa (tipo, `slug` y título) en `details.usos` (B.5). **`Task/012` (2026-09-01)** lo expone en `DELETE /api/v1/admin/media/{id}` como `409 media_in_use`, **sin reimplementar nada** |
 | 13 | La base guarda claves de objeto, no binarios ni URL prefirmadas | — | **sí** | ~~`Task/010`~~ **hecho** | El esquema no tiene columna binaria ni de URL. **`Task/010` (2026-08-28)**: la generación al servir está implementada y fijada por prueba, incluida la que comprueba sobre las columnas reales que la URL emitida **no** se persiste |
 | 14 | Como máximo un `Profile` / `Administrator` | — | **sí** | — | Cerrojo único |
 | 15 | Exactamente uno en operación | — | — | *bootstrap* | Ver §5 |
 | 16 | La **ruta normal del ORM** no modifica ni elimina un `AuditEvent` | — | — | **persistencia** (`Task/008`) | Guarda en el *mapper*, con el perímetro fijado por prueba (§6.2) |
 | 16b | **Ninguna** ruta puede modificarlo ni eliminarlo | — | — | **`Task/018`** | Solo se consigue retirando `UPDATE`/`DELETE` al rol de base de datos (S-01) |
-| 17 | La auditoría no guarda secretos | — | — | **`Task/011`**, **`Task/012`** | Es una decisión sobre **qué se escribe**; el esquema no puede saberlo |
-| 18 | Campos mínimos para publicar | — | — | **`Task/012`** | Es validación de publicación (B.7) |
+| 17 | La auditoría no guarda secretos | — | — | ~~`Task/011`, `Task/012`~~ **hecho** | Es una decisión sobre **qué se escribe**; el esquema no puede saberlo. **`Task/012`**: metadatos mínimos (decisión D-012-O) — el `slug`, los dos estados de una transición o el nombre original de un archivo. Nunca Markdown, contraseñas, credenciales ni claves de objeto |
+| 18 | Campos mínimos para publicar | — | — | ~~`Task/012`~~ **hecho** | Es validación de publicación (B.7). **`Task/012` (2026-09-01)**: un módulo de dominio por tipo —`<modulo>/domain/publicacion.py`— y `409 cannot_publish_incomplete_draft` con los campos que faltan en `details.campos`. Tabla completa en [`api-contracts.md`](api-contracts.md) §14.5 |
 | 19 | Contenido no publicado nunca sale al público | — | — | **`Task/009`** ✔ | Es una regla de consulta, no de esquema. **Implementada el 2026-08-26**: la condición vive dentro de cada consulta de lectura, no en el router, de modo que ningún camino puede saltársela. Cubierta por caso negativo en los cuatro tipos, en listados, detalles, filtro por etiqueta, catálogo de etiquetas y búsqueda |
 | 20 | Toda fecha en UTC | — | **sí** | — | `TIMESTAMP WITH TIME ZONE` en todas las columnas de fecha |
 
@@ -584,9 +584,10 @@ en el frontend (ADR-005, decisiones 2 a 4) y son de `Task/014` y `Task/015`.
 | 2 | La referencia polimórfica de auditoría no tiene integridad referencial (§6.1) | — (aceptado) |
 | 3 | `technologies` no tiene integridad sobre su contenido ni consulta relacional (D-G) | **Revisado en `Task/009`: se mantiene.** La API pública lo transporta como lista de cadenas y **nadie consulta por tecnología**; el filtro público es por `Tag`, y funciona. Normalizarlo sigue siendo una migración sencilla el día que aparezca «filtrar por tecnología» |
 | 4 | La retención de `AuditEvent` sigue sin decidirse | `Task/011`, operación |
-| 5 | El perfil y el administrador reales no existen todavía | `Task/036` (producción) · `Task/022` (semilla local) |
+| 5 | El perfil y el administrador reales no existen todavía. **`Task/012` no los crea**: `PUT /admin/profile` sobre una base sin perfil responde `404` y no deja fila (decisión D-012-U). Sin semilla, el panel de `Task/015` recibirá ese `404` | `Task/036` (producción) · `Task/022` (semilla local) |
 | 6 | La lista de proveedores de vídeo permitidos está abierta | `Task/014` |
-| 7 | El formato y la generación del *slug* no están implementados | `Task/012` |
+| 6b | **Corregir a propósito** un `alt_text` ya escrito. Fijarlo por primera vez funciona desde `Task/012` (D-012-Y), y **D-012-Z** —rechazar un texto distinto, porque el `alt_text` es del asset y lo comparten los contenidos que lo usan— está **aceptada para el MVP**. Relajarla sería una mejora deliberada | **mejora futura**, sin propietario |
+| 7 | ~~El formato y la generación del *slug* no están implementados~~ | **Resuelto por `Task/012`** (2026-09-01): `app/shared/slug.py`, con su regla de estabilidad (D-012-F) |
 | 8 | SQLAlchemy no detecta mutaciones **en sitio** de un `JSONB`: hay que asignar un valor nuevo | — (documentado en el modelo) |
 | 9 | La búsqueda es `ILIKE` sin índice: correcta al volumen actual, revisable con su disparador (§8.1) | revisión futura |
 | 10 | ~~Las referencias públicas a `MediaAsset` viajan **sin campo de acceso**~~ | **Resuelto por `Task/010`** (2026-08-28): se añadió `access_url`, un enlace **temporal** generado al servir. `object_key` sigue sin ser un campo del contrato; viaja **dentro** del enlace firmado, que es la ruta del recurso que se firma y no puede omitirse. Precisión completa en [`api-contracts.md`](api-contracts.md) §12 |

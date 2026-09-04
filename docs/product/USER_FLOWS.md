@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 |
+| **Fecha** | 2026-07-26 · B.1 y B.7 completados por `Task/011` y `Task/012` (2026-09-01) |
 
 Describe **qué puede hacer cada tipo de usuario** y en qué orden. Es la fuente que
 justifica los endpoints de [api-contracts.md](../architecture/api-contracts.md) y las
@@ -146,7 +146,7 @@ Todos requieren **autenticación**, salvo el propio inicio de sesión. Todos gen
 7. El evento se registra en auditoría (éxito y fallo).
 
 **Datos:** `POST /api/v1/admin/auth/login`, `GET /api/v1/admin/auth/me`.
-**Pendiente:** el mecanismo concreto (cookie de sesión o token) se decide en `Task/011`.
+**Cerrado en `Task/011`** (2026-09-01): sesión opaca *server-side* en cookie `HttpOnly`.
 
 ## B.2 Crear borrador
 
@@ -223,8 +223,10 @@ Ver [ADR-005](../adr/ADR-005-markdown-content.md) y
 4. El contenido aparece de inmediato en el sitio público.
 5. La publicación queda en auditoría.
 
-**Datos:** `POST /api/v1/admin/posts/{id}/publish` o actualización de `status`; la forma
-exacta se cierra en `Task/012`.
+**Datos:** `POST /api/v1/admin/posts/{id}/publish`. **Cerrado en `Task/012`**
+(2026-09-01): las transiciones son **subrecursos dedicados**, no una actualización del
+campo `status`, que ni siquiera es escribible. Motivo en
+[`api-contracts.md`](../architecture/api-contracts.md) §14.2.
 
 ## B.8 Despublicar
 
