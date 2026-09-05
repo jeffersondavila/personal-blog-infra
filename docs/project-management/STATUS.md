@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-04
+**Última actualización:** 2026-09-05
 
 ---
 
@@ -8,28 +8,115 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — En curso** (**1 de 3** aprobadas). ETAPAS 00, 01, 02 y 03 **completadas** |
-| **Tarea actual** | **Ninguna en curso.** `Task/013` quedó aprobada y cerrada; `Task/014-Sitio-Publico` **no se ha iniciado** |
-| **Estado de la tarea** | `Task/013-Sistema-de-Diseno` — **Aprobada** ✔ el 2026-09-04. Cuenta en el avance: **13 de 41** |
-| **Última tarea aprobada** | `Task/013-Sistema-de-Diseno` — **Aprobada** el 2026-09-04 por jeffersondavila. **50 tokens** semánticos, fundación global con estrategia única de foco, cinco primitivas compartidas —`Container`, `Stack`, `Button`, `Card`, `Badge`—, contraste **verificado por prueba** sobre los valores reales, señal no cromática por forma y **cero dependencias nuevas**. Asume **A-05**, **A-06** y **A-07**, e inicia **A-01**. Resuelve **D-03**. **Abre la ETAPA 04** |
-| **Tarea aprobada anterior** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
-| **Tarea aprobada previa** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
-| **Tarea aprobada de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
+| **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — En curso** (**2 de 3** aprobadas). ETAPAS 00, 01, 02 y 03 **completadas** |
+| **Tarea actual** | **Ninguna en curso.** `Task/014` quedó aprobada y cerrada; `Task/015-Panel-Administrativo` **no se ha iniciado** |
+| **Estado de la tarea** | `Task/014-Sitio-Publico` — **Aprobada** ✔ el 2026-09-05. Cuenta en el avance: **14 de 41** |
+| **Última tarea aprobada** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
+| **Tarea aprobada anterior** | `Task/013-Sistema-de-Diseno` — **Aprobada** el 2026-09-04 por jeffersondavila. **50 tokens** semánticos, fundación global con estrategia única de foco, cinco primitivas compartidas —`Container`, `Stack`, `Button`, `Card`, `Badge`—, contraste **verificado por prueba** sobre los valores reales, señal no cromática por forma y **cero dependencias nuevas**. Asume **A-05**, **A-06** y **A-07**, e inicia **A-01**. Resuelve **D-03**. **Abre la ETAPA 04** |
+| **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
+| **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
+| **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
 | **Último mantenimiento aprobado** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/014-Sitio-Publico` — **Pendiente, no iniciada**. Depende de `Task/013`, ahora **Aprobada**, según el [ROADMAP](ROADMAP.md). Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **32 %** — 13 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/015-Panel-Administrativo` — **Pendiente, no iniciada**. Depende de `Task/013` (**Aprobada**) según el [ROADMAP](ROADMAP.md). Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño y reutiliza el pipeline de Markdown de `Task/014`. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **34 %** — 14 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
 | **Decisiones abiertas** | **13** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/013` ya cuenta**: fue
-> aprobada por el usuario el 2026-09-04, lo que lleva el avance a **13 de 41** y abre la
-> ETAPA 04 con **1 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/014` ya cuenta**: fue
+> aprobada por el usuario el 2026-09-05, lo que lleva el avance a **14 de 41** y deja la
+> ETAPA 04 en **2 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no
 > el trámite posterior de fusionar el pull request
 > ([WORKFLOW §6.1](WORKFLOW.md)).
+
+---
+
+## Última tarea aprobada — `Task/014-Sitio-Publico`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/014-Sitio-Publico` |
+| **Etapa** | ETAPA 04 — Experiencia del Usuario |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las 41: **14 de 41** |
+| **Estado** | **Aprobada** ✔ el 2026-09-05 por jeffersondavila (definición el 2026-09-04, implementación el 2026-09-05) |
+| **Repositorios** | `personal-blog-frontend` (funcional) · `personal-blog-infra` (gobierno documental). `personal-blog-backend` **sin rama y sin cambios** |
+| **Rama** | `Task/014-Sitio-Publico`, nacida de `main` con `HEAD == main` verificado: `af242845…` (frontend) · `fec55bb8…` (infra) |
+| **Dependencia** | `Task/013-Sistema-de-Diseno` — **Aprobada** ✔ |
+| **Ficha** | [TASK-014](../tasks/TASK-014-public-site.md) |
+| **Reporte** | [TASK-014-report.md](../task-reports/TASK-014-report.md) |
+
+### Qué construye
+
+Las doce rutas del sitio público —Inicio, Quién soy, Artículos y su detalle, Reviews y su
+detalle, Videos, Proyectos y su detalle, Contacto, búsqueda y 404— sobre las cinco primitivas
+de `Task/013` y los **diez** recursos públicos de `Task/009`/`Task/010`, con estados de carga,
+vacío y error, paginación y filtro por etiqueta en la URL, imágenes por `access_url` con
+`alt_text`, Markdown **sanitizado** (ADR-005) y enlaces externos seguros (S-12). Asume
+**A-02** y **A-04**, continúa **A-01** y **cierra la lista de proveedores de video**
+(api-contracts §14.9, data-model deuda 6). **No** hace SEO (`Task/016`), formularios ni
+panel (`Task/015`).
+
+### Qué se validó (2026-09-05)
+
+| Aspecto | Resultado |
+| --- | --- |
+| Pruebas | **440 / 440** en 61 archivos (161 heredadas + 279 nuevas), RED → GREEN por *slice* |
+| Cobertura | 99,78 % sentencias · 96,61 % ramas · 100 % funciones |
+| Compuertas | `format:check`, `lint`, `typecheck` y `build` sin errores ni *warnings* |
+| Dependencias | **Solo** `react-markdown@10.1.0` y `rehype-sanitize@6.0.0`, autorizadas por el usuario (D-014-F) |
+| Favicon | SVG neutro provisional derivado de los tokens, autorizado por el usuario (D-014-E) |
+| Visual | 14 superficies × 4 anchos (320, 390, 768, 1280) sin desbordamiento; 0 excepciones ni `console.error`; Tab recorre salto, navegación y buscador con el anillo de foco |
+| Archivos protegidos | `src/services/http`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`: **sin cambios** |
+| Entorno local | Solo operaciones aditivas: `alembic upgrade head` en el backend (la base estaba en `0001` y el API respondía `500`) y reconstrucción de la imagen del frontend |
+
+**Limitación declarada:** sin administrador ni perfil en la base local no se pudo publicar
+contenido de prueba; en el navegador real se validaron los estados vacíos y los `404`, y los
+estados con datos los cubre la suite. La semilla es de `Task/022`.
+
+### Decisiones cerradas
+
+Las decisiones de la ficha (**D-014-A** a **D-014-N**) quedaron **Vigentes** el 2026-09-05
+con la aprobación del usuario. La más visible fuera del frontend: la **lista cerrada de
+proveedores de video** —`youtube` y `vimeo`, *fail-closed*—, que `CONTENT_MODEL` §3.4
+asignaba por nombre a esta tarea y que queda registrada en `api-contracts.md` §14.9,
+`data-model.md` y `security-boundaries.md` §5 y §7.
+
+**Ninguna decisión diferida (`D-xx`) cambia:** `Task/014` no era propietaria de ninguna.
+**D-04** (editor Markdown) sigue abierta y es de `Task/015`; **D-08** sigue abierta y es de
+`Task/030`.
+
+### Deuda registrada
+
+| # | Deuda | Tarea propietaria |
+| --- | --- | --- |
+| 1 | Restringir `provider` a la lista cerrada en el backend y ofrecer el selector en el panel. | Backend: sin propietario (candidata `Task/018`) · panel: `Task/015` |
+| 2 | `noindex`, código HTTP `404` real de la SPA, `description`, Open Graph y canonical. | `Task/016`, `Task/034` |
+| 3 | Auditoría de la configuración de sanitización del Markdown. | `Task/018` |
+| 4 | `useAppConfig` queda sin consumidor productivo al retirar la pantalla provisional. | `Task/015` |
+| 5 | Validación visual **con contenido publicado** en el navegador real: no hay semilla ni administrador local. | `Task/022` |
+
+### Hallazgos independientes registrados, fuera del alcance
+
+Tres *drifts* documentales **preexistentes en `main`**, ajenos a `Task/014`, que **no se
+corrigen aquí** y quedan a la espera de que el usuario decida si ameritan un mantenimiento
+propio:
+
+1. El índice [`docs/task-reports/README.md`](../task-reports/README.md) **omite** las filas de
+   `Task/010`, `Task/011`, `Task/012` y `Task/013`. Arrastrado desde los cierres de esas
+   tareas; **excluido expresamente de `Task/013.1` por decisión del usuario**.
+2. La tabla **«Resumen de etapas»** de [`ROADMAP.md`](ROADMAP.md) se detuvo en la aprobación
+   de `Task/009`: declara ETAPA 03 «**2** de 5 — 40 % — En curso», ETAPA 04 «0 — Pendiente»
+   y total «**9** de 41 — 22 %», mientras la cabecera del mismo documento, sus secciones por
+   etapa, `STAGE-03`, `STAGE-04` y esta página registran **13 de 41 (32 %)**, ETAPA 03
+   **completada** y ETAPA 04 **en curso (1 de 3)**. Los valores correctos son los de la
+   cabecera y de `STATUS.md`. Detectado el 2026-09-04 al iniciar `Task/014`.
+3. El [runbook local](../runbooks/local-environment.md) §6 declara como valor esperado de
+   `alembic current` el `0001 (head)` de `Task/007`; la cabeza real es `0003` desde
+   `Task/011`. Detectado el 2026-09-05 al diagnosticar el `500` del API local, cuya base
+   seguía en `0001`.
 
 ---
 
@@ -923,7 +1010,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
 | 03 — Dominio y Backend | 5 | **5** | **100 %** — **completada** |
-| 04 — Experiencia del Usuario | 3 | **1** | **33 %** — **en curso** |
+| 04 — Experiencia del Usuario | 3 | **2** | **67 %** — **en curso** |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
 | 07 — Validación Local | 1 | 0 | 0 % |
@@ -932,16 +1019,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **13** | **32 %** |
+| **Total** | **41** | **14** | **34 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **28** |
+| Pendiente | **27** |
 | En progreso | 0 |
 | Lista para validación | **0** |
-| **Aprobada** | **13** |
+| **Aprobada** | **14** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |
@@ -1092,7 +1179,7 @@ Distribución por estado:
 | `Task/011-Autenticacion-Administrativa` | 03 | backend, infra | **Aprobada** |
 | `Task/012-API-Administrativa` | 03 | backend, infra | **Aprobada** (2026-09-03) |
 | `Task/013-Sistema-de-Diseno` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-04) |
-| `Task/014-Sitio-Publico` | 04 | frontend | Pendiente |
+| `Task/014-Sitio-Publico` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
 | `Task/015-Panel-Administrativo` | 04 | frontend | Pendiente |
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend | Pendiente |
 | `Task/017-Observabilidad-Local` | 05 | backend, infra | Pendiente |
@@ -1306,6 +1393,14 @@ igualmente **desde `main`**, con `HEAD == main` verificado.
 
 ## Notas de estado
 
+- **`Task/014-Sitio-Publico` quedó `Aprobada` el 2026-09-05.** La sesión del 2026-09-04 fue
+  de **definición** (preflight, ramas desde `main`, ficha con matriz funcional) y la del
+  2026-09-05 de **implementación**: doce superficies del sitio público, capa
+  `services/public`, Markdown sanitizado con las dos dependencias autorizadas, videos con
+  lista cerrada, favicon provisional, guardas extendidas y 440 pruebas. El avance sube a
+  **14 de 41** y la ETAPA 04 a **2 de 3**. Los hallazgos independientes —índice de reportes,
+  tabla resumen del ROADMAP y valor esperado de `alembic current` en el runbook— quedan
+  registrados en su sección **sin corregirse aquí**.
 - **`Task/005` produce el primer código de aplicación del proyecto:** `personal-blog-backend`
   ya contiene una aplicación FastAPI que arranca, expone `/health` y OpenAPI, se conecta al
   PostgreSQL local y gestiona su esquema con Alembic. Está **`Aprobada`** desde el

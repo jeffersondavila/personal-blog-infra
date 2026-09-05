@@ -76,6 +76,7 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/009-API-Publica` | [TASK-009-report.md](TASK-009-report.md) | Aprobada (2026-08-27) — remediacion TDD previa a la aprobacion |
 | `Task/009.1-Corregir-Drift-Documental-Post-Merge` *(mantenimiento)* | [TASK-009.1-report.md](TASK-009.1-report.md) | Aprobada (2026-08-27) |
 | `Task/013.1-Corregir-Drift-Documental-Post-Merge` *(mantenimiento)* | [TASK-013.1-report.md](TASK-013.1-report.md) | Aprobada (2026-09-04) |
+| `Task/014-Sitio-Publico` | [TASK-014-report.md](TASK-014-report.md) | Aprobada (2026-09-05) |
 
 > Las tareas de **mantenimiento** llevan sufijo (`005.1`, `005.2`, `005.3`, `005.4`,
 > `005.5`, `005.6`, `005.7`, `006.1`, `006.2`, `009.1`, `013.1`) y **no cuentan** dentro de las 41

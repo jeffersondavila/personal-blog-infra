@@ -599,7 +599,7 @@ cuenta. La invariante 9 de CONTENT_MODEL.md no hace excepción para el administr
 
 | Pregunta | Propietario |
 | --- | --- |
-| Lista cerrada de proveedores de vídeo permitidos | `Task/014` |
+| ~~Lista cerrada de proveedores de vídeo permitidos~~ | **Cerrada en `Task/014`** (2026-09-05, **Vigente** — aprobada por el usuario): **`youtube`** y **`vimeo`**. El sitio público solo incrusta (*embed*) esos dos proveedores, con `embed_reference` validada por patrón —`^[A-Za-z0-9_-]{11}$` para YouTube y `^[0-9]{6,12}$` para Vimeo— y el `iframe` se crea únicamente por acción del visitante. Cualquier otro proveedor o una referencia malformada es *fail-closed*: solo se ofrece el enlace externo seguro a `video_url`. **El backend no cambia**: sigue exigiendo presencia de `provider`, no pertenencia (§14.5); restringirlo allí y ofrecer el selector en el panel queda como deuda registrada en la ficha de `Task/014` |
 | **Corregir a propósito** un `alt_text` ya escrito y compartido por varios contenidos. Fijarlo por primera vez **ya funciona** (§14.11) y **D-012-Z** —rechazar la sobrescritura— está **aceptada para el MVP**: relajarla sería una mejora deliberada, no una corrección | **mejora futura**, sin propietario |
 | Cabecera concreta del correlation ID | `Task/017` |
 | CORS efectivo y cabeceras de seguridad | `Task/018` |
