@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-01 (`Task/011` — **D-02**, **D-09** y **D-15** resueltas y **Vigentes**, aprobadas por el usuario el 2026-09-01) |
-| **Decisiones abiertas** | **14** — D-05, D-14, D-01, **D-15**, **D-02** y **D-09** resueltas |
-| **Decisiones resueltas** | **6** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15), **D-15**, **D-02** y **D-09** (2026-09-01) |
+| **Última actualización** | 2026-09-04 (`Task/013` — **D-03 resuelta** y **Vigente**, aprobada por el usuario el 2026-09-04) |
+| **Decisiones abiertas** | **13** — D-05, D-14, D-01, **D-15**, **D-02**, **D-09** y **D-03** resueltas |
+| **Decisiones resueltas** | **7** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15), **D-15**, **D-02** y **D-09** (2026-09-01), **D-03** (2026-09-04) |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
@@ -29,7 +29,7 @@ ADR.
 | --- | --- | --- | --- |
 | D-01 | Modelo de PostgreSQL de producción | `Task/005.3` (modelo) · `Task/029` (proveedor) | **Resuelta** (2026-08-15) — **autogestionado en VPS externo**. Proveedor pendiente en `Task/029` |
 | D-02 | Mecanismo concreto de autenticación | `Task/011` | **Resuelta** (2026-09-01) — **sesión opaca *server-side* con cookie `HttpOnly`** |
-| D-03 | Biblioteca de componentes visuales | `Task/013` | Abierta |
+| D-03 | Biblioteca de componentes visuales | `Task/013` | **Resuelta** (2026-09-04) — **ninguna biblioteca de terceros**: CSS Modules más CSS Custom Properties |
 | D-04 | Editor Markdown | `Task/015` | Abierta |
 | D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
 | D-06 | Backend de estado de Terraform | `Task/025` | Abierta |
@@ -174,15 +174,51 @@ D-01 responde **qué modelo**, no **con qué proveedor**. Siguen pendientes y se
   ser **D-15**, resuelta en `Task/011`; `Task/035` conserva el **dominio concreto y el DNS**
   (**D-07**).
 
-## D-03 — Biblioteca de componentes visuales
+## D-03 — Biblioteca de componentes visuales — **RESUELTA**
+
+> **Vigente** desde el 2026-09-04. Aprobada por el usuario en
+> `Task/013-Sistema-de-Diseno`.
 
 - **Se resuelve en:** `Task/013-Sistema-de-Diseno`
 - **Información necesaria:** dirección visual deseada; nivel de personalización;
   accesibilidad de la biblioteca; peso del bundle; compatibilidad con los tokens propios.
 - **Afecta a:** todo el frontend (`Task/013`–`Task/015`), rendimiento (`Task/016`),
   accesibilidad (`Task/016`).
-- **Por qué se difiere:** elegir una biblioteca antes de saber qué componentes se
+- **Por qué se difirió:** elegir una biblioteca antes de saber qué componentes se
   necesitan lleva a arrastrar peso innecesario o a pelear contra sus decisiones.
+
+### Decisión
+
+**No se adopta ninguna biblioteca de componentes visuales de terceros.** El sistema de
+diseño se construye con **CSS Modules** —nativos de Vite— y **CSS Custom Properties**,
+con **cero dependencias nuevas** de runtime y de desarrollo.
+
+### Por qué
+
+El inventario derivado de [`USER_FLOWS`](../product/USER_FLOWS.md) y
+[`MVP_SCOPE`](../product/MVP_SCOPE.md) da **cinco primitivas compartidas**: `Container`,
+`Stack`, `Button`, `Card` y `Badge`. Para ese conjunto, una biblioteca de terceros
+—Material UI, Chakra, Bootstrap— aporta mucho más de lo que se usaría y cobra por ello
+en peso de bundle (**P-01**, **P-05**), en superficie de mantenimiento y en tener que
+pelear contra sus decisiones visuales y de accesibilidad. Los frameworks de estilo
+(Tailwind, Sass, styled-components, Emotion) resuelven un problema de escala que este
+proyecto no tiene y ninguna fuente canónica exige.
+
+Lo que sí se necesitaba —tokens compartidos, encapsulamiento de estilos y una estrategia
+única de foco— lo da la plataforma: las Custom Properties son el runtime natural del
+navegador y los CSS Modules generan sus nombres de clase en el *build*, lo que impide
+estructuralmente que `Task/014` y `Task/015` dependan de una clase interna.
+
+### Qué **no** decide
+
+- El **editor Markdown** concreto sigue siendo **D-04** (`Task/015`).
+- No prohíbe una dependencia futura para un problema puntual que la plataforma no
+  resuelva: obliga a justificarla, no a evitarla.
+
+### Consecuencia registrada
+
+`software-architecture.md` §4.4 decía *«todavía no se selecciona una biblioteca visual
+concreta»*. Queda actualizado con esta decisión, ya vigente.
 
 ## D-04 — Editor Markdown
 
