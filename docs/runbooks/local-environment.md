@@ -824,7 +824,7 @@ contenedor; `down -v` sí los destruiría.
 | Elemento | Estado | Dónde se aborda |
 | --- | --- | --- |
 | Backend (FastAPI) | **Integrado** en el Compose. Expone `/health` y los diez recursos públicos (`Task/009`). Desde `Task/010` habla con MinIO a través de `ObjectStorage` y necesita el bucket de §10. | — |
-| Frontend (React) | **Integrado** en el Compose (`Task/007`). Pantalla provisional: consume `/health` y nada más. | `Task/013`, `Task/014` |
+| Frontend (React) | **Integrado** en el Compose (`Task/007`). Desde `Task/014` sirve el **sitio público completo** —doce rutas— consumiendo los diez recursos públicos del API (`Task/009`); ya **no** consulta `/health`. Sin semilla local (`Task/022`) el perfil responde `404` y los listados están vacíos: el sitio lo muestra como estados explícitos, no como error. | `Task/015` (panel), `Task/022` (semilla) |
 | Reverse proxy | **Desplegado**: **Traefik v3** con enrutado explícito por archivo (D-05, `Task/003`; implementado en `Task/007`). | — |
 | Uso aplicativo de MinIO | **No existe.** MinIO está levantado y es alcanzable desde el backend, pero el backend **no lee ni escribe un solo objeto**: no hay `ObjectStorage`, ni SDK de S3, ni buckets de aplicación. | `Task/010` |
 | CORS | **No configurado, y es correcto.** Sitio y API comparten origen tras Traefik, así que el navegador no lo exige. La política de orígenes se decide en `Task/011` (**D-15**). | `Task/011`, `Task/018` |

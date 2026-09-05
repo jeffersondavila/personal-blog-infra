@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-04 (`Task/013-Sistema-de-Diseno` — **Aprobada**. Abre la **ETAPA 04**. **41 identificadores intactos**)
+- **Última actualización:** 2026-09-05 (`Task/014-Sitio-Publico` — **Aprobada**. ETAPA 04 en **2 de 3**. **41 identificadores intactos**)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -16,7 +16,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **32 %** (13 de 41 tareas aprobadas)
+- **Avance global:** **34 %** (14 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -205,7 +205,7 @@ con almacenamiento de archivos y autenticación.
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/013-Sistema-de-Diseno` | Tokens semánticos. Fundación global y estrategia única de foco. Tipografía. Responsive intrínseco. Primitivas `Container`, `Stack`, `Button`, `Card`, `Badge`. Accesibilidad base: **A-05**, **A-06**, **A-07** e inicio de **A-01**. **Resuelve D-03**: CSS Modules más CSS Custom Properties, sin biblioteca visual de terceros. | frontend, infra (documentación) | 012 | **Aprobada** (2026-09-04) |
-| `Task/014-Sitio-Publico` | Inicio. Quién soy. Artículos. Reviews. Videos. Proyectos. Contacto. Página 404. | frontend | 013 | Pendiente |
+| `Task/014-Sitio-Publico` | Inicio. Quién soy. Artículos y detalle. Reviews y detalle. Videos. Proyectos y detalle. Contacto. Búsqueda y filtro por etiqueta. Página 404. Estados de carga, vacío y error. Markdown sanitizado (ADR-005). Imágenes por `access_url` con `alt_text`. **Asume A-02 y A-04**, continúa **A-01**; **cierra la lista de proveedores de video**. Sin SEO (`Task/016`) ni panel (`Task/015`). | frontend, infra (documentación) | 013 | **Aprobada** (2026-09-05) |
 | `Task/015-Panel-Administrativo` | Dashboard. Editor Markdown. Gestión de contenido. Carga de imágenes. Vista previa. | frontend | 013 | Pendiente |
 
 ---

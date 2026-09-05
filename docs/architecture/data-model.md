@@ -36,7 +36,7 @@ comportamiento de aplicación:
 | — | Servicio de auditoría y catálogo de acciones → **`Task/011`**, **`Task/012`** |
 | — | CRUD administrativo y validación de publicación → **`Task/012`** |
 | — | Generación y normalización de *slug* → **`Task/012`** |
-| — | Lista cerrada de proveedores de video → **`Task/014`** |
+| — | Lista cerrada de proveedores de video → **`Task/014`** — **cerrada y Vigente** desde el 2026-09-05 (`youtube`, `vimeo`). El esquema **no cambia**: `provider` sigue sin `CHECK` |
 | — | Render y sanitización de Markdown → **`Task/014`**, **`Task/015`** |
 
 **No se siembra ningún dato.** La migración no contiene `INSERT` ni `bulk_insert`.
@@ -585,7 +585,7 @@ en el frontend (ADR-005, decisiones 2 a 4) y son de `Task/014` y `Task/015`.
 | 3 | `technologies` no tiene integridad sobre su contenido ni consulta relacional (D-G) | **Revisado en `Task/009`: se mantiene.** La API pública lo transporta como lista de cadenas y **nadie consulta por tecnología**; el filtro público es por `Tag`, y funciona. Normalizarlo sigue siendo una migración sencilla el día que aparezca «filtrar por tecnología» |
 | 4 | La retención de `AuditEvent` sigue sin decidirse | `Task/011`, operación |
 | 5 | El perfil y el administrador reales no existen todavía. **`Task/012` no los crea**: `PUT /admin/profile` sobre una base sin perfil responde `404` y no deja fila (decisión D-012-U). Sin semilla, el panel de `Task/015` recibirá ese `404` | `Task/036` (producción) · `Task/022` (semilla local) |
-| 6 | La lista de proveedores de vídeo permitidos está abierta | `Task/014` |
+| 6 | ~~La lista de proveedores de vídeo permitidos está abierta~~ **Cerrada en `Task/014`** (2026-09-05, **Vigente**): `youtube` y `vimeo`, aplicada en el render público con *fail-closed*. **Sigue abierto** restringir `provider` en el backend —hoy `VARCHAR(32)` sin `CHECK`; se exige presencia, no pertenencia— y ofrecer el selector en el panel | Backend: sin propietario asignado (candidata `Task/018`) · panel: `Task/015` |
 | 6b | **Corregir a propósito** un `alt_text` ya escrito. Fijarlo por primera vez funciona desde `Task/012` (D-012-Y), y **D-012-Z** —rechazar un texto distinto, porque el `alt_text` es del asset y lo comparten los contenidos que lo usan— está **aceptada para el MVP**. Relajarla sería una mejora deliberada | **mejora futura**, sin propietario |
 | 7 | ~~El formato y la generación del *slug* no están implementados~~ | **Resuelto por `Task/012`** (2026-09-01): `app/shared/slug.py`, con su regla de estabilidad (D-012-F) |
 | 8 | SQLAlchemy no detecta mutaciones **en sitio** de un `JSONB`: hay que asignar un valor nuevo | — (documentado en el modelo) |

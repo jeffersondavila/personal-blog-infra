@@ -130,10 +130,10 @@ de **nivel host**, no de nivel aplicación.
 | Endpoint de login | Fuerza bruta, enumeración de usuarios | **Implementado en `Task/011`**: límite de tasa por IP en PostgreSQL (10 / 300 s), bloqueo temporal de cuenta (5 fallos / 15 min), error genérico **indistinguible** en los tres casos —correo inexistente, contraseña incorrecta y cuenta bloqueada— y auditoría. Ver §11 | `Task/011`, `Task/018` |
 | Endpoints administrativos | Acceso no autorizado | Autenticación obligatoria verificada en servidor | `Task/011` ✔, `Task/012` ✔ (2026-09-01, §12) |
 | Subida de imágenes | Archivo malicioso, agotamiento de espacio | **Implementado en `Task/010`**: el MIME se valida **decodificando** la imagen —nunca por extensión ni por `Content-Type` declarado—, con límite de bytes **y** de píxeles (guarda contra *decompression bomb*); la clave es un UUID v4 y el nombre recibido **no participa** en ella; bucket privado. `Task/018` endurece | `Task/010`, `Task/018` |
-| Renderizado de Markdown | XSS almacenado | Sanitización obligatoria en render y vista previa | `Task/014`, `Task/015` |
-| Embeds de video | Contenido de terceros no controlado | Lista cerrada de proveedores permitidos | `Task/014` |
+| Renderizado de Markdown | XSS almacenado | **Implementado para el sitio público en `Task/014`** (2026-09-05): `react-markdown` **sin** HTML crudo (`skipHtml`, sin `rehype-raw`) más `rehype-sanitize` con **esquema de permitidos** y protocolos acotados —`href`: `http`, `https`, `mailto`; `src`: `http`, `https`—; el resultado es un árbol React, **sin `innerHTML`**. La vista previa del panel debe reutilizar **el mismo** `MarkdownContent` | `Task/014` ✔ (sitio), `Task/015` (vista previa), `Task/018` (auditoría) |
+| Embeds de video | Contenido de terceros no controlado | **Implementado en `Task/014`**: lista cerrada `youtube` y `vimeo`, `embed_reference` validada por patrón, `iframe` creado solo por acción del visitante y *fail-closed* para todo lo demás (solo enlace externo) | `Task/014` ✔ |
 | Búsqueda | Inyección | Parámetros tratados como datos, nunca interpolados | `Task/009` |
-| Enlaces externos | *Tabnabbing* | `rel="noopener noreferrer"` | `Task/014` |
+| Enlaces externos | *Tabnabbing* | **Implementado en `Task/014`**: `ExternalLink` con `rel="noopener noreferrer"` siempre, misma pestaña y solo `http`/`https`; los enlaces del Markdown pasan por la misma pieza | `Task/014` ✔ |
 | CORS | Origen no autorizado | Lista explícita por ambiente, nunca `*` en producción | `Task/018`, `Task/033` |
 | Mensajes de error | Filtración de información | Modelo común de error sin trazas internas | `Task/009`, `Task/018` |
 | Logs | Filtración de secretos | Lista de campos a redactar | `Task/017` |
@@ -175,7 +175,7 @@ de **nivel host**, no de nivel aplicación.
 | ~~Herramienta e implementación de rate limiting~~ | **Cerrada en `Task/011`**: contador de ventana fija en PostgreSQL, por IP. `Task/018` endurece; `Task/033` añade el *throttling* del borde |
 | Cabeceras de seguridad concretas y sus valores | `Task/018` |
 | ~~Lista de tipos MIME y tamaños permitidos~~ | **Base fijada en `Task/010`** (2026-08-28): `image/jpeg`, `image/png` y `image/webp`; 5 MiB y 40 millones de píxeles. **SVG excluido por seguridad** (XML con capacidad de script). La lista **definitiva** y su endurecimiento siguen siendo de `Task/018`, que restringe, no amplía |
-| Proveedores de video permitidos | `Task/014` |
+| ~~Proveedores de video permitidos~~ | **Cerrados en `Task/014`** (2026-09-05, **Vigente**): `youtube` y `vimeo`, *fail-closed* en el render. Detalle en [`api-contracts.md`](api-contracts.md) §14.9 |
 | Política IAM de la Lambda y del rol OIDC | `Task/028`, `Task/032` |
 | Política del bucket y expiración de URLs prefirmadas | `Task/030` |
 | Campos a redactar en los logs | `Task/017` |
