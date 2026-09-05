@@ -705,7 +705,15 @@ que algo esté pendiente de fusionar ni que haya una normalización en curso.
 
 ---
 
-## 24. Estado de Git al cerrar
+## 24. Estado de Git previo a la aprobación
+
+**Observación fechada, no estado vigente.** Los contadores de abajo son **transitorios**
+por definición —el flujo de cierre los modifica en cuanto hay aprobación—, así que se
+registran como lo que son: lo observado **antes** de que el usuario aprobara la tarea. El
+estado vivo de Git y GitHub se consulta en el momento, nunca aquí
+([`WORKFLOW`](../project-management/WORKFLOW.md) §6.1).
+
+> *Observado el 2026-09-03, **antes** de la aprobación:*
 
 | Repositorio | Rama | *Staging* | Commits sobre `main` | Push | Merge | PR |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -713,8 +721,9 @@ que algo esté pendiente de fusionar ni que haya una normalización en curso.
 | infra | `Task/013-Sistema-de-Diseno` | **0** | **0** | **0** | **0** | **0** |
 | backend | `main` — limpio, 0 cambios | **0** | **0** | **0** | **0** | **0** |
 
-Los cambios están **sin commit**, como corresponde a una tarea no aprobada
-([`PROJECT_INSTRUCTIONS`](../claude/PROJECT_INSTRUCTIONS.md) §6).
+En esa instantánea los cambios se encontraban **sin commit**, como correspondía a una
+tarea todavía no aprobada ([`PROJECT_INSTRUCTIONS`](../claude/PROJECT_INSTRUCTIONS.md)
+§6). Es la evidencia de que el trabajo permaneció sin confirmar hasta la aprobación.
 
 ---
 

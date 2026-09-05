@@ -15,9 +15,10 @@
 | **Tarea aprobada anterior** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada previa** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Último mantenimiento aprobado** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
-| **Mantenimiento anterior** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
-| **Mantenimiento previo** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
+| **Último mantenimiento aprobado** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
+| **Mantenimiento anterior** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
+| **Mantenimiento previo** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
+| **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Próxima tarea prevista** | `Task/014-Sitio-Publico` — **Pendiente, no iniciada**. Depende de `Task/013`, ahora **Aprobada**, según el [ROADMAP](ROADMAP.md). Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
 | **Avance global** | **32 %** — 13 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
@@ -29,6 +30,40 @@
 > ETAPA 04 con **1 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no
 > el trámite posterior de fusionar el pull request
 > ([WORKFLOW §6.1](WORKFLOW.md)).
+
+---
+
+## Último mantenimiento aprobado — `Task/013.1`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` |
+| **Tipo** | Mantenimiento de gobierno documental |
+| **Estado** | **Aprobada** ✔ el 2026-09-04 por jeffersondavila |
+| **Cuenta en las 41 tareas** | **No.** Avance global y ETAPA 04 **sin cambios** |
+| **Repositorios** | `personal-blog-infra` únicamente |
+| **Rama** | `Task/013.1-Corregir-Drift-Documental-Post-Merge`, nacida de `main` |
+| **Ficha** | [TASK-013.1](../tasks/TASK-013.1-correct-post-merge-documentation-drift.md) |
+| **Reporte** | [TASK-013.1-report.md](../task-reports/TASK-013.1-report.md) |
+
+### Qué corrige
+
+El barrido del criterio 12 posterior a la fusión de `Task/013` encontró **una** afirmación
+de categoría C: la sección 24 de su reporte conservaba contadores de Git y GitHub
+redactados en presente —«los cambios están sin commit, como corresponde a una tarea no
+aprobada»— mientras la cabecera del mismo documento declara la tarea **Aprobada**.
+
+La corrección **no borra ni actualiza** la instantánea: la marca como observación fechada
+del 2026-09-03 y la redacta en pasado, conservando sus valores originales. Es la forma que
+los reportes de `Task/008` y `Task/009` ya usaban y que el de `Task/013` no aplicó.
+
+### Qué NO se corrige, y por qué
+
+- La frase sobre el inicio de `Task/014` (sección 27 del reporte): es la **regla de orden**
+  que [WORKFLOW §6.1](WORKFLOW.md) punto 4 avala. Categoría **B**.
+- La sección 23 del reporte: el **estado de una tarea es duradero** por la tabla de §6.1,
+  no transitorio. No es categoría C.
+- El historial fechado de `Task/001`–`Task/012`. **El historial no se reescribe.**
 
 ---
 
@@ -357,7 +392,7 @@ ETAPA 03 y la primera sujeta a la **BACKEND TEST-FIRST LAW**.
 
 ---
 
-## Último mantenimiento aprobado — `Task/009.1`
+## Mantenimiento aprobado anterior — `Task/009.1`
 
 | Campo | Valor |
 | --- | --- |
@@ -385,7 +420,7 @@ ETAPA 03 y la primera sujeta a la **BACKEND TEST-FIRST LAW**.
 
 ---
 
-## Mantenimiento aprobado anterior — `Task/006.2`
+## Mantenimiento aprobado previo — `Task/006.2`
 
 | Campo | Valor |
 | --- | --- |
@@ -431,7 +466,7 @@ como toda rama Task.
 
 ---
 
-## Mantenimiento aprobado previo — `Task/006.1`
+## Mantenimiento aprobado tras `Task/006` — `Task/006.1`
 
 | Campo | Valor |
 | --- | --- |
