@@ -357,8 +357,12 @@ pages → features → entities → components
   pero el backend es quien autoriza.
 - La URL del API llega por **variable de entorno en tiempo de build**.
 - Todo valor presente en el build del frontend es **público**: nunca contiene secretos.
-- **Todavía no se selecciona una biblioteca visual concreta** (ver
-  [open-decisions.md](open-decisions.md)).
+- **No se adopta ninguna biblioteca visual de terceros.** El sistema de diseño se
+  construye con **CSS Modules** y **CSS Custom Properties**, sin dependencias nuevas
+  (**D-03** — **Resuelta** y **Vigente** desde el 2026-09-04 en `Task/013`; ver
+  [open-decisions.md](open-decisions.md)). Los tokens viven en `src/styles/tokens.css` y
+  las primitivas compartidas en `src/components/`, cuya superficie pública es
+  `src/components/index.ts`.
 
 ---
 
@@ -412,7 +416,7 @@ lo desconoce.
 - Esquema físico de base de datos → `Task/008`.
 - ~~Mecanismo de autenticación~~ → **cerrado en `Task/011`** (§3.8).
 - ~~Forma de la API administrativa~~ → **cerrada en `Task/012`** (§3.10).
-- Biblioteca de componentes visuales y diseño → `Task/013`.
+- ~~Biblioteca de componentes visuales y diseño~~ → **cerrada en `Task/013`** (§4.4, **D-03**).
 - Editor Markdown concreto → `Task/015`.
 - Especificación OpenAPI completa → surge de la implementación (`Task/009`, `Task/012`).
 

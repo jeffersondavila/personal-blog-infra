@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 04 |
-| **Estado** | Pendiente |
+| **Estado** | **En curso** — abierta el 2026-09-03 con `Task/013`, **aprobada** el 2026-09-04 |
 | **Dependencias** | [ETAPA 03](STAGE-03-domain-and-backend.md) — **Completada** ✔ (2026-09-03) |
 | **Tareas** | 3 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | **1** de 3 |
+| **Avance** | **33 %** |
 | **Hito que completa** | Blog usable de extremo a extremo en local. |
 
 ---
@@ -24,12 +24,22 @@ va primero para evitar inconsistencia visual y reescrituras de componentes.
 
 ## Tareas
 
-### `Task/013-Sistema-de-Diseno` — *Pendiente*
+### `Task/013-Sistema-de-Diseno` — **Aprobada** ✔ (2026-09-04)
 
-Tokens de diseño, componentes base, tipografía, comportamiento responsive y
-accesibilidad base.
+Tokens de diseño semánticos, fundación global con estrategia única de foco, tipografía,
+comportamiento responsive intrínseco y accesibilidad base.
+
+Entrega cinco primitivas compartidas —`Container`, `Stack`, `Button`, `Card`, `Badge`—
+y asume **A-05** (contraste), **A-06** (foco visible) y **A-07** (sin dependencia
+exclusiva del color), además de iniciar **A-01** (teclado).
+
+**Resuelve D-03** —biblioteca de componentes visuales— con CSS Modules más CSS Custom
+Properties y **cero dependencias nuevas**, en lugar de adoptar una biblioteca de
+terceros.
 
 **Depende de:** `Task/012`.
+**Ficha:** [`TASK-013-design-system.md`](../tasks/TASK-013-design-system.md) ·
+**Reporte:** [`TASK-013-report.md`](../task-reports/TASK-013-report.md)
 
 ### `Task/014-Sitio-Publico` — *Pendiente*
 
