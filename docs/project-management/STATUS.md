@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-03
+**Última actualización:** 2026-09-04
 
 ---
 
@@ -8,30 +8,74 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | ETAPA 03 — Dominio y Backend — **Completada** ✔ el 2026-09-03 (5 de 5). ETAPAS 00, 01, 02 y **03 completadas**. La siguiente es la **ETAPA 04 — Experiencia del Usuario** |
-| **Tarea actual** | **Ninguna en curso.** `Task/012` quedó aprobada y cerrada; `Task/013-Sistema-de-Diseno` **no se ha iniciado** |
-| **Estado de la tarea** | `Task/012-API-Administrativa` — **Aprobada** ✔ el 2026-09-03. Cuenta en el avance: **12 de 41** |
-| **Última tarea aprobada** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
-| **Tarea aprobada anterior** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
-| **Tarea aprobada previa** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
+| **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — En curso** (**1 de 3** aprobadas). ETAPAS 00, 01, 02 y 03 **completadas** |
+| **Tarea actual** | **Ninguna en curso.** `Task/013` quedó aprobada y cerrada; `Task/014-Sitio-Publico` **no se ha iniciado** |
+| **Estado de la tarea** | `Task/013-Sistema-de-Diseno` — **Aprobada** ✔ el 2026-09-04. Cuenta en el avance: **13 de 41** |
+| **Última tarea aprobada** | `Task/013-Sistema-de-Diseno` — **Aprobada** el 2026-09-04 por jeffersondavila. **50 tokens** semánticos, fundación global con estrategia única de foco, cinco primitivas compartidas —`Container`, `Stack`, `Button`, `Card`, `Badge`—, contraste **verificado por prueba** sobre los valores reales, señal no cromática por forma y **cero dependencias nuevas**. Asume **A-05**, **A-06** y **A-07**, e inicia **A-01**. Resuelve **D-03**. **Abre la ETAPA 04** |
+| **Tarea aprobada anterior** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
+| **Tarea aprobada previa** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
+| **Tarea aprobada de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
 | **Último mantenimiento aprobado** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento previo** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/013-Sistema-de-Diseno` — **Pendiente, no iniciada**. Depende de `Task/012`, ahora **Aprobada**, según el [ROADMAP](ROADMAP.md). Abre la **ETAPA 04** y se ejecuta en `personal-blog-frontend`. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **29 %** — 12 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/014-Sitio-Publico` — **Pendiente, no iniciada**. Depende de `Task/013`, ahora **Aprobada**, según el [ROADMAP](ROADMAP.md). Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **32 %** — 13 de 41 tareas aprobadas |
 | **Bloqueos activos** | 0 |
 | **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
-| **Decisiones abiertas** | **14** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
+| **Decisiones abiertas** | **13** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/012` ya cuenta**: fue
-> aprobada por el usuario el 2026-09-03, lo que lleva el avance a **12 de 41** y la
-> ETAPA 03 a **5 de 5** —**completada**—. Lo que fija el recuento es **la aprobación del
-> usuario**, no el trámite posterior de fusionar el pull request
+> El avance se calcula **solo** con tareas `Aprobada`. **`Task/013` ya cuenta**: fue
+> aprobada por el usuario el 2026-09-04, lo que lleva el avance a **13 de 41** y abre la
+> ETAPA 04 con **1 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no
+> el trámite posterior de fusionar el pull request
 > ([WORKFLOW §6.1](WORKFLOW.md)).
 
 ---
 
-## Última tarea aprobada — `Task/012-API-Administrativa`
+## Última tarea aprobada — `Task/013-Sistema-de-Diseno`
+
+**Estado:** **Aprobada** ✔ el 2026-09-04 por jeffersondavila. Cuenta en el avance: **13 de 41**.
+
+Abre la **ETAPA 04**. Entrega la base visual y de componentes que `Task/014` y `Task/015`
+consumirán, para que ninguna de las dos invente por su cuenta colores, espaciados,
+tipografía, radios, foco, botones, superficies ni semántica de estado.
+
+| Aspecto | Resultado |
+| --- | --- |
+| Repositorios | `personal-blog-frontend` (funcional) · `personal-blog-infra` (documentación) |
+| Tokens | **50** CSS Custom Properties semánticas en `src/styles/tokens.css` |
+| Primitivas | `Container`, `Stack`, `Button`, `Card`, `Badge` |
+| Estrategia CSS | **CSS Modules + CSS Custom Properties**, **cero dependencias nuevas** |
+| Accesibilidad asumida | **A-05**, **A-06**, **A-07**; **A-01** iniciada |
+| Pruebas | 161 en verde (50 previas + **111 nuevas**), cobertura 100 % líneas |
+| Build | Producción en verde, sin *warnings* |
+
+### Qué asume y qué no
+
+`Task/013` afirma que **la paleta y los pares de contraste que define y verifica** cumplen
+WCAG 2.1 AA — 22 pares comprobados por prueba sobre los valores reales de `tokens.css`.
+**No** afirma que el producto cumpla AA: esa auditoría es `Task/016`. **A-02**, **A-03**,
+**A-04** y **A-08** siguen siendo de `Task/014` y `Task/015`.
+
+### Decisión cerrada
+
+**D-03 — biblioteca de componentes visuales.** **Resuelta** y **Vigente** desde el
+2026-09-04: **no se adopta ninguna biblioteca de terceros**. CSS Modules más CSS Custom
+Properties, con cero dependencias nuevas.
+
+### Deuda registrada
+
+| # | Deuda | Tarea propietaria |
+| --- | --- | --- |
+| 1 | Variantes `danger` y silenciosa de `Button`, y tamaños alternativos: sin consumidor todavía. | `Task/015` |
+| 2 | Primitivas de formulario (`Input`, `FormField`, `ValidationMessage`) con **A-03** y **A-08**. | `Task/015` |
+| 3 | `VisuallyHidden` e `IconButton`: se crearán con su primer consumidor real. | `Task/014`, `Task/015` |
+| 4 | Icono real del sitio (favicon): es identidad visual del sitio público. | `Task/014` |
+| 5 | La validación visual **integral** requiere páginas reales. | `Task/014`, `Task/015` |
+
+---
+
+## Tarea aprobada anterior — `Task/012-API-Administrativa`
 
 | Campo | Valor |
 | --- | --- |
@@ -82,7 +126,7 @@
 
 ---
 
-## Tarea aprobada anterior — `Task/011-Autenticacion-Administrativa`
+## Tarea aprobada previa — `Task/011-Autenticacion-Administrativa`
 
 | Campo | Valor |
 | --- | --- |
@@ -142,7 +186,7 @@ roles**.
 
 ---
 
-## Tarea aprobada previa — `Task/010-Almacenamiento-Compatible-S3`
+## Tarea aprobada de la ETAPA 03 — `Task/010-Almacenamiento-Compatible-S3`
 
 | Campo | Valor |
 | --- | --- |
@@ -189,7 +233,7 @@ roles**.
 
 ---
 
-## Tarea aprobada de la ETAPA 03 — `Task/009-API-Publica`
+## Tarea aprobada anterior de la ETAPA 03 — `Task/009-API-Publica`
 
 | Campo | Valor |
 | --- | --- |
@@ -844,7 +888,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
 | 03 — Dominio y Backend | 5 | **5** | **100 %** — **completada** |
-| 04 — Experiencia del Usuario | 3 | 0 | 0 % |
+| 04 — Experiencia del Usuario | 3 | **1** | **33 %** — **en curso** |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
 | 07 — Validación Local | 1 | 0 | 0 % |
@@ -853,16 +897,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **12** | **29 %** |
+| **Total** | **41** | **13** | **32 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **29** |
+| Pendiente | **28** |
 | En progreso | 0 |
 | Lista para validación | **0** |
-| **Aprobada** | **12** |
+| **Aprobada** | **13** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |
@@ -1012,7 +1056,7 @@ Distribución por estado:
 | `Task/010-Almacenamiento-Compatible-S3` | 03 | backend, infra (documentación) | **Aprobada** |
 | `Task/011-Autenticacion-Administrativa` | 03 | backend, infra | **Aprobada** |
 | `Task/012-API-Administrativa` | 03 | backend, infra | **Aprobada** (2026-09-03) |
-| `Task/013-Sistema-de-Diseno` | 04 | frontend | Pendiente |
+| `Task/013-Sistema-de-Diseno` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-04) |
 | `Task/014-Sitio-Publico` | 04 | frontend | Pendiente |
 | `Task/015-Panel-Administrativo` | 04 | frontend | Pendiente |
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend | Pendiente |
