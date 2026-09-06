@@ -4,7 +4,7 @@
 | --- | --- |
 | **Número** | 05 |
 | **Estado** | Pendiente |
-| **Dependencias** | [ETAPA 04](STAGE-04-user-experience.md) |
+| **Dependencias** | [ETAPA 04](STAGE-04-user-experience.md) — **Completada** ✔ (2026-09-05) |
 | **Tareas** | 3 |
 | **Aprobadas** | 0 |
 | **Avance** | 0 % |

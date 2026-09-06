@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-05 (`Task/014-Sitio-Publico` — **Aprobada**. ETAPA 04 en **2 de 3**. **41 identificadores intactos**)
+- **Última actualización:** 2026-09-05 (`Task/015-Panel-Administrativo` — **Aprobada**. ETAPA 04 **Completada**, **3 de 3**. **41 identificadores intactos**)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -16,7 +16,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **34 %** (14 de 41 tareas aprobadas)
+- **Avance global:** **37 %** (15 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -32,13 +32,14 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > **Exposición de la auditoría para el dashboard — `Task/012.1` (2026-09-05, aprobada).**
 > Mantenimiento **funcional** de la API administrativa, previo a que `Task/015` pueda
 > entregar su dashboard. `MVP_SCOPE.md` §3.3 exige como alcance mínimo los *«últimos eventos
-> de auditoría»*, y ninguna de las **38 operaciones HTTP** administrativas los lee: el módulo
-> `audit` no tiene capa de presentación y su puerto solo escribe. Añade **una** operación de
-> solo lectura —`GET /api/v1/admin/audit-events`—, paginada con la envoltura única y sin
-> filtros, con un DTO de cinco campos que **no** incluye `ip_address`, `actor_id`,
-> `event_metadata` ni `request_id`. **Sin migración**: el índice cronológico ya existe. La
-> inmutabilidad de `AuditEvent` queda intacta y leer no audita, comprobado contando filas
-> reales. **1572 pruebas en verde** (+45 sobre el baseline de `main`). **No cuenta** dentro
+> de auditoría»*, y ninguna de las **38 operaciones HTTP** administrativas de entonces los
+> leía: el módulo `audit` no tenía capa de presentación y su puerto solo escribía. Añade
+> **una** operación de solo lectura —`GET /api/v1/admin/audit-events`—, paginada con la
+> envoltura única y sin filtros, con un DTO de cinco campos que **no** incluye
+> `ip_address`, `actor_id`, `event_metadata` ni `request_id`. **Sin migración**: el índice
+> cronológico ya existe. La inmutabilidad de `AuditEvent` queda intacta y leer no audita,
+> comprobado contando filas reales. **1572 pruebas en verde** (+45 sobre el baseline de
+> `main`). **No cuenta** dentro
 > de las 41, **41 identificadores intactos** y avance **sin cambios**. Ficha:
 > [TASK-012.1](../tasks/TASK-012.1-audit-events-for-dashboard.md) · Reporte:
 > [TASK-012.1-report.md](../task-reports/TASK-012.1-report.md).
@@ -90,9 +91,9 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 00 | Fundación y Gobierno | 2 | 2 | 100 % | **Completada** | — |
 | 01 | Infraestructura Local | 2 | 2 | **100 %** | **Completada** | 00 ✔ |
 | 02 | Fundaciones de las Aplicaciones | 3 | 3 | **100 %** | **Completada** | 01 ✔ |
-| 03 | Dominio y Backend | 5 | **2** | **40 %** | **En curso** | 02 ✔ |
-| 04 | Experiencia del Usuario | 3 | 0 | 0 % | Pendiente | 03 |
-| 05 | Calidad y Seguridad | 3 | 0 | 0 % | Pendiente | 04 |
+| 03 | Dominio y Backend | 5 | **5** | **100 %** | **Completada** | 02 ✔ |
+| 04 | Experiencia del Usuario | 3 | **3** | **100 %** | **Completada** | 03 ✔ |
+| 05 | Calidad y Seguridad | 3 | 0 | 0 % | Pendiente | 04 ✔ |
 | 06 | Integración Continua | 3 | 0 | 0 % | Pendiente | 05 |
 | 07 | Validación Local | 1 | 0 | 0 % | Pendiente | 06 |
 | 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 |
@@ -100,7 +101,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **9** | **22 %** | | |
+| | **Total** | **41** | **15** | **37 %** | | |
 
 ---
 
@@ -210,6 +211,8 @@ con almacenamiento de archivos y autenticación.
 
 ## ETAPA 04 — Experiencia del Usuario
 
+**Estado:** **Completada** el 2026-09-05 — **3 de 3 aprobadas, 100 %**.
+
 **Objetivo:** construir el sistema de diseño, el sitio público y el panel administrativo.
 
 **Dependencias:** Etapa 03.
@@ -220,7 +223,7 @@ con almacenamiento de archivos y autenticación.
 | --- | --- | --- | --- | --- |
 | `Task/013-Sistema-de-Diseno` | Tokens semánticos. Fundación global y estrategia única de foco. Tipografía. Responsive intrínseco. Primitivas `Container`, `Stack`, `Button`, `Card`, `Badge`. Accesibilidad base: **A-05**, **A-06**, **A-07** e inicio de **A-01**. **Resuelve D-03**: CSS Modules más CSS Custom Properties, sin biblioteca visual de terceros. | frontend, infra (documentación) | 012 | **Aprobada** (2026-09-04) |
 | `Task/014-Sitio-Publico` | Inicio. Quién soy. Artículos y detalle. Reviews y detalle. Videos. Proyectos y detalle. Contacto. Búsqueda y filtro por etiqueta. Página 404. Estados de carga, vacío y error. Markdown sanitizado (ADR-005). Imágenes por `access_url` con `alt_text`. **Asume A-02 y A-04**, continúa **A-01**; **cierra la lista de proveedores de video**. Sin SEO (`Task/016`) ni panel (`Task/015`). | frontend, infra (documentación) | 013 | **Aprobada** (2026-09-05) |
-| `Task/015-Panel-Administrativo` | Dashboard. Editor Markdown. Gestión de contenido. Carga de imágenes. Vista previa. | frontend | 013 | Pendiente |
+| `Task/015-Panel-Administrativo` | Acceso y sesión administrativa sobre la cookie `HttpOnly` de `Task/011`. Dashboard básico. Listados y formularios de los cuatro tipos publicables. Editor Markdown y **vista previa con el mismo pipeline sanitizado** de `Task/014` (**resuelve D-04**, sin dependencias nuevas). Carga y selección de imágenes. Etiquetas y perfil. Transiciones de publicación. **Asume A-03, A-08, S-03 en la vista previa y P-05.** Sin SEO ni auditoría de accesibilidad (`Task/016`), sin CORS ni cabeceras (`Task/018`). | frontend, infra (documentación) | 013, 014 | **Aprobada** (2026-09-05) — **sin bloqueos**. **18 superficies**, **600 pruebas** en verde y **0 dependencias nuevas**. Su dashboard consume además `GET /api/v1/admin/audit-events`, que entregó `Task/012.1` |
 
 ---
 

@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-04 (`Task/013` — **D-03 resuelta** y **Vigente**, aprobada por el usuario el 2026-09-04) |
-| **Decisiones abiertas** | **13** — D-05, D-14, D-01, **D-15**, **D-02**, **D-09** y **D-03** resueltas |
-| **Decisiones resueltas** | **7** — D-05 (2026-07-29), **D-14** y **D-01** (2026-08-15), **D-15**, **D-02** y **D-09** (2026-09-01), **D-03** (2026-09-04) |
+| **Última actualización** | 2026-09-05 (`Task/015` — **D-04 resuelta** y **Vigente**, aprobada por el usuario) |
+| **Decisiones abiertas** | **12** — D-05, D-14, D-01, D-15, D-02, D-09, D-03 y **D-04** resueltas |
+| **Decisiones resueltas** | **8** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), **D-04 (2026-09-05)** |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
@@ -30,7 +30,7 @@ ADR.
 | D-01 | Modelo de PostgreSQL de producción | `Task/005.3` (modelo) · `Task/029` (proveedor) | **Resuelta** (2026-08-15) — **autogestionado en VPS externo**. Proveedor pendiente en `Task/029` |
 | D-02 | Mecanismo concreto de autenticación | `Task/011` | **Resuelta** (2026-09-01) — **sesión opaca *server-side* con cookie `HttpOnly`** |
 | D-03 | Biblioteca de componentes visuales | `Task/013` | **Resuelta** (2026-09-04) — **ninguna biblioteca de terceros**: CSS Modules más CSS Custom Properties |
-| D-04 | Editor Markdown | `Task/015` | Abierta |
+| D-04 | Editor Markdown | `Task/015` | **Resuelta** (2026-09-05) — `<textarea>` nativo y vista previa con `MarkdownContent` |
 | D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
 | D-06 | Backend de estado de Terraform | `Task/025` | Abierta |
 | D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
@@ -220,16 +220,24 @@ estructuralmente que `Task/014` y `Task/015` dependan de una clase interna.
 `software-architecture.md` §4.4 decía *«todavía no se selecciona una biblioteca visual
 concreta»*. Queda actualizado con esta decisión, ya vigente.
 
-## D-04 — Editor Markdown
+## D-04 — Editor Markdown — **RESUELTA**
 
-- **Se resuelve en:** `Task/015-Panel-Administrativo`
-- **Información necesaria:** necesidad de vista previa en vivo; inserción de imágenes;
-  peso; accesibilidad; mantenimiento del proyecto; compatibilidad con la sanitización
-  elegida.
-- **Afecta a:** panel administrativo (`Task/015`), sanitización (`Task/018`), tamaño del
-  bundle del panel (`Task/016`).
-- **Restricción ya fijada:** el backend almacena Markdown original y el render se
-  sanitiza (ver [ADR-005](../adr/ADR-005-markdown-content.md)).
+- **Resuelta en:** `Task/015-Panel-Administrativo`, aprobada el 2026-09-05 mediante
+  `approved: Task/015-Panel-Administrativo`.
+- **Estado:** **Vigente**; decisión **D-015-E**.
+- **Decisión:** `<textarea>` nativo para editar Markdown, `useDeferredValue` y vista previa
+  con el mismo `MarkdownContent` de `Task/014`: `react-markdown` y `rehype-sanitize`, con
+  el esquema de [ADR-005](../adr/ADR-005-markdown-content.md).
+- **Motivos:** conserva controles nativos y etiquetas accesibles; no añade dependencias
+  ni un segundo pipeline de sanitización. El código del panel se carga en diferido,
+  comprobado por P-05. Artículos, reviews, proyectos y biografía usan la vista previa;
+  el contrato de videos no incluye contenido Markdown.
+- **Imágenes dentro del cuerpo:** no se insertan URLs `access_url` caducables. La URL
+  estable de medios continúa en **D-08 / Task/030**, que esta decisión no cierra.
+- **Evidencia:** [ficha de Task/015](../tasks/TASK-015-admin-panel.md#6g-markdown--d-04-resuelta-vigente--aprobada-el-2026-09-05)
+  y [reporte](../task-reports/TASK-015-report.md#7-markdown). La vista previa neutraliza
+  HTML peligroso en la prueba de integración.
+- **ADR:** no se crea uno nuevo; se aplica el render sanitizado ya aceptado en ADR-005.
 
 ## D-05 — Reverse proxy local concreto — **RESUELTA**
 

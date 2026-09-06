@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 04 |
-| **Estado** | **En curso** — abierta el 2026-09-03 con `Task/013`; `Task/014` **aprobada** el 2026-09-05 |
+| **Estado** | **Completada** el 2026-09-05, con la aprobación de `Task/015-Panel-Administrativo` |
 | **Dependencias** | [ETAPA 03](STAGE-03-domain-and-backend.md) — **Completada** ✔ (2026-09-03) |
 | **Tareas** | 3 |
-| **Aprobadas** | **2** de 3 |
-| **Avance** | **67 %** |
+| **Aprobadas** | **3** de 3 |
+| **Avance** | **100 %** |
 | **Hito que completa** | Blog usable de extremo a extremo en local. |
 
 ---
@@ -64,11 +64,47 @@ navegador real queda pendiente de la semilla local (`Task/022`).
 **Ficha:** [`TASK-014-public-site.md`](../tasks/TASK-014-public-site.md) ·
 **Reporte:** [`TASK-014-report.md`](../task-reports/TASK-014-report.md)
 
-### `Task/015-Panel-Administrativo` — *Pendiente*
+### `Task/015-Panel-Administrativo` — **Aprobada** (2026-09-05)
 
-Dashboard, editor Markdown, gestión de contenido, carga de imágenes y vista previa.
+Acceso y sesión administrativa, dashboard básico, listados y formularios de los cuatro tipos
+publicables, editor Markdown con vista previa, carga y selección de imágenes, etiquetas,
+perfil y transiciones de publicación: **18 superficies** sobre las primitivas de `Task/013` y
+los **27 patrones de ruta / 39 operaciones HTTP** que `Task/011`, `Task/012` y `Task/012.1`
+dejaron cerrados.
 
-**Depende de:** `Task/013`.
+**Resuelve D-04** —editor Markdown— con `<textarea>` nativo más el componente
+`MarkdownContent` de `Task/014`, es decir **el mismo pipeline de sanitización** que el sitio
+público (ADR-005, **S-03**) y **cero dependencias nuevas**. Asume **A-03** (labels asociadas),
+**A-08** (errores anunciados de forma accesible) y **P-05** (el código del panel no se
+descarga en las páginas públicas); continúa **A-01** y **A-02**, y preserva **A-04** a
+**A-07**.
+
+**Dashboard mínimo completo, sin bloqueos.** Al reconstruir el alcance del panel se
+descubrió que `MVP_SCOPE.md` §3.3 exige *«últimos eventos de auditoría»* y que ninguna
+operación HTTP los exponía —bloqueo **B-015-1**—. Lo resolvió
+`Task/012.1-Exponer-Auditoria-Para-Dashboard`, mantenimiento fuera de las 41 **aprobado el
+2026-09-05**, que añadió `GET /api/v1/admin/audit-events` al contrato del que `Task/012` es
+dueña. **`Task/015` no se amplió a backend**: esta ficha declara `personal-blog-frontend`
+repositorio de toda la etapa, y esa declaración se respetó.
+
+Las tres piezas del dashboard mínimo son ya construibles dentro de `Task/015`: conteo por
+tipo y estado y últimos elementos modificados desde los listados administrativos, y los
+últimos eventos de auditoría desde la nueva operación de solo lectura.
+
+Definida, reconciliada e implementada el 2026-09-05: **600 pruebas** en verde —440
+heredadas más 160 nuevas (43 añadidas al corregir auth)—, **cero dependencias nuevas** y el gate **P-05** verificado sobre
+el artefacto real con una mutación que lo pone rojo. El usuario la aprobó el 2026-09-05
+mediante `approved: Task/015-Panel-Administrativo`. **D-015-A** a **D-015-H**,
+**D-015-J** y **D-015-K** quedan **Vigentes**; **D-015-I** continúa **retirada**.
+La etapa queda **Completada: 3 de 3 — 100 %**.
+
+La aprobación conserva la limitación visual: no se observaron en navegador los anchos
+320, 390, 768 y 1280 del panel; el recorrido con administrador y contenido reales sigue
+ligado a la semilla local de `Task/022`. La evidencia funcional procede de la suite.
+
+**Depende de:** `Task/013` — **Aprobada** ✔ · `Task/014` — **Aprobada** ✔.
+**Ficha:** [`TASK-015-admin-panel.md`](../tasks/TASK-015-admin-panel.md) ·
+**Reporte:** [`TASK-015-report.md`](../task-reports/TASK-015-report.md)
 
 **Repositorio de toda la etapa:** `personal-blog-frontend`.
 
@@ -78,13 +114,15 @@ Dashboard, editor Markdown, gestión de contenido, carga de imágenes y vista pr
 - [x] El sitio se ve correctamente en móvil, tableta y escritorio. — `Task/014`: medido a
       320, 390, 768 y 1280 px sin desbordamiento horizontal. *Con contenido publicado se
       revalida cuando exista semilla local (`Task/022`).*
-- [ ] El administrador puede crear, editar, publicar y archivar contenido desde el panel.
-- [ ] Se pueden subir imágenes y verlas en el contenido publicado. — El **render** público
-      de imágenes por `access_url` está entregado por `Task/014`; falta la carga desde el
-      panel (`Task/015`).
-- [ ] Existe vista previa antes de publicar. — `Task/015` reutilizará el pipeline
-      `MarkdownContent` de `Task/014`.
-- [ ] El panel administrativo es inaccesible sin sesión válida.
+- [x] El administrador puede crear, editar, publicar y archivar contenido desde el panel.
+      — `Task/015`, aprobado y probado mediante el router real.
+- [x] Se pueden subir imágenes y verlas en el contenido publicado. — Carga y asociación
+      probadas en `Task/015`; render público por `access_url` entregado por `Task/014`.
+      El recorrido con contenido real conserva la limitación de `Task/022`.
+- [x] Existe vista previa antes de publicar. — `Task/015` reutiliza el pipeline
+      `MarkdownContent` de `Task/014`, con sanitización probada.
+- [x] El panel administrativo es inaccesible sin sesión válida. — Guardas de `Task/015`
+      verificadas por pruebas de sesión y rutas.
 - [x] La página 404 funciona en rutas inexistentes. — `Task/014`. El **código HTTP** `404`
       real de la SPA es de `Task/016` y `Task/034`.
 

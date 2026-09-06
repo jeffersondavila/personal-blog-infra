@@ -8,11 +8,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — En curso** (**2 de 3** aprobadas). ETAPAS 00, 01, 02 y 03 **completadas** |
-| **Tarea actual** | **Ninguna en curso.** `Task/012.1` quedó aprobada y cerrada; `Task/015-Panel-Administrativo` está en definición en su propia rama |
-| **Estado de la tarea** | `Task/012.1` — **Aprobada** ✔ el 2026-09-05. El avance sigue en **14 de 41**: un mantenimiento no lo altera. `Task/014-Sitio-Publico` — **Aprobada** ✔ el 2026-09-05 |
-| **Última tarea aprobada** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
-| **Tarea aprobada anterior** | `Task/013-Sistema-de-Diseno` — **Aprobada** el 2026-09-04 por jeffersondavila. **50 tokens** semánticos, fundación global con estrategia única de foco, cinco primitivas compartidas —`Container`, `Stack`, `Button`, `Card`, `Badge`—, contraste **verificado por prueba** sobre los valores reales, señal no cromática por forma y **cero dependencias nuevas**. Asume **A-05**, **A-06** y **A-07**, e inicia **A-01**. Resuelve **D-03**. **Abre la ETAPA 04** |
+| **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — Completada** (**3 de 3** aprobadas). ETAPAS 00 a 04 **completadas**; ETAPA 05 pendiente |
+| **Tarea actual** | **`Task/015-Panel-Administrativo`** — **Aprobada** el 2026-09-05 por jeffersondavila |
+| **Estado de la tarea** | `Task/015-Panel-Administrativo` — **Aprobada** mediante `approved: Task/015-Panel-Administrativo`. Cuenta en el avance: **15 de 41** |
+| **Última tarea aprobada** | `Task/015-Panel-Administrativo` — **Aprobada** el 2026-09-05. **18 superficies**, dashboard completo, sesión administrativa, editor Markdown y medios. **600 pruebas**, cero dependencias nuevas. **D-04 resuelta**; completa ETAPA 04 |
+| **Tarea aprobada anterior** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
@@ -21,17 +21,99 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/015-Panel-Administrativo` — **Pendiente**. Depende de `Task/013` (**Aprobada**) según el [ROADMAP](ROADMAP.md) y, para su dashboard, del contrato que entrega `Task/012.1`. Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño y reutiliza el pipeline de Markdown de `Task/014`. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **34 %** — 14 de 41 tareas aprobadas |
-| **Bloqueos activos** | **0.** **B-015-1** —el dashboard mínimo de `MVP_SCOPE.md` §3.3 exigía los *«últimos eventos de auditoría»* sin que ninguna operación HTTP los expusiera— queda **resuelto** por `Task/012.1`, **Aprobada** el 2026-09-05: el contrato administrativo ya incluye `GET /api/v1/admin/audit-events`. La ficha de `Task/015` registra su propia salida del bloqueo en su rama |
+| **Próxima tarea prevista** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Pendiente, no iniciada**. Dependencias `Task/014` y `Task/015` **Aprobadas**. Requiere una nueva instrucción del usuario; su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **37 %** — 15 de 41 tareas aprobadas |
+| **Bloqueos activos** | **0.** **B-015-1** —el dashboard mínimo de `MVP_SCOPE.md` §3.3 exigía los *«últimos eventos de auditoría»* sin que ninguna operación HTTP los expusiera— quedó **resuelto** por `Task/012.1`, **Aprobada** el 2026-09-05: el contrato administrativo incluye `GET /api/v1/admin/audit-events` |
 | **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
-| **Decisiones abiertas** | **13** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
+| **Decisiones abiertas** | **12** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> El avance se calcula **solo** con tareas `Aprobada`. **`Task/014` ya cuenta**: fue
-> aprobada por el usuario el 2026-09-05, lo que lleva el avance a **14 de 41** y deja la
-> ETAPA 04 en **2 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no
-> el trámite posterior de fusionar el pull request
-> ([WORKFLOW §6.1](WORKFLOW.md)).
+> **Recuento tras la aprobación del 2026-09-05:** `Task/015` lleva el avance a
+> **15 de 41 — 37 %** y completa ETAPA 04 en **3 de 3 — 100 %**. La aprobación del
+> usuario es el hecho que suma avance; las tareas de mantenimiento no cuentan en las 41.
+
+---
+
+## Última tarea aprobada — `Task/015-Panel-Administrativo`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/015-Panel-Administrativo` |
+| **Etapa** | ETAPA 04 — Experiencia del Usuario |
+| **Tipo** | **Tarea oficial del roadmap.** Cuenta dentro de las **15 de 41 aprobadas** |
+| **Estado** | **Aprobada** el 2026-09-05 por jeffersondavila mediante `approved: Task/015-Panel-Administrativo`. **Sin bloqueos canónicos** |
+| **Repositorios** | `personal-blog-frontend` (funcional) · `personal-blog-infra` (gobierno documental). `personal-blog-backend` **sin rama y sin cambios** |
+| **Rama** | `Task/015-Panel-Administrativo`, nacida de `main` con `HEAD == main` verificado y actualizada por avance rápido al `main` que incorpora `Task/012.1` |
+| **Dependencias** | `Task/013` y `Task/014` — **Aprobadas** ✔; contratos de `Task/010`, `Task/011`, `Task/012` y `Task/012.1` — **Aprobados** ✔ |
+| **Ficha** | [TASK-015](../tasks/TASK-015-admin-panel.md) |
+| **Reporte** | [TASK-015-report.md](../task-reports/TASK-015-report.md) |
+
+### Qué construye
+
+Las **18 superficies** del panel administrativo —acceso, dashboard, listados y formularios de
+los cuatro tipos publicables, etiquetas, biblioteca de medios, perfil y 404 del panel— sobre
+las primitivas de `Task/013` y los **27 patrones de ruta / 39 operaciones HTTP** cerrados por
+`Task/011`, `Task/012` y `Task/012.1`. Incluye sesión administrativa sobre la cookie
+`HttpOnly`, editor Markdown con **vista previa por el mismo pipeline sanitizado** de
+`Task/014`, carga y selección de imágenes, y las transiciones de publicación como
+subrecursos.
+
+### Qué asume y qué difiere
+
+Asume **A-03** (labels asociadas), **A-08** (errores anunciados), **S-03** en la vista previa
+y **P-05** (el panel no viaja en el código público). Continúa **A-01** y **A-02**; preserva
+**A-04** a **A-07**. **No** hace auditoría de accesibilidad ni SEO (`Task/016`), ni CORS ni
+cabeceras (`Task/018`), ni toca el backend.
+
+### Dashboard mínimo — las tres piezas, ya construibles
+
+`Task/012.1` cerró la laguna que impedía la tercera. `MVP_SCOPE.md` §3.3 queda completo
+dentro de `Task/015`:
+
+| Pieza | Fuente de datos |
+| --- | --- |
+| Conteo por tipo y estado | `GET /admin/{recurso}?status={estado}&page_size=1`, leyendo `total` |
+| Últimos elementos modificados | `GET /admin/{recurso}?page_size=5`, ya ordenado `updated_at` desc |
+| **Últimos eventos de auditoría** | **`GET /api/v1/admin/audit-events`** — `Task/012.1`, **Aprobada** |
+
+### Decisiones vigentes
+
+**D-015-A** a **D-015-H**, más **D-015-J** y **D-015-K**, **Vigentes** por la aprobación
+del usuario del 2026-09-05. **D-04 queda resuelta**: `<textarea>` nativo más
+`MarkdownContent`, con **cero dependencias nuevas**. Registro en
+[open-decisions.md](../architecture/open-decisions.md#d-04--editor-markdown--resuelta).
+
+**D-015-I quedó retirada** el 2026-09-05 y **no se restaura**. Proponía entregar dos de las
+tres partes del dashboard y diferir los eventos de auditoría a `Task/017`, cuyos repositorios
+son `backend, infra` —sin `frontend`— y que **depende de `Task/015`**. La resolución real fue
+`Task/012.1`.
+
+### Qué se validó (2026-09-05)
+
+| Aspecto | Resultado |
+| --- | --- |
+| Pruebas | **600 / 600** en 67 archivos. Baseline heredado: **440**. **+160** nuevas (**+43** en la corrección auth) |
+| Compuertas | `format:check`, `lint`, `typecheck` y `build` sin errores |
+| Dependencias | **0 nuevas**: `package.json` y el lockfile **sin cambios** |
+| **P-05** | Las cinco comprobaciones en verde sobre `dist/` real, con **mutación** que las pone rojas y se revierte |
+| Dashboard | **17 peticiones** —12 + 4 + 1— fijadas por prueba, y las tres piezas de `MVP_SCOPE.md` §3.3 |
+| A-03 / A-08 | Etiquetas asociadas y errores anunciados, con prueba por superficie |
+| Backend | **Sin rama y sin cambios** |
+
+**Limitación declarada:** no se ejecutó la validación visual a 320, 390, 768 y 1280 px —esta
+sesión no dispone de automatización de navegador—, y sin administrador ni perfil en la base
+local (`Task/022`) el recorrido funcional real no puede completarse. Detalle en el
+[reporte](../task-reports/TASK-015-report.md) §14.
+
+### Limitaciones declaradas
+
+1. **No se pueden insertar imágenes dentro del cuerpo Markdown**: `access_url` caduca y no
+   debe almacenarse (`api-contracts.md` §12). La URL estable es **D-08** (`Task/030`).
+2. **No hay administrador ni perfil en la base local**: la semilla es de `Task/022`, así que
+   el recorrido funcional en el navegador quedará parcialmente sin validar.
+3. **El backend no tiene middleware CORS** (`Task/018`): en local el panel debe servirse en
+   el mismo origen que el API.
+4. **`request_id` no está en el DTO del historial** (`v1` de `Task/012.1`): el panel no puede
+   mostrar el correlation ID de un evento hasta que `Task/017` fije su cabecera.
 
 ---
 
@@ -51,12 +133,15 @@
 ### Por qué existe
 
 `MVP_SCOPE.md` §3.3 fija como **alcance mínimo** del dashboard tres cosas: conteo por tipo y
-estado, últimos elementos modificados y **últimos eventos de auditoría**. Las dos primeras se
-construyen con el contrato vigente; la tercera **no**: ninguna de las **38 operaciones HTTP**
-administrativas lee `audit_events`. El módulo `audit` del backend no tiene capa
-`presentation`, su puerto de dominio declara un solo método —`registrar`— y no existe ninguna
-consulta. El frontend tampoco puede alcanzar la tabla: `software-architecture.md` §5 lo
-prohíbe expresamente.
+estado, últimos elementos modificados y **últimos eventos de auditoría**. Las dos primeras ya
+se construían con el contrato de `Task/012`; la tercera **no**: ninguna de las **38
+operaciones HTTP** administrativas de entonces leía `audit_events`. El módulo `audit` del
+backend no tenía capa `presentation`, su puerto de dominio declaraba un solo método
+—`registrar`— y no existía ninguna consulta. El frontend tampoco podía alcanzar la tabla:
+`software-architecture.md` §5 lo prohíbe expresamente.
+
+Con esta tarea el inventario administrativo pasa a **27 patrones de ruta / 39 operaciones
+HTTP**, y la operación 39.ª es justamente la que faltaba.
 
 Es una **laguna del contrato**, detectada al reconstruir el alcance del panel administrativo,
 y bloquea que ese panel entregue su dashboard mínimo.
@@ -108,12 +193,13 @@ repara**: es ajeno a este mantenimiento.
 
 ### Efecto en el avance
 
-**Ninguno.** Avance global **14 de 41 — 34 %** y ETAPA 04 **2 de 3 — 67 %** **sin cambios**.
+**Ninguno.** **B-015-1 RESUELTO** por `Task/012.1`; la aprobación de `Task/015` del
+2026-09-05 lleva el avance a **15 de 41 — 37 %** y ETAPA 04 a **3 de 3 — 100 %**.
 **41 identificadores intactos.**
 
 ---
 
-## Última tarea aprobada — `Task/014-Sitio-Publico`
+## Tarea aprobada anterior — `Task/014-Sitio-Publico`
 
 | Campo | Valor |
 | --- | --- |
@@ -1089,7 +1175,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 01 — Infraestructura Local | 2 | 2 | **100 %** |
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
 | 03 — Dominio y Backend | 5 | **5** | **100 %** — **completada** |
-| 04 — Experiencia del Usuario | 3 | **2** | **67 %** — **en curso** |
+| 04 — Experiencia del Usuario | 3 | **3** | **100 %** — **completada** |
 | 05 — Calidad y Seguridad | 3 | 0 | 0 % |
 | 06 — Integración Continua | 3 | 0 | 0 % |
 | 07 — Validación Local | 1 | 0 | 0 % |
@@ -1098,16 +1184,16 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **14** | **34 %** |
+| **Total** | **41** | **15** | **37 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **27** |
+| Pendiente | **26** |
 | En progreso | 0 |
 | Lista para validación | **0** |
-| **Aprobada** | **14** |
+| **Aprobada** | **15** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |
@@ -1259,7 +1345,7 @@ Distribución por estado:
 | `Task/012-API-Administrativa` | 03 | backend, infra | **Aprobada** (2026-09-03) |
 | `Task/013-Sistema-de-Diseno` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-04) |
 | `Task/014-Sitio-Publico` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
-| `Task/015-Panel-Administrativo` | 04 | frontend | Pendiente |
+| `Task/015-Panel-Administrativo` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend | Pendiente |
 | `Task/017-Observabilidad-Local` | 05 | backend, infra | Pendiente |
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | Pendiente |
