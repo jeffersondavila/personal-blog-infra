@@ -80,6 +80,35 @@ Solo lectura. **Nunca** devuelven contenido en estado `draft` o `archived`.
 **Regla de no filtración:** un slug inexistente y un slug existente pero no publicado
 devuelven **el mismo `404`**. La API no revela la existencia de borradores.
 
+### `GET /sitemap.xml` — cerrado en `Task/016` (2026-09-06)
+
+> **Vigente** desde la aprobación de `Task/016`.
+
+| Aspecto | Valor |
+| --- | --- |
+| Ruta | **`/sitemap.xml`**, **fuera** del prefijo `/api/v1` |
+| `Content-Type` | `application/xml` |
+| Autenticación | Ninguna |
+| Paginación | **No**. No es una colección de la API: la consume un *crawler*, y el protocolo de sitemaps define su propio límite |
+
+**Por qué fuera del prefijo versionado**, con el mismo criterio que `/health`: el prefijo
+versiona el **contrato de datos** que consume el frontend, y el sitemap es un artefacto del
+**protocolo web**. No debe mudarse de ruta cuando el contrato pase a `v2`.
+
+Contiene las 7 rutas estáticas del sitio más una entrada por cada contenido `published` de
+**artículos, reviews y proyectos**. **No** incluye `/buscar`, `/admin/*`, la 404 ni
+`/videos/{slug}`, que no existe. `<lastmod>` sale de `published_at`, normalizado a UTC;
+**no** se expone `updated_at`, que no forma parte del contrato público.
+
+Las URL son del **sitio**, no del API: se componen con `BLOG_PUBLIC_SITE_BASE_URL`, una
+variable obligatoria y validada al arrancar. Con **D-15** el sitio vive en el dominio raíz
+y el API en un subdominio, así que confundirlos produciría un sitemap falso.
+
+**Requisito E-08 por construcción:** el sitemap reutiliza el mismo filtro `status =
+'published'` que protege los listados públicos, así que un borrador o un archivado no
+pueden aparecer. Fijado por prueba contra PostgreSQL real, y comprobado con una mutación
+temporal del filtro que puso esas pruebas en rojo.
+
 ---
 
 ## 4. Recursos administrativos (conceptuales)
@@ -306,15 +335,26 @@ forma de ese acceso —bucket privado, URL prefirmada, expiración— correspond
   "alt_text": "Texto alternativo",
   "width": 1200,
   "height": 800,
-  "access_url": "https://<endpoint>/<bucket>/<clave>?X-Amz-Signature=..."
+  "access_url": "https://<endpoint>/<bucket>/<clave>?X-Amz-Signature=...",
+  "thumbnail_access_url": "https://<endpoint>/<bucket>/<clave-derivada>?X-Amz-Signature=..."
 }
 ```
 
 | Campo | Significado |
 | --- | --- |
 | `alt_text` | Texto alternativo (requisito A-04). |
-| `width`, `height` | Dimensiones, para reservar el espacio antes de cargar. |
+| `width`, `height` | Dimensiones **del original**, para reservar el espacio antes de cargar. |
 | `access_url` | **Enlace temporal de lectura.** Se genera al servir la respuesta y **caduca**. No es un identificador estable y no debe almacenarse. |
+| `thumbnail_access_url` | **Enlace temporal de la miniatura**, para listados (requisito P-04). Añadido en `Task/016`. **Misma naturaleza temporal** que `access_url`. |
+
+> **`thumbnail_access_url` NO es una URL estable de medios.** Caduca igual que
+> `access_url`. Que exista una URL estable sigue siendo la pregunta abierta de **D-08**,
+> propiedad de `Task/030`, y este campo no la responde: en particular, **no vale como
+> `og:image`**.
+>
+> **No se exponen las dimensiones de la miniatura:** no se persisten —su clave se *deriva*
+> de la del original, decisión D-010-I— y `width`/`height` sirven igual para reservar el
+> espacio, porque la miniatura conserva la proporción (D-010-H).
 
 Es un cambio **compatible**: añade un campo opcional y no retira ni renombra
 ninguno (§10, regla 3).
@@ -350,7 +390,7 @@ que inspecciona el JSON entero tras retirar los enlaces firmados.
 | **Semántica de caché** de esas URLs y su compatibilidad con un CDN | `Task/030` |
 | **Valor productivo** del TTL (aquí es configuración: `BLOG_STORAGE_ACCESS_TTL_SECONDS`, 900 s por defecto) | `Task/030` |
 | Política del bucket, CORS y *lifecycle* | `Task/030` |
-| Qué URL usa `og:image` | `Task/016` |
+| Qué URL usa `og:image` | **Respondido por `Task/016`** (2026-09-06, **Vigente**): una **imagen estática del propio sitio**, versionada en `public/`. Es la única opción estable y no expirable que no decide nada de lo que D-08 reserva. El `og:image` **personalizado por contenido** sigue bloqueado por D-08 |
 
 Por eso **no** se expone `access_expires_at`: declarar cuándo caduca el enlace es
 describir su semántica de caché, que es literalmente una de las preguntas de

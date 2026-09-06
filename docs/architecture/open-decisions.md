@@ -3,8 +3,8 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-05 (`Task/015` — **D-04 resuelta** y **Vigente**, aprobada por el usuario) |
-| **Decisiones abiertas** | **12** — D-05, D-14, D-01, D-15, D-02, D-09, D-03 y **D-04** resueltas |
+| **Última actualización** | 2026-09-06 (`Task/016` **aprobada** — **D-21 abierta**; la respuesta a `og:image` dentro de D-08 queda **Vigente** y **D-08 sigue Abierta**) |
+| **Decisiones abiertas** | **13** — D-05, D-14, D-01, D-15, D-02, D-09, D-03 y **D-04** resueltas. **D-21** añadida por `Task/016` |
 | **Decisiones resueltas** | **8** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), **D-04 (2026-09-05)** |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
@@ -47,6 +47,7 @@ ADR.
 | D-18 | **Mecanismo de configuración interna del sistema operativo del VPS** | `Task/029` | Abierta |
 | D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) | Abierta |
 | D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) | Abierta |
+| D-21 | **Estrategia de *rendering* del sitio público frente a *crawlers*** | Sin tarea asignada — abierta por `Task/016` | Abierta |
 
 > **D-17 a D-20 se añadieron en `Task/006.2`** (**aprobada** el 2026-08-23), al formalizar la arquitectura
 > objetivo de producción. **Son consecuencia de cerrar decisiones, no de abrirlas al azar:**
@@ -360,6 +361,39 @@ política:
 **Deliberadamente no se expuso `access_expires_at`**: declarar cuándo caduca el
 enlace *es* describir su semántica de caché, que es una de las preguntas de
 arriba. Añadirlo después sería compatible; retirarlo, no.
+
+### Qué aporta `Task/016` — y por qué **D-08 sigue abierta**
+
+> **Vigente** desde el 2026-09-06, al aprobarse `Task/016`. **D-08 sigue Abierta**: lo que
+> `Task/016` respondió es **qué URL usa `og:image`**, que es una de sus preguntas, no la
+> decisión completa.
+
+`Task/016` es propietaria de **qué URL usa `og:image`**, y esa pregunta admite respuesta
+**sin** decidir ninguna de las otras cuatro que este documento reserva a `Task/030`.
+
+| Pregunta | Respuesta propuesta por `Task/016` |
+| --- | --- |
+| Qué URL usa `og:image` | Una **imagen estática propia del sitio**, versionada en `personal-blog-frontend/public/` y servida desde el mismo origen que el sitio (decisión **D-016-A**) |
+
+**Por qué esa y no otra.** Es la única alternativa que cumple *«URL estable y no
+expirable»* sin tocar el mecanismo de medios: un activo estático de `dist/` no caduca, no
+exige autenticación y su semántica de caché es la que `Task/007` ya fijó para `dist/`.
+Publicar un `access_url` como `og:image` está **prohibido** por la regla vigente de esta
+misma decisión.
+
+**Lo que `Task/016` NO decide, y sigue siendo de `Task/030`:**
+
+- Si existe una URL **pública y estable** para los **medios** del contenido publicado, y
+  por qué vía.
+- La **semántica de caché** de esas URLs y su compatibilidad con un CDN.
+- El **valor productivo** del TTL.
+- La política del bucket, CORS y *lifecycle*.
+
+**Bloqueo declarado — `B-016-1`.** Un `og:image` **personalizado por contenido** —la
+portada del artículo compartido— exige precisamente una URL de medio pública y estable que
+**hoy no existe**. `Task/016` entrega la imagen de sitio, **declara la limitación** y **no
+cierra D-08 para desbloquearse**. Detalle en la
+[ficha de `Task/016` §8](../tasks/TASK-016-seo-accessibility-performance.md).
 
 ## D-09 — Herramienta concreta de rate limiting — **RESUELTA**
 
@@ -773,3 +807,52 @@ cerrado:
 3. Una decisión nueva que aparezca a mitad del proyecto se **añade** aquí, no se resuelve
    sobre la marcha.
 4. Ninguna tarea debe resolver una decisión que corresponda a otra sin registrarlo.
+
+## D-21 — Estrategia de *rendering* del sitio público frente a *crawlers*
+
+> **Abierta por `Task/016`** el 2026-09-06, con evidencia medida. ADR asociado:
+> [ADR-009](../adr/ADR-009-rendering-strategy-for-crawlers.md) — **Propuesta**.
+>
+> `STAGE-05` obligaba a `Task/016` a **comprobar** el SEO de la SPA y, si las
+> comprobaciones no se satisfacían, a **abrir** esta reconsideración. Se
+> comprobó, no se satisfacen, y por eso existe esta decisión.
+
+- **Se resuelve en:** **sin tarea asignada.** `STAGE-05` excluye resolverla en la
+  ETAPA 05, y ninguna tarea posterior la reclama todavía.
+- **Información necesaria:** si el usuario quiere **vistas previas sociales por
+  URL** —es una decisión de producto, no técnica—; ritmo real de publicación;
+  costo de cada opción; y evidencia con contenido real, que hoy no existe porque
+  la semilla es de `Task/022`.
+- **Afecta a:** **E-02**, **E-03**, **E-04** y **E-07** en el canal sin
+  JavaScript; el *hosting* (`Task/034`); y, si se eligiera SSR, el modelo de
+  costos de [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md).
+- **Restricción:** [ADR-005](../adr/ADR-005-markdown-content.md) **sigue
+  Aceptado** y el *stack* no cambia mientras esta decisión no se resuelva.
+
+### La evidencia, en una línea
+
+Con los metadatos **ya implementados y verificados**, un *crawler* que no ejecuta
+JavaScript sigue recibiendo **cero** `og:title`, `og:description`, `og:url`,
+`description`, `canonical` y JSON-LD **propios de la URL**. No era falta de
+código: es el modelo de *rendering*.
+
+Y el propósito canónico de **E-03** son las redes sociales
+(`MVP_SCOPE.md` §2.2), cuyos *crawlers* son justamente los que no ejecutan
+JavaScript.
+
+### Qué NO es esta decisión
+
+- **No es D-08.** D-08 decide **qué imagen** usa `og:image`; D-21 decide **si un
+  *crawler* llega a verla**. Son independientes.
+- **No es un cambio de *stack* pendiente.** Una de las opciones sobre la mesa es
+  **no cambiar nada** y aceptar la limitación, que sería una decisión legítima si
+  el usuario no quiere vistas previas sociales por URL.
+
+### Qué aportó `Task/016` sin resolverla
+
+| Entregado | Sigue abierto |
+| --- | --- |
+| Metadatos correctos por URL **con** JavaScript, verificados en navegador real | Los mismos **sin** JavaScript |
+| Open Graph **de sitio** en `index.html`, visible sin JavaScript | Open Graph **por URL** sin JavaScript |
+| `sitemap.xml` y `robots.txt` correctos en **ambos** canales | — |
+| La medición de los cuatro canales, antes y después | La elección de estrategia |

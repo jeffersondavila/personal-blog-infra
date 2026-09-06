@@ -177,6 +177,18 @@ services:
       BLOG_APP_DEBUG: "false"
       BLOG_LOG_LEVEL: ${BLOG_LOG_LEVEL:-INFO}
       BLOG_LOG_FORMAT: json
+      # Origen publico del SITIO, no del API. Anadido por `Task/016`: lo exige
+      # el sitemap (requisito E-05), que enumera URL del sitio publico.
+      #
+      # En local los dos coinciden porque Traefik enruta por prefijo de ruta y
+      # sirve sitio y API en el mismo origen. En produccion NO coinciden
+      # (D-15: sitio en el dominio raiz, API en un subdominio), y el valor real
+      # lo fijan `Task/034` y `Task/035` cuando D-07 se resuelva.
+      #
+      # Es obligatoria y se valida al arrancar: sin ella el backend no arranca,
+      # igual que sin BLOG_DATABASE_URL. Un origen inventado produciria un
+      # sitemap apuntando a un sitio que no es este.
+      BLOG_PUBLIC_SITE_BASE_URL: http://localhost:${TRAEFIK_HTTP_HOST_PORT}
       # DENTRO de Docker el host es el NOMBRE DEL SERVICIO y el puerto es el
       # INTERNO (5432), no el publicado en el host (55432). Apuntar aqui a
       # 127.0.0.1:55432 resolveria al propio contenedor del backend, no a
@@ -247,10 +259,14 @@ services:
   # El contenedor es un detalle del entorno LOCAL. En produccion el mismo
   # `dist/` lo publica Cloudflare Pages, sin contenedor (ADR-003).
   #
-  # VITE_API_BASE_URL se pasa como argumento de BUILD porque Vite incrusta las
-  # variables `VITE_*` en el bundle: cambiarla exige reconstruir la imagen.
-  # Apunta al MISMO origen que sirve el sitio, de modo que el navegador trate
-  # las peticiones como same-origin y no haga falta CORS.
+  # VITE_API_BASE_URL y VITE_SITE_BASE_URL se pasan como argumentos de BUILD
+  # porque Vite incrusta las variables `VITE_*` en el bundle: cambiarlas exige
+  # reconstruir la imagen.
+  #
+  # En local las dos apuntan al MISMO origen, el que publica Traefik: asi el
+  # navegador trata las peticiones como same-origin y no hace falta CORS. Que
+  # coincidan es una propiedad del entorno local, no una equivalencia: son
+  # conceptos distintos y en produccion difieren (D-15).
   # -------------------------------------------------------------------------
   frontend:
     build:
@@ -258,6 +274,15 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://localhost:${TRAEFIK_HTTP_HOST_PORT}
+        # Origen publico del SITIO, anadido por `Task/016`. Se pasa aqui —y no
+        # se deja al valor por defecto del Dockerfile— porque
+        # `TRAEFIK_HTTP_HOST_PORT` es configurable: `canonical`, `og:url` y
+        # `og:image` no pueden quedar acoplados a un puerto fijo.
+        #
+        # En local coincide con el origen del API porque Traefik enruta por
+        # prefijo de ruta y sirve sitio y API en el mismo origen. En produccion
+        # NO coinciden (D-15) y el valor lo fijan `Task/034` y `Task/035`.
+        VITE_SITE_BASE_URL: http://localhost:${TRAEFIK_HTTP_HOST_PORT}
     image: personal-blog-frontend:local
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-frontend
     restart: unless-stopped
