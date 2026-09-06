@@ -520,7 +520,7 @@ Se diseñan por consulta prevista, no por intuición (requisito P-08).
 | `ix_<puente>_tag_id` (4) | Filtro público por etiqueta (A.9): el índice de la PK empieza por la columna de contenido |
 | `ix_media_assets_checksum` | Detección de duplicados al subir (CONTENT_MODEL.md §3.7) |
 | `ix_profile_social_links_profile_id` | Enlaces de un perfil |
-| `ix_audit_events_occurred_at` | Listado cronológico del historial |
+| `ix_audit_events_occurred_at` | Listado cronológico del historial. **Consumidor real desde `Task/012.1`**: `GET /admin/audit-events` lo recorre en sentido inverso —`occurred_at` descendente, desempate por `id` ascendente—. **No hizo falta ningún índice nuevo** |
 | `ix_audit_events_entity_type_entity_id` | "Qué le pasó a este elemento": la única forma de recorrer la referencia polimórfica sin escanear |
 | `ix_audit_events_request_id` | Trazabilidad extremo a extremo por correlation ID (api-contracts §9) |
 | `ix_audit_events_actor_id` | Clave foránea `RESTRICT`; evita escaneo al comprobarla |

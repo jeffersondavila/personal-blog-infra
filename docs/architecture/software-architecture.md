@@ -109,7 +109,7 @@ Cada módulo **puede** contener, según corresponda:
 | `tags` | Etiquetas y su asociación con contenido. |
 | `media` | Carga, consulta y borrado controlado de imágenes; comprobación de uso. |
 | `authentication` | Login, logout, sesión actual, protección contra fuerza bruta. |
-| `audit` | Registro inmutable de acciones administrativas. |
+| `audit` | Registro inmutable de acciones administrativas, y su **lectura** paginada para el dashboard (`Task/012.1`). |
 
 ### 3.4 Responsabilidad de `shared`
 
@@ -441,6 +441,8 @@ Es la última pieza del backend funcional del MVP. Contrato completo en
 | `app/shared/slug.py` | `shared` | Formato y derivación del slug |
 | `app/shared/reloj.py` | `shared` | Fuente del instante actual, mudada aquí desde `authentication` |
 | `audit/domain/puertos.py` | módulo `audit` | `RegistroDeAuditoria` y `ContextoDeAuditoria`, mudados aquí desde `authentication` |
+| `audit/infrastructure/queries.py` | módulo `audit` | **`Task/012.1`.** Consulta paginada del historial. **Sin capa `application`**: es solo lectura, mismo criterio **D-009-Q** que ya aplican las consultas públicas y las de medios |
+| `audit/presentation/{router_admin,schemas_admin}.py` | módulo `audit` | **`Task/012.1`.** `GET /admin/audit-events` y su DTO de cinco campos. **Sin repositorio**: el repositorio existe donde hay escritura |
 
 **`app/api/admin.py` no sabe nada del modelo de negocio.** Si lo supiera sería el
 constructor genérico que **D-009-R** rechazó por concentrar en `app/api` conocimiento que
