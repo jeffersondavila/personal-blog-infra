@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) · §11 añadida por `Task/011` (2026-09-01) |
+| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) · §11 añadida por `Task/011` (2026-09-01) · §12 añadida por `Task/012` (2026-09-01) · **B-08 enmendada y B-08b añadida** por `Task/012.1` (2026-09-05) |
 
 Identifica los **componentes** del sistema, qué comunicaciones entre ellos están
 permitidas y cuáles están explícitamente prohibidas.
@@ -468,7 +468,8 @@ igualmente. Los **nombres reales** siguen siendo **D-07** (`Task/035`).
 | B-05 | **Ninguna respuesta administrativa expone estado interno** | Ni `object_key`, ni `is_singleton`, ni claves foráneas, ni `password_hash`, ni `token_hash`, ni el contador de fallos. La invariante 9 de CONTENT_MODEL.md no hace excepción para el administrador |
 | B-06 | **El rechazo por medio en uso no filtra nombres internos** | Dice el tipo, el `slug` y el título del contenido que lo usa. No la tabla, ni la columna, ni la clave del objeto (requisito S-07) |
 | B-07 | **La auditoría no guarda contenido** | Metadatos mínimos: el `slug`, los dos estados de una transición o el nombre original de un archivo. Nunca Markdown, contraseñas, credenciales ni claves de objeto |
-| B-08 | **La auditoría sigue siendo solo-creación** | No existe ninguna ruta `/admin/audit`, en ninguna forma. Las guardas de inmutabilidad de `Task/008` quedan intactas |
+| B-08 | **La auditoría sigue siendo solo-creación** | Ninguna ruta permite modificar ni eliminar un `AuditEvent`, y ninguna permite crear uno a mano: escribir el historial es competencia exclusiva de los casos de uso de `Task/011` y `Task/012`. Las guardas de inmutabilidad de `Task/008` quedan intactas. **Enmendada por `Task/012.1`** — ver B-08b |
+| B-08b | **El historial se expone para leerlo, y solo para eso** | `GET /api/v1/admin/audit-events`, autenticada, paginada, **sin filtros** y sin `ip_address`. Es la **única** ruta de auditoría, y declara **exclusivamente `GET`**: `POST`, `PUT`, `PATCH` y `DELETE` responden `405`. **Leerla no genera un evento** —*«las lecturas no se auditan»*, CONTENT_MODEL.md §3.9—, fijado por prueba contando filas reales antes y después. Ver [api-contracts.md](api-contracts.md) §15 |
 | B-09 | **El identificador de petición y la política de IP son los de `Task/011`** | No hay un segundo mecanismo de correlación ni una segunda política de confianza en proxies |
 | B-10 | **El estado de publicación no es escribible** | Vive en subrecursos con su propia precondición y validación. No existe un `PUT` que publique de rebote |
 | B-11 | **Las transiciones son seguras ante concurrencia** | `SELECT … FOR UPDATE`. Comprobado con dos conexiones reales: una publica, la otra recibe `409`, y queda **un** evento |
@@ -507,3 +508,24 @@ igualmente. Los **nombres reales** siguen siendo **D-07** (`Task/035`).
 - **`Task/018` sigue siendo el propietario** del CORS efectivo, de las cabeceras de
   seguridad y del privilegio mínimo sobre `audit_events` (invariante 16b).
 - **No relaja** ninguna regla de este documento; añade las suyas.
+
+### 12.4 Por qué B-08 se enmendó — `Task/012.1` (2026-09-05)
+
+B-08 decía, hasta el 2026-09-05: *«La auditoría sigue siendo solo-creación — **No existe
+ninguna ruta `/admin/audit`, en ninguna forma**»*. Empaquetaba **dos afirmaciones
+distintas**:
+
+| Afirmación | Naturaleza | Qué le pasó |
+| --- | --- | --- |
+| Un `AuditEvent` no se modifica ni se elimina, y no se crea a mano por API | **Invariante de seguridad** | **Se conserva íntegra** y ahora se comprueba con una condición más fuerte |
+| No existe ninguna ruta de auditoría | **Hecho de superficie** | Dejó de ser cierto: `MVP_SCOPE.md` §3.3 exige que el dashboard muestre los *«últimos eventos de auditoría»*, y **ninguna fuente vigente pedía lo contrario** |
+
+La regla se apoyaba en la premisa *«ninguna fuente pide exponer el historial por API en el
+MVP»*, que `MVP_SCOPE.md` §3.3 contradice. `Task/012` no se equivocó al no exponerlo —no era
+su alcance—, pero justificó la ausencia con una premisa falsa.
+
+**La enmienda no relaja la seguridad**: sustituye una ausencia por una superficie
+**acotada y comprobada** —una ruta, un método, cinco campos, sin datos personales, sin
+efectos— y deja la invariante exactamente donde estaba. El reporte de `Task/012` conserva
+la redacción original como **registro histórico fechado** y no se reescribe
+([`WORKFLOW.md`](../project-management/WORKFLOW.md) §6.1).
