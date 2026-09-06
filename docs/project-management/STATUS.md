@@ -9,20 +9,21 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — En curso** (**2 de 3** aprobadas). ETAPAS 00, 01, 02 y 03 **completadas** |
-| **Tarea actual** | **Ninguna en curso.** `Task/014` quedó aprobada y cerrada; `Task/015-Panel-Administrativo` **no se ha iniciado** |
-| **Estado de la tarea** | `Task/014-Sitio-Publico` — **Aprobada** ✔ el 2026-09-05. Cuenta en el avance: **14 de 41** |
+| **Tarea actual** | **Ninguna en curso.** `Task/012.1` quedó aprobada y cerrada; `Task/015-Panel-Administrativo` está en definición en su propia rama |
+| **Estado de la tarea** | `Task/012.1` — **Aprobada** ✔ el 2026-09-05. El avance sigue en **14 de 41**: un mantenimiento no lo altera. `Task/014-Sitio-Publico` — **Aprobada** ✔ el 2026-09-05 |
 | **Última tarea aprobada** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
 | **Tarea aprobada anterior** | `Task/013-Sistema-de-Diseno` — **Aprobada** el 2026-09-04 por jeffersondavila. **50 tokens** semánticos, fundación global con estrategia única de foco, cinco primitivas compartidas —`Container`, `Stack`, `Button`, `Card`, `Badge`—, contraste **verificado por prueba** sobre los valores reales, señal no cromática por forma y **cero dependencias nuevas**. Asume **A-05**, **A-06** y **A-07**, e inicia **A-01**. Resuelve **D-03**. **Abre la ETAPA 04** |
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Último mantenimiento aprobado** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
-| **Mantenimiento anterior** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
-| **Mantenimiento previo** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
+| **Último mantenimiento aprobado** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` — **Aprobada** el 2026-09-05 por jeffersondavila. Añade **una** operación administrativa de solo lectura, `GET /api/v1/admin/audit-events`, que cierra la laguna entre `MVP_SCOPE.md` §3.3 y la API administrativa. **Sin migración**, sin filtros y sin datos personales; la inmutabilidad de `AuditEvent` queda intacta y leer no audita. **No cuenta en las 41 tareas** ni altera el avance |
+| **Mantenimiento anterior** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
+| **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
+| **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/015-Panel-Administrativo` — **Pendiente, no iniciada**. Depende de `Task/013` (**Aprobada**) según el [ROADMAP](ROADMAP.md). Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño y reutiliza el pipeline de Markdown de `Task/014`. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Próxima tarea prevista** | `Task/015-Panel-Administrativo` — **Pendiente**. Depende de `Task/013` (**Aprobada**) según el [ROADMAP](ROADMAP.md) y, para su dashboard, del contrato que entrega `Task/012.1`. Se ejecuta en `personal-blog-frontend` sobre el sistema de diseño y reutiliza el pipeline de Markdown de `Task/014`. Su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
 | **Avance global** | **34 %** — 14 de 41 tareas aprobadas |
-| **Bloqueos activos** | 0 |
+| **Bloqueos activos** | **0.** **B-015-1** —el dashboard mínimo de `MVP_SCOPE.md` §3.3 exigía los *«últimos eventos de auditoría»* sin que ninguna operación HTTP los expusiera— queda **resuelto** por `Task/012.1`, **Aprobada** el 2026-09-05: el contrato administrativo ya incluye `GET /api/v1/admin/audit-events`. La ficha de `Task/015` registra su propia salida del bloqueo en su rama |
 | **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
 | **Decisiones abiertas** | **13** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
@@ -31,6 +32,84 @@
 > ETAPA 04 en **2 de 3**. Lo que fija el recuento es **la aprobación del usuario**, no
 > el trámite posterior de fusionar el pull request
 > ([WORKFLOW §6.1](WORKFLOW.md)).
+
+---
+
+## Último mantenimiento aprobado — `Task/012.1-Exponer-Auditoria-Para-Dashboard`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` |
+| **Tipo** | **Mantenimiento funcional de la API administrativa.** **No cuenta** dentro de las 41 y **no altera el avance** |
+| **Estado** | **Aprobada** ✔ el 2026-09-05 por jeffersondavila (definición e implementación el mismo día) |
+| **Dependencia** | `Task/012-API-Administrativa` — **Aprobada** ✔ |
+| **Repositorios** | `personal-blog-backend` (funcional) · `personal-blog-infra` (gobierno y contratos). `personal-blog-frontend` **sin rama y sin cambios** |
+| **Rama** | `Task/012.1-Exponer-Auditoria-Para-Dashboard`, nacida de `main` en **worktrees dedicados**, con `HEAD == main` verificado: `ce166fb7…` (backend) · `5a8f4c8e…` (infra) |
+| **Ficha** | [TASK-012.1](../tasks/TASK-012.1-audit-events-for-dashboard.md) |
+| **Reporte** | [TASK-012.1-report.md](../task-reports/TASK-012.1-report.md) |
+
+### Por qué existe
+
+`MVP_SCOPE.md` §3.3 fija como **alcance mínimo** del dashboard tres cosas: conteo por tipo y
+estado, últimos elementos modificados y **últimos eventos de auditoría**. Las dos primeras se
+construyen con el contrato vigente; la tercera **no**: ninguna de las **38 operaciones HTTP**
+administrativas lee `audit_events`. El módulo `audit` del backend no tiene capa
+`presentation`, su puerto de dominio declara un solo método —`registrar`— y no existe ninguna
+consulta. El frontend tampoco puede alcanzar la tabla: `software-architecture.md` §5 lo
+prohíbe expresamente.
+
+Es una **laguna del contrato**, detectada al reconstruir el alcance del panel administrativo,
+y bloquea que ese panel entregue su dashboard mínimo.
+
+### Qué entrega
+
+**Una** operación administrativa autenticada de solo lectura —`GET
+/api/v1/admin/audit-events`—, paginada con la envoltura única del proyecto, ordenada por
+`occurred_at` descendente con desempate por `id` ascendente, **sin filtros** y con un DTO de
+**cinco** campos: `id`, `occurred_at`, `action`, `entity_type` y `entity_id`.
+
+**No expone** `ip_address`, `actor_id`, `event_metadata` ni `request_id`. **No requiere
+migración**: `ix_audit_events_occurred_at` ya existe desde la migración `0002`, creado
+—según `data-model.md` §5— justamente para el *«listado cronológico del historial»*.
+
+### Qué NO cambia
+
+La inmutabilidad de `AuditEvent` sigue intacta: no hay `POST`, `PUT`, `PATCH` ni `DELETE`, y
+las guardas de `Task/008` no se tocan. **Leer el historial no genera un evento nuevo**
+(`CONTENT_MODEL.md` §3.9). No se modifica cómo, cuándo ni qué se audita.
+
+### Hallazgo registrado antes de tocar nada
+
+Dos afirmaciones vigentes se apoyan en la premisa *«ninguna fuente pide exponer el historial
+por API en el MVP»*, que `MVP_SCOPE.md` §3.3 contradice: el test de contrato
+`test_no_se_expone_ninguna_ruta_de_auditoria` y la regla **B-08** de
+`security-boundaries.md` §12.1. Ambas se enmiendan **como entregable declarado**, con el
+motivo canónico de `BACKEND_TESTING_STRATEGY.md` §9. La **invariante** de solo-creación que
+motivaba B-08 se conserva palabra por palabra; lo que se corrige es el hecho de superficie.
+
+### Qué se validó (2026-09-05)
+
+| Aspecto | Resultado |
+| --- | --- |
+| Pruebas | **1572 / 1572** en verde, 1 `skip` de Windows. Baseline de `main`: 1527. **+45** nuevas: **38 de integración** y 7 de contrato |
+| Ciclo | **RED** de 10 fallos de contrato registrado antes de escribir código productivo; **GREEN** tras los cuatro *slices*; refactor declarado **innecesario** con su razón |
+| Anti-tautología | **Tres mutaciones** de la implementación produjeron el rojo esperado y se revirtieron: desempate invertido, DTO filtrando `ip_address` y lectura que audita |
+| Compuertas | `ruff check`, `ruff format --check`, `mypy` y `docker build` sin errores ni *warnings* |
+| Integración | PostgreSQL y MinIO **reales**. Nunca SQLite |
+| Migraciones | **Ninguna nueva.** Siguen siendo tres y el ciclo upgrade/downgrade sigue en verde |
+| Tests históricos | **Tres** enmendados —uno más de los dos previstos—, todos con motivo canónico de `BACKEND_TESTING_STRATEGY.md` §9 y con un assert **más restrictivo** que el original |
+
+### Hallazgo registrado — anomalía preexistente del harness
+
+Con ciertas combinaciones explícitas de archivos en la línea de comandos, pytest no carga
+`tests/integration/conftest.py` para el último argumento. Se reprodujo **sin ningún archivo
+de esta tarea** y **no ocurre** en la invocación canónica `pytest`. Se reporta y **no se
+repara**: es ajeno a este mantenimiento.
+
+### Efecto en el avance
+
+**Ninguno.** Avance global **14 de 41 — 34 %** y ETAPA 04 **2 de 3 — 67 %** **sin cambios**.
+**41 identificadores intactos.**
 
 ---
 

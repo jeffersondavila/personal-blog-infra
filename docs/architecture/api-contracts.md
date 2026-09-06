@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) · §13 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) · §14 añadida por `Task/012-API-Administrativa` (2026-09-01) |
+| **Fecha** | 2026-07-26 · §5, §6 y §11 completadas por `Task/009-API-Publica` (2026-08-26) · §13 añadida por `Task/011-Autenticacion-Administrativa` (2026-09-01) · §14 añadida por `Task/012-API-Administrativa` (2026-09-01) · §15 añadida por `Task/012.1-Exponer-Auditoria-Para-Dashboard` (2026-09-05) |
 | **Nivel** | **Convenciones conceptuales.** No es una especificación OpenAPI. |
 
 > **Límite explícito.** Este documento fija **convenciones** que toda la API debe
@@ -98,6 +98,7 @@ Todos requieren autenticación **excepto `login`**.
 | `/api/v1/admin/projects` | Gestión completa de proyectos. |
 | `/api/v1/admin/tags` | Gestión de etiquetas. |
 | `/api/v1/admin/media` | Carga, listado y borrado controlado de imágenes. |
+| `GET /api/v1/admin/audit-events` | Consultar el historial de acciones administrativas. **Solo lectura.** Contrato cerrado en `Task/012.1` (§15). |
 
 Los recursos administrativos operan sobre **identificadores internos**, no sobre slugs:
 el slug puede cambiar mientras se edita un borrador.
@@ -289,7 +290,7 @@ un único identificador.
 | Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | **Base cerrada** (2026-08-28) — 5 MiB y JPEG/PNG/WebP; `Task/018` endurece |
 | Configuración concreta de rate limiting | `Task/011`, `Task/018` | **Cerrada para `login`** (2026-09-01) — 10 intentos / 300 s por IP, con `Retry-After`; `Task/018` endurece |
 | **Representación pública de una referencia a `MediaAsset`** | `Task/010` | **Cerrado** (2026-08-28) — `alt_text`, `width`, `height` y **`access_url`**; ver §12 |
-| Especificación OpenAPI generada | `Task/009` y `Task/012` | **Completa para el MVP** (2026-09-01) — 11 rutas públicas, 3 de acceso y 23 administrativas |
+| Especificación OpenAPI generada | `Task/009`, `Task/012` y `Task/012.1` | **Completa para el MVP** — 11 rutas públicas, 3 de acceso y **24** administrativas: **38 patrones de ruta** en total, de los cuales **27** son administrativos o de acceso y suman **39 operaciones** método+ruta |
 
 
 ---
@@ -443,10 +444,18 @@ de `Task/018`, y el dominio real, de `Task/035` (**D-07**).
 
 ## 14. API administrativa — cerrada en `Task/012` (2026-09-01)
 
-### 14.1 Las 23 rutas
+### 14.1 Los 24 patrones de ruta administrativos
 
 Todas bajo `/api/v1/admin`, todas con **sesión obligatoria**. `login` sigue siendo el
 único endpoint administrativo público (§13, security-boundaries.md §11.4).
+
+> **Patrón de ruta frente a operación.** Un **patrón de ruta** es un *path* del contrato
+> (`/admin/posts/{post_id}`); una **operación** es una combinación **método + patrón**
+> (`GET /admin/posts/{post_id}`). Un patrón puede soportar varias operaciones, así que las
+> dos cifras no coinciden y no son sinónimos. `Task/012` cerró **23 patrones / 35
+> operaciones**; con los 3 patrones y 3 operaciones de autenticación (§13) y el patrón de
+> solo lectura que añade `Task/012.1` (§15), el total consumible por el panel es de
+> **27 patrones de ruta y 39 operaciones HTTP**.
 
 | Recurso | Operaciones |
 | --- | --- |
@@ -457,6 +466,7 @@ Todas bajo `/api/v1/admin`, todas con **sesión obligatoria**. `login` sigue sie
 | `/admin/projects` | Igual, **sin `unpublish`** |
 | `/admin/tags` | `GET`, `POST` · `/{tag_id}`: `PUT`, `DELETE` |
 | `/admin/media` | `GET`, `POST` (multipart) · `/{media_id}`: `DELETE` (audita **antes** de borrar; ver §14.10) |
+| `/admin/audit-events` | **`GET` y solo `GET`** — añadido por `Task/012.1`; ver §15 |
 
 **No existe `DELETE` de contenido.** MVP_SCOPE.md §3.1 enumera las capacidades sobre un
 contenido —crear, editar, previsualizar, publicar, despublicar, archivar— y **eliminar no
@@ -699,3 +709,113 @@ existe solo en la operación que decide y escribe `alt_text`.
 La validación de publicación de §14.5 sigue siendo la **última guarda**, no el único
 mecanismo: ya no puede ocurrir que un contenido sea impublicable porque nunca hubo forma
 de escribir el dato.
+
+---
+
+## 15. Historial administrativo — cerrado en `Task/012.1` (2026-09-05)
+
+`MVP_SCOPE.md` §3.3 fija como **alcance mínimo** del dashboard *«conteo de contenido por
+tipo y estado, últimos elementos modificados y **últimos eventos de auditoría**»*. Las 38
+operaciones que dejaron `Task/011` y `Task/012` cubren las dos primeras; ninguna lee
+`audit_events`. Esta sección cierra esa laguna con **una** operación de solo lectura.
+
+### 15.1 La operación
+
+| Endpoint | Método | Éxito | Autenticación | Caché |
+| --- | --- | --- | --- | --- |
+| `/api/v1/admin/audit-events` | **`GET`, y solo `GET`** | `200` | Cookie de sesión | `no-store` |
+
+Hereda la postura común de todo `/api/v1/admin` (§14, security-boundaries.md §12.1): sesión
+obligatoria, `no-store` y rechazo con `422` de cualquier parámetro de consulta desconocido.
+La validación de `Origin` **no aplica**: solo alcanza a los métodos que cambian estado
+(§13.5), y un `GET` no lo es.
+
+**No existen `POST`, `PUT`, `PATCH` ni `DELETE`**, y esa ausencia *es* el contrato: un
+`AuditEvent` **solo se crea y se lee** (CONTENT_MODEL.md §3.9). Escribirlo sigue siendo
+competencia exclusiva de los casos de uso de `Task/011` y `Task/012`. **Tampoco existe
+detalle** `/{audit_event_id}`: el dashboard lista, y ninguna fuente pide navegar a un evento
+suelto.
+
+### 15.2 Parámetros
+
+**Solo `page` y `page_size`**, con los valores ya vigentes de §5: 12 por defecto, máximo
+aplicado 50 —por encima **se recorta**, nunca es error—, `page` fuera de rango devuelve
+`items` vacío con `200`, y un valor no válido devuelve `422`.
+
+**Sin filtros.** §3.3 pide *«los últimos»*, nada más. Un filtro por acción, tipo, elemento,
+actor o rango de fechas sería superficie `v1` permanente (§10, regla 2); añadirlo más
+adelante, con un consumidor real, es compatible (regla 3).
+
+### 15.3 Respuesta — `Pagina[EventoDeAuditoria]`
+
+La envoltura única de §5. Cada elemento tiene **exactamente cinco campos**:
+
+```json
+{
+  "id": "uuid",
+  "occurred_at": "2026-09-05T14:30:00Z",
+  "action": "content.published",
+  "entity_type": "post",
+  "entity_id": "uuid"
+}
+```
+
+| Campo | Tipo | Nulo | Por qué está |
+| --- | --- | :---: | --- |
+| `id` | `UUID` | no | Identidad estable del evento |
+| `occurred_at` | ISO 8601 UTC | no | **Es «últimos»**: sin fecha no hay orden que mostrar |
+| `action` | `string` | no | **Es «qué pasó»**; catálogo cerrado de quince acciones |
+| `entity_type` | `string` | no | **Es «sobre qué»**: `content.*` no lo dice, esta columna sí (**D-012-N**) |
+| `entity_id` | `UUID` | **sí** | Enlaza el evento con el elemento. Nulo en los eventos de sesión |
+
+**No se exponen `actor_id`, `event_metadata`, `request_id` ni `ip_address`.**
+`ip_address` es dato personal que listar el historial no necesita (**O-09**;
+security-boundaries.md A-13); `actor_id` no informa con **un** administrador;
+`event_metadata` es un objeto de forma libre que congelar en `v1` sería prematuro; y el
+propósito de `request_id` —trazabilidad extremo a extremo (§9)— es de `Task/017`, que aún no
+ha fijado la cabecera. Los cuatro comparten la misma razón: **añadir un campo opcional
+después es compatible; retirarlo, no** (§10, reglas 2 y 3). Es el criterio con el que §12
+rechazó `access_expires_at`.
+
+### 15.4 Orden
+
+**`occurred_at` descendente, con desempate por `id` ascendente.**
+
+El desempate no es cosmético: `occurred_at` se rellena con `now()`, que en PostgreSQL es la
+marca de **inicio de la transacción**, así que dos eventos escritos en la misma transacción
+la comparten al microsegundo. Sobre un orden no total, `LIMIT`/`OFFSET` puede repetir u
+omitir filas entre páginas — la misma razón de **D-009-F**, **D-012-L** y del desempate de
+la biblioteca de medios. `id` es la clave primaria, `UNIQUE NOT NULL`, y **ascendente** es la
+dirección que esas tres decisiones ya fijaron.
+
+### 15.5 Errores
+
+| Código | `code` | Cuándo |
+| --- | --- | --- |
+| `401` | `unauthenticated` | Sin sesión válida |
+| `422` | `validation_error` | Paginación no válida o parámetro de consulta desconocido |
+
+**No se declaran `403`, `404` ni `409`**: la operación no puede producirlos. `403` exigiría
+comprobación de `Origin`, que no aplica a un `GET`; `404` no corresponde a una colección; y
+sin escritura no hay conflicto de estado posible.
+
+### 15.6 Lo que esta sección **no** cambia
+
+- **`AuditEvent` sigue siendo inmutable.** Las guardas de `Task/008` y las invariantes 16 y
+  16b de `data-model.md` quedan intactas.
+- **Leer el historial no lo modifica.** *«Las lecturas no se auditan»* (CONTENT_MODEL.md
+  §3.9), y está fijado por prueba contando filas reales antes y después del `GET`.
+- **Ninguna migración.** `ix_audit_events_occurred_at` ya existía desde la migración `0002`,
+  creado —según `data-model.md` §5— para el *«listado cronológico del historial»*.
+- **`login` sigue siendo el único endpoint administrativo público.**
+- **La API pública no cambia.**
+
+### 15.7 Qué sigue abierto
+
+| Pregunta | Propietario |
+| --- | --- |
+| Filtros del historial por acción, tipo, elemento o fechas | Sin propietario; ampliación compatible |
+| Resolver el nombre del actor cuando exista más de un administrador | Sin propietario; fuera del MVP |
+| Exponer `request_id` una vez `Task/017` fije la cabecera del correlation ID | `Task/017` |
+| Retención, rotación y archivado del historial | Operación |
+| Privilegio mínimo sobre `audit_events` (invariante 16b) | `Task/018` |

@@ -29,6 +29,20 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 > `Task/006.1`, `Task/006.2`, …) son mantenimiento de gobierno: **no forman parte de estas
 > 41** y **no alteran el avance**. Su estado se registra en [`STATUS.md`](STATUS.md).
 
+> **Exposición de la auditoría para el dashboard — `Task/012.1` (2026-09-05, aprobada).**
+> Mantenimiento **funcional** de la API administrativa, previo a que `Task/015` pueda
+> entregar su dashboard. `MVP_SCOPE.md` §3.3 exige como alcance mínimo los *«últimos eventos
+> de auditoría»*, y ninguna de las **38 operaciones HTTP** administrativas los lee: el módulo
+> `audit` no tiene capa de presentación y su puerto solo escribe. Añade **una** operación de
+> solo lectura —`GET /api/v1/admin/audit-events`—, paginada con la envoltura única y sin
+> filtros, con un DTO de cinco campos que **no** incluye `ip_address`, `actor_id`,
+> `event_metadata` ni `request_id`. **Sin migración**: el índice cronológico ya existe. La
+> inmutabilidad de `AuditEvent` queda intacta y leer no audita, comprobado contando filas
+> reales. **1572 pruebas en verde** (+45 sobre el baseline de `main`). **No cuenta** dentro
+> de las 41, **41 identificadores intactos** y avance **sin cambios**. Ficha:
+> [TASK-012.1](../tasks/TASK-012.1-audit-events-for-dashboard.md) · Reporte:
+> [TASK-012.1-report.md](../task-reports/TASK-012.1-report.md).
+
 > **Formalización de la arquitectura objetivo de producción — `Task/006.2` (2026-08-23,
 > aprobada).**
 > Mantenimiento transversal de arquitectura y planificación, previo a `Task/007`. Da
