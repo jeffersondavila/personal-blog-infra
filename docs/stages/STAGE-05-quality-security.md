@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 05 |
-| **Estado** | Pendiente |
+| **Estado** | **En curso** — `Task/016` **Aprobada** el 2026-09-06 |
 | **Dependencias** | [ETAPA 04](STAGE-04-user-experience.md) — **Completada** ✔ (2026-09-05) |
 | **Tareas** | 3 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | 1 de 3 |
+| **Avance** | 33 % |
 | **Hito que completa** | Producto con calidad y seguridad verificables. |
 
 ---
@@ -24,7 +24,7 @@ baratos de aplicar aquí, antes de exponer el sitio en internet, que después.
 
 ## Tareas
 
-### `Task/016-SEO-Accesibilidad-y-Rendimiento` — *Pendiente*
+### `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** ✔ (2026-09-06)
 
 Metadatos, Open Graph, sitemap, `robots.txt`, optimización de carga y accesibilidad.
 
@@ -53,8 +53,43 @@ reconsideración de la estrategia de *rendering*** —prerender, SSG o SSR— co
 nueva con su ADR. **Esa reconsideración no se resuelve aquí**: `Task/005.5` no cambia el
 *stack*, solo exige que la tarea sepa reconocer el fallo en lugar de darlo por bueno.
 
-**Depende de:** `Task/014`, `Task/015`.
-**Repositorios:** `personal-blog-frontend`, `personal-blog-backend`.
+**Depende de:** `Task/014`, `Task/015` — ambas **Aprobadas** ✔ (2026-09-05).
+**Repositorios:** `personal-blog-frontend`, `personal-blog-backend`, `personal-blog-infra`
+(documentación + ***wiring* local mínimo**: tres líneas autorizadas en el Compose y en
+Traefik, ninguna de ellas Nginx, CORS ni cabeceras).
+**Ficha:** [TASK-016-seo-accessibility-performance.md](../tasks/TASK-016-seo-accessibility-performance.md)
+
+#### Resultado de la verificación exigida — medido el 2026-09-05 y el 2026-09-06
+
+El *baseline* se midió en los cuatro canales **antes** de escribir código, que es exactamente lo que esta sección exige. Resultado:
+
+| Canal | Qué recibe |
+| --- | --- |
+| Navegador con JavaScript | `title` **propio y correcto por URL** (11/11) y `h1` único. `description`, `canonical`, `og:*` y JSON-LD: **0** |
+| Petición HTTP directa a URL profunda | **HTTP 200** y el mismo cuerpo de **785 bytes** en las 16 URL medidas |
+| *Crawler* sin JavaScript | `title` genérico `Blog personal`; **0** metadatos de SEO |
+| *User-agent* de *crawler* (`Googlebot`, `facebookexternalhit`, `Twitterbot`) | Respuesta **idéntica**: el servidor no diferencia |
+
+**El criterio de reconsideración enunciado más arriba queda cumplido**, y por una razón estructural, no por falta de código: el propósito canónico de **E-03** es compartir en redes (`MVP_SCOPE.md` §2.2) y esos *crawlers* no ejecutan JavaScript. `Task/016` debe **abrir** la reconsideración con un ADR en estado **Propuesta** y **no** declarar **E-03** cerrado. **ADR-005 sigue Aceptado.**
+
+También se midieron **dos defectos**, no simples ausencias: `GET /robots.txt` y `GET /sitemap.xml` respondían **HTTP 200 con el `index.html` de la SPA**. Ambos quedaron **corregidos** en la implementación: `text/plain` y `application/xml` respectivamente.
+
+#### Qué demostró volver a medir DESPUÉS de implementar
+
+Es la parte que cierra la exigencia de `Task/005.5`. Con los metadatos escritos y verificados en navegador real:
+
+| Canal | Resultado |
+| --- | --- |
+| Navegador con JavaScript, 11 rutas | `title`, `description`, `canonical`, `og:*` y JSON-LD **correctos y propios por URL** |
+| *Crawler* **sin** JavaScript | **Sigue recibiendo cero** metadatos propios de la URL |
+
+**El problema no era falta de código.** Por eso `Task/016` abre **D-21** con
+[ADR-009](../adr/ADR-009-rendering-strategy-for-crawlers.md) en estado **Propuesta**,
+**no elige** ninguna estrategia y **no cierra E-03**.
+
+Lo que sí se ganó sin JavaScript: el Open Graph **de sitio** —`og:site_name`, `og:image`
+con sus dimensiones, y `twitter:card`— vive ahora en `index.html`, y es información
+**correcta para cualquier URL**.
 
 ### `Task/017-Observabilidad-Local` — *Pendiente*
 
@@ -79,12 +114,20 @@ seguridad, validación de archivos subidos y refuerzo de autenticación.
 
 ## Criterios de salida de la etapa
 
-- [ ] Cada página pública tiene título, descripción, `canonical` y Open Graph propios,
+- [~] Cada página pública tiene título, descripción, `canonical` y Open Graph propios,
       **verificados por URL directa y con una herramienta de inspección real**, no
-      asumidos por estar el código escrito.
-- [ ] `og:image` usa una **URL estable**, nunca una URL prefirmada que expira.
-- [ ] `sitemap.xml` y `robots.txt` se generan correctamente.
-- [ ] Navegación por teclado y contraste verificados en las páginas principales.
+      asumidos por estar el código escrito. — **Verificado con JavaScript** en las 11
+      superficies. **Sin JavaScript no se cumple**, y ese es el motivo de **D-21**: el
+      criterio **no puede marcarse** hasta resolverla.
+- [x] `og:image` usa una **URL estable**, nunca una URL prefirmada que expira. — Activo
+      estático del sitio (**D-016-A**). El `og:image` **por contenido** sigue bloqueado
+      por **D-08**.
+- [x] `sitemap.xml` y `robots.txt` se generan correctamente. — `application/xml` y
+      `text/plain`; el sitemap deriva del contenido publicado y **E-08** está fijado por
+      prueba contra PostgreSQL real.
+- [x] Navegación por teclado y contraste verificados en las páginas principales. —
+      **139 paradas** de teclado en 10 superficies, **0** sin foco visible y **0** trampas.
+      Contraste heredado de `Task/013`, sin hallazgos nuevos.
 - [ ] Los logs son JSON y llevan correlation ID rastreable extremo a extremo.
 - [ ] Los healthchecks reflejan el estado real de las dependencias.
 - [ ] Sin vulnerabilidades críticas ni altas conocidas en dependencias.

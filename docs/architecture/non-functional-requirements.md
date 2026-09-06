@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §5 ampliada y **aprobada** el 2026-08-23 (`Task/006.2`) con **O-09** y **O-10** |
+| **Fecha** | 2026-07-26 · §5 ampliada y **aprobada** el 2026-08-23 (`Task/006.2`) con **O-09** y **O-10** · §2 ampliada y **aprobada** el 2026-09-06 (`Task/016`) con los umbrales **U-1** a **U-9** |
 
 Criterios mínimos que toda implementación posterior debe respetar. Se verifican
 principalmente en las Etapas 05 (`Task/016`–`Task/018`), 07 (`Task/022`) y 12
@@ -54,14 +54,44 @@ Relacionados: [security-boundaries.md](security-boundaries.md) ·
 | P-01 | **Carga inicial razonable** en las páginas públicas, medida en una conexión típica. | `Task/016` |
 | P-02 | **Paginación obligatoria**: ningún endpoint devuelve colecciones sin acotar. | `Task/009` |
 | P-03 | **Lazy loading de imágenes** fuera del área visible inicial. | `Task/016` |
-| P-04 | **Imágenes optimizadas**: formatos y dimensiones adecuados; miniaturas para listados. | `Task/010`, `Task/016` |
+| P-04 | **Imágenes optimizadas**: formatos y dimensiones adecuados; miniaturas para listados. | `Task/010`, `Task/016` — la miniatura se **expone** en el contrato público desde `Task/016` |
 | P-05 | **Sin descargar contenido administrativo en páginas públicas**: el código del panel se carga solo en el panel. | `Task/015`, `Task/016` |
 | P-06 | **Backend stateless**: sin estado en memoria entre peticiones. | `Task/005`, `Task/023` |
 | P-07 | **Compatible con cold starts de Lambda**: artefacto ligero y arranque acotado. | `Task/024`, `Task/032` |
 | P-08 | **Consultas acotadas**: los listados usan índices y evitan consultas N+1. | `Task/008`, `Task/009` |
 
-Los umbrales numéricos concretos se fijan en `Task/016`, cuando exista contenido real que
-medir.
+### Umbrales numéricos — fijados en `Task/016`
+
+> **Vigentes** desde el 2026-09-06, al aprobarse `Task/016-SEO-Accesibilidad-y-Rendimiento`.
+
+Cada umbral se ancla a un *baseline* **medido**, no elegido. Los de **peso** se expresan
+sobre el *gzip* del informe de `vite build`, que es independiente del entorno; los de
+**tiempo**, sobre un laboratorio declarado: Chrome *headless* por CDP, red emulada
+**10 Mbps / 40 ms RTT**, CPU **4×**, caché deshabilitada.
+
+| # | Métrica | Umbral | Baseline medido | Qué lo haría fallar |
+| --- | --- | ---: | ---: | --- |
+| U-1 | JS del grafo inicial público, *gzip* | **≤ 120 kB** | 100,33 kB | Que el panel o el Markdown entren en el grafo inicial |
+| U-2 | CSS del grafo inicial público, *gzip* | **≤ 6 kB** | 3,15 kB | Un CSS de página sin `import` diferido |
+| U-3 | *Chunk* Markdown, *gzip* | **≤ 45 kB y fuera del grafo inicial** | 37,11 kB | Importar el render de Markdown de forma estática |
+| U-4 | *Chunk* administrativo, *gzip* | **≤ 15 kB y fuera del grafo inicial** | 11,25 kB | Un `import` estático del panel (**P-05**) |
+| U-5 | Recursos del grafo inicial | **≤ 12** | 4–8 | Añadir peticiones en serie |
+| U-6 | LCP, laboratorio | **≤ 2000 ms** | 820–980 ms | Una portada grande sin dimensiones |
+| U-7 | CLS, laboratorio | **≤ 0,10** | 0,0000–0,0359 | Imágenes sin `width`/`height` |
+| U-8 | Imágenes fuera del *viewport* con `loading="lazy"` | **100 %** | 100 % | Un `<img>` que no pase por el componente de medios |
+| U-9 | Imágenes con `width` y `height` | **100 %** de las que el DTO los trae | 100 % | Renderizar sin dimensiones |
+
+**Dos métricas deliberadamente sin umbral:**
+
+- **INP** es una métrica **de campo**. No se afirma desde laboratorio, y el MVP no tiene
+  tráfico real que medir.
+- **TBT** sería un *proxy* de laboratorio legítimo, pero **no se ha medido**. Fijar un
+  número sin *baseline* es exactamente lo que estos umbrales evitan: se mide primero.
+
+> **Los umbrales de tiempo no son Core Web Vitals de campo** y no deben presentarse como
+> tales. Y el servidor estático local **no comprime**, así que los bytes transferidos en
+> local no representan producción: por eso los umbrales de peso van sobre el *gzip* del
+> *build*.
 
 ---
 
@@ -88,10 +118,10 @@ Objetivo de referencia: **WCAG 2.1 nivel AA**.
 | --- | --- | --- |
 | E-01 | **Slugs legibles** y estables en todo el contenido público. | `Task/008`, `Task/014` |
 | E-02 | **`title` y `description`** propios por página. | `Task/016` |
-| E-03 | **Open Graph** para compartir en redes. | `Task/016` |
+| E-03 | **Open Graph** para compartir en redes. | `Task/016` — **NO cerrado**: por URL exige que el *crawler* ejecute JavaScript, y los de redes sociales no lo hacen. Ver **D-21** / [ADR-009](../adr/ADR-009-rendering-strategy-for-crawlers.md) |
 | E-04 | **Canonical URL** en cada página pública. | `Task/016` |
 | E-05 | **Sitemap** generado a partir del contenido publicado. | `Task/016` |
-| E-06 | **`robots.txt`** coherente: el panel administrativo no se indexa. | `Task/016` |
+| E-06 | **`robots.txt`** coherente: el panel administrativo no se indexa. | `Task/016` — **parcial**: `robots.txt` y `meta noindex`. La garantía **sin JavaScript** exige `X-Robots-Tag`, que es cabecera de respuesta y por tanto **S-05**, de `Task/018` |
 | E-07 | **Datos estructurados** cuando corresponda (artículo, review de libro, persona). | `Task/016` |
 | E-08 | El contenido no publicado **nunca** aparece en sitemap ni es indexable. | `Task/016` |
 
