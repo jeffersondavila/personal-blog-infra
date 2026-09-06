@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-05 (`Task/015-Panel-Administrativo` — **Aprobada**. ETAPA 04 **Completada**, **3 de 3**. **41 identificadores intactos**)
+- **Última actualización:** 2026-09-06 (`Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada**. ETAPA 05 **En curso**, **1 de 3**. **41 identificadores intactos**; **D-21** añadida y **Abierta**)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -16,7 +16,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **37 %** (15 de 41 tareas aprobadas)
+- **Avance global:** **39 %** (16 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -232,13 +232,14 @@ con almacenamiento de archivos y autenticación.
 **Objetivo:** elevar el producto a estándar publicable: SEO, accesibilidad, rendimiento,
 observabilidad y endurecimiento de seguridad.
 
-**Dependencias:** Etapa 04.
+**Dependencias:** Etapa 04 — **Completada** ✔ (2026-09-05).
+**Estado:** **En curso** — **1 de 3** aprobadas.
 **Hito que completa:** *Producto con calidad y seguridad verificables.*
 **Ficha:** [STAGE-05-quality-security.md](../stages/STAGE-05-quality-security.md)
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/016-SEO-Accesibilidad-y-Rendimiento` | Metadatos. Open Graph. Sitemap. Robots. Optimización. Accesibilidad. **Verificación comprobable** del *rendering* de la SPA por URL directa y ante *crawlers*, con **criterio explícito de reconsideración** si no se satisface. `og:image` con URL estable, no expirable. | frontend, backend | 014, 015 | Pendiente |
+| `Task/016-SEO-Accesibilidad-y-Rendimiento` | Metadatos. Open Graph. Sitemap. Robots. Optimización. Accesibilidad. **Verificación comprobable** del *rendering* de la SPA por URL directa y ante *crawlers*, con **criterio explícito de reconsideración** si no se satisface. `og:image` con URL estable, no expirable. **El backend participa** por el `sitemap.xml` derivado de contenido publicado y por la exposición de la miniatura (deuda 2 de `Task/010`). | frontend, backend, infra (documentación + wiring local mínimo) | 014, 015 | **Aprobada** (2026-09-06) — **E-02**, **E-04**, **E-05**, **E-07** y **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**. Volver a medir tras implementar demostró que un *crawler* sin JavaScript sigue sin recibir metadatos por URL: no era falta de código, así que se abre **D-21** con **ADR-009** en *Propuesta*, sin elegir estrategia. **688** pruebas de frontend y **1631** de backend en verde, **0 dependencias nuevas**. En `infra`, además de la documentación, **tres líneas de *wiring* local** autorizadas: dos variables del Compose y el enrutado de `/sitemap.xml` en Traefik |
 | `Task/017-Observabilidad-Local` | Logs JSON. Correlation ID. Healthchecks. Auditoría. Diagnóstico con Portainer. **Solo entorno local: no es owner del monitoreo del VPS productivo** (`Task/029`, `Task/040`). **La telemetría debe ser portable**: el dominio no se acopla a CloudWatch, Grafana, Loki ni Prometheus (**O-09**). | backend, infra | 014, 015 | Pendiente |
 | `Task/018-Endurecimiento-de-Seguridad` | Dependencias. Imágenes Docker. Secretos. CORS. Headers. Archivos. Autenticación. | infra, frontend, backend | 016, 017 | Pendiente |
 

@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-05
+**Última actualización:** 2026-09-06
 
 ---
 
@@ -8,10 +8,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 04 — Experiencia del Usuario — Completada** (**3 de 3** aprobadas). ETAPAS 00 a 04 **completadas**; ETAPA 05 pendiente |
-| **Tarea actual** | **`Task/015-Panel-Administrativo`** — **Aprobada** el 2026-09-05 por jeffersondavila |
-| **Estado de la tarea** | `Task/015-Panel-Administrativo` — **Aprobada** mediante `approved: Task/015-Panel-Administrativo`. Cuenta en el avance: **15 de 41** |
-| **Última tarea aprobada** | `Task/015-Panel-Administrativo` — **Aprobada** el 2026-09-05. **18 superficies**, dashboard completo, sesión administrativa, editor Markdown y medios. **600 pruebas**, cero dependencias nuevas. **D-04 resuelta**; completa ETAPA 04 |
+| **Etapa actual** | **ETAPA 05 — Calidad y Seguridad — En curso** (**1 de 3** aprobadas). ETAPAS 00 a 04 **completadas** |
+| **Tarea actual** | **`Task/016-SEO-Accesibilidad-y-Rendimiento`** — **Aprobada** el 2026-09-06 por jeffersondavila |
+| **Estado de la tarea** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** mediante `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`. **E-02**, **E-04**, **E-05**, **E-07**, **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**, ambos con su motivo medido. **688** pruebas de frontend y **1631** de backend en verde. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-016-report.md). Cuenta en el avance: **16 de 41** |
+| **Tarea aprobada anterior a `Task/016`** | `Task/015-Panel-Administrativo` — **Aprobada** el 2026-09-05. **18 superficies**, dashboard completo, sesión administrativa, editor Markdown y medios. **600 pruebas**, cero dependencias nuevas. **D-04 resuelta**; completa ETAPA 04 |
 | **Tarea aprobada anterior** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
@@ -21,15 +21,164 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Pendiente, no iniciada**. Dependencias `Task/014` y `Task/015` **Aprobadas**. Requiere una nueva instrucción del usuario; su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **37 %** — 15 de 41 tareas aprobadas |
-| **Bloqueos activos** | **0.** **B-015-1** —el dashboard mínimo de `MVP_SCOPE.md` §3.3 exigía los *«últimos eventos de auditoría»* sin que ninguna operación HTTP los expusiera— quedó **resuelto** por `Task/012.1`, **Aprobada** el 2026-09-05: el contrato administrativo incluye `GET /api/v1/admin/audit-events` |
-| **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`) |
-| **Decisiones abiertas** | **12** — D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
+| **Próxima tarea prevista** | `Task/017-Observabilidad-Local` — **Pendiente, no iniciada**. Requiere una nueva instrucción del usuario; su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **39 %** — 16 de 41 tareas aprobadas |
+| **Bloqueos activos** | **0 que detengan trabajo.** `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
+| **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
+| **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> **Recuento tras la aprobación del 2026-09-05:** `Task/015` lleva el avance a
-> **15 de 41 — 37 %** y completa ETAPA 04 en **3 de 3 — 100 %**. La aprobación del
-> usuario es el hecho que suma avance; las tareas de mantenimiento no cuentan en las 41.
+> **Recuento tras la aprobación del 2026-09-06:** `Task/016` lleva el avance a
+> **16 de 41 — 39 %** y abre la ETAPA 05 en **1 de 3 — 33 %**. La aprobación del usuario es
+> el hecho que suma avance; las tareas de mantenimiento no cuentan en las 41.
+>
+> **Aprobada con limitaciones declaradas, no con todo cerrado.** **E-03** queda **no
+> cerrado** y **E-06 parcial**, ambos con su motivo **medido** en cuatro canales. Lo que se
+> aprobó respecto del *rendering* es **haber abierto** la reconsideración: **D-21** sigue
+> **Abierta** y **ADR-009** en **Propuesta**.
+
+---
+
+## Última tarea aprobada — `Task/016-SEO-Accesibilidad-y-Rendimiento`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/016-SEO-Accesibilidad-y-Rendimiento` |
+| **Etapa** | ETAPA 05 — Calidad y Seguridad |
+| **Estado** | **Aprobada** el 2026-09-06 por jeffersondavila |
+| **Repositorios** | frontend, backend, infra (documentación + ***wiring* local mínimo**) |
+| **Dependencias** | `Task/014` y `Task/015`, ambas **Aprobadas** el 2026-09-05 |
+| **Documentos** | [ficha](../tasks/TASK-016-seo-accessibility-performance.md) · [reporte](../task-reports/TASK-016-report.md) · [ADR-009](../adr/ADR-009-rendering-strategy-for-crawlers.md) |
+| **Avance** | Cuenta en el avance: **16 de 41 — 39 %**. Completa **1 de 3** de la ETAPA 05 |
+
+### Qué entrega
+
+| Requisito | Estado |
+| --- | --- |
+| **E-02**, **E-04**, **E-07** | **Cumplidos con JavaScript**; parciales sin él |
+| **E-03** Open Graph | **NO cerrado** — motivo medido, abajo |
+| **E-05** Sitemap | **Cumplido en ambos canales** |
+| **E-06** `robots.txt` y `noindex` | **Parcial** — la garantía sin JavaScript es `Task/018` |
+| **E-08** | **Cumplido por construcción**, fijado por prueba con PostgreSQL real |
+| **A-01…A-08** | Auditados en navegador real. **A-04** bloqueado por falta de contenido |
+| **P-01, P-03, P-04, P-05** | Umbrales **U-1 a U-9** fijados y medidos |
+
+### El resultado central: volver a medir después de implementar
+
+`Task/005.5` exigía **comprobar**, no suponer. Se midió en cuatro canales antes y después.
+
+Con JavaScript, las 11 superficies públicas tienen `title`, `description`, `canonical`,
+Open Graph y JSON-LD **propios y correctos por URL**. **Sin** JavaScript, un *crawler*
+sigue recibiendo **cero** metadatos propios de la URL — igual que antes de escribir el
+código.
+
+> **El problema no era falta de código: es el modelo de *rendering*.** Y afecta a **E-03**
+> en particular porque su propósito canónico son las redes sociales (`MVP_SCOPE.md` §2.2),
+> cuyos *crawlers* no ejecutan JavaScript.
+
+Por eso se abre **D-21** con **ADR-009** en estado **Propuesta**, **sin elegir** SSR, SSG
+ni prerender. **ADR-005 sigue Aceptado** y el *stack* no cambia. Es exactamente lo que
+`STAGE-05` manda hacer, y donde manda detenerse.
+
+### Dos defectos medidos y corregidos
+
+`GET /robots.txt` y `GET /sitemap.xml` devolvían **HTTP 200 con el `index.html` de la
+SPA**. Ahora responden `text/plain` y `application/xml`. Un `200` con contenido no
+analizable es peor que un `404`.
+
+### Evidencia de accesibilidad
+
+**139 paradas de teclado** en 10 superficies: **0** sin indicador de foco, **0** problemas
+estáticos, **10/10** rutas sin trampa de foco. **40 mediciones** de desbordamiento
+(10 superficies × 4 anchos): **0** elementos desbordados — absorbe la deuda 2 de
+`Task/015`. **A-08** verificado provocando un error real.
+
+**No se afirma WCAG 2.1 AA del producto:** un recorrido automático cubre una fracción de
+los criterios, y **A-04** no puede observarse sin contenido.
+
+### Decisiones tomadas, ninguna vigente todavía
+
+| # | Decisión | Qué **no** decide |
+| --- | --- | --- |
+| **D-016-A** | `og:image` es un activo **estático** del sitio, versionado en `public/` | Nada de **D-08**: no crea URL estable de medios, ni caché, ni TTL, ni CDN |
+| **D-016-B** | El **backend** genera `sitemap.xml` en *runtime* | No amplía el contrato más de lo necesario: `updated_at` no se expone |
+| **D-21** | *(abierta, no resuelta)* Estrategia de *rendering* | No elige ninguna opción; ADR-009 queda en **Propuesta** |
+
+### Bloqueos — cuatro, todos parciales
+
+**B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por
+URL sin JavaScript (**D-21**) · **B-016-3** código HTTP `404` (`Task/034`) · **B-016-4**
+evidencia con contenido real (`Task/022`). Ninguno impidió entregar.
+
+La base local no tiene contenido **ni administrador**, y **no se fabricó ninguno** para
+maquillar evidencia.
+
+### Validaciones
+
+| Repositorio | Resultado |
+| --- | --- |
+| frontend | `format:check`, `lint`, `typecheck` y `build` en **exit 0**; **688 / 688** pruebas en **72** archivos (desde 600/67); guardas SEO **15/15** y **P-05** **27/27** |
+| backend | `ruff`, `ruff format` y `mypy` (strict, 295 archivos) en **exit 0**; **1631 passed, 1 skipped** con PostgreSQL y MinIO reales y `-W error` (desde 1572); imagen Docker construye |
+| infra | `docker compose config` **válido** |
+
+**Sin migración nueva:** ni el sitemap ni la miniatura tocan el esquema físico.
+
+### Cero dependencias nuevas, verificado
+
+`react-helmet` y `react-helmet-async` se descartaron **por medición**: React 19.2.8 iza
+`<title>`, `<meta>` y `<link>` al `<head>` de forma nativa. `axe`, `lighthouse` y
+`playwright` también: el arnés de Chrome *headless* por CDP de `Task/013` y `Task/014`
+cubrió teclado, foco, semántica, LCP, CLS, red y responsive con **0** dependencias.
+
+### Riesgo vivo registrado
+
+**R-016-1** — la suite del frontend es sensible a la carga de la máquina. Ya fallaba de
+forma intermitente **antes** de esta tarea. Mitigado calibrando el techo de espera de
+Testing Library a 4000 ms, número **derivado de medir** la suite entera
+(p50 = 5 ms, p95 = 494 ms, p99 = 1050 ms, máximo = 1879 ms), no elegido. Relevante para
+`Task/019`.
+
+### Aprobación — 2026-09-06
+
+Aprobada con la expresión exacta `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`.
+
+**Vigentes desde la aprobación:** **D-016-A** (`og:image` estático), **D-016-B** (sitemap
+en el backend), los umbrales **U-1 a U-9** de `non-functional-requirements.md` §2, el
+contrato de `GET /sitemap.xml`, el campo `thumbnail_access_url` y la clasificación
+`infra (documentación + wiring local mínimo)`.
+
+**Lo que la aprobación NO decide.** Es la distinción más importante de esta tarea:
+
+| Elemento | Estado | Por qué |
+| --- | --- | --- |
+| **D-21** | **Abierta** | Se aprobó **haber abierto** la reconsideración con evidencia, no haber elegido estrategia |
+| **ADR-009** | **Propuesta** | Documenta una decisión **todavía no tomada**: no hay nada que aceptar |
+| **ADR-005** | **Aceptado**, intacto | El Markdown se sigue renderizando en cliente |
+| **E-03** | **No cerrado** | Por URL exige que el *crawler* ejecute JavaScript |
+| **E-06** | **Parcial** | La garantía sin JavaScript es `X-Robots-Tag`, de `Task/018` |
+| **D-08** | **Abierta** | Se respondió qué URL usa `og:image`; no se cerró la decisión |
+
+### Excepciones autorizadas al rol de `infra`
+
+`infra` entró como repositorio **documental**. El usuario autorizó expresamente **tres
+líneas de *wiring* local**, cada una por separado y todas necesarias para que la tarea
+funcionara en local:
+
+| # | Archivo | Qué añade |
+| --- | --- | --- |
+| 1 | `docker-compose.yml` | `BLOG_PUBLIC_SITE_BASE_URL` en el servicio `backend` |
+| 2 | `docker/traefik/dynamic/routes.yml` | El enrutado de `/sitemap.xml` hacia el backend |
+| 3 | `docker-compose.yml` | `VITE_SITE_BASE_URL` en `build.args` del `frontend` |
+
+Por eso la clasificación durable de la tarea es
+**`infra (documentación + wiring local mínimo)`**, y no `infra (documentación)`. **No** la
+convierte en una tarea de infraestructura funcional: Nginx y su compresión, CORS,
+cabeceras, `X-Robots-Tag` y Cloudflare Pages siguen fuera, con su propietario.
+
+La línea 2 no hace falta en producción: el `Sitemap:` apunta al dominio del API, servido
+por API Gateway sin Traefik de por medio. La 3 evita que `canonical`, `og:url` y
+`og:image` queden acoplados a un puerto fijo, y se verificó **sin tocar `.env`**: al
+resolver la configuración con `TRAEFIK_HTTP_HOST_PORT=9317`, ambos argumentos de build
+pasan a `http://localhost:9317`.
 
 ---
 
@@ -1346,7 +1495,7 @@ Distribución por estado:
 | `Task/013-Sistema-de-Diseno` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-04) |
 | `Task/014-Sitio-Publico` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
 | `Task/015-Panel-Administrativo` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
-| `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend | Pendiente |
+| `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend, infra (documentación + wiring local mínimo) | **Aprobada** (2026-09-06) |
 | `Task/017-Observabilidad-Local` | 05 | backend, infra | Pendiente |
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | Pendiente |
 | `Task/019-CI-Frontend` | 06 | frontend | Pendiente |
