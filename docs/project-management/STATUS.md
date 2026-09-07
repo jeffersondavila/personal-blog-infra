@@ -17,7 +17,8 @@
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Último mantenimiento aprobado** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` — **Aprobada** el 2026-09-05 por jeffersondavila. Añade **una** operación administrativa de solo lectura, `GET /api/v1/admin/audit-events`, que cierra la laguna entre `MVP_SCOPE.md` §3.3 y la API administrativa. **Sin migración**, sin filtros y sin datos personales; la inmutabilidad de `AuditEvent` queda intacta y leer no audita. **No cuenta en las 41 tareas** ni altera el avance |
+| **Último mantenimiento aprobado** | `Task/004.1-Corregir-Backup-Rutas-Literales` — **Aprobada** el 2026-09-06 por jeffersondavila. Corrige un defecto **demostrado en ejecución** del sistema de respaldo de `Task/004`: una ruta ya resuelta se pasaba a parámetros de PowerShell que interpretan comodines, de modo que una clave de objeto con `[` abortaba el respaldo. El mismo defecto afectaba a la **prueba de restauración**. Respaldo real, verificación y restauración **superados** sobre 64 objetos, 44 de ellos con corchetes. **No cuenta en las 41 tareas** ni altera el avance |
+| **Mantenimiento anterior a `Task/004.1`** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` — **Aprobada** el 2026-09-05 por jeffersondavila. Añade **una** operación administrativa de solo lectura, `GET /api/v1/admin/audit-events`, que cierra la laguna entre `MVP_SCOPE.md` §3.3 y la API administrativa. **Sin migración**, sin filtros y sin datos personales; la inmutabilidad de `AuditEvent` queda intacta y leer no audita. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
@@ -486,7 +487,54 @@ propio:
 
 ---
 
-## Último mantenimiento aprobado — `Task/013.1`
+## Último mantenimiento aprobado — `Task/004.1`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/004.1-Corregir-Backup-Rutas-Literales` |
+| **Tipo** | Mantenimiento correctivo de `Task/004` |
+| **Estado** | **Aprobada** ✔ el 2026-09-06 por jeffersondavila |
+| **Cuenta en las 41 tareas** | **No.** Avance global y ETAPA 05 **sin cambios** |
+| **Repositorios** | `personal-blog-infra` únicamente |
+| **Rama** | `Task/004.1-Corregir-Backup-Rutas-Literales`, nacida de `main` |
+| **Ficha** | [TASK-004.1](../tasks/TASK-004.1-fix-backup-literal-paths.md) |
+| **Reporte** | [TASK-004.1-report.md](../task-reports/TASK-004.1-report.md) |
+
+### Qué corrige
+
+Un respaldo real abortó con `No se encuentra la propiedad 'Hash' en este objeto`. La causa
+no era MinIO: los scripts pasaban rutas del sistema de archivos **ya resueltas** a
+parámetros de PowerShell que interpretan comodines. Como `[...]` es una clase de
+caracteres, una clave de objeto con corchetes dejaba de casar consigo misma, el cmdlet
+devolvía `$null` y `Set-StrictMode` abortaba. Sin StrictMode el fallo habría sido
+**silencioso**.
+
+El defecto existía desde `Task/004` y se volvió alcanzable el 2026-08-31, cuando los tests
+de integración dejaron en MinIO objetos con `[minio]` y `[s3]` en la clave. El último
+respaldo correcto, del 2026-07-31, es anterior a esos objetos: por eso `Task/004` se validó
+sin detectarlo.
+
+La corrección consume como literal toda ruta ya resuelta (43 conversiones en cuatro
+scripts), unifica en `Get-FileHashMap` el bucle que estaba **duplicado** en respaldo y
+restauración, y añade `Assert-NoWildcardInPath` como guarda *fail-closed*, porque
+`Compress-Archive` de Windows PowerShell 5.1 falla con `[` en su ruta **incluso con**
+`-LiteralPath` y eso no se puede corregir desde el script.
+
+**La restauración también estaba rota.** Contenía el defecto idéntico. La prueba de
+restauración aislada se ejecutó por primera vez contra un conjunto con claves entre
+corchetes y quedó verificada: 17 tablas, 64 objetos con SHA-256 coincidente y Portainer con
+`InstanceID` correcto.
+
+### Hallazgos abiertos que deja registrados
+
+| # | Hallazgo | Estado |
+| --- | --- | --- |
+| 1 | Los tests de integración del backend dejan buckets `personal-blog-test-*` persistentes en el MinIO local. Hay dos, del 2026-08-31 y del 2026-09-02, con 64 objetos. **No se borran**: son el escenario real de regresión de esta corrección | **Abierto** — investigar por qué el *teardown* no los elimina |
+| 2 | La restauración recrea los buckets a partir de sus objetos, así que **un bucket vacío no se restaura**. Detectado con `personal-blog-media`. Hueco **preexistente** de `Task/004`, sin relación con el defecto de rutas | **Abierto** — decidir aparte |
+
+---
+
+## Mantenimiento documental anterior — `Task/013.1`
 
 | Campo | Valor |
 | --- | --- |
