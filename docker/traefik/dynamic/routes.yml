@@ -9,7 +9,7 @@
 #
 #   navegador -> Traefik :8080
 #                  |
-#                  +-- /health, /api/, /docs, /openapi.json,
+#                  +-- /health, /ready, /api/, /docs, /openapi.json,
 #                  |   /sitemap.xml                          -> backend  :8000
 #                  |
 #                  +-- resto                                 -> frontend :8080
@@ -37,6 +37,7 @@ http:
     backend:
       rule: >-
         PathPrefix(`/health`)
+        || Path(`/ready`)
         || PathPrefix(`/api/`)
         || PathPrefix(`/docs`)
         || PathPrefix(`/openapi.json`)
@@ -65,10 +66,11 @@ http:
       loadBalancer:
         servers:
           - url: http://backend:8000
-        # El backend ya expone su propia sonda; aqui se comprueba para que
-        # Traefik no enrute hacia un contenedor que todavia esta arrancando.
+        # Readiness comprueba PostgreSQL y almacenamiento (Task/017).
+        # Su presupuesto HTTP es 2.5s, inferior a los 3s del consumidor.
+        # Docker conserva /health como liveness en el Dockerfile del backend.
         healthCheck:
-          path: /health
+          path: /ready
           interval: 10s
           timeout: 3s
 

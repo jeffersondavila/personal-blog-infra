@@ -240,7 +240,7 @@ observabilidad y endurecimiento de seguridad.
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | Metadatos. Open Graph. Sitemap. Robots. Optimización. Accesibilidad. **Verificación comprobable** del *rendering* de la SPA por URL directa y ante *crawlers*, con **criterio explícito de reconsideración** si no se satisface. `og:image` con URL estable, no expirable. **El backend participa** por el `sitemap.xml` derivado de contenido publicado y por la exposición de la miniatura (deuda 2 de `Task/010`). | frontend, backend, infra (documentación + wiring local mínimo) | 014, 015 | **Aprobada** (2026-09-06) — **E-02**, **E-04**, **E-05**, **E-07** y **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**. Volver a medir tras implementar demostró que un *crawler* sin JavaScript sigue sin recibir metadatos por URL: no era falta de código, así que se abre **D-21** con **ADR-009** en *Propuesta*, sin elegir estrategia. **688** pruebas de frontend y **1631** de backend en verde, **0 dependencias nuevas**. En `infra`, además de la documentación, **tres líneas de *wiring* local** autorizadas: dos variables del Compose y el enrutado de `/sitemap.xml` en Traefik |
-| `Task/017-Observabilidad-Local` | Logs JSON. Correlation ID. Healthchecks. Auditoría. Diagnóstico con Portainer. **Solo entorno local: no es owner del monitoreo del VPS productivo** (`Task/029`, `Task/040`). **La telemetría debe ser portable**: el dominio no se acopla a CloudWatch, Grafana, Loki ni Prometheus (**O-09**). | backend, infra | 014, 015 | Pendiente |
+| `Task/017-Observabilidad-Local` | Logs JSON. Correlation ID. Healthchecks. Auditoría. Diagnóstico con Portainer. **Solo entorno local: no es owner del monitoreo del VPS productivo** (`Task/029`, `Task/040`). **La telemetría debe ser portable**: el dominio no se acopla a CloudWatch, Grafana, Loki ni Prometheus — es el **principio 9** de [`overview.md`](../architecture/overview.md) §5 y [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md), **no O-09**. | backend, infra | 014, 015 | **Aprobada** ✔ (2026-09-06) |
 | `Task/018-Endurecimiento-de-Seguridad` | Dependencias. Imágenes Docker. Secretos. CORS. Headers. Archivos. Autenticación. | infra, frontend, backend | 016, 017 | Pendiente |
 
 ---
@@ -452,7 +452,21 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `9 / 41 = 22 %`.
+Actualmente: `17 / 41 = 41 %`.
+
+> **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
+> mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de
+> actualizarse en aprobaciones anteriores. El valor canónico es y era el de `STATUS.md`.
+> **No lo causó `Task/017` y no contó como trabajo funcional suyo**; se corrigió aquí porque
+> la tarea ya modificaba este documento para su propio estado. El **17.º** del numerador es
+> `Task/017`, aprobada el 2026-09-06 — eso sí es avance.
+
+**Precisión sobre O-09.** La fila de `Task/017` ligaba la *telemetría portable* a **O-09**.
+Son cosas distintas y ambas se conservan intactas: la portabilidad es el **principio 9** de
+[`overview.md`](../architecture/overview.md) §5, cerrado por `Task/006.2` con
+[ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md); **O-09** es la
+privacidad de la telemetría **exportada a un tercero**, y sus propietarios siguen siendo
+`Task/029`, `Task/018` y `Task/040`. `Task/017` **no** es owner de O-09.
 
 Las tareas de mantenimiento (`Task/002.1`, `Task/005.1`, `Task/005.2`, `Task/005.3`,
 `Task/005.4`, `Task/005.5`, `Task/005.6`, `Task/005.7`, `Task/006.1`, `Task/006.2`) **no

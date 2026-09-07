@@ -136,7 +136,7 @@ de **nivel host**, no de nivel aplicación.
 | Enlaces externos | *Tabnabbing* | **Implementado en `Task/014`**: `ExternalLink` con `rel="noopener noreferrer"` siempre, misma pestaña y solo `http`/`https`; los enlaces del Markdown pasan por la misma pieza | `Task/014` ✔ |
 | CORS | Origen no autorizado | Lista explícita por ambiente, nunca `*` en producción | `Task/018`, `Task/033` |
 | Mensajes de error | Filtración de información | Modelo común de error sin trazas internas | `Task/009`, `Task/018` |
-| Logs | Filtración de secretos | Lista de campos a redactar | `Task/017` |
+| Logs | Filtración de secretos | **Implementado en `Task/017`**: redacción automática **por nombre de campo** —`password`, `secret`, `token`, `authorization`, `cookie`, `session`, `credential`, `access_key`, `api_key`, `private`, `signature`, `database_url`, `dsn`, `email`, `body`— y **por forma del valor** —DSN con contraseña, parámetros de firma, esquema de autorización, correo—, aplicada al mensaje, al contexto **y a la cadena de excepciones**, en los formatos `json` y `text`. Es **idempotente** y **no borra el diagnóstico**: la DSN conserva esquema, anfitrión, puerto y base; la excepción conserva su tipo. Endurecer la política sigue siendo de `Task/018` | `Task/017` ✔ (local), `Task/018` |
 | CI/CD | Robo de credenciales | OIDC con roles temporales, secretos enmascarados | `Task/028`, `Task/038` |
 | Bucket de objetos | Exposición pública accidental | Bloqueo de acceso público y verificación explícita | `Task/030` |
 | **Emulador AWS local** | Control del socket de Docker ⇒ control del host | Solo local, nunca expuesto, versión fijada (§8) | `Task/025`, `Task/018` |
@@ -178,7 +178,7 @@ de **nivel host**, no de nivel aplicación.
 | ~~Proveedores de video permitidos~~ | **Cerrados en `Task/014`** (2026-09-05, **Vigente**): `youtube` y `vimeo`, *fail-closed* en el render. Detalle en [`api-contracts.md`](api-contracts.md) §14.9 |
 | Política IAM de la Lambda y del rol OIDC | `Task/028`, `Task/032` |
 | Política del bucket y expiración de URLs prefirmadas | `Task/030` |
-| Campos a redactar en los logs | `Task/017` |
+| ~~Campos a redactar en los logs~~ | **Fijados en `Task/017`** (§3, fila «Logs»): la lista de fragmentos sensibles y los patrones de valor. **Ampliarla** —más cabeceras, más superficies— sigue siendo endurecimiento de `Task/018`, que restringe, no relaja |
 | Guardas *fail-closed* del laboratorio local y su verificación | `Task/025`, `Task/026` |
 | Revisión del *networking* de Docker del laboratorio | `Task/025` |
 | *Hardening* concreto del VPS, reglas de firewall y política de parcheo | `Task/029`, `Task/018` |

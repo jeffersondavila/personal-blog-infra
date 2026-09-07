@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 05 |
-| **Estado** | **En curso** — `Task/016` **Aprobada** el 2026-09-06 |
+| **Estado** | **En curso** — `Task/016` y `Task/017` **Aprobadas** el 2026-09-06. Queda `Task/018` |
 | **Dependencias** | [ETAPA 04](STAGE-04-user-experience.md) — **Completada** ✔ (2026-09-05) |
 | **Tareas** | 3 |
-| **Aprobadas** | 1 de 3 |
-| **Avance** | 33 % |
+| **Aprobadas** | 2 de 3 |
+| **Avance** | 67 % |
 | **Hito que completa** | Producto con calidad y seguridad verificables. |
 
 ---
@@ -91,10 +91,22 @@ Lo que sí se ganó sin JavaScript: el Open Graph **de sitio** —`og:site_name`
 con sus dimensiones, y `twitter:card`— vive ahora en `index.html`, y es información
 **correcta para cualquier URL**.
 
-### `Task/017-Observabilidad-Local` — *Pendiente*
+### `Task/017-Observabilidad-Local` — **Aprobada** ✔ (2026-09-06)
 
 Logs en JSON, correlation ID por petición, healthchecks, auditoría y diagnóstico a
 través de Portainer.
+
+Entrega `X-Request-ID` de extremo a extremo —respuesta, logs y `audit_events`—, `GET /ready`
+con sonda real de PostgreSQL y almacenamiento bajo **presupuesto total** por debajo del
+`timeout` del proxy, redacción automática de secretos en el log —cierra el plano local de
+**R-36**— y `healthCheck` de Traefik en `/ready` conservando `/health` como liveness de
+Docker. **1808** pruebas de backend en verde, **0 dependencias nuevas**.
+
+**Alcance declarado:** cubre **O-01**, **O-02**, **O-04**, **O-07** y **O-08** en el plano
+local, verifica **O-03** y aporta el correlation ID a **O-05**. **No** cubre **O-06**,
+**O-09** ni **O-10**, que son observabilidad cloud y del VPS. Detalle en la
+[ficha](../tasks/TASK-017-local-observability.md) y el
+[reporte](../task-reports/TASK-017-report.md).
 
 > **Alcance exclusivamente local** (aclarado en `Task/005.5`). `Task/017` **no es
 > propietaria del monitoreo del VPS de producción**: ese *baseline* lo construye
