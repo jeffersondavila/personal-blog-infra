@@ -142,6 +142,33 @@ Objetivo de referencia: **WCAG 2.1 nivel AA**.
 | O-09 | **La telemetría enviada fuera del proyecto** —logs, métricas y trazas hacia un destino de terceros— **no contiene secretos ni datos personales innecesarios**. Enviar a un tercero es **exportar**: qué se recolecta es parte del diseño, no configuración. | `Task/029`, `Task/018`, `Task/040` |
 | O-10 | **La observabilidad del VPS de producción sale del host.** Un plano de observabilidad alojado en la máquina que vigila cae con ella; el *baseline* —uptime, CPU, RAM, disco, PostgreSQL, PgBouncer, fallo de backup y caducidad del certificado— se envía a un destino externo. | `Task/029`, `Task/040` |
 
+### 5.1 Estado tras `Task/017` — **plano local**
+
+`Task/017` implementa la observabilidad **del entorno local**. Lo que sigue clasifica lo
+verificado y, con el mismo cuidado, lo que **no** queda cubierto. El alcance es local en
+sentido estricto: **nada de esto afirma nada sobre la observabilidad en la nube.**
+
+| # | Estado tras `Task/017` | Qué lo demuestra |
+| --- | --- | --- |
+| **O-01** | **Cubierto en local.** Logs en JSON por `stdout`, una línea por evento, con `timestamp`, `level`, `logger`, `module`, `line` y `context`. El formato `text` sigue disponible para desarrollo, y también redacta y también lleva el correlation ID | Suite de logging y lectura del contenedor real |
+| **O-02** | **Cubierto en local.** `X-Request-ID` en petición y respuesta (api-contracts §9.1–§9.3), presente en **todas** las líneas de log de la petición, en `error.request_id` y en `audit_events.request_id` | Correlación extremo a extremo verificada contra el stack real |
+| **O-03** | **Verificado.** `/health` responde a la vivacidad del proceso **sin** consultar dependencias. `Task/017` no lo reimplementa: lo verifica y corrige su justificación escrita | Suite de `/health` y `HEALTHCHECK` del contenedor |
+| **O-04** | **Cubierto en local.** `GET /ready` comprueba PostgreSQL (`SELECT 1`) y almacenamiento (`ListObjectsV2` acotado) con **presupuesto total** por debajo del `timeout` de su consumidor, y responde `503` sin nombrar el componente | Cinco escenarios de almacenamiento y de dependencias, medidos |
+| **O-05** | **Participación, no cierre.** El requisito lo cumplen `Task/011` y `Task/012`; `Task/017` aporta que el evento de auditoría lleve el **mismo** `request_id` que la respuesta y que los logs | Cadena `respuesta → log → AuditEvent` verificada |
+| **O-07** | **Cubierto en local.** Los logs del backend son legibles por `docker logs` / `docker compose logs` y por la interfaz de Portainer, que lee ese mismo flujo | Ver el reporte de la tarea |
+| **O-08** | **Cubierto en local.** Redacción automática e idempotente de credenciales, cookies, cabeceras de autorización, DSN y datos personales innecesarios, aplicada al mensaje, al contexto y a la **cadena de excepciones**. Cierra el plano local de **R-36** | Pruebas de señuelo: un valor sensible sembrado no aparece en la salida |
+
+**Lo que `Task/017` NO cubre, y no debe interpretarse que cubra:**
+
+| # | Por qué queda fuera | Propietario |
+| --- | --- | --- |
+| **O-06** | CloudWatch y su retención son de producción. `Task/017` no crea ningún recurso cloud | `Task/031`, `Task/041` |
+| **O-08** *(endurecimiento)* | La redacción local existe y está probada; **ampliar la política** —más patrones, cabeceras y superficies— sigue siendo endurecimiento de seguridad | `Task/018` |
+| **O-09** | **Exportar** telemetría a un tercero es un problema distinto del de redactar el log propio. Que el log local no filtre **no** demuestra que lo enviado fuera tampoco lo haga | `Task/029`, `Task/018`, `Task/040` |
+| **O-10** | Observabilidad del VPS, que aún no existe | `Task/029`, `Task/040` |
+
+> **Estado:** **Vigente** desde el 2026-09-06, con la aprobación de `Task/017`.
+
 ---
 
 ## 6. Portabilidad

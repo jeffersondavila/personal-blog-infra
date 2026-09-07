@@ -516,6 +516,98 @@ Esperado: `postgresql://blog_local:***@postgres:5432/personal_blog` y `0001 (hea
 > **Nunca imprimas `BLOG_DATABASE_URL` completa.** Lleva la contraseña. `database_url_safe`
 > existe justo para esto (requisito S-08).
 
+### 6.9 Observabilidad: sondas y correlation ID (`Task/017`)
+
+#### `/health` y `/ready` no responden a la misma pregunta
+
+| Sonda | Pregunta | Consulta dependencias | Quién la consume |
+| --- | --- | --- | --- |
+| `GET /health` | ¿El **proceso** está vivo? | **No** | `HEALTHCHECK` del `Dockerfile` del backend |
+| `GET /ready` | ¿Puede **atender tráfico** con sus dependencias? | **Sí**: PostgreSQL y almacenamiento | `healthCheck` del servicio backend en Traefik |
+
+La separación es deliberada. Durante un incidente de dependencias, `/health` sigue en `200`
+y el contenedor sigue **sano y en marcha**, así que sus logs siguen siendo consultables
+desde Portainer; `/ready` pasa a `503` y Traefik retira el backend de rotación. Si Docker
+sondara `/ready`, un PostgreSQL caído marcaría el backend como *unhealthy* y complicaría
+justamente el diagnóstico.
+
+```powershell
+curl.exe -s http://localhost:8081/health
+curl.exe -s http://localhost:8081/ready
+```
+
+Respuestas esperadas:
+
+```json
+{"status":"ok","service":"personal-blog-backend","version":"0.1.0"}
+{"status":"ready"}
+```
+
+#### Interpretar un `503` de `/ready`
+
+`{"status":"not_ready"}` con código `503`. **El cuerpo no dice qué componente falló**, y es
+a propósito: `/ready` es anónimo y decir *«la base de datos está caída»* a un cliente
+cualquiera es reconocimiento gratuito (api-contracts §2). **El log sí lo dice**, ya
+saneado — ahí es donde mira el operador:
+
+```powershell
+docker compose logs backend | Select-String "Dependencia no disponible"
+```
+
+La línea lleva `componente` (`base_de_datos` o `almacenamiento`) y un `motivo` sin
+credenciales ni cadena de conexión. `/ready` tiene un **presupuesto total** por debajo del
+`timeout` del `healthCheck` de Traefik, así que dos dependencias caídas no suman dos
+esperas: responde dentro del presupuesto o registra que lo agotó.
+
+#### Seguir una petición con `X-Request-ID`
+
+Toda respuesta —`2xx`, `4xx` y `5xx`— lleva `X-Request-ID`. Si envías uno válido (8–64
+caracteres de `A-Za-z0-9-_`) se reutiliza; si no, el backend genera un UUIDv4.
+
+```powershell
+# Se ve la cabecera de respuesta
+curl.exe -si http://localhost:8081/api/v1/posts | Select-String "x-request-id"
+
+# O se impone uno propio, comodo para buscarlo despues
+curl.exe -s -o NUL -H "X-Request-ID: diagnostico-local-001" http://localhost:8081/api/v1/posts
+```
+
+Buscarlo en los logs del contenedor:
+
+```powershell
+docker compose logs backend | Select-String "diagnostico-local-001"
+```
+
+Aparece en **todas** las líneas de esa petición: el evento `app.peticion` —con `method`,
+`path`, `status_code` y `duration_ms`—, el manejador de errores si lo hubo, y `uvicorn.error`
+si la petición terminó en excepción.
+
+> Las sondas satisfactorias (`/health` y `/ready` en `200`) se registran a `DEBUG` para no
+> ahogar el log: Traefik las ejecuta cada diez segundos. No las busques a nivel `INFO`.
+
+#### Lo mismo desde Portainer
+
+Portainer lee **el mismo flujo** que `docker compose logs`; no es otra fuente.
+
+1. Abre `https://localhost:9444` e inicia sesión.
+2. *Containers* → **`personal-blog-local-backend`** → **Logs**.
+3. Marca *Wrap lines* y escribe el identificador en el buscador (**Search**).
+4. Cada línea es un JSON con `context.request_id`, `method`, `path`, `status_code` y
+   `duration_ms`.
+
+#### Cruzarlo con el historial de auditoría
+
+Cuando la petición fue una **escritura administrativa** —o un intento de acceso—, el mismo
+identificador queda en `audit_events.request_id`:
+
+```powershell
+docker compose exec postgres psql -U blog_local -d personal_blog -c "SELECT occurred_at, action, entity_type, request_id FROM audit_events WHERE request_id = 'diagnostico-local-001';"
+```
+
+Es lo que permite responder *«qué pasó exactamente en esa petición»* con una sola cadena:
+respuesta HTTP, líneas de log y evento de auditoría comparten valor. El identificador **no**
+se publica en el DTO de `GET /api/v1/admin/audit-events`: cruzarlo es trabajo de operador.
+
 ---
 
 ## 7. Diagnóstico
