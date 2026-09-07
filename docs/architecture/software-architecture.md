@@ -217,10 +217,25 @@ implementaciones superan **la misma** suite de contrato.
 
 | Elemento | Estado |
 | --- | --- |
-| `ObjectStorage` | Cinco operaciones: guardar, obtener, comprobar, eliminar y generar acceso temporal. Tipos de resultado propios: no se devuelve ningún objeto del SDK |
+| `ObjectStorage` | **Seis** operaciones: guardar, obtener, comprobar la existencia de una clave, eliminar, generar acceso temporal y —desde `Task/017`— **comprobar la disponibilidad** del almacenamiento. Tipos de resultado propios: no se devuelve ningún objeto del SDK |
 | `MinIOStorage` | Local. Exige endpoint explícito y **rechaza** cualquier endpoint de AWS |
 | `S3Storage` | Producción. Funciona sin endpoint —lo resuelve el SDK— y **nunca** crea un bucket |
 | Selector | `app/shared/storage/fabrica.py`, único punto que sabe que hay más de una implementación. `BLOG_STORAGE_PROVIDER` la elige; `minio` está **prohibido** con `BLOG_APP_ENV=production` |
+
+**La sexta operación la añadió `Task/017`** para el requisito **O-04**, y ninguna de las
+cinco anteriores servía: `guardar` y `eliminar` **mutan**; `obtener` descarga bytes;
+`acceso_temporal` firma **en local**, sin viajar a la red, así que funcionaría con el
+almacenamiento caído; y `existe` devuelve `404` idéntico para *«el bucket está y la clave
+no»* y *«el bucket no está»* —medido contra MinIO real—, de modo que `/ready` habría
+respondido `200` con el bucket ausente.
+
+`comprobar_disponibilidad()` se implementa con **`ListObjectsV2`** acotado
+(`Prefix="_readiness/"`, `MaxKeys=1`), y es **de solo lectura**: no crea, no modifica y no
+elimina nada. El prefijo no es cosmético — permite que `Task/030` conceda `s3:ListBucket`
+con una condición sobre `s3:prefix`, de modo que la sonda no habilite listar los medios del
+blog. **Lo que no demuestra:** permisos de escritura. Comprobarlos exigiría `PutObject` en
+cada sonda; `/ready` afirma que el almacenamiento está y responde, no que una subida futura
+vaya a tener permiso. La política de permisos de producción sigue siendo de `Task/030`.
 
 **Un solo SDK, `boto3`, para las dos** (decisión D-010-A). MinIO implementa el
 protocolo S3, así que `boto3` lo ejerce de verdad; el SDK propio de MinIO

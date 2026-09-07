@@ -58,6 +58,13 @@ Relacionados: [USER_FLOWS.md](../product/USER_FLOWS.md) ·
 mientras las dependencias no estén listas. Ninguno expone detalles internos ni versiones
 de dependencias.
 
+**Implementados desde `Task/017`** (requisitos O-03 y O-04). `/ready` responde `200` con
+`{"status": "ready"}` cuando PostgreSQL y el almacenamiento contestan, y `503` con
+`{"status": "not_ready"}` cuando alguno no lo hace. **No dice cuál**: el cuerpo no nombra
+el componente, que es lo que exige el párrafo anterior; el operador lo obtiene del log, ya
+saneado. Ninguna de las dos sondas muta nada, y ninguna exige autenticación —las consumen
+Docker y Traefik—.
+
 ---
 
 ## 3. Recursos públicos (conceptuales)
@@ -290,6 +297,46 @@ Reglas:
 Objetivo: que un problema reportado por el usuario pueda rastrearse extremo a extremo con
 un único identificador.
 
+### 9.1 Cabecera y formato — **cerrado** por `Task/017`
+
+La cabecera que §11 dejaba abierta queda fijada:
+
+| Elemento | Valor |
+| --- | --- |
+| **Cabecera** | `X-Request-ID`, en la **petición** y en la **respuesta** |
+| **Longitud** | **8 a 64** caracteres |
+| **Alfabeto** | `A-Z`, `a-z`, `0-9`, `-` y `_` |
+| **Generación** | **UUIDv4** cuando no hay uno válido que reutilizar |
+
+Se eligió `X-Request-ID` y no `traceparent` a propósito: `traceparent` es la cabecera de
+[W3C Trace Context](https://www.w3.org/TR/trace-context/) y adoptarla anunciaría una
+semántica de trazas distribuidas —`trace-id`, `span-id`, `sampled`— que el proyecto **no**
+implementa. Métricas y trazas siguen fuera de alcance.
+
+### 9.2 Política de entrada — *fail-safe*
+
+| Cabeceras `X-Request-ID` recibidas | Resultado |
+| --- | --- |
+| **0** | Se **genera** un UUIDv4 |
+| **1**, válida según §9.1 | Se **reutiliza** |
+| **1**, inválida | Se **descarta** y se genera uno nuevo |
+| **2 o más** | Se **descartan todas** y se genera uno nuevo |
+
+El último caso es deliberado y no depende del comportamiento de ningún servidor
+intermedio: ante cabeceras repetidas no hay forma de saber cuál es la legítima, así que
+ninguna se cree. El valor del cliente **nunca** llega a un log ni a la base de datos sin
+haber pasado antes por la validación de formato: es entrada no confiable.
+
+### 9.3 Alcance
+
+La respuesta lleva la cabecera **siempre** —`2xx`, `4xx` y `5xx` incluidos—, porque el
+caso en que un identificador hace falta es justamente el del fallo. En un error de la
+envoltura común (§7) el mismo valor viaja además en `error.request_id`, y en una escritura
+administrativa, en `audit_events.request_id`.
+
+**No se expone en el DTO del historial de auditoría** (§15.3): que el identificador se
+almacene no significa que se publique.
+
 ---
 
 ## 10. Reglas de compatibilidad
@@ -314,7 +361,7 @@ un único identificador.
 | Lista cerrada de `sort` y su dirección | `Task/009` | **Cerrado** (2026-08-26) |
 | Forma de los resultados de `/search` | `Task/009` | **Cerrado** (2026-08-26) — colección plana con `type` |
 | Forma exacta de las transiciones de estado | `Task/012` | **Cerrado** (2026-09-01) — **subrecursos dedicados**; ver §14.2 |
-| Cabecera concreta del correlation ID | `Task/017` | Abierto |
+| Cabecera concreta del correlation ID | `Task/017` | **Cerrada** (2026-09-06) — `X-Request-ID`, 8–64 caracteres de `[A-Za-z0-9_-]`, UUIDv4 al generar; ver §9.1 y §9.2 |
 | Mecanismo de autenticación y forma de la sesión | `Task/011` | **Cerrado** (2026-09-01) — sesión opaca en cookie `HttpOnly`; ver §13 |
 | Límites de tamaño y tipos MIME permitidos | `Task/010`, `Task/018` | **Base cerrada** (2026-08-28) — 5 MiB y JPEG/PNG/WebP; `Task/018` endurece |
 | Configuración concreta de rate limiting | `Task/011`, `Task/018` | **Cerrada para `login`** (2026-09-01) — 10 intentos / 300 s por IP, con `Retry-After`; `Task/018` endurece |
@@ -475,7 +522,7 @@ de `Task/018`, y el dominio real, de `Task/035` (**D-07**).
 | Pregunta | Propietario |
 | --- | --- |
 | ~~Esquemas de petición y respuesta del **CRUD administrativo**~~ | **Cerrado** por `Task/012` (§14) |
-| Cabecera concreta del correlation ID y su propagación completa | `Task/017` |
+| ~~Cabecera concreta del correlation ID y su propagación completa~~ | **Cerrada** por `Task/017` (§9.1–§9.3) |
 | CORS efectivo y cabeceras de seguridad | `Task/018` |
 | *Throttling* del borde | `Task/033` |
 | Dominio real, DNS y certificados (**D-07**) | `Task/035` |
@@ -651,7 +698,7 @@ cuenta. La invariante 9 de CONTENT_MODEL.md no hace excepción para el administr
 | --- | --- |
 | ~~Lista cerrada de proveedores de vídeo permitidos~~ | **Cerrada en `Task/014`** (2026-09-05, **Vigente** — aprobada por el usuario): **`youtube`** y **`vimeo`**. El sitio público solo incrusta (*embed*) esos dos proveedores, con `embed_reference` validada por patrón —`^[A-Za-z0-9_-]{11}$` para YouTube y `^[0-9]{6,12}$` para Vimeo— y el `iframe` se crea únicamente por acción del visitante. Cualquier otro proveedor o una referencia malformada es *fail-closed*: solo se ofrece el enlace externo seguro a `video_url`. **El backend no cambia**: sigue exigiendo presencia de `provider`, no pertenencia (§14.5); restringirlo allí y ofrecer el selector en el panel queda como deuda registrada en la ficha de `Task/014` |
 | **Corregir a propósito** un `alt_text` ya escrito y compartido por varios contenidos. Fijarlo por primera vez **ya funciona** (§14.11) y **D-012-Z** —rechazar la sobrescritura— está **aceptada para el MVP**: relajarla sería una mejora deliberada, no una corrección | **mejora futura**, sin propietario |
-| Cabecera concreta del correlation ID | `Task/017` |
+| ~~Cabecera concreta del correlation ID~~ | **Cerrada** por `Task/017` (§9.1) |
 | CORS efectivo y cabeceras de seguridad | `Task/018` |
 | URL estable de medios y CDN (**D-08**) | `Task/030` |
 
@@ -811,9 +858,11 @@ La envoltura única de §5. Cada elemento tiene **exactamente cinco campos**:
 **No se exponen `actor_id`, `event_metadata`, `request_id` ni `ip_address`.**
 `ip_address` es dato personal que listar el historial no necesita (**O-09**;
 security-boundaries.md A-13); `actor_id` no informa con **un** administrador;
-`event_metadata` es un objeto de forma libre que congelar en `v1` sería prematuro; y el
-propósito de `request_id` —trazabilidad extremo a extremo (§9)— es de `Task/017`, que aún no
-ha fijado la cabecera. Los cuatro comparten la misma razón: **añadir un campo opcional
+`event_metadata` es un objeto de forma libre que congelar en `v1` sería prematuro; y
+`request_id`, cuya cabecera **ya fijó `Task/017`** (§9.1), sigue sin exponerse por decisión
+propia: su propósito —trazabilidad extremo a extremo— se cumple **cruzando el historial con
+los logs**, que es trabajo de operador, y publicarlo lo convertiría en contrato `v1`. Los
+cuatro comparten la misma razón: **añadir un campo opcional
 después es compatible; retirarlo, no** (§10, reglas 2 y 3). Es el criterio con el que §12
 rechazó `access_expires_at`.
 
@@ -856,6 +905,6 @@ sin escritura no hay conflicto de estado posible.
 | --- | --- |
 | Filtros del historial por acción, tipo, elemento o fechas | Sin propietario; ampliación compatible |
 | Resolver el nombre del actor cuando exista más de un administrador | Sin propietario; fuera del MVP |
-| Exponer `request_id` una vez `Task/017` fije la cabecera del correlation ID | `Task/017` |
+| Exponer `request_id` en el DTO del historial. `Task/017` fijó la cabecera (§9.1) y **pobla** `audit_events.request_id`, pero **no** lo publica: sigue siendo una ampliación compatible que ninguna fuente vigente pide | Sin propietario; ampliación compatible |
 | Retención, rotación y archivado del historial | Operación |
 | Privilegio mínimo sobre `audit_events` (invariante 16b) | `Task/018` |

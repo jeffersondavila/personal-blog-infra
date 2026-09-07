@@ -8,9 +8,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 05 — Calidad y Seguridad — En curso** (**1 de 3** aprobadas). ETAPAS 00 a 04 **completadas** |
-| **Tarea actual** | **`Task/016-SEO-Accesibilidad-y-Rendimiento`** — **Aprobada** el 2026-09-06 por jeffersondavila |
-| **Estado de la tarea** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** mediante `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`. **E-02**, **E-04**, **E-05**, **E-07**, **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**, ambos con su motivo medido. **688** pruebas de frontend y **1631** de backend en verde. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-016-report.md). Cuenta en el avance: **16 de 41** |
+| **Etapa actual** | **ETAPA 05 — Calidad y Seguridad — En curso** (**2 de 3** aprobadas). ETAPAS 00 a 04 **completadas** |
+| **Tarea actual** | **`Task/017-Observabilidad-Local`** — **Aprobada** el 2026-09-06 por jeffersondavila |
+| **Estado de la tarea** | `Task/017-Observabilidad-Local` — **Aprobada** mediante `approved: Task/017-Observabilidad-Local`. Correlation ID `X-Request-ID` de extremo a extremo —respuesta, todas las líneas de log de la petición y `audit_events.request_id`—, `GET /ready` con sonda real de PostgreSQL y almacenamiento bajo **presupuesto total** por debajo del `timeout` del proxy, redacción automática de secretos en el log (cierra el plano local de **R-36**) y `healthCheck` de Traefik en `/ready` conservando `/health` como liveness de Docker. **1808** pruebas de backend en verde y **1** omitida (estructural de Windows), con `-W error`. **0 dependencias nuevas**. **O-07** quedó verificado por Docker por el agente; la comprobación en la **interfaz de Portainer** la cubre la aprobación del usuario, y así consta (reporte §22). Detalle en el [reporte](../task-reports/TASK-017-report.md). Cuenta en el avance: **17 de 41** |
+| **Tarea aprobada anterior a `Task/017`** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** mediante `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`. **E-02**, **E-04**, **E-05**, **E-07**, **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**, ambos con su motivo medido. **688** pruebas de frontend y **1631** de backend en verde. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-016-report.md). Cuenta en el avance: **16 de 41** |
 | **Tarea aprobada anterior a `Task/016`** | `Task/015-Panel-Administrativo` — **Aprobada** el 2026-09-05. **18 superficies**, dashboard completo, sesión administrativa, editor Markdown y medios. **600 pruebas**, cero dependencias nuevas. **D-04 resuelta**; completa ETAPA 04 |
 | **Tarea aprobada anterior** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
@@ -21,20 +22,71 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/017-Observabilidad-Local` — **Pendiente, no iniciada**. Requiere una nueva instrucción del usuario; su rama nace desde `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **39 %** — 16 de 41 tareas aprobadas |
+| **Próxima tarea prevista** | `Task/018-Endurecimiento-de-Seguridad` — **Pendiente, no iniciada**. **No se inicia** hasta que `Task/017` esté aprobada y normalizada; su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
+| **Avance global** | **41 %** — 17 de 41 tareas aprobadas |
 | **Bloqueos activos** | **0 que detengan trabajo.** `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> **Recuento tras la aprobación del 2026-09-06:** `Task/016` lleva el avance a
-> **16 de 41 — 39 %** y abre la ETAPA 05 en **1 de 3 — 33 %**. La aprobación del usuario es
-> el hecho que suma avance; las tareas de mantenimiento no cuentan en las 41.
+> **Recuento tras la aprobación de `Task/017`, 2026-09-06:** el avance pasa a
+> **17 de 41 — 41 %** y la ETAPA 05 a **2 de 3 — 67 %**. `Task/016`, aprobada el mismo día,
+> lo había dejado en 16 de 41 — 39 %. La aprobación del usuario es el hecho que suma avance;
+> las tareas de mantenimiento no cuentan en las 41.
 >
 > **Aprobada con limitaciones declaradas, no con todo cerrado.** **E-03** queda **no
 > cerrado** y **E-06 parcial**, ambos con su motivo **medido** en cuatro canales. Lo que se
 > aprobó respecto del *rendering* es **haber abierto** la reconsideración: **D-21** sigue
 > **Abierta** y **ADR-009** en **Propuesta**.
+
+---
+
+## Última tarea aprobada — `Task/017-Observabilidad-Local`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/017-Observabilidad-Local` |
+| **Etapa** | ETAPA 05 — Calidad y Seguridad |
+| **Estado** | **Aprobada** el 2026-09-06 por jeffersondavila |
+| **Repositorios** | `personal-blog-backend` (funcional) · `personal-blog-infra` (gobierno, Traefik, runbook). **El frontend no participa** |
+| **Dependencias** | `Task/014`, `Task/015` y `Task/016`, todas **Aprobadas** |
+| **Documentos** | [ficha](../tasks/TASK-017-local-observability.md) · [reporte](../task-reports/TASK-017-report.md) |
+| **Pruebas** | **1808** en verde, **1** omitida (`time.tzset` no existe en Windows), `-W error`, con PostgreSQL y MinIO reales. Baseline previo: 1631 |
+| **Dependencias nuevas** | **0** |
+
+### Qué entrega
+
+| Requisito | Alcance conseguido |
+| --- | --- |
+| **O-01** | Logs JSON por `stdout`, una línea por evento; el formato `text` conserva redacción y correlation ID |
+| **O-02** | `X-Request-ID` fijada como contrato (api-contracts §9.1–§9.3): 8–64 caracteres de `[A-Za-z0-9_-]`, UUIDv4 al generar, y política *fail-safe* ante cabecera inválida o repetida |
+| **O-03** | `/health` **verificado** como liveness: no consulta dependencias |
+| **O-04** | `GET /ready` comprueba PostgreSQL y almacenamiento con **presupuesto total** —no una suma de timeouts—, y responde `503` sin nombrar el componente |
+| **O-05** | *Participación*: el `AuditEvent` lleva el **mismo** `request_id` que la respuesta y los logs. El requisito lo cumplen `Task/011` y `Task/012` |
+| **O-07** | Logs del backend legibles por Docker — **verificado por el agente**. La comprobación en la **interfaz** de Portainer la cubre la aprobación del usuario; no se registra como evidencia del agente porque no lo fue |
+| **O-08** | Redacción automática e idempotente por nombre de campo y por forma del valor, aplicada también a la cadena de excepciones |
+
+### Qué NO entrega
+
+**O-06**, **O-09** y **O-10** siguen fuera: son observabilidad **cloud** y del VPS, con
+propietarios `Task/029`, `Task/031`, `Task/040` y `Task/041`. El endurecimiento de la
+política de redacción sigue siendo de `Task/018`. `Task/017` **no** crea recursos cloud ni
+introduce Grafana, Prometheus, Loki, Alloy, CloudWatch ni OpenTelemetry.
+
+### Aprobación
+
+Aprobada con la expresión exacta `approved: Task/017-Observabilidad-Local`.
+
+**Vigentes desde la aprobación:** la cabecera **`X-Request-ID`** y su formato; la política
+*fail-safe* ante cabecera inválida o repetida; **no** exponer `request_id` en el DTO del
+historial; `/ready` sin nombrar el componente que falló; la sonda por `ListObjectsV2` acotado;
+el **presupuesto total** de `/ready` por debajo del `timeout` del proxy; la recomendación **C**
+—Docker en `/health`, Traefik en `/ready`—; y el mecanismo de redacción. Detalle en la
+[ficha](../tasks/TASK-017-local-observability.md) §26.
+
+**Registro honesto del alcance.** El veredicto previo a la aprobación fue **NO LISTA** por un
+único punto: la comprobación **visual** en la interfaz de Portainer, que la sesión de
+implementación no pudo producir por no disponer de navegador. **La cubre la aprobación del
+usuario**, no una evidencia del agente, y así consta en el [reporte](../task-reports/TASK-017-report.md) §22.
 
 ---
 
@@ -1124,7 +1176,7 @@ no promete más protección de la que existe.
 | **Regla de gobierno nueva** | [WORKFLOW §6.1](WORKFLOW.md): los documentos versionados registran **estado duradero**; el estado transitorio de Git/GitHub se consulta **en vivo**. Elimina la necesidad estructural de una tarea de mantenimiento tras cada fusión |
 | **ADR** | **Ninguno nuevo.** No apareció ninguna decisión arquitectónica: se corrigieron reproducibilidad, aislamiento de pruebas y precisión documental. **`ADR-001` no cambia su decisión**, solo una cifra frágil por una referencia por etapas |
 | **Arquitectura** | **Sin cambios.** Monolito modular, FastAPI, PostgreSQL, MinIO/S3, Cloudflare Pages, API Gateway, Lambda, Terraform, Floci y PgBouncer siguen exactamente igual |
-| **Riesgo nuevo** | **R-36** — el log no redacta secretos de forma automática. **Abierto**, con propietario `Task/017` y `Task/018` |
+| **Riesgo nuevo** | **R-36** — el log no redacta secretos de forma automática. **Abierto** cuando `Task/005.6` lo registró, con propietario `Task/017` y `Task/018`. Su plano local queda **cerrado por `Task/017`**, **Aprobada** el 2026-09-06; ver el registro de riesgos |
 | **Integración en `dev`** | Merge `--no-ff` en los **tres** repositorios, publicado |
 | **Pull request** | `Task/005.6 → main` en los tres. Base `main`, head la rama Task. **Ninguno es `dev → main`** y **ninguno lo fusiona Claude** |
 | **Ficha** | [TASK-005.6](../tasks/TASK-005.6-close-foundations-after-mega-audit.md) |
@@ -1411,7 +1463,7 @@ Distribución por estado:
 
 | # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
 | --- | --- | --- | --- | --- | --- |
-| R-36 | **El log no tiene redacción automática de secretos.** `JsonLogFormatter` emite en `context` **todo** atributo propio del `LogRecord` y serializa las excepciones completas. La regla S-08 —«los logs no contienen contraseñas, tokens ni cadenas de conexión»— existe y se cumple hoy, pero depende de que **quien registra el evento** no pase un valor sensible: no hay ningún mecanismo que lo impida. Una excepción de driver o un `extra` descuidado pueden filtrar una credencial. Reproducido en `Task/005.6` por inspección del formateador. | Medio | **Deliberadamente NO se corrige en `Task/005.6`**: construir una política de redacción completa —lista de claves sensibles, patrones de token y URL, redacción en mensaje, contexto y traza— es trabajo de observabilidad y endurecimiento, no de cierre de fundaciones. Mitigación vigente: `database_url` está excluida de `repr` y solo se expone por `database_url_safe`, verificado en el contenedor real (`blog_local:***@`); `ConfigurationError` nombra campos, nunca valores. | `Task/017` (observabilidad, correlation ID y política de log) y `Task/018` (endurecimiento de seguridad) | **Abierto** |
+| R-36 | **El log no tiene redacción automática de secretos.** `JsonLogFormatter` emite en `context` **todo** atributo propio del `LogRecord` y serializa las excepciones completas. La regla S-08 —«los logs no contienen contraseñas, tokens ni cadenas de conexión»— existe y se cumple hoy, pero depende de que **quien registra el evento** no pase un valor sensible: no hay ningún mecanismo que lo impida. Una excepción de driver o un `extra` descuidado pueden filtrar una credencial. Reproducido en `Task/005.6` por inspección del formateador. | Medio | **Deliberadamente NO se corrige en `Task/005.6`**: construir una política de redacción completa —lista de claves sensibles, patrones de token y URL, redacción en mensaje, contexto y traza— es trabajo de observabilidad y endurecimiento, no de cierre de fundaciones. Mitigación vigente: `database_url` está excluida de `repr` y solo se expone por `database_url_safe`, verificado en el contenedor real (`blog_local:***@`); `ConfigurationError` nombra campos, nunca valores. | `Task/017` (observabilidad, correlation ID y política de log) y `Task/018` (endurecimiento de seguridad) | **Cerrado en el plano local** por `Task/017`, **Aprobada** el 2026-09-06. El mecanismo existe y está probado: redacción por **nombre de campo** y por **forma del valor**, aplicada al mensaje, al contexto y a la **cadena de excepciones**, en `json` y en `text`, idempotente y sin destruir el diagnóstico —la DSN conserva esquema, anfitrión, puerto y base; la excepción conserva su tipo—. Las pruebas siembran un señuelo y exigen que no aparezca en la salida. La causa que abrió el riesgo —*«depende de que quien registra el evento no pase un valor sensible»*— **deja de sostenerse en el plano local**. **Sigue abierto** para el endurecimiento de la política (`Task/018`) y para la telemetría **exportada**, que es **O-09** y no este riesgo (`Task/029`, `Task/040`) | **Abierto** — solo para `Task/018` |
 
 ### Riesgo introducido por `Task/005.7` — concurrencia de la suite de integración
 
