@@ -17,7 +17,8 @@
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Último mantenimiento aprobado** | `Task/004.1-Corregir-Backup-Rutas-Literales` — **Aprobada** el 2026-09-06 por jeffersondavila. Corrige un defecto **demostrado en ejecución** del sistema de respaldo de `Task/004`: una ruta ya resuelta se pasaba a parámetros de PowerShell que interpretan comodines, de modo que una clave de objeto con `[` abortaba el respaldo. El mismo defecto afectaba a la **prueba de restauración**. Respaldo real, verificación y restauración **superados** sobre 64 objetos, 44 de ellos con corchetes. **No cuenta en las 41 tareas** ni altera el avance |
+| **Último mantenimiento aprobado** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-06 por jeffersondavila. Aplica el **criterio 12** al contenido durable que dejó `Task/004.1`: cuatro afirmaciones sobre el pull request estaban escritas **en presente** y dejaron de ser ciertas al fusionarse. Se convierten en hechos históricos fechados, sin eliminar evidencia, y se añade la observación fechada de la fusión y la normalización. **No cuenta en las 41 tareas** ni altera el avance |
+| **Mantenimiento anterior a `Task/004.2`** | `Task/004.1-Corregir-Backup-Rutas-Literales` — **Aprobada** el 2026-09-06 por jeffersondavila. Corrige un defecto **demostrado en ejecución** del sistema de respaldo de `Task/004`: una ruta ya resuelta se pasaba a parámetros de PowerShell que interpretan comodines, de modo que una clave de objeto con `[` abortaba el respaldo. El mismo defecto afectaba a la **prueba de restauración**. Respaldo real, verificación y restauración **superados** sobre 64 objetos, 44 de ellos con corchetes. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior a `Task/004.1`** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` — **Aprobada** el 2026-09-05 por jeffersondavila. Añade **una** operación administrativa de solo lectura, `GET /api/v1/admin/audit-events`, que cierra la laguna entre `MVP_SCOPE.md` §3.3 y la API administrativa. **Sin migración**, sin filtros y sin datos personales; la inmutabilidad de `AuditEvent` queda intacta y leer no audita. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
@@ -487,7 +488,47 @@ propio:
 
 ---
 
-## Último mantenimiento aprobado — `Task/004.1`
+## Último mantenimiento aprobado — `Task/004.2`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` |
+| **Tipo** | Mantenimiento de gobierno documental |
+| **Estado** | **Aprobada** ✔ el 2026-09-06 por jeffersondavila |
+| **Cuenta en las 41 tareas** | **No.** Avance global y ETAPA 05 **sin cambios** |
+| **Repositorios** | `personal-blog-infra` únicamente |
+| **Rama** | `Task/004.2-Corregir-Drift-Documental-Post-Merge`, nacida de `main` (`a90cc55`) |
+| **Ficha** | [TASK-004.2](../tasks/TASK-004.2-correct-post-merge-documentation-drift.md) |
+| **Reporte** | [TASK-004.2-report.md](../task-reports/TASK-004.2-report.md) |
+
+### Qué corrige
+
+El cierre aprobado de `Task/004.1` se redactó cuando su pull request acababa de crearse, y
+dejó escrito **en presente** que estaba «abierto, sin fusionar». Al fusionarlo el usuario,
+esas afirmaciones pasaron a ser **falsas**: no imprecisas, incorrectas.
+
+Se encontraron **cuatro** afirmaciones de clase **C** —tres en el reporte y una en la
+ficha— y se convirtieron en hechos históricos fechados. En el caso del párrafo de cierre,
+la corrección **separa** lo que estaba mezclado: la regla permanente de que aceptar un PR
+es responsabilidad exclusiva del usuario, y el hecho fechado de que lo fusionó el
+2026-09-07.
+
+No se eliminó ninguna evidencia histórica. Se añadió la que faltaba y la regla sí permite
+persistir: número de PR, dirección, fecha de fusión, merge commit y SHA de la normalización.
+
+### Por qué volvió a pasar
+
+La regla de [WORKFLOW §6.1](WORKFLOW.md) nació en `Task/005.6` precisamente para **dejar de
+necesitar** una tarea de mantenimiento después de cada fusión. Existía y no se aplicó: el
+punto de control es el **momento de redactar la cabecera del reporte de cierre**, y ahí es
+donde falló. La regla no cambia; lo que se corrige es su aplicación.
+
+El cierre de `Task/004.2` se redactó ya conforme a ella: no persiste el estado de su propio
+pull request.
+
+---
+
+## Mantenimiento correctivo anterior — `Task/004.1`
 
 | Campo | Valor |
 | --- | --- |
@@ -499,6 +540,8 @@ propio:
 | **Rama** | `Task/004.1-Corregir-Backup-Rutas-Literales`, nacida de `main` |
 | **Ficha** | [TASK-004.1](../tasks/TASK-004.1-fix-backup-literal-paths.md) |
 | **Reporte** | [TASK-004.1-report.md](../task-reports/TASK-004.1-report.md) |
+| **Pull request** | `Task/004.1 → main` (**`#31`**). *Observado el 2026-09-07 con `gh pr view 31`:* **`MERGED`**, fusionado por el usuario; merge commit **`a90cc55`**, `mergedAt = 2026-09-07T02:23:11Z` UTC |
+| **Normalización posterior** | **Completada.** *Observado el 2026-09-07:* `main` = `a90cc55`, integrada en `dev` con merge `--no-ff` y publicada — `dev` = `cc37bf8`. `git diff main dev` **vacío** y `main` **ancestro de `dev`** |
 
 ### Qué corrige
 
@@ -1630,6 +1673,22 @@ Distribución por estado:
 > `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
 > El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
 > `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
+
+**Observado el 2026-09-07**, tras la fusión del PR `#31` de `Task/004.1` y su normalización:
+
+- `Task/004.1-Corregir-Backup-Rutas-Literales` nació **desde `main`** (`0ec1231`), **solo en
+  `personal-blog-infra`**: es mantenimiento correctivo de `Task/004` y **no cuenta** en las
+  41 tareas. Fue **aprobada** el 2026-09-06; su cierre creó el commit `27f1696`, la integró
+  en `dev` con merge `--no-ff` (`7abe590`), publicó `dev` y la rama Task, y abrió el pull
+  request `Task/004.1 → main` (**`#31`**). La rama Task local se eliminó con `git branch -d`.
+- **PR `#31` fusionado y normalización completada (2026-09-07), por el usuario.** Merge commit
+  **`a90cc55`**, `mergedAt = 2026-09-07T02:23:11Z` UTC; el usuario eliminó la rama remota.
+  `main` se integró en `dev` con el merge `cc37bf8` y se publicó. **Verificado el 2026-09-07:**
+  `gh pr view 31` devuelve `MERGED`, `git ls-remote --heads origin "Task/004.1*"` **no devuelve
+  nada**, `dev..main` está **vacío**, `git diff main dev` está **vacío** y `main` es **ancestro
+  de `dev`**.
+- `personal-blog-backend` y `personal-blog-frontend` **no participaron**: en `main`, árboles
+  limpios, sin rama Task.
 
 **Observado el 2026-09-03**, al ejecutar el cierre aprobado de `Task/012`:
 

@@ -14,7 +14,7 @@
 | **Fecha** | 2026-09-06 (los identificadores de conjunto llevan marca UTC) |
 | **Ficha** | [TASK-004.1](../tasks/TASK-004.1-fix-backup-literal-paths.md) |
 | **Commits** | **1**, creado **después** de la aprobación explícita del usuario |
-| **Pull request** | `Task/004.1 → main` — **abierto, sin fusionar** |
+| **Pull request** | [`#31`](https://github.com/jeffersondavila/personal-blog-infra/pull/31) `Task/004.1 → main`, creado durante el cierre aprobado. **Fusionado manualmente por el usuario el 2026-09-07**, merge commit `a90cc55` |
 
 ---
 
@@ -316,7 +316,7 @@ una corrección necesaria del propio refactor y queda justificada en §5.2.
 | No borrar buckets `personal-blog-test-*` | **Sí** |
 | No parchear `main` | **Sí** — rama Task creada desde `main` |
 | Sin commit, push ni PR **antes** de la aprobación | **Sí** — el árbol se dejó sin commit para validación |
-| Commit, push y PR **solo tras** `approved:` | **Sí** — 1 commit, rama publicada, PR `Task/004.1 → main` abierto |
+| Commit, push y PR **solo tras** `approved:` | **Sí** — commit `27f1696`, rama publicada y PR `#31` `Task/004.1 → main` creado, todo posterior a la aprobación |
 | PR **no** fusionado por el agente | **Sí** — la fusión es responsabilidad del usuario |
 | No tocar volúmenes principales | **Sí** |
 | No cambiar el avance del roadmap | **Sí** — 17/41 y ETAPA 05 2/3 intactos |
@@ -326,9 +326,11 @@ una corrección necesaria del propio refactor y queda justificada en §5.2.
 **Aprobada** ✔ el 2026-09-06 mediante
 `approved: Task/004.1-Corregir-Backup-Rutas-Literales`.
 
-Integrada en `dev` mediante merge `--no-ff` y publicada. El pull request
-`Task/004.1 → main` queda **abierto y sin fusionar**: aceptarlo es responsabilidad
-exclusiva del usuario.
+Durante el cierre aprobado se integró en `dev` mediante merge `--no-ff` y se creó el pull
+request [`#31`](https://github.com/jeffersondavila/personal-blog-infra/pull/31) `Task/004.1 → main`. El agente no lo fusionó, porque
+aceptar un PR es responsabilidad exclusiva del usuario. El usuario lo **fusionó
+manualmente el 2026-09-07** (merge commit `a90cc55`) y eliminó la rama remota. La
+normalización `main → dev` posterior queda documentada en `Task/004.2`.
 
 Queda desbloqueado el trabajo operativo en espera: el reset del administrador de
 Portainer, que ya cuenta con un respaldo válido y verificado (`20260907-020539`).
