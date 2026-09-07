@@ -115,7 +115,33 @@ function Assert-HelperImage {
 
 function Get-RepositoryRoot {
     <# Raiz del repositorio: dos niveles por encima de scripts/backup/. #>
-    return (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+}
+
+function Assert-NoWildcardInPath {
+    <#
+        Rechaza una ruta que contenga metacaracteres de comodin.
+
+        No es una preferencia de estilo. `Compress-Archive` y `Expand-Archive`
+        de Windows PowerShell 5.1 fallan sobre una ruta que contenga `[`, `]`,
+        `*` o `?` INCLUSO con -LiteralPath: resuelven la ruta como patron por
+        dentro y no hay parametro que lo evite. Comprobado en Task/004.1.
+
+        Como no se puede corregir desde el script, el respaldo se detiene en
+        lugar de producir un conjunto que aparente estar completo. Fail-closed.
+
+        Afecta SOLO a la ruta del conjunto de respaldo. Las CLAVES de los
+        objetos de MinIO si pueden llevar corchetes: eso es lo que corrige el
+        resto de Task/004.1.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Path,
+        [Parameter(Mandatory)][string]$What
+    )
+    $offenders = @(@('[', ']', '*', '?') | Where-Object { $Path.Contains($_) })
+    if ($offenders.Count -gt 0) {
+        Stop-WithError "$What contiene caracteres que Compress-Archive no sabe tratar ($($offenders -join ' ')): '$Path'. Usa una ruta sin comodines."
+    }
 }
 
 function Get-BackupRoot {
@@ -123,10 +149,11 @@ function Get-BackupRoot {
     if ([string]::IsNullOrWhiteSpace($Root)) {
         $Root = Join-Path (Get-RepositoryRoot) 'local-backups'
     }
-    if (-not (Test-Path $Root)) {
+    Assert-NoWildcardInPath -Path $Root -What 'La raiz de backups'
+    if (-not (Test-Path -LiteralPath $Root)) {
         New-Item -ItemType Directory -Path $Root -Force | Out-Null
     }
-    return (Resolve-Path $Root).Path
+    return (Resolve-Path -LiteralPath $Root).Path
 }
 
 function Read-DotEnv {
@@ -136,12 +163,12 @@ function Read-DotEnv {
         por variable de entorno, no por linea de comandos ni por consola.
     #>
     $envPath = Join-Path (Get-RepositoryRoot) '.env'
-    if (-not (Test-Path $envPath)) {
+    if (-not (Test-Path -LiteralPath $envPath)) {
         Stop-WithError "No existe el archivo .env en la raiz del repositorio. Copialo de .env.example."
     }
 
     $values = @{}
-    foreach ($line in (Get-Content $envPath)) {
+    foreach ($line in (Get-Content -LiteralPath $envPath)) {
         $trimmed = $line.Trim()
         if ($trimmed.Length -eq 0 -or $trimmed.StartsWith('#')) { continue }
         $index = $trimmed.IndexOf('=')
@@ -328,12 +355,37 @@ $script:DerivedMetadataKeys = @(
 
 function Get-Sha256 {
     param([Parameter(Mandatory)][string]$Path)
-    return (Get-FileHash -Path $Path -Algorithm SHA256).Hash.ToLower()
+    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLower()
 }
 
 function Get-FileSizeBytes {
     param([Parameter(Mandatory)][string]$Path)
-    return (Get-Item $Path).Length
+    return (Get-Item -LiteralPath $Path).Length
+}
+
+function Get-FileHashMap {
+    <#
+        Indexa un arbol de ficheros como  clave relativa -> SHA-256.
+
+        Es el bucle que rompio el respaldo real y que motivo Task/004.1. Vive
+        aqui, y no duplicado en dos scripts, porque `New-LocalBackup.ps1` y
+        `Restore-LocalBackupTest.ps1` tienen que calcular EXACTAMENTE lo mismo:
+        si divergen, comparar el original con lo restaurado deja de significar
+        nada.
+
+        La clave se normaliza a `/` para que coincida con la clave del objeto
+        en MinIO. La ruta se consume como literal: una clave puede contener
+        `[` y `]` -- los generan, por ejemplo, los tests parametrizados de
+        pytest -- y `-Path` los interpretaria como clase de caracteres.
+    #>
+    param([Parameter(Mandatory)][string]$Root)
+
+    $map = @{}
+    foreach ($file in (Get-ChildItem -LiteralPath $Root -Recurse -File -Force)) {
+        $relative = $file.FullName.Substring($Root.Length).TrimStart('\') -replace '\\', '/'
+        $map[$relative] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLower()
+    }
+    return $map
 }
 
 function Format-Size {

@@ -54,26 +54,26 @@ function Test-OneBackupSet {
     $manifestPath = Join-Path $Path 'manifest.json'
     $checksumPath = Join-Path $Path 'checksums.sha256'
 
-    if (-not (Test-Path $manifestPath)) {
+    if (-not (Test-Path -LiteralPath $manifestPath)) {
         Write-Host "    FALLO  falta manifest.json" -ForegroundColor Red
         return $false
     }
     Write-Ok 'manifest.json presente'
 
-    if (-not (Test-Path $checksumPath)) {
+    if (-not (Test-Path -LiteralPath $checksumPath)) {
         Write-Host "    FALLO  falta checksums.sha256" -ForegroundColor Red
         return $false
     }
     Write-Ok 'checksums.sha256 presente'
 
-    $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
     Write-Info "Creado (UTC): $($manifest.createdAtUtc)"
     Write-Info "Docker $($manifest.dockerVersion) / Compose $($manifest.composeVersion)"
 
     $ok = $true
     $checked = @()
 
-    foreach ($line in (Get-Content $checksumPath)) {
+    foreach ($line in (Get-Content -LiteralPath $checksumPath)) {
         $trimmed = $line.Trim()
         if ($trimmed.Length -eq 0) { continue }
 
@@ -89,7 +89,7 @@ function Test-OneBackupSet {
         $checked += $relative
         $filePath = Join-Path $Path ($relative -replace '/', '\')
 
-        if (-not (Test-Path $filePath)) {
+        if (-not (Test-Path -LiteralPath $filePath)) {
             Write-Host "    FALLO  no existe: $relative" -ForegroundColor Red
             $ok = $false
             continue
@@ -114,7 +114,7 @@ function Test-OneBackupSet {
     $known = @('manifest.json', 'checksums.sha256')
     # `@()` es obligatorio: con Set-StrictMode, un Where-Object sin resultados
     # devuelve $null y consultar .Count sobre $null aborta el script.
-    $present = @(Get-ChildItem -Path $Path -Recurse -File | ForEach-Object {
+    $present = @(Get-ChildItem -LiteralPath $Path -Recurse -File | ForEach-Object {
         $_.FullName.Substring($Path.Length).TrimStart('\') -replace '\\', '/'
     })
     $unlisted = @($present | Where-Object { $known -notcontains $_ -and $checked -notcontains $_ })
@@ -143,16 +143,16 @@ try {
     $sets = @()
 
     if ($All) {
-        $sets = @(Get-ChildItem -Path $root -Directory | Sort-Object Name)
+        $sets = @(Get-ChildItem -LiteralPath $root -Directory | Sort-Object Name)
         if ($sets.Count -eq 0) { Stop-WithError "No hay ningun conjunto de respaldo en $root." }
     }
     elseif ($BackupSet) {
-        $candidate = if (Test-Path $BackupSet) { $BackupSet } else { Join-Path $root $BackupSet }
-        if (-not (Test-Path $candidate)) { Stop-WithError "No existe el conjunto '$BackupSet'." }
-        $sets = @(Get-Item $candidate)
+        $candidate = if (Test-Path -LiteralPath $BackupSet) { $BackupSet } else { Join-Path $root $BackupSet }
+        if (-not (Test-Path -LiteralPath $candidate)) { Stop-WithError "No existe el conjunto '$BackupSet'." }
+        $sets = @(Get-Item -LiteralPath $candidate)
     }
     else {
-        $latest = Get-ChildItem -Path $root -Directory | Sort-Object Name -Descending | Select-Object -First 1
+        $latest = Get-ChildItem -LiteralPath $root -Directory | Sort-Object Name -Descending | Select-Object -First 1
         if ($null -eq $latest) { Stop-WithError "No hay ningun conjunto de respaldo en $root. Ejecuta New-LocalBackup.ps1 primero." }
         $sets = @($latest)
         Write-Info "Conjunto mas reciente: $($latest.Name)"

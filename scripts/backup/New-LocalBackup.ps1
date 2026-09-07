@@ -136,7 +136,7 @@ try {
     $tocName = "postgres-$setId.toc.txt"
     $hostToc = Join-Path $setPath "postgres\$tocName"
     docker cp $hostDump "$($mainPostgres):/tmp/verify.dump" | Out-Null
-    docker exec $mainPostgres pg_restore --list /tmp/verify.dump | Out-File -FilePath $hostToc -Encoding utf8
+    docker exec $mainPostgres pg_restore --list /tmp/verify.dump | Out-File -LiteralPath $hostToc -Encoding utf8
     docker exec $mainPostgres rm -f /tmp/verify.dump | Out-Null
     $tocSize = Get-FileSizeBytes -Path $hostToc
     $artifacts += [pscustomobject]@{
@@ -265,7 +265,7 @@ try {
     # del bucket en el momento del backup.
     $inventoryName = "minio-inventory-$setId.json"
     $hostInventory = Join-Path $setPath "minio\$inventoryName"
-    docker exec $mainMinio sh -c 'mc ls --recursive --json backupsrc' | Out-File -FilePath $hostInventory -Encoding utf8
+    docker exec $mainMinio sh -c 'mc ls --recursive --json backupsrc' | Out-File -LiteralPath $hostInventory -Encoding utf8
     $inventorySize = Get-FileSizeBytes -Path $hostInventory
 
     # Empaquetado del arbol de objetos en un unico archivo verificable.
@@ -277,7 +277,7 @@ try {
     $hostMinioArchive = Join-Path $setPath "minio\$minioArchive"
     $stagingPath = Join-Path $setPath 'minio\_staging'
 
-    if (Test-Path $stagingPath) { Remove-Item $stagingPath -Recurse -Force }
+    if (Test-Path -LiteralPath $stagingPath) { Remove-Item -LiteralPath $stagingPath -Recurse -Force }
     Invoke-DockerOrFail -DockerArgs @('cp', "$($mainMinio):/tmp/minio-backup", $stagingPath) `
         -ErrorMessage 'No se pudo extraer el arbol de objetos de MinIO del contenedor.' | Out-Null
     docker exec $mainMinio sh -c 'rm -rf /tmp/minio-backup' | Out-Null
@@ -290,21 +290,24 @@ try {
     # recibe otro. Comparar ETags daria falsos negativos.
     $objectHashName = "minio-objects-$setId.sha256"
     $hostObjectHashes = Join-Path $setPath "minio\$objectHashName"
-    $objectFiles = @(Get-ChildItem -Path $stagingPath -Recurse -File -Force)
-    $hashByKey = @{}
-    $hashLines = foreach ($file in $objectFiles) {
-        $relative = $file.FullName.Substring($stagingPath.Length).TrimStart('\') -replace '\\', '/'
-        $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLower()
-        $hashByKey[$relative] = $hash
-        "$hash  $relative"
+    # El indexado vive en Get-FileHashMap (_BackupCommon.ps1): la restauracion
+    # tiene que calcularlo EXACTAMENTE igual, y tener el bucle duplicado fue lo
+    # que dejo el mismo defecto de rutas en dos sitios a la vez.
+    #
+    # Las claves se ordenan porque el orden de una hashtable de PowerShell no
+    # esta definido: sin Sort-Object el archivo .sha256 saldria en un orden
+    # distinto en cada ejecucion.
+    $hashByKey = Get-FileHashMap -Root $stagingPath
+    $hashLines = foreach ($key in ($hashByKey.Keys | Sort-Object)) {
+        "$($hashByKey[$key])  $key"
     }
-    @($hashLines) | Out-File -FilePath $hostObjectHashes -Encoding ascii
+    @($hashLines) | Out-File -LiteralPath $hostObjectHashes -Encoding ascii
     $objectHashSize = Get-FileSizeBytes -Path $hostObjectHashes
-    $objectCount = $objectFiles.Count
+    $objectCount = $hashByKey.Count
 
     # Coherencia entre lo que declara el inventario y lo que se ha copiado.
     # Un backup que dice tener objetos pero no los tiene es peor que ninguno.
-    $inventoryObjects = @(Get-Content $hostInventory | Where-Object {
+    $inventoryObjects = @(Get-Content -LiteralPath $hostInventory | Where-Object {
         if ([string]::IsNullOrWhiteSpace($_)) { return $false }
         try { return (($_ | ConvertFrom-Json).type -eq 'file') } catch { return $false }
     }).Count
@@ -312,17 +315,25 @@ try {
         Stop-WithError "Incoherencia en la copia de MinIO: el inventario declara $inventoryObjects objetos y se copiaron $objectCount. No se genera un backup incompleto."
     }
 
-    if ($objectFiles.Count -eq 0) {
+    if ($objectCount -eq 0) {
         # MinIO sin ningun objeto: se genera un marcador para que el archivo
         # exista y la restauracion no tenga casos especiales.
         New-Item -ItemType Directory -Path (Join-Path $stagingPath '.empty') -Force | Out-Null
         Write-Warn 'MinIO no contiene ningun objeto: la copia esta vacia.'
     }
+    # El comodin es DELIBERADO: archiva el CONTENIDO de _staging, no la carpeta.
+    # No se convierte a -LiteralPath porque Compress-Archive de Windows
+    # PowerShell 5.1 falla con `[` en su ruta de origen INCLUSO con
+    # -LiteralPath (comprobado en Task/004.1): no hay parametro que lo salve.
+    # Aqui solo se expanden los hijos inmediatos, que son nombres de bucket, y
+    # S3 no admite corchetes en ellos. Las claves con corchetes viven mas
+    # abajo y Compress-Archive las recorre sin volver a interpretarlas.
+    # La ruta del conjunto la protege Assert-NoWildcardInPath en Get-BackupRoot.
     Compress-Archive -Path (Join-Path $stagingPath '*') -DestinationPath $hostMinioArchive -Force
-    if (-not (Test-Path $hostMinioArchive)) {
+    if (-not (Test-Path -LiteralPath $hostMinioArchive)) {
         Stop-WithError 'No se pudo empaquetar la copia de MinIO.'
     }
-    Remove-Item $stagingPath -Recurse -Force
+    Remove-Item -LiteralPath $stagingPath -Recurse -Force
 
     # --- Inventario de METADATOS y TAGS -------------------------------------
     #
@@ -422,7 +433,7 @@ try {
         withTags       = $withTags
         objects        = $objectEntries
     }
-    $metadataDocument | ConvertTo-Json -Depth 8 | Out-File -FilePath $hostMetadata -Encoding utf8
+    $metadataDocument | ConvertTo-Json -Depth 8 | Out-File -LiteralPath $hostMetadata -Encoding utf8
     $metadataSize = Get-FileSizeBytes -Path $hostMetadata
 
     # --- Inventario de configuracion de BUCKETS -----------------------------
@@ -436,7 +447,7 @@ try {
         unsupportedFeaturesFound = $unsupported
         completeness             = $(if ($unsupported.Count -gt 0) { 'PARCIAL' } else { 'COMPLETO' })
     }
-    $bucketsDocument | ConvertTo-Json -Depth 8 | Out-File -FilePath $hostBuckets -Encoding utf8
+    $bucketsDocument | ConvertTo-Json -Depth 8 | Out-File -LiteralPath $hostBuckets -Encoding utf8
     $bucketsSize = Get-FileSizeBytes -Path $hostBuckets
 
     $minioSize = Get-FileSizeBytes -Path $hostMinioArchive
@@ -545,7 +556,7 @@ try {
     Write-Step 'Generando checksums SHA-256'
     $checksumPath = Join-Path $setPath 'checksums.sha256'
     $lines = foreach ($a in $artifacts) { "$($a.Sha256)  $($a.RelativePath)" }
-    $lines | Out-File -FilePath $checksumPath -Encoding ascii
+    $lines | Out-File -LiteralPath $checksumPath -Encoding ascii
     Write-Ok "checksums.sha256 con $($artifacts.Count) entradas"
 
     # --- Manifiesto ---------------------------------------------------------
@@ -614,7 +625,7 @@ try {
     }
 
     $manifestPath = Join-Path $setPath 'manifest.json'
-    $manifest | ConvertTo-Json -Depth 6 | Out-File -FilePath $manifestPath -Encoding utf8
+    $manifest | ConvertTo-Json -Depth 6 | Out-File -LiteralPath $manifestPath -Encoding utf8
     Write-Ok 'manifest.json'
 
     # --- Resumen ------------------------------------------------------------
