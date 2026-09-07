@@ -18,6 +18,7 @@
 | **Próxima tarea** | Ninguna del roadmap. Queda desbloqueado el trabajo operativo en espera: reset del administrador de Portainer |
 | **Ficha origen** | [TASK-004](TASK-004-local-backups-and-recovery.md) |
 | **Reporte** | [TASK-004.1-report.md](../task-reports/TASK-004.1-report.md) |
+| **Pull request** | [`#31`](https://github.com/jeffersondavila/personal-blog-infra/pull/31) `Task/004.1 → main`, creado durante el cierre aprobado y **fusionado manualmente por el usuario el 2026-09-07**, merge commit `a90cc55` |
 
 ---
 
@@ -126,7 +127,7 @@ resuelta. **No** se tocan los comodines deliberados.
 | 8 | Los volúmenes principales permanecen intactos |
 | 9 | El conjunto fallido `20260907-014623` queda eliminado **después** de lo anterior |
 | 10 | Git no contiene secretos |
-| 11 | Sin commit, push ni PR |
+| 11 | Sin commit, push ni PR **mientras la tarea estuviera pendiente de aprobación** |
 
 ## 6. Límites
 

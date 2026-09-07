@@ -61,6 +61,7 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/003-Crear-Infraestructura-Local` | [TASK-003-report.md](TASK-003-report.md) | Aprobada (2026-07-29) |
 | `Task/004-Backups-y-Recuperacion-Local` | [TASK-004-report.md](TASK-004-report.md) | Aprobada (2026-07-31) |
 | `Task/004.1-Corregir-Backup-Rutas-Literales` *(mantenimiento)* | [TASK-004.1-report.md](TASK-004.1-report.md) | Aprobada (2026-09-06) |
+| `Task/004.2-Corregir-Drift-Documental-Post-Merge` *(mantenimiento)* | [TASK-004.2-report.md](TASK-004.2-report.md) | Aprobada (2026-09-06) |
 | `Task/005-Fundacion-Backend-FastAPI` | [TASK-005-report.md](TASK-005-report.md) | Aprobada (2026-08-12) |
 | `Task/005.1-Formalizar-TDD-Backend` *(mantenimiento)* | [TASK-005.1-report.md](TASK-005.1-report.md) | Aprobada (2026-08-13) |
 | `Task/005.2-Documentar-Estrategia-Floci-IaC-Local` *(mantenimiento)* | [TASK-005.2-report.md](TASK-005.2-report.md) | Aprobada (2026-08-15) |
