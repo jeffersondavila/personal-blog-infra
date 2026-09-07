@@ -104,19 +104,19 @@ try {
     # --- Localizar y verificar el conjunto ----------------------------------
     $root = Get-BackupRoot -Root $BackupRoot
     if ($BackupSet) {
-        $setPath = if (Test-Path $BackupSet) { (Resolve-Path $BackupSet).Path } else { Join-Path $root $BackupSet }
+        $setPath = if (Test-Path -LiteralPath $BackupSet) { (Resolve-Path -LiteralPath $BackupSet).Path } else { Join-Path $root $BackupSet }
     }
     else {
-        $latest = Get-ChildItem -Path $root -Directory | Sort-Object Name -Descending | Select-Object -First 1
+        $latest = Get-ChildItem -LiteralPath $root -Directory | Sort-Object Name -Descending | Select-Object -First 1
         if ($null -eq $latest) { Stop-WithError "No hay ningun conjunto de respaldo en $root." }
         $setPath = $latest.FullName
     }
-    if (-not (Test-Path $setPath)) { Stop-WithError "No existe el conjunto '$BackupSet'." }
+    if (-not (Test-Path -LiteralPath $setPath)) { Stop-WithError "No existe el conjunto '$BackupSet'." }
 
     $setId = Split-Path $setPath -Leaf
     Write-Step "Conjunto a restaurar: $setId"
 
-    $manifest = Get-Content (Join-Path $setPath 'manifest.json') -Raw | ConvertFrom-Json
+    $manifest = Get-Content -LiteralPath (Join-Path $setPath 'manifest.json') -Raw | ConvertFrom-Json
     Write-Info "Creado (UTC): $($manifest.createdAtUtc)"
 
     Write-Step 'Verificando integridad antes de restaurar'
@@ -246,14 +246,14 @@ try {
     # La imagen de MinIO no incluye `tar` ni `unzip`: el archivo se expande en
     # el host con Expand-Archive y el arbol resultante se copia al contenedor.
     $expandPath = Join-Path $env:TEMP "personal-blog-recovery-minio-$(Get-Random)"
-    if (Test-Path $expandPath) { Remove-Item $expandPath -Recurse -Force }
+    if (Test-Path -LiteralPath $expandPath) { Remove-Item -LiteralPath $expandPath -Recurse -Force }
     New-Item -ItemType Directory -Path $expandPath -Force | Out-Null
-    Expand-Archive -Path $minioArchivePath -DestinationPath $expandPath -Force
+    Expand-Archive -LiteralPath $minioArchivePath -DestinationPath $expandPath -Force
 
     docker exec $minioName sh -c 'rm -rf /tmp/minio-restore' | Out-Null
     docker cp $expandPath "$($minioName):/tmp/minio-restore" | Out-Null
     if ($LASTEXITCODE -ne 0) { Stop-WithError 'No se pudo copiar la copia de MinIO a la instancia temporal.' }
-    Remove-Item $expandPath -Recurse -Force
+    Remove-Item -LiteralPath $expandPath -Recurse -Force
 
     docker exec -e RT_USER=$minioUser -e RT_PASS=$minioPass $minioName sh -c 'mc alias set restoretgt http://127.0.0.1:9000 "$RT_USER" "$RT_PASS" > /dev/null' | Out-Null
     if ($LASTEXITCODE -ne 0) { Stop-WithError 'No se pudo configurar mc en la instancia temporal de MinIO.' }
@@ -264,11 +264,11 @@ try {
         Stop-WithError 'El conjunto no incluye el inventario de metadatos de MinIO. Fue generado por una version anterior del script y no se puede verificar la restauracion de metadatos.'
     }
     $metadataPath = Join-Path $setPath ($metadataArtifact.file -replace '/', '\')
-    $metadataDoc = Get-Content $metadataPath -Raw | ConvertFrom-Json
+    $metadataDoc = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
 
     $bucketsArtifact = $manifest.artifacts | Where-Object { $_.service -eq 'minio' -and $_.file -like '*buckets*' } | Select-Object -First 1
     if ($null -ne $bucketsArtifact) {
-        $bucketsDoc = Get-Content (Join-Path $setPath ($bucketsArtifact.file -replace '/', '\')) -Raw | ConvertFrom-Json
+        $bucketsDoc = Get-Content -LiteralPath (Join-Path $setPath ($bucketsArtifact.file -replace '/', '\')) -Raw | ConvertFrom-Json
         $declaredCompleteness = "$(Get-PropertyOrDefault -InputObject $bucketsDoc -Name 'completeness' -Default 'desconocida')"
         Write-Info "Buckets en el conjunto: $(Get-PropertyOrDefault -InputObject $bucketsDoc -Name 'bucketCount' -Default 0) - integridad declarada: $declaredCompleteness"
         $unsupportedInSet = @(Get-PropertyOrDefault -InputObject $bucketsDoc -Name 'unsupportedFeaturesFound' -Default @())
@@ -334,7 +334,7 @@ try {
     $hashPath = Join-Path $setPath ($hashArtifact.file -replace '/', '\')
 
     $originalHashes = @{}
-    foreach ($line in (Get-Content $hashPath)) {
+    foreach ($line in (Get-Content -LiteralPath $hashPath)) {
         $trimmed = $line.Trim()
         if ($trimmed.Length -eq 0) { continue }
         $parts = $trimmed -split '\s+', 2
@@ -354,17 +354,16 @@ try {
     }
 
     $verifyPath = Join-Path $env:TEMP "personal-blog-recovery-verify-$(Get-Random)"
-    if (Test-Path $verifyPath) { Remove-Item $verifyPath -Recurse -Force }
+    if (Test-Path -LiteralPath $verifyPath) { Remove-Item -LiteralPath $verifyPath -Recurse -Force }
     docker cp "$($minioName):/tmp/minio-verify" $verifyPath | Out-Null
     if ($LASTEXITCODE -ne 0) { Stop-WithError 'No se pudo extraer el bucket restaurado para verificarlo.' }
     docker exec $minioName sh -c 'rm -rf /tmp/minio-verify' | Out-Null
 
-    $restoredHashes = @{}
-    foreach ($file in (Get-ChildItem -Path $verifyPath -Recurse -File -Force)) {
-        $key = $file.FullName.Substring($verifyPath.Length).TrimStart('\') -replace '\\', '/'
-        $restoredHashes[$key] = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLower()
-    }
-    Remove-Item $verifyPath -Recurse -Force
+    # Mismo indexado que uso el respaldo (Get-FileHashMap, _BackupCommon.ps1).
+    # Comparar original y restaurado solo significa algo si ambos lados lo
+    # calculan con el mismo codigo.
+    $restoredHashes = Get-FileHashMap -Root $verifyPath
+    Remove-Item -LiteralPath $verifyPath -Recurse -Force
 
     # Tamanos, para dar un dato adicional al informe.
     $restoredSizes = @{}
@@ -686,7 +685,7 @@ public class RecoveryTrustAll : ICertificatePolicy {
         overall              = $allOk
         scopeNote            = 'MinIO: verificados contenido, encabezados restaurables, metadatos x-amz-meta-* y tags de la version ACTUAL de cada objeto. Historial de versiones y configuracion de buckets quedan fuera del alcance.'
     }
-    $manifest | ConvertTo-Json -Depth 6 | Out-File -FilePath (Join-Path $setPath 'manifest.json') -Encoding utf8
+    $manifest | ConvertTo-Json -Depth 6 | Out-File -LiteralPath (Join-Path $setPath 'manifest.json') -Encoding utf8
     Write-Info 'Resultado registrado en manifest.json'
     # `manifest.json` no figura en checksums.sha256 precisamente porque se
     # actualiza aqui: la verificacion de integridad sigue siendo valida.
