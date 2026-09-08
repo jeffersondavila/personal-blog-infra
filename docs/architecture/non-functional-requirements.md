@@ -45,6 +45,19 @@ Relacionados: [security-boundaries.md](security-boundaries.md) ·
 | S-11 | **Validación de archivos subidos**: tipo MIME y tamaño comprobados en el servidor. | `Task/010`, `Task/018` |
 | S-12 | **Enlaces externos seguros**: `rel="noopener noreferrer"` en todo enlace a terceros. | `Task/014` |
 
+> **Alcance local de S-01, S-03, S-04, S-05, S-07, S-08 y S-11 tras `Task/018`**
+> (**Aprobada** el 2026-09-08 mediante
+> `approved: Task/018-Endurecimiento-de-Seguridad`; controles locales vigentes).
+>
+> - **S-01** — dos planos de identidad reales en PostgreSQL y MinIO, comprobados en
+>   ejecución con controles positivos y negativos. Lo que falta es **IAM y S3
+>   productivos**: `Task/028` y `Task/030`.
+> - **S-04 y S-05** — política por superficie, comprobada por **HTTP real** contra el
+>   entorno local. El borde con TLS de verdad —y por tanto **HSTS**— es `Task/033` a
+>   `Task/035`; en HTTP local su ausencia es lo correcto.
+> - **S-09 sigue siendo de `Task/019`–`Task/021`.** `Task/018` hizo auditorías
+>   **puntuales y fechadas**, no automatización: una auditoría puntual caduca.
+
 ---
 
 ## 2. Rendimiento
@@ -121,7 +134,7 @@ Objetivo de referencia: **WCAG 2.1 nivel AA**.
 | E-03 | **Open Graph** para compartir en redes. | `Task/016` — **NO cerrado**: por URL exige que el *crawler* ejecute JavaScript, y los de redes sociales no lo hacen. Ver **D-21** / [ADR-009](../adr/ADR-009-rendering-strategy-for-crawlers.md) |
 | E-04 | **Canonical URL** en cada página pública. | `Task/016` |
 | E-05 | **Sitemap** generado a partir del contenido publicado. | `Task/016` |
-| E-06 | **`robots.txt`** coherente: el panel administrativo no se indexa. | `Task/016` — **parcial**: `robots.txt` y `meta noindex`. La garantía **sin JavaScript** exige `X-Robots-Tag`, que es cabecera de respuesta y por tanto **S-05**, de `Task/018` |
+| E-06 | **`robots.txt`** coherente: el panel administrativo no se indexa. | `Task/016` (`robots.txt` y `meta noindex`) + `Task/018`, que añade **`X-Robots-Tag: noindex, nofollow`** en `/admin` y `/admin/*`. Con eso la garantía **ya no depende de JavaScript**: la cabecera viaja en la respuesta del servidor. Comprobado por HTTP real, incluido el control negativo `/administer`, que **no** debe recibirla. Verificado el 2026-09-07; **vigente** desde la aprobación de `Task/018` el 2026-09-08 |
 | E-07 | **Datos estructurados** cuando corresponda (artículo, review de libro, persona). | `Task/016` |
 | E-08 | El contenido no publicado **nunca** aparece en sitemap ni es indexable. | `Task/016` |
 

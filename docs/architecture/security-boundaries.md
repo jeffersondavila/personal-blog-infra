@@ -529,3 +529,79 @@ su alcance—, pero justificó la ausencia con una premisa falsa.
 efectos— y deja la invariante exactamente donde estaba. El reporte de `Task/012` conserva
 la redacción original como **registro histórico fechado** y no se reescribe
 ([`WORKFLOW.md`](../project-management/WORKFLOW.md) §6.1).
+
+---
+
+## 13. Endurecimiento del entorno local — `Task/018` (2026-09-07)
+
+> **Vigente desde la aprobación de `Task/018` el 2026-09-08.** Esta sección
+> registra los controles verificados en ejecución y aprobados por el usuario.
+> No cambia ninguna decisión arquitectónica aceptada.
+
+### 13.1 Dos planos de identidad en la capa de datos
+
+La regla nueva, y la que más cambia el modelo de amenaza local:
+
+**El contenedor de la aplicación no lleva nunca una credencial administrativa.**
+
+| Plano | PostgreSQL | MinIO | Lo usa |
+| --- | --- | --- | --- |
+| Administración / provisión | `POSTGRES_USER` | `MINIO_ROOT_USER` | Migraciones, respaldo, provisión, pruebas de integración |
+| Runtime | `blog_runtime` | `blog-runtime` | Solo el servicio `backend` |
+
+Consecuencias comprobadas contra los servicios reales, con control positivo **y**
+negativo en cada caso:
+
+- **`audit_events` es inmutable desde la aplicación por permiso, no por convención.** El
+  runtime tiene `SELECT` e `INSERT`; `UPDATE`, `DELETE` y `TRUNCATE` están denegados por
+  PostgreSQL. La invariante de §12 deja de depender de que nadie escriba el `UPDATE`.
+- **La aplicación no puede crear ni borrar administradores**: sobre `administrators` solo
+  tiene `SELECT` y `UPDATE`, lo justo para validar un acceso y anotar su resultado.
+- **La aplicación no puede migrar**: sin DDL y sin permiso sobre `alembic_version`.
+  Migrar exige el plano administrativo, que en el Compose vive tras el perfil `admin`.
+- **En MinIO el runtime no administra ni enumera**: política acotada al bucket de medios,
+  con `ListBucket` limitado al prefijo de la sonda.
+
+### 13.2 Restricciones de los contenedores
+
+Los seis servicios corren con `cap_drop: [ALL]`, `no-new-privileges:true` y el sistema de
+archivos **raíz en solo lectura**; lo escribible es explícito y acotado. PostgreSQL y
+Traefik arrancan además con un usuario **no privilegiado desde el primer proceso**, no
+solo en sus *workers*.
+
+**Lo que esto no es.** No convierte el entorno local en un entorno endurecido de
+producción, y **no toca R-09**: Portainer conserva el socket de Docker y, con él,
+capacidad administrativa sobre el host. Ver §4 y §13.4.
+
+### 13.3 Frontera HTTP
+
+La política de cabeceras se decide **por superficie**, no globalmente, y se comprueba por
+HTTP real contra el entorno levantado:
+
+| Superficie | CSP | `X-Robots-Tag` | `Cache-Control` |
+| --- | --- | --- | --- |
+| Sitio público, assets, `robots.txt` | `default-src 'self'`, sin `unsafe-inline` ni `unsafe-eval`; `frame-src` solo YouTube *nocookie* y Vimeo | **Ausente** | Revalidado; assets con *hash*, inmutables |
+| `/admin` y `/admin/*` | La misma del sitio | `noindex, nofollow` | `no-store` |
+| API pública y administrativa, incluidos sus errores | `default-src 'none'` | `noindex, nofollow` | `no-store` en el prefijo administrativo |
+| `sitemap.xml` | `default-src 'none'` | **Ausente** | Contrato del sitemap |
+
+**`noindex` no es global.** El sitio público **debe** ser indexable: aplicarlo a todo
+sería un fallo de producto disfrazado de seguridad. El control negativo es la ruta
+`/administer`, que se parece a `/admin` y **no** recibe la cabecera.
+
+**HSTS está ausente a propósito.** El entorno local sirve HTTP; anunciar HSTS ahí es
+incorrecto. El borde con TLS real es `Task/033`–`Task/035`.
+
+### 13.4 Lo que `Task/018` NO afirma
+
+- **No afirma que R-09 esté mitigado.** Sigue abierto y con la misma mitigación: solo
+  local, publicado en `127.0.0.1`, con autenticación propia. Un socket proxy sería un
+  **cambio de capacidades** de Portainer y necesita decisión propia.
+- **No afirma que los respaldos locales estén cifrados.** No lo están. Contienen datos
+  sensibles —incluidos los *hashes* de autenticación de Portainer— y siguen protegidos
+  solo por estar ignorados por Git y no salir de la máquina (**R-12**, `Task/029` /
+  **D-17**).
+- **No afirma «cero vulnerabilidades»** en las imágenes. Quedan hallazgos aceptados y
+  diferidos, con su recuento y su motivo en el reporte de la tarea.
+- **No sustituye a `Task/019`–`Task/021`.** Las auditorías fueron **puntuales y
+  fechadas**; caducan. S-09 exige escaneo en CI, y eso sigue pendiente.

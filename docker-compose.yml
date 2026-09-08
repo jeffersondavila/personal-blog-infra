@@ -50,9 +50,19 @@ services:
   # maquina local a traves del puerto publicado en la interfaz de loopback.
   # -------------------------------------------------------------------------
   postgres:
-    image: postgres:${POSTGRES_VERSION}
+    build:
+      context: ./docker/postgres
+      args:
+        POSTGRES_IMAGE: postgres:${POSTGRES_VERSION}
+    image: personal-blog-postgres:local
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-postgres
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${POSTGRES_BACKUP_TMP_SIZE:-128m}
+      - /var/run/postgresql:rw,nosuid,nodev,uid=70,gid=70,size=8m
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -65,6 +75,15 @@ services:
       - "${LOCAL_BIND_ADDRESS}:${POSTGRES_HOST_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Area de intercambio del runbook de respaldo (`Task/018`).
+      #
+      # `docker cp` NO sabe leer de un montaje tmpfs: con `read_only: true` y
+      # `/tmp` en RAM, `pg_dump -f /tmp/...` escribe bien y la extraccion falla
+      # con "Could not find the file". Un volumen si es alcanzable, y ademas no
+      # consume RAM ni queda acotado por el tamano del tmpfs.
+      #
+      # Es un area de PASO, no un archivo: el script borra lo que deja.
+      - postgres_backup:/backup
     networks:
       - blog-data
     healthcheck:
@@ -84,10 +103,18 @@ services:
     image: minio/minio:${MINIO_VERSION}
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-minio
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${MINIO_BACKUP_TMP_SIZE:-512m}
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      # mc del runbook de backup escribe su alias temporal aqui, sin modificar
+      # la imagen de solo lectura ni persistir claves administrativas en /data.
+      MC_CONFIG_DIR: /tmp/mc
       # La consola se publica solo en loopback; nunca en una interfaz externa.
       MINIO_BROWSER_REDIRECT_URL: http://localhost:${MINIO_CONSOLE_HOST_PORT}
       TZ: ${TZ}
@@ -96,10 +123,13 @@ services:
       - "${LOCAL_BIND_ADDRESS}:${MINIO_CONSOLE_HOST_PORT}:9001"
     volumes:
       - minio_data:/data
+      # Mismo motivo que en PostgreSQL: `mc mirror` prepara aqui el arbol de
+      # objetos y `docker cp` lo extrae. Desde un tmpfs no seria alcanzable.
+      - minio_backup:/backup
     networks:
       - blog-data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "mc", "--config-dir", "/tmp/mc-health", "ready", "local"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -136,6 +166,11 @@ services:
     image: portainer/portainer-ce:${PORTAINER_VERSION}
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-portainer
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
     ports:
       - "${LOCAL_BIND_ADDRESS}:${PORTAINER_HTTPS_HOST_PORT}:9443"
     volumes:
@@ -171,12 +206,26 @@ services:
     image: personal-blog-backend:local
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-backend
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    env_file:
+      - path: ./secrets/backend-runtime.env
+        # Permite arrancar PG/MinIO antes de provisionar. El backend falla al
+        # validar configuracion si faltan estas credenciales; no usa root.
+        required: false
     environment:
       BLOG_APP_NAME: ${BLOG_APP_NAME:-personal-blog-backend}
       BLOG_APP_ENV: local
       BLOG_APP_DEBUG: "false"
       BLOG_LOG_LEVEL: ${BLOG_LOG_LEVEL:-INFO}
       BLOG_LOG_FORMAT: json
+      BLOG_ADMIN_ALLOWED_ORIGINS: http://localhost:${TRAEFIK_HTTP_HOST_PORT}
+      BLOG_AUTH_COOKIE_SECURE: "false"
+      # Fail-closed local: XFF no decide la particion. Task033 fija el borde real.
+      BLOG_TRUSTED_PROXY_HOP_COUNT: "0"
       # Origen publico del SITIO, no del API. Anadido por `Task/016`: lo exige
       # el sitemap (requisito E-05), que enumera URL del sitio publico.
       #
@@ -196,7 +245,8 @@ services:
       #
       # La aplicacion sigue dependiendo unicamente de DATABASE_URL: no sabe si
       # detras hay Docker, un VPS o PgBouncer (ADR-007).
-      BLOG_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # BLOG_DATABASE_URL procede del archivo runtime, con rol sin DDL ni
+      # privilegios administrativos. Migraciones conservan POSTGRES_USER.
       # Almacenamiento de objetos (`Task/010`).
       #
       # BLOG_STORAGE_BUCKET es, junto con BLOG_DATABASE_URL, uno de los dos
@@ -232,8 +282,7 @@ services:
       # persona en su navegador, la misma convencion que ya usa
       # MINIO_BROWSER_REDIRECT_URL. El puerto sale de la variable canonica.
       BLOG_STORAGE_ACCESS_ENDPOINT_URL: http://localhost:${MINIO_API_HOST_PORT}
-      BLOG_STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER}
-      BLOG_STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      # Las claves runtime proceden de env_file; nunca se reutiliza root.
       BLOG_STORAGE_ACCESS_TTL_SECONDS: ${BLOG_STORAGE_ACCESS_TTL_SECONDS:-900}
       TZ: ${TZ}
     networks:
@@ -252,6 +301,75 @@ services:
     # El healthcheck lo define el Dockerfile del backend (`Task/005`): sonda
     # HTTP contra /health con la biblioteca estandar. No se redefine aqui.
     stop_grace_period: 30s
+
+  # -------------------------------------------------------------------------
+  # Migraciones — PLANO ADMINISTRATIVO de la base de datos (`Task/018`).
+  #
+  # Task018 separa dos identidades que antes eran una sola:
+  #
+  #   runtime  -> `blog_runtime`, la del servicio `backend`. Lee y escribe el
+  #               contenido del blog y NO tiene DDL, ni acceso a
+  #               `alembic_version`, ni privilegios administrativos.
+  #   admin    -> POSTGRES_USER, la duena del esquema. Es la unica que puede
+  #               migrar, y solo se usa desde aqui.
+  #
+  # Sin este servicio el procedimiento de migracion no tendria donde ejecutarse:
+  # `docker compose exec backend alembic ...` falla —por diseno— con
+  # `permission denied for table alembic_version`.
+  #
+  # `profiles: [admin]` lo deja FUERA de `docker compose up`, `--wait`, `ps` y
+  # `down`: solo existe cuando se le invoca de forma explicita.
+  #
+  #   docker compose --profile admin run --rm migrations
+  #   docker compose --profile admin run --rm migrations alembic current
+  #
+  # Reutiliza la imagen del backend —el mismo codigo y las mismas migraciones—
+  # sin publicar puertos y sin unirse a la red de borde.
+  # -------------------------------------------------------------------------
+  migrations:
+    profiles: [admin]
+    build:
+      context: ${BACKEND_CONTEXT:-../personal-blog-backend}
+      dockerfile: Dockerfile
+    image: personal-blog-backend:local
+    restart: "no"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    # La sonda del Dockerfile vigila un servidor HTTP que este contenedor no
+    # levanta: aqui solo anadiria ruido de "unhealthy" a un proceso efimero.
+    healthcheck:
+      disable: true
+    environment:
+      BLOG_APP_NAME: ${BLOG_APP_NAME:-personal-blog-backend}
+      BLOG_APP_ENV: local
+      BLOG_APP_DEBUG: "false"
+      BLOG_LOG_LEVEL: ${BLOG_LOG_LEVEL:-INFO}
+      BLOG_LOG_FORMAT: json
+      BLOG_PUBLIC_SITE_BASE_URL: http://localhost:${TRAEFIK_HTTP_HOST_PORT}
+      # La identidad administrativa, y el unico sitio del Compose donde se usa
+      # para hablar con la aplicacion. El servicio `backend` NO la recibe.
+      BLOG_DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      # Alembic no toca el almacenamiento, pero la configuracion se valida
+      # entera al arrancar. Se declaran las credenciales del MISMO plano
+      # administrativo —nunca las runtime— para que el procedimiento funcione
+      # tambien ANTES de que existan las identidades limitadas.
+      BLOG_STORAGE_PROVIDER: minio
+      BLOG_STORAGE_BUCKET: ${BLOG_STORAGE_BUCKET:-personal-blog-media}
+      BLOG_STORAGE_REGION: ${BLOG_STORAGE_REGION:-us-east-1}
+      BLOG_STORAGE_ENDPOINT_URL: http://minio:9000
+      BLOG_STORAGE_ACCESS_ENDPOINT_URL: http://localhost:${MINIO_API_HOST_PORT}
+      BLOG_STORAGE_ACCESS_KEY: ${MINIO_ROOT_USER}
+      BLOG_STORAGE_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      TZ: ${TZ}
+    networks:
+      - blog-data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
 
   # -------------------------------------------------------------------------
   # Frontend — React construido y servido como estatico (Task/006 + Task/007).
@@ -286,6 +404,11 @@ services:
     image: personal-blog-frontend:local
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-frontend
     restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
     environment:
       TZ: ${TZ}
     networks:
@@ -311,9 +434,19 @@ services:
   # Traefik NO es Cloudflare ni API Gateway: es su equivalente local.
   # -------------------------------------------------------------------------
   traefik:
-    image: traefik:${TRAEFIK_VERSION}
+    build:
+      context: ./docker/traefik
+      args:
+        TRAEFIK_IMAGE: traefik:${TRAEFIK_VERSION}
+    image: personal-blog-traefik:local
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-traefik
     restart: unless-stopped
+    user: "65532:65532"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
     ports:
       - "${LOCAL_BIND_ADDRESS}:${TRAEFIK_HTTP_HOST_PORT}:8080"
     volumes:
@@ -385,3 +518,12 @@ volumes:
     name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_minio_data
   portainer_data:
     name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_portainer_data
+
+  # Areas de PASO del runbook de respaldo (`Task/018`). No guardan estado del
+  # producto: el script de respaldo borra su contenido al terminar. Existen
+  # porque `docker cp` no puede leer de un tmpfs, y los servicios endurecidos
+  # ya no tienen sistema de archivos raiz escribible.
+  postgres_backup:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_postgres_backup
+  minio_backup:
+    name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}_minio_backup
