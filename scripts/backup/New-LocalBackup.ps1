@@ -104,11 +104,16 @@ try {
     Write-Info "Base '$($config['POSTGRES_DB'])', usuario '$($config['POSTGRES_USER'])'"
 
     $dumpName = "postgres-$setId.dump"
-    $containerDump = "/tmp/$dumpName"
+    $containerDump = "/backup/$dumpName"
 
-    # `pg_dump` se ejecuta dentro del contenedor y escribe a /tmp; despues se
-    # extrae con `docker cp`. Escribir a stdout y canalizarlo por PowerShell
+    # `pg_dump` se ejecuta dentro del contenedor y escribe en /backup; despues
+    # se extrae con `docker cp`. Escribir a stdout y canalizarlo por PowerShell
     # corromperia el archivo binario.
+    #
+    # /backup y no /tmp desde `Task/018`: el contenedor tiene el sistema de
+    # archivos raiz en solo lectura y /tmp en tmpfs, y `docker cp` NO sabe leer
+    # de un montaje tmpfs. El volcado se escribia bien y la extraccion fallaba
+    # con "Could not find the file". /backup es un volumen de paso, alcanzable.
     Invoke-DockerOrFail -DockerArgs @(
         'exec', $mainPostgres,
         'pg_dump', '-U', $config['POSTGRES_USER'], '-d', $config['POSTGRES_DB'],
@@ -135,9 +140,9 @@ try {
     # restaurar. No contiene datos, solo la lista de objetos del volcado.
     $tocName = "postgres-$setId.toc.txt"
     $hostToc = Join-Path $setPath "postgres\$tocName"
-    docker cp $hostDump "$($mainPostgres):/tmp/verify.dump" | Out-Null
-    docker exec $mainPostgres pg_restore --list /tmp/verify.dump | Out-File -LiteralPath $hostToc -Encoding utf8
-    docker exec $mainPostgres rm -f /tmp/verify.dump | Out-Null
+    docker cp $hostDump "$($mainPostgres):/backup/verify.dump" | Out-Null
+    docker exec $mainPostgres pg_restore --list /backup/verify.dump | Out-File -LiteralPath $hostToc -Encoding utf8
+    docker exec $mainPostgres rm -f /backup/verify.dump | Out-Null
     $tocSize = Get-FileSizeBytes -Path $hostToc
     $artifacts += [pscustomobject]@{
         Service      = 'postgres'
@@ -254,8 +259,8 @@ try {
         Write-Warn 'Continuando por -AllowPartial: el conjunto se marcara como PARCIAL.'
     }
 
-    docker exec $mainMinio sh -c 'rm -rf /tmp/minio-backup; mkdir -p /tmp/minio-backup' | Out-Null
-    $mirrorOutput = docker exec $mainMinio sh -c 'mc mirror --quiet backupsrc /tmp/minio-backup 2>&1'
+    docker exec $mainMinio sh -c 'rm -rf /backup/minio-backup; mkdir -p /backup/minio-backup' | Out-Null
+    $mirrorOutput = docker exec $mainMinio sh -c 'mc mirror --quiet backupsrc /backup/minio-backup 2>&1'
     if ($LASTEXITCODE -ne 0) {
         Write-Host ($mirrorOutput | Out-String) -ForegroundColor DarkGray
         Stop-WithError 'mc mirror fallo.'
@@ -273,14 +278,18 @@ try {
     # La imagen de MinIO NO incluye `tar` ni `find`, asi que el arbol se extrae
     # con `docker cp` y todo el procesado se hace en el host con cmdlets de
     # PowerShell. No se anade ninguna dependencia externa.
+    #
+    # El arbol se prepara en /backup —volumen de paso— y no en /tmp: desde
+    # `Task/018` el contenedor tiene /tmp en tmpfs, de donde `docker cp` no
+    # puede leer.
     $minioArchive = "minio-$setId.zip"
     $hostMinioArchive = Join-Path $setPath "minio\$minioArchive"
     $stagingPath = Join-Path $setPath 'minio\_staging'
 
     if (Test-Path -LiteralPath $stagingPath) { Remove-Item -LiteralPath $stagingPath -Recurse -Force }
-    Invoke-DockerOrFail -DockerArgs @('cp', "$($mainMinio):/tmp/minio-backup", $stagingPath) `
+    Invoke-DockerOrFail -DockerArgs @('cp', "$($mainMinio):/backup/minio-backup", $stagingPath) `
         -ErrorMessage 'No se pudo extraer el arbol de objetos de MinIO del contenedor.' | Out-Null
-    docker exec $mainMinio sh -c 'rm -rf /tmp/minio-backup' | Out-Null
+    docker exec $mainMinio sh -c 'rm -rf /backup/minio-backup' | Out-Null
 
     # SHA-256 del CONTENIDO de cada objeto. Es lo que se compara al restaurar.
     #

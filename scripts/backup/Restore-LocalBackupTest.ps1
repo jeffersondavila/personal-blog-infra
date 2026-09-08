@@ -176,7 +176,12 @@ try {
         Write-Warn 'pg_restore devolvio avisos:'
         Write-Host ($restoreOutput | Out-String) -ForegroundColor DarkGray
     }
-    docker exec $pgName rm -f /tmp/restore.dump | Out-Null
+    # `-u 0`: `docker cp` deposita el archivo como root y /tmp lleva el bit
+    # pegajoso, asi que solo su propietario puede borrarlo. Desde `Task/018` la
+    # imagen de PostgreSQL arranca como `postgres` y el borrado fallaba con
+    # "Operation not permitted". Afecta a la LIMPIEZA, no a `pg_restore`, que
+    # lee el archivo sin problema.
+    docker exec -u 0 $pgName rm -f /tmp/restore.dump | Out-Null
     Write-Ok 'pg_restore ejecutado'
 
     $tables = (docker exec $pgName psql -U $pgUser -d $pgDb -tAc "SELECT count(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog','information_schema');").Trim()

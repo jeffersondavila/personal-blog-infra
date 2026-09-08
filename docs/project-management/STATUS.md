@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-06
+**Última actualización:** 2026-09-08
 
 ---
 
@@ -8,9 +8,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 05 — Calidad y Seguridad — En curso** (**2 de 3** aprobadas). ETAPAS 00 a 04 **completadas** |
-| **Tarea actual** | **`Task/017-Observabilidad-Local`** — **Aprobada** el 2026-09-06 por jeffersondavila |
-| **Estado de la tarea** | `Task/017-Observabilidad-Local` — **Aprobada** mediante `approved: Task/017-Observabilidad-Local`. Correlation ID `X-Request-ID` de extremo a extremo —respuesta, todas las líneas de log de la petición y `audit_events.request_id`—, `GET /ready` con sonda real de PostgreSQL y almacenamiento bajo **presupuesto total** por debajo del `timeout` del proxy, redacción automática de secretos en el log (cierra el plano local de **R-36**) y `healthCheck` de Traefik en `/ready` conservando `/health` como liveness de Docker. **1808** pruebas de backend en verde y **1** omitida (estructural de Windows), con `-W error`. **0 dependencias nuevas**. **O-07** quedó verificado por Docker por el agente; la comprobación en la **interfaz de Portainer** la cubre la aprobación del usuario, y así consta (reporte §22). Detalle en el [reporte](../task-reports/TASK-017-report.md). Cuenta en el avance: **17 de 41** |
+| **Etapa actual** | **ETAPA 05 — Calidad y Seguridad — Completada** (**3 de 3** aprobadas). ETAPAS 00 a 05 **completadas**; ETAPA 06 **Pendiente** |
+| **Tarea actual** | **`Task/018-Endurecimiento-de-Seguridad`** — **Aprobada** el 2026-09-08 por el usuario |
+| **Estado de la tarea** | **Aprobada** mediante `approved: Task/018-Endurecimiento-de-Seguridad`. Mínimo privilegio en PostgreSQL y MinIO; cabeceras y CORS por superficie; **E-06 cerrado sin JavaScript**; errores opacos, redacción y subidas endurecidas. **1854** pruebas de backend y **703** de frontend en verde; **0 dependencias nuevas**. Riesgos residuales declarados en el [reporte](../task-reports/TASK-018-report.md). Cuenta en el avance: **18 de 41** |
+| **Tarea aprobada anterior a `Task/018`** | `Task/017-Observabilidad-Local` — **Aprobada** mediante `approved: Task/017-Observabilidad-Local`. Correlation ID `X-Request-ID` de extremo a extremo —respuesta, todas las líneas de log de la petición y `audit_events.request_id`—, `GET /ready` con sonda real de PostgreSQL y almacenamiento bajo **presupuesto total** por debajo del `timeout` del proxy, redacción automática de secretos en el log (cierra el plano local de **R-36**) y `healthCheck` de Traefik en `/ready` conservando `/health` como liveness de Docker. **1808** pruebas de backend en verde y **1** omitida (estructural de Windows), con `-W error`. **0 dependencias nuevas**. **O-07** quedó verificado por Docker por el agente; la comprobación en la **interfaz de Portainer** la cubre la aprobación del usuario, y así consta (reporte §22). Detalle en el [reporte](../task-reports/TASK-017-report.md). Cuenta en el avance: **17 de 41** |
 | **Tarea aprobada anterior a `Task/017`** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** mediante `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`. **E-02**, **E-04**, **E-05**, **E-07**, **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**, ambos con su motivo medido. **688** pruebas de frontend y **1631** de backend en verde. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-016-report.md). Cuenta en el avance: **16 de 41** |
 | **Tarea aprobada anterior a `Task/016`** | `Task/015-Panel-Administrativo` — **Aprobada** el 2026-09-05. **18 superficies**, dashboard completo, sesión administrativa, editor Markdown y medios. **600 pruebas**, cero dependencias nuevas. **D-04 resuelta**; completa ETAPA 04 |
 | **Tarea aprobada anterior** | `Task/014-Sitio-Publico` — **Aprobada** el 2026-09-05 por jeffersondavila. **Doce superficies** del sitio público sobre el sistema de diseño y los diez recursos públicos del API, con estados de carga, vacío, error y `404`; estado del listado en la URL; imágenes solo por `access_url` con `alt_text`; **Markdown sanitizado** (ADR-005) en un pipeline único reutilizable por `Task/015`; videos con **lista cerrada** `youtube`/`vimeo` y *fail-closed*; enlaces externos seguros. Asume **A-02** y **A-04**, continúa **A-01**. **440 pruebas** en verde y **dos** dependencias nuevas autorizadas |
@@ -24,25 +25,46 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Próxima tarea prevista** | `Task/018-Endurecimiento-de-Seguridad` — **Pendiente, no iniciada**. **No se inicia** hasta que `Task/017` esté aprobada y normalizada; su rama nace desde `main` actualizado y limpio ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)) |
-| **Avance global** | **41 %** — 17 de 41 tareas aprobadas |
+| **Tarea en curso** | **Ninguna**. `Task/018` aprobada; `Task/019` pendiente y no iniciada |
+| **Próxima tarea prevista** | `Task/019-CI-Frontend` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
+| **Avance global** | **44 %** — 18 de 41 tareas aprobadas |
 | **Bloqueos activos** | **0 que detengan trabajo.** `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
-| **Riesgos abiertos** | **44** (R-01 y **R-08** cerrados; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
+| **Riesgos abiertos** | **48** (R-01 y **R-08** cerrados; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
-> **Recuento tras la aprobación de `Task/017`, 2026-09-06:** el avance pasa a
+> **Recuento tras la aprobación de `Task/018`, 2026-09-08:**
+> **18 de 41 — 44 %**; ETAPA 05 **Completada, 3 de 3 — 100 %**.
+> **E-06 cerrado** por HTTP; **D-21** sigue abierta y **ADR-009** en Propuesta.
+>
+> **Recuento histórico tras la aprobación de `Task/017`, 2026-09-06:** el avance pasa a
 > **17 de 41 — 41 %** y la ETAPA 05 a **2 de 3 — 67 %**. `Task/016`, aprobada el mismo día,
 > lo había dejado en 16 de 41 — 39 %. La aprobación del usuario es el hecho que suma avance;
 > las tareas de mantenimiento no cuentan en las 41.
 >
-> **Aprobada con limitaciones declaradas, no con todo cerrado.** **E-03** queda **no
-> cerrado** y **E-06 parcial**, ambos con su motivo **medido** en cuatro canales. Lo que se
+> **Resultado histórico de `Task/016`, aprobada el 2026-09-06:** **E-03** quedó **no
+> cerrado** y **E-06 parcial**, ambos con su motivo **medido** en cuatro canales.
+> **E-06 se cierra con la aprobación de `Task/018` del 2026-09-08**. Lo que se
 > aprobó respecto del *rendering* es **haber abierto** la reconsideración: **D-21** sigue
 > **Abierta** y **ADR-009** en **Propuesta**.
 
 ---
 
-## Última tarea aprobada — `Task/017-Observabilidad-Local`
+## Última tarea aprobada — `Task/018-Endurecimiento-de-Seguridad`
+
+**Aprobada el 2026-09-08** mediante
+`approved: Task/018-Endurecimiento-de-Seguridad`, en backend, frontend e infra.
+Entrega controles locales de **S-01/03/04/05/07/08/10/11** y cierra **E-06** por
+HTTP. Las decisiones de implementación de la [ficha §12](../tasks/TASK-018-security-hardening.md)
+quedan **vigentes**. No hay ADR nuevo; **D-21** continúa **Abierta** y **ADR-009**
+en **Propuesta**. Avance: **18/41 — 44 %**, ETAPA 05 **3/3 — 100 %**.
+
+Los riesgos residuales, incluidos **R-09**, **R-12**, **R-018-1** a **R-018-4**,
+**R-44** y **R-46**, conservan sus límites y propietarios. Evidencia y validaciones
+del cierre en el [reporte](../task-reports/TASK-018-report.md), §R y §X.
+
+---
+
+## Tarea aprobada anterior — `Task/017-Observabilidad-Local`
 
 | Campo | Valor |
 | --- | --- |
@@ -1451,7 +1473,7 @@ permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
 | **Normalización posterior** | `main` integrada en `dev` mediante el merge `cca847c`; ambas ramas con contenido idéntico |
 | **Rama Task** | Eliminada local y remotamente |
 | **Roadmap** | No cuenta dentro de las 41 tareas |
-| **Avance global** | Permanece en **2 de 41**, aproximadamente **5 %** |
+| **Avance global** | **44 %** — 18 de 41 tareas aprobadas |
 | **Bloqueos activos** | Ninguno |
 
 La aprobación de este mantenimiento no modificó el conteo del roadmap. La
@@ -1532,7 +1554,7 @@ Distribución por estado:
 | R-09 | Portainer tiene acceso al socket del daemon de Docker y conserva **capacidad administrativa sobre el host**: puede crear, detener, eliminar y modificar contenedores, redes y volúmenes de este y de cualquier otro proyecto de la máquina. El montaje `:ro` protege el **archivo** del socket pero **no** convierte la Docker API en solo lectura, y la separación de redes **no** limita las acciones enviadas por el daemon. Agravante: conviven dos instancias de Portainer sobre el mismo daemon. | **Medio** | El riesgo se acepta únicamente porque Portainer es **local**, se publica en **`127.0.0.1`** y exige **autenticación propia**. **Regla vigente: no exponerlo nunca** a la red local ni a internet. Un control real de solo lectura exigiría un **socket proxy** o una política de autorización adicional, fuera del alcance de `Task/003`; se propone evaluarlo en `Task/018`. Detalle: [runbook §2.1](../runbooks/local-environment.md). | Abierto |
 | R-10 | Las etiquetas de imagen fijadas envejecen y acumulan vulnerabilidades sin corregir. | Medio | Escaneo de imágenes en `Task/018-Endurecimiento-de-Seguridad`; validación del Compose en cada cambio en `Task/021-CI-Infraestructura`. | Abierto |
 | R-14 | Las dependencias **transitivas** del backend no están bloqueadas: dos instalaciones en fechas distintas pueden traer versiones indirectas distintas. **Comprobado el 2026-08-11:** la imagen resolvió `starlette 1.6.0` y el entorno de Windows, instalado el 2026-08-01, tiene `starlette 1.3.1`. | Medio | Las dependencias directas están fijadas con `==` en `pyproject.toml` y `requirements.txt`, y `pip check` forma parte de las validaciones. Mientras el riesgo siga abierto, el `Dockerfile` instala con `pip install -r requirements.txt`, **sin `--require-hashes` ni `--no-deps`**, que serían incoherentes con un archivo sin hashes y sin transitivas. El bloqueo completo con hashes, resuelto en Linux, se añade en `Task/020-CI-Backend`. | Abierto (`Task/005`) |
-| R-15 | La imagen base del backend (`python:3.12.13-slim`) envejece y acumula vulnerabilidades sin corregir. | Medio | Misma naturaleza que R-10. Escaneo de la imagen en `Task/018` y verificación en CI en `Task/020`. | Abierto (`Task/005`) |
+| R-15 | La imagen base del backend (`python:3.12.14-slim` desde `Task/018`; `3.12.13-slim` cuando se abrió el riesgo) envejece y acumula vulnerabilidades sin corregir. | Medio | Misma naturaleza que R-10. Escaneo de la imagen en `Task/018` y verificación en CI en `Task/020`. | Abierto (`Task/005`) |
 | R-17 | Una práctica escrita puede no aplicarse: el ciclo **RED → GREEN** es fácil de saltarse si nadie exige la evidencia, y las pruebas acabarían escribiéndose después del código. | Medio | La evidencia de RED y GREEN es un **criterio de la Definition of Done** (B-2 y B-3), no una recomendación: sin ella la tarea no puede marcarse `Lista para validación`. `Task/020-CI-Backend` podrá reforzarlo automáticamente. Detectado en `Task/005.1`. | Abierto |
 | R-18 | El coste de escribir primero la prueba puede empujar a **matrices superficiales** que aparenten cumplimiento sin cubrir edge cases ni casos negativos. | Bajo | La matriz obligatoria exige explícitamente edge cases, errores y seguridad ([BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md) §6), y la revisión del usuario es el control final. Detectado en `Task/005.1`. | Abierto |
 | R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
@@ -1554,7 +1576,34 @@ Distribución por estado:
 
 | # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
 | --- | --- | --- | --- | --- | --- |
-| R-36 | **El log no tiene redacción automática de secretos.** `JsonLogFormatter` emite en `context` **todo** atributo propio del `LogRecord` y serializa las excepciones completas. La regla S-08 —«los logs no contienen contraseñas, tokens ni cadenas de conexión»— existe y se cumple hoy, pero depende de que **quien registra el evento** no pase un valor sensible: no hay ningún mecanismo que lo impida. Una excepción de driver o un `extra` descuidado pueden filtrar una credencial. Reproducido en `Task/005.6` por inspección del formateador. | Medio | **Deliberadamente NO se corrige en `Task/005.6`**: construir una política de redacción completa —lista de claves sensibles, patrones de token y URL, redacción en mensaje, contexto y traza— es trabajo de observabilidad y endurecimiento, no de cierre de fundaciones. Mitigación vigente: `database_url` está excluida de `repr` y solo se expone por `database_url_safe`, verificado en el contenedor real (`blog_local:***@`); `ConfigurationError` nombra campos, nunca valores. | `Task/017` (observabilidad, correlation ID y política de log) y `Task/018` (endurecimiento de seguridad) | **Cerrado en el plano local** por `Task/017`, **Aprobada** el 2026-09-06. El mecanismo existe y está probado: redacción por **nombre de campo** y por **forma del valor**, aplicada al mensaje, al contexto y a la **cadena de excepciones**, en `json` y en `text`, idempotente y sin destruir el diagnóstico —la DSN conserva esquema, anfitrión, puerto y base; la excepción conserva su tipo—. Las pruebas siembran un señuelo y exigen que no aparezca en la salida. La causa que abrió el riesgo —*«depende de que quien registra el evento no pase un valor sensible»*— **deja de sostenerse en el plano local**. **Sigue abierto** para el endurecimiento de la política (`Task/018`) y para la telemetría **exportada**, que es **O-09** y no este riesgo (`Task/029`, `Task/040`) | **Abierto** — solo para `Task/018` |
+| R-36 | **El log no tiene redacción automática de secretos.** `JsonLogFormatter` emite en `context` **todo** atributo propio del `LogRecord` y serializa las excepciones completas. La regla S-08 —«los logs no contienen contraseñas, tokens ni cadenas de conexión»— existe y se cumple hoy, pero depende de que **quien registra el evento** no pase un valor sensible: no hay ningún mecanismo que lo impida. Una excepción de driver o un `extra` descuidado pueden filtrar una credencial. Reproducido en `Task/005.6` por inspección del formateador. | Medio | **Deliberadamente NO se corrige en `Task/005.6`**: construir una política de redacción completa —lista de claves sensibles, patrones de token y URL, redacción en mensaje, contexto y traza— es trabajo de observabilidad y endurecimiento, no de cierre de fundaciones. Mitigación vigente: `database_url` está excluida de `repr` y solo se expone por `database_url_safe`, verificado en el contenedor real (`blog_local:***@`); `ConfigurationError` nombra campos, nunca valores. | `Task/017` (observabilidad, correlation ID y política de log) y `Task/018` (endurecimiento de seguridad) | **Cerrado en el plano local** por `Task/017`, **Aprobada** el 2026-09-06. El mecanismo existe y está probado: redacción por **nombre de campo** y por **forma del valor**, aplicada al mensaje, al contexto y a la **cadena de excepciones**, en `json` y en `text`, idempotente y sin destruir el diagnóstico —la DSN conserva esquema, anfitrión, puerto y base; la excepción conserva su tipo—. Las pruebas siembran un señuelo y exigen que no aparezca en la salida. La causa que abrió el riesgo —*«depende de que quien registra el evento no pase un valor sensible»*— **deja de sostenerse en el plano local**. **Endurecimiento local completado** con la aprobación de `Task/018` del 2026-09-08: cabeceras completas, URLs autenticadas y campos con guion, verificados con señuelos. **Sigue abierto** únicamente el plano de telemetría **exportada** (**O-09**, `Task/029`, `Task/040`), según la tabla de efecto de `Task/018` | **Abierto** — residuo de telemetría exportada |
+
+### Efecto de `Task/018` sobre los riesgos vivos — 2026-09-07
+
+> **`Task/018` aprobada el 2026-09-08.** Se conserva la medición del 2026-09-07
+> de cada riesgo y su residuo declarado; la aprobación no equivale a cerrar
+> los riesgos que esta tabla mantiene abiertos.
+
+| # | Baseline antes de `Task/018` | Qué hizo `Task/018` | Evidencia | Estado final | Propietario del residuo |
+| --- | --- | --- | --- | --- | --- |
+| **R-09** | Portainer con socket de Docker: capacidad administrativa sobre el host. `:ro` protege el archivo, no la API | **Nada que cambie sus capacidades, deliberadamente.** Se le retiraron capacidades del kernel y se le puso la raíz en solo lectura, lo que **no** toca el socket. Introducir un *socket proxy* sería un cambio de capacidades y exige decisión propia | Contenedor con `cap_drop: [ALL]`, `no-new-privileges`, `read_only`; mismo volumen `personal-blog-local_portainer_data`; autenticación administrativa **HTTP 200** contra `2.39.7` | **Abierto, sin agravar.** Mitigación intacta: solo local, `127.0.0.1`, autenticación propia | Decisión pendiente; `Task/025` lo reevalúa junto a **R-22** |
+| **R-10** | Etiquetas fijadas que envejecen | Auditoría **puntual y fechada** de las siete imágenes y actualización de las que tenían parche; todas fijadas además **por digest** | Escaneo del 2026-09-07 de cada imagen final; recuento por severidad en el reporte §F | **Abierto.** Una auditoría puntual caduca; la garantía duradera es CI | `Task/019`–`Task/021` (**S-09**) |
+| **R-12** | Respaldos locales sin cifrar, con *hashes* de Portainer dentro | **No los cifra, y no finge hacerlo.** Verificó integridad de los cinco conjuntos y probó la **restauración real** del conjunto posterior al endurecimiento | 5 conjuntos íntegros; restauración aislada con PostgreSQL, MinIO (64 objetos, SHA-256 y `Content-Type`) y Portainer **CORRECTAS** | **Abierto.** Siguen sin cifrar, ignorados por Git y limitados a la máquina | **D-17** / `Task/029` |
+| **R-15** | Imagen base del backend envejecida | Actualizada a `python:3.12.14-slim` fijada por digest, y `pip` retirado de la imagen final | Escaneo del 2026-09-07: los `CRITICAL` y `HIGH` restantes son paquetes de Debian **sin versión corregida publicada** | **Abierto.** Sin parche aguas arriba no hay acción posible hoy | `Task/020` (CI) para detectarlo cuando lo haya |
+| **R-36** | Redacción del log cerrada en el plano local por `Task/017`; quedaba el endurecimiento | Cabeceras `Authorization`, `Cookie` y `Set-Cookie` completas, contraseña **y usuario** de una URL autenticada, y claves con guion o guion bajo | Señuelos en mensaje, contexto y **cadena de excepciones**, en `json` y `text`; idempotencia comprobada; el diagnóstico y el `request_id` sobreviven | **Cerrado en el plano local.** Sigue abierto solo para la telemetría **exportada**, que es **O-09** | `Task/029`, `Task/040` |
+| **R-43** | Bloqueo temporal puede dejar fuera al único administrador | **No se reescribió nada.** Se auditó y se registró la evidencia existente | 14 pruebas unitarias y 11 de integración: umbral, el bloqueo **no se alarga** con fallos durante el bloqueo, vencimiento, concurrencia y respuesta **indistinguible** de credenciales inválidas | **Abierto.** Es una propiedad asumida del diseño, no un defecto | Recuperación operativa; `Task/029` |
+| **R-44** | Tablas de estado de autenticación que crecen sin purga | **No se introdujo ningún proceso residente**, por decisión: contradiría el destino Lambda | Búsqueda dirigida: no hay *scheduler*, ni tarea de fondo, ni `cron` en el backend | **Abierto y diferido a propósito** | `Task/029` (operación) |
+| **R-46** | Confianza en proxies sin fijar para ningún despliegue | El Compose local fija `BLOG_TRUSTED_PROXY_HOP_COUNT=0`, el valor **fail-closed** | Pruebas de `Task/011` en ambos sentidos: cabecera falsificada **no** evade el límite; con proxy declarado **sí** se atiende | **Abierto.** Lo que falta es decidir los saltos de cada despliegue real | `Task/033` |
+
+**Riesgos nuevos que `Task/018` descubre**, y que **no existían antes de la tarea**:
+
+| # | Riesgo | Impacto | Mitigación aplicada | Estado |
+| --- | --- | --- | --- | --- |
+| **R-018-1** | **Una migración que añada tablas deja al runtime sin permiso sobre ellas.** Los `GRANT` se conceden tabla a tabla: una tabla nueva nace sin conceder | Medio | Es el comportamiento **seguro** —nada se concede solo—. Documentado en el runbook §2.2: tras migrar, repetir `runtime_privileges.py --apply` | **Abierto**, mitigado por procedimiento |
+| **R-018-2** | **Las identidades runtime no viajan en el respaldo.** `pg_dump` de una base no exporta `CREATE ROLE` y la copia de MinIO no incluye su IAM | Medio | Deliberado: un respaldo con sus propias credenciales dentro no protegería nada. Se añadió `--reissue-runtime-credentials`, que reemite sin conocer el secreto anterior y sin destruir contenido. **Probado de extremo a extremo** | **Abierto**, mitigado por procedimiento reproducible |
+| **R-018-3** | **La imagen de MinIO es el mayor residuo de vulnerabilidades del conjunto**, y es la única que **no** se actualizó | Medio | Servicio **solo local**, publicado en loopback y **fuera de la arquitectura de producción**, donde el destino es Amazon S3 vía `ObjectStorage`. Subir un año de *releases* de un servicio de datos exige compatibilidad de IAM y consola comprobadas, y no se hace persiguiendo un recuento | **Abierto**, con recuento exacto en el reporte §F |
+| **R-018-4** | **Quedan dos *buckets* residuales de pruebas** (`personal-blog-test-*`) de ejecuciones interrumpidas, y entran en cada respaldo | Bajo | Límite ya conocido y documentado del *harness* (la limpieza no sobrevive a un `SIGKILL`). Procedimiento de borrado en el runbook §10.4. **No se borran aquí**: es una operación destructiva sobre datos que el usuario no autorizó | **Abierto** |
+
 
 ### Riesgo introducido por `Task/005.7` — concurrencia de la suite de integración
 
@@ -1639,8 +1688,8 @@ Distribución por estado:
 | `Task/014-Sitio-Publico` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
 | `Task/015-Panel-Administrativo` | 04 | frontend, infra (documentación) | **Aprobada** (2026-09-05) |
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend, infra (documentación + wiring local mínimo) | **Aprobada** (2026-09-06) |
-| `Task/017-Observabilidad-Local` | 05 | backend, infra | Pendiente |
-| `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | Pendiente |
+| `Task/017-Observabilidad-Local` | 05 | backend, infra | **Aprobada** (2026-09-06) |
+| `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | **Aprobada** (2026-09-08) |
 | `Task/019-CI-Frontend` | 06 | frontend | Pendiente |
 | `Task/020-CI-Backend` | 06 | backend | Pendiente |
 | `Task/021-CI-Infraestructura` | 06 | infra | Pendiente |
