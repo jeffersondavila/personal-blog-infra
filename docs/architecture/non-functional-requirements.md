@@ -58,6 +58,18 @@ Relacionados: [security-boundaries.md](security-boundaries.md) ·
 > - **S-09 sigue siendo de `Task/019`–`Task/021`.** `Task/018` hizo auditorías
 >   **puntuales y fechadas**, no automatización: una auditoría puntual caduca.
 
+**S-09 frontend — Vigente desde el 2026-09-08 (`Task/019`).**
+La CI usa `npm ci` con versiones exactas y lockfile v3; `npm audit` examina el árbol
+completo, incluidas herramientas de desarrollo, y conserva su fallo predeterminado
+ante cualquier vulnerabilidad. No se introduce un umbral de tolerancia ni una lista
+de exclusiones. Esto automatiza la comprobación de Task018 y cubre el mínimo de
+críticas/altas de STAGE-05. *Observado el 2026-09-08 (Guatemala) / 2026-09-09
+UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
+`found 0 vulnerabilities`. La evidencia completa está en el
+[reporte de Task019](../task-reports/TASK-019-report.md). S-09 **global** conserva
+como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
+secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
+
 ---
 
 ## 2. Rendimiento
