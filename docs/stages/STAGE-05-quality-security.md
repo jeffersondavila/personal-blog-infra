@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 05 |
-| **Estado** | **En curso** — `Task/016` y `Task/017` **Aprobadas** el 2026-09-06. Queda `Task/018` |
+| **Estado** | **Completada** el 2026-09-08: `Task/016`, `Task/017` y `Task/018` **Aprobadas**, con las limitaciones declaradas en los criterios de salida |
 | **Dependencias** | [ETAPA 04](STAGE-04-user-experience.md) — **Completada** ✔ (2026-09-05) |
 | **Tareas** | 3 |
-| **Aprobadas** | 2 de 3 |
-| **Avance** | 67 % |
+| **Aprobadas** | 3 de 3 |
+| **Avance** | 100 % |
 | **Hito que completa** | Producto con calidad y seguridad verificables. |
 
 ---
@@ -116,13 +116,28 @@ local, verifica **O-03** y aporta el correlation ID a **O-05**. **No** cubre **O
 **Depende de:** `Task/014`, `Task/015`.
 **Repositorios:** `personal-blog-backend`, `personal-blog-infra`.
 
-### `Task/018-Endurecimiento-de-Seguridad` — *Pendiente*
+### `Task/018-Endurecimiento-de-Seguridad` — **Aprobada** (2026-09-08)
 
 Revisión de dependencias, imágenes Docker, manejo de secretos, CORS, cabeceras de
 seguridad, validación de archivos subidos y refuerzo de autenticación.
 
 **Depende de:** `Task/016`, `Task/017`.
 **Repositorios:** los tres.
+
+Entregado y verificado en ejecución: dos planos de identidad en PostgreSQL y MinIO
+(**S-01**), política de cabeceras por superficie comprobada por HTTP real (**S-05**),
+`X-Robots-Tag` que cierra **E-06** sin depender de JavaScript, CORS explícito sin
+comodín (**S-04**), errores opacos y redacción con señuelos (**S-07**, **S-08**),
+límite de cuerpo y verificación de integridad en las subidas (**S-11**), y contenedores
+con capacidades retiradas y raíz en solo lectura.
+
+**No cierra** **R-09** (socket de Docker de Portainer) ni **R-12** (respaldos locales sin
+cifrar): ambos siguen abiertos con su propietario. Detalle y recuento de hallazgos
+aceptados en el [reporte](../task-reports/TASK-018-report.md).
+
+> **Aprobada** mediante `approved: Task/018-Endurecimiento-de-Seguridad` el
+> 2026-09-08. La etapa completa **3 de 3** tareas. Los criterios parciales de
+> rendering y vulnerabilidades de imágenes conservan su estado y propietario.
 
 ## Criterios de salida de la etapa
 
@@ -140,13 +155,29 @@ seguridad, validación de archivos subidos y refuerzo de autenticación.
 - [x] Navegación por teclado y contraste verificados en las páginas principales. —
       **139 paradas** de teclado en 10 superficies, **0** sin foco visible y **0** trampas.
       Contraste heredado de `Task/013`, sin hallazgos nuevos.
-- [ ] Los logs son JSON y llevan correlation ID rastreable extremo a extremo.
-- [ ] Los healthchecks reflejan el estado real de las dependencias.
-- [ ] Sin vulnerabilidades críticas ni altas conocidas en dependencias.
-- [ ] CORS restringido a orígenes conocidos.
-- [ ] Cabeceras de seguridad presentes en las respuestas.
-- [ ] Subida de archivos validada por tipo y tamaño.
-- [ ] Ningún secreto en el repositorio ni en los logs.
+- [x] Los logs son JSON y llevan correlation ID rastreable extremo a extremo. —
+      Cerrado por `Task/017`, **Aprobada** el 2026-09-06. *(La casilla se quedó sin
+      marcar entonces; se corrige en `Task/018`.)*
+- [x] Los healthchecks reflejan el estado real de las dependencias. — `GET /ready`
+      con sonda real de PostgreSQL y almacenamiento (`Task/017`, **Aprobada**).
+      *(Casilla corregida en `Task/018`.)*
+- [~] Sin vulnerabilidades críticas ni altas conocidas en dependencias. — **Cumplido
+      en dependencias de aplicación**: `npm audit` y `pip-audit` en **0** el 2026-09-07.
+      **No cumplido en imágenes base**, donde quedan hallazgos sin parche aguas arriba y
+      uno diferido con motivo. El criterio **no se marca**: la garantía duradera es el
+      escaneo en CI, que es **S-09** y corresponde a `Task/019`–`Task/021`.
+- [x] CORS restringido a orígenes conocidos. — Lista explícita; `*` con credenciales
+      no arranca; lista vacía no concede lectura ni permite escrituras de navegador.
+      Comprobado por HTTP real y con preflight.
+- [x] Cabeceras de seguridad presentes en las respuestas. — Matriz por superficie,
+      comprobada por HTTP real contra el entorno levantado, **incluidas las respuestas
+      de error y los `500` no controlados**.
+- [x] Subida de archivos validada por tipo y tamaño. — Decodificación real desde
+      `Task/010`, más verificación de integridad del contenedor de imagen y cota del
+      cuerpo antes de parsear el *multipart*.
+- [x] Ningún secreto en el repositorio ni en los logs. — Escáner de secretos sobre
+      los archivos versionables: **0** hallazgos. Redacción del log comprobada con
+      señuelos en mensaje, contexto y cadena de excepciones.
 
 ## Fuera del alcance de la etapa
 

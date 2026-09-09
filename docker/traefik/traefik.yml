@@ -85,3 +85,14 @@ log:
 # Log de acceso en JSON, coherente con el formato del backend (requisito O-01).
 accessLog:
   format: json
+  fields:
+    # RequestPath puede contener query con tokens o firmas. La correlacion y
+    # la ruta segura ya las registra el backend; el borde conserva metricas.
+    names:
+      RequestPath: drop
+      RequestAddr: drop
+      RequestHost: drop
+      RequestReferer: drop
+      RequestUserAgent: drop
+    headers:
+      defaultMode: drop

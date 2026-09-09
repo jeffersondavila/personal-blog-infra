@@ -136,6 +136,14 @@ capa de datos.
 | `personal-blog-local_postgres_data` | `/var/lib/postgresql/data` | Base de datos. |
 | `personal-blog-local_minio_data` | `/data` | Objetos y buckets. |
 | `personal-blog-local_portainer_data` | `/data` | Configuración y usuarios de Portainer. |
+| `personal-blog-local_postgres_backup` | `/backup` | **Área de paso** del runbook de respaldo (`Task/018`). Vacía entre ejecuciones. |
+| `personal-blog-local_minio_backup` | `/backup` | **Área de paso** del runbook de respaldo (`Task/018`). Vacía entre ejecuciones. |
+
+Los dos volúmenes `_backup` **no guardan estado del producto**: el script de respaldo
+escribe ahí su archivo intermedio y lo borra al terminar. Existen porque `docker cp`
+**no sabe leer de un montaje `tmpfs`**, y desde `Task/018` los servicios tienen el
+sistema de archivos raíz en solo lectura y `/tmp` en RAM. Con el volcado en `/tmp` la
+extracción fallaba con `Could not find the file`.
 
 Son volúmenes gestionados por Docker, no *bind mounts*: sobreviven a
 `docker compose down` y evitan los problemas de permisos y rendimiento de los
@@ -200,6 +208,92 @@ aquí.
 
 ---
 
+## 2.2 Los dos planos de identidad — `Task/018`
+
+Desde `Task/018` el entorno local distingue **dos planos de identidad** en PostgreSQL y
+en MinIO. No es una preferencia de estilo: es el requisito **S-01**, mínimo privilegio,
+aplicado donde se puede comprobar de verdad.
+
+| Plano | PostgreSQL | MinIO | Quién lo usa |
+| --- | --- | --- | --- |
+| **Administración / provisión** | `POSTGRES_USER` (superusuario, dueño del esquema) | `MINIO_ROOT_USER` | Migraciones, respaldo, provisión, pruebas de integración |
+| **Runtime de la aplicación** | `blog_runtime` | `blog-runtime` | **Solo** el servicio `backend` |
+
+### Qué puede y qué no puede el plano runtime
+
+`blog_runtime` **no** es superusuario y **no** puede crear bases ni roles. Sobre el
+esquema del blog:
+
+- **Sí:** `SELECT`, `INSERT`, `UPDATE` y `DELETE` en las tablas de contenido.
+- **Solo `SELECT` e `INSERT`** en `audit_events`: el historial es **inmutable desde la
+  aplicación**. `UPDATE`, `DELETE` y `TRUNCATE` están denegados de verdad, no por
+  convención de código.
+- **Solo `SELECT` y `UPDATE`** en `administrators`: puede validar un acceso y anotar su
+  resultado, pero **no puede crear ni borrar administradores**.
+- **Nada de DDL:** `CREATE`, `DROP` y `ALTER` están denegados, y `alembic_version` no le
+  está concedida.
+
+`blog-runtime` en MinIO tiene una política acotada al bucket de medios: `GetObject`,
+`PutObject` y `DeleteObject` sobre su contenido, y `ListBucket` **solo** bajo el prefijo
+que usa la sonda de disponibilidad. No puede enumerar buckets, no puede listar el bucket
+entero y no puede administrar el servidor.
+
+### Comprobarlo
+
+```powershell
+..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py
+```
+
+Sin ningún flag **solo comprueba**: no escribe en PostgreSQL, ni en MinIO, ni en disco.
+Devuelve `0` si el mínimo privilegio se cumple, y `1` si alguna operación prohibida
+resultó autorizada. Nunca imprime una credencial.
+
+### Migraciones
+
+```powershell
+docker compose --profile admin run --rm migrations              # alembic upgrade head
+docker compose --profile admin run --rm migrations alembic current
+```
+
+El perfil `admin` mantiene ese servicio fuera de `docker compose up`, `ps` y `down`.
+`docker compose exec backend alembic ...` **falla a propósito**: la aplicación no tiene
+permiso sobre `alembic_version`.
+
+> **Tras una migración que añada tablas, hay que volver a ejecutar `--apply`.** Los
+> permisos se conceden tabla a tabla: una tabla nueva nace sin conceder, y el runtime no
+> podrá leerla. Es el comportamiento seguro —nada se concede solo—, pero hay que
+> recordarlo.
+
+### Recuperación: cómo volver a tener identidades runtime
+
+El archivo `secrets/backend-runtime.env` está **ignorado por Git y fuera del respaldo, a
+propósito**: un respaldo que llevara dentro sus propias credenciales no protegería nada.
+La consecuencia hay que conocerla:
+
+- `pg_dump` de una base **no exporta `CREATE ROLE`**. El volcado sí lleva los `GRANT`,
+  que al restaurar mencionan un rol que puede no existir todavía.
+- La copia de MinIO contiene **objetos y configuración de buckets**, no su IAM: ni el
+  usuario `blog-runtime` ni su política viajan en ella.
+
+Por eso hay **dos caminos**, y ninguno necesita conocer el secreto anterior:
+
+| Situación | Procedimiento |
+| --- | --- |
+| Se conserva `secrets/backend-runtime.env` (restauración sobre una instalación viva) | `runtime_privileges.py --apply`. Recrea el rol y la identidad **con las mismas credenciales del archivo** y reaplica permisos y política. |
+| Se perdió el archivo, o se restauró en una máquina distinta | `runtime_privileges.py --reissue-runtime-credentials --apply`. Genera credenciales **nuevas**, las aplica en PostgreSQL y en MinIO, reescribe el archivo y reaplica permisos y política. |
+
+Después, en ambos casos:
+
+```powershell
+docker compose up -d --wait backend
+```
+
+`--reissue-runtime-credentials` **no destruye contenido**: no borra filas, ni objetos, ni
+el bucket, ni administradores. Solo sustituye los dos secretos. Es una mutación
+explícita: sin ese flag el script **no rota nada**.
+
+---
+
 ## 3. Variables de entorno
 
 El entorno se configura mediante un archivo `.env` en la raíz del repositorio.
@@ -260,12 +354,29 @@ docker compose pull postgres minio portainer traefik
 #    clonados como carpetas hermanas de este repositorio.
 docker compose build
 
-# 5. Levantar el entorno
+# 5. Levantar primero la capa de datos
+docker compose up -d --wait postgres minio
+
+# 6. Aplicar el esquema con la identidad ADMINISTRATIVA (`Task/018`)
+docker compose --profile admin run --rm migrations
+
+# 7. Preparar las identidades runtime de PostgreSQL y MinIO (`Task/018`).
+#    Escribe secrets/backend-runtime.env, que esta ignorado por Git.
+#    Se ejecuta con el venv del backend, que ya tiene psycopg y boto3.
+..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py --apply
+
+# 8. Levantar el resto del entorno
 docker compose up -d
 
-# 6. Comprobar el estado
+# 9. Comprobar el estado
 docker compose ps
 ```
+
+> **Los pasos 6 y 7 no son opcionales en una instalación nueva.** Desde `Task/018` el
+> servicio `backend` **no** recibe `BLOG_DATABASE_URL` ni las claves de MinIO por el
+> Compose: las lee de `secrets/backend-runtime.env`. Sin ese archivo el backend arranca
+> y falla al validar su configuración. Es deliberado: el contenedor de la aplicación no
+> debe llevar nunca la credencial administrativa. Detalle en la sección **2.2**.
 
 Estado esperado tras 30–60 segundos:
 
@@ -507,11 +618,20 @@ docker compose logs traefik | Select-String '"RouterName"' | Select-Object -Last
 # A que host y base se conecta, con la contrasena enmascarada
 docker compose exec backend python -c "from app.shared.configuration import get_settings; print(get_settings().database_url_safe)"
 
-# Estado de las migraciones desde el entorno integrado
-docker compose exec backend alembic current
+# Estado de las migraciones: PLANO ADMINISTRATIVO, no el contenedor del backend
+docker compose --profile admin run --rm migrations alembic current
 ```
 
-Esperado: `postgresql://blog_local:***@postgres:5432/personal_blog` y `0001 (head)`.
+Esperado: `postgresql://blog_runtime:***@postgres:5432/personal_blog` y `0003 (head)`.
+
+> **El usuario que aparece es `blog_runtime`, no `blog_local`.** Desde `Task/018` la
+> aplicación corre con un rol sin DDL. *(Corregido en `Task/018`: aquí se leía
+> `blog_local` y `0001 (head)`.)*
+>
+> **`docker compose exec backend alembic current` ya no funciona, y es correcto que no
+> funcione:** responde `permission denied for table alembic_version`. El rol de la
+> aplicación no puede leer ni escribir el estado de las migraciones. Migrar es una
+> operación del plano administrativo (sección **2.2**).
 
 > **Nunca imprimas `BLOG_DATABASE_URL` completa.** Lleva la contraseña. `database_url_safe`
 > existe justo para esto (requisito S-08).
@@ -672,9 +792,18 @@ Los mismos logs, volúmenes y redes son visibles gráficamente en Portainer
 ```powershell
 docker compose down -v
 docker compose pull
+docker compose up -d --wait postgres minio
+docker compose --profile admin run --rm migrations
+Remove-Item .\secrets\backend-runtime.env -ErrorAction SilentlyContinue
+..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py --apply
 docker compose up -d
 docker compose ps
 ```
+
+> **`down -v` borra también el rol `blog_runtime` y la identidad de MinIO**, porque
+> viven dentro de esos volúmenes. El archivo `secrets/backend-runtime.env` **no** se
+> borra solo, y quedaría apuntando a credenciales que ya no existen: por eso se elimina
+> antes de volver a provisionar. Es la única situación en la que se borra ese archivo.
 
 ---
 
@@ -918,15 +1047,15 @@ contenedor; `down -v` sí los destruiría.
 | Backend (FastAPI) | **Integrado** en el Compose. Expone `/health` y los diez recursos públicos (`Task/009`). Desde `Task/010` habla con MinIO a través de `ObjectStorage` y necesita el bucket de §10. | — |
 | Frontend (React) | **Integrado** en el Compose (`Task/007`). Desde `Task/014` sirve el **sitio público completo** —doce rutas— consumiendo los diez recursos públicos del API (`Task/009`); ya **no** consulta `/health`. Sin semilla local (`Task/022`) el perfil responde `404` y los listados están vacíos: el sitio lo muestra como estados explícitos, no como error. | `Task/015` (panel), `Task/022` (semilla) |
 | Reverse proxy | **Desplegado**: **Traefik v3** con enrutado explícito por archivo (D-05, `Task/003`; implementado en `Task/007`). | — |
-| Uso aplicativo de MinIO | **No existe.** MinIO está levantado y es alcanzable desde el backend, pero el backend **no lee ni escribe un solo objeto**: no hay `ObjectStorage`, ni SDK de S3, ni buckets de aplicación. | `Task/010` |
-| CORS | **No configurado, y es correcto.** Sitio y API comparten origen tras Traefik, así que el navegador no lo exige. La política de orígenes se decide en `Task/011` (**D-15**). | `Task/011`, `Task/018` |
-| Autenticación | No existe. Ningún endpoint está protegido. | `Task/011` |
-| Esquema de base de datos y migraciones | Existe la **migración fundacional** de `Task/005`: `personal_blog` tiene `alembic_version` y **ninguna tabla de negocio**. El modelo del blog llega en `Task/008`. *(Corregido en `Task/005.6`: aquí se leía «No existen. La base está vacía».)* | `Task/008` |
+| Uso aplicativo de MinIO | **Existe** desde `Task/010`. Desde `Task/018` el backend accede con la identidad **runtime** `blog-runtime`, con política acotada al bucket de medios (sección **2.2**). *(Corregido en `Task/018`: aquí se leía «No existe».)* | — |
+| CORS | **Configurado y comprobado por HTTP** (`Task/018`). En local sitio y API comparten origen tras Traefik, y la lista de orígenes del panel es explícita: `*` no arranca, y una lista vacía no concede lectura ni permite escrituras de navegador. | `Task/033` (borde productivo) |
+| Autenticación | **Existe** desde `Task/011`: sesión opaca *server-side*, Argon2id, bloqueo de cuenta y límite de tasa. `Task/018` verificó sus guardas sin reescribirlos. *(Corregido en `Task/018`: aquí se leía «No existe. Ningún endpoint está protegido».)* | — |
+| Esquema de base de datos y migraciones | **Aplicado hasta `0003`.** Las migraciones se ejecutan desde el **plano administrativo** (`docker compose --profile admin run --rm migrations`), nunca desde el contenedor del backend. *(Corregido en `Task/018`: aquí se leía que solo existía la migración fundacional de `Task/005`.)* | Sección **2.2** |
 | Base de datos de pruebas | `personal_blog_test`, dedicada y descartable (sección 9). | `Task/005.6` |
-| Buckets de la aplicación | No se crea ninguno. | `Task/010` |
+| Buckets de la aplicación | El bucket de medios se crea **a mano** una vez (sección 10). El backend no lo crea: crear buckets es infraestructura, y su identidad runtime tampoco tiene permiso para hacerlo. | — |
 | Backup y restauración | **Disponibles en local.** `Task/004` está aprobada: `scripts/backup/` genera copias de PostgreSQL, MinIO y Portainer, y el procedimiento de restauración está validado. Ver [local-backup-and-recovery.md](local-backup-and-recovery.md). **No cubre producción**, que llega con `Task/029` y la ETAPA 10. *(Corregido en `Task/005.7`: aquí se leía «No existen», que dejó de ser cierto al aprobarse `Task/004`.)* | `Task/004` (local) |
 | TLS real | No hay. Portainer usa un certificado autofirmado. | No aplica en local |
-| Control de solo lectura sobre la Docker API | **No existe.** El `:ro` del socket no lo proporciona (sección 2.1). Requeriría un socket proxy o una política adicional. | Fuera del alcance actual; a evaluar en `Task/018` |
+| Control de solo lectura sobre la Docker API | **No existe, y `Task/018` no lo introdujo.** El `:ro` del socket no lo proporciona (sección 2.1). Requeriría un socket proxy o una política de autorización adicional, que es un **cambio de capacidades** de Portainer y necesita decisión propia. **R-09 sigue abierto**, con la misma mitigación: solo local, publicado en loopback y con autenticación propia. | Decisión pendiente; `Task/025` lo reevalúa junto a **R-22** |
 | Recursos cloud | **Ninguno.** | Etapas 09 y 10 |
 
 ---
