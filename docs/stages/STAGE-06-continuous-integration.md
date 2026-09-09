@@ -3,10 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 06 |
-| **Estado** | Pendiente |
+| **Estado** | En progreso — 1 de 3 aprobadas (33 %) |
 | **Dependencias** | [ETAPA 05](STAGE-05-quality-security.md) |
 | **Tareas** | 3 |
-| **Aprobadas** | 0 |
+| **Aprobadas** | 1 |
 | **Avance** | 0 % |
 | **Hito que completa** | CI verde en los tres repositorios. |
 
@@ -24,11 +24,26 @@ Aquí se convierten en una barrera automática, no en un ritual manual.
 
 ## Tareas
 
-### `Task/019-CI-Frontend` — *Pendiente*
+### `Task/019-CI-Frontend` — *Aprobada (2026-09-08)*
 
 Lint, type-check, tests y build en GitHub Actions.
 
-**Depende de:** `Task/018`. **Repositorio:** `personal-blog-frontend`.
+**Depende de:** `Task/018`. **Repositorio:** `personal-blog-frontend`; infra solo
+documentación según WORKFLOW. [Ficha](../tasks/TASK-019-ci-frontend.md) ·
+[Reporte](../task-reports/TASK-019-report.md).
+
+Añade los gates vigentes de formato y auditoría npm. El build precede a los tests
+para ejecutar las guardas SEO/P-05 sobre el artefacto. Un job, Node 22.23.2
+coherente con Dockerfile, lockfile reproducible, caché npm, permisos de lectura
+y sin secretos ni despliegue. Sus decisiones de implementación quedan
+**vigentes** con la aprobación del 2026-09-08. **No hay ADR nuevo.**
+
+*Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución
+**34305529115**, disparada por `push`, concluyó **`success`** en **79 s** —job de
+**76 s**— con los once pasos declarados en verde, **704** pruebas en **75**
+archivos y **0** vulnerabilidades. Es evidencia del trigger `push`; el trigger
+`pull_request` está declarado en el YAML, pero **Task019 no aporta evidencia de
+ninguna ejecución con ese evento**: se comprueba en el cierre ordinario autorizado.
 
 ### `Task/020-CI-Backend` — *Pendiente*
 
@@ -53,6 +68,19 @@ Ruff, MyPy, Pytest, verificación de migraciones, build de imagen Docker y escan
 **Depende de:** `Task/018`. **Repositorio:** `personal-blog-infra`.
 
 ## Criterios de salida de la etapa
+
+**Distribución de responsabilidades reconstruida en Task019:** cada repositorio
+implementa sus triggers, gates, medición y revisión de logs en su tarea de CI.
+S-09 frontend corresponde a Task019; backend a Task020; infraestructura a Task021.
+El escaneo de secretos del historial está asignado explícitamente a Task021 y
+se comprueba al cerrar la etapa; Task019 no afirma haber cubierto ese historial.
+Task025 incorpora las verificaciones Terraform cuando existan archivos reales.
+
+Los controles negativos locales se distinguen de la ejecución remota. En Task019,
+el usuario autorizó el 2026-09-08 el bootstrap por push antes de aprobar; la
+ejecución real de `pull_request` y el verde sobre `dev` se comprueban en el cierre
+ordinario autorizado. Publicar una mutación deliberadamente rota exige un permiso
+adicional. Ninguna de estas observaciones completa por sí sola la etapa.
 
 - [ ] Cada repositorio ejecuta su workflow en cada push y pull request.
 - [ ] Los tres workflows terminan en verde sobre `dev`.

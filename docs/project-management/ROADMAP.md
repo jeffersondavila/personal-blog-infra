@@ -94,7 +94,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 03 | Dominio y Backend | 5 | **5** | **100 %** | **Completada** | 02 ✔ |
 | 04 | Experiencia del Usuario | 3 | **3** | **100 %** | **Completada** | 03 ✔ |
 | 05 | Calidad y Seguridad | 3 | **3** | **100 %** | **Completada** | 04 ✔ |
-| 06 | Integración Continua | 3 | 0 | 0 % | Pendiente | 05 ✔ |
+| 06 | Integración Continua | 3 | **1** | **33 %** | En progreso | 05 ✔ |
 | 07 | Validación Local | 1 | 0 | 0 % | Pendiente | 06 |
 | 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 |
 | 09 | Cuentas y Seguridad Cloud | 3 | 0 | 0 % | Pendiente | 08 |
@@ -257,7 +257,7 @@ residuales de imágenes registrados en [STAGE-05](../stages/STAGE-05-quality-sec
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/019-CI-Frontend` | Lint. Type-check. Tests. Build. | frontend | 018 | Pendiente |
+| `Task/019-CI-Frontend` | Lint. Type-check. Tests. Build. Formato y auditoría npm (S-09 frontend). | frontend, infra (documentación) | 018 | **Aprobada** (2026-09-08) — workflow `CI Frontend` en cada `push` y `pull_request`, un job en `ubuntu-24.04` con Node 22.23.2, build antes de las pruebas para no omitir las guardas SEO/P-05, y `npm audit` sin umbral. Ejecución **34305529115** en `success`: **704** pruebas, **0** vulnerabilidades. **S-09 global sigue abierto**: backend en `Task/020`, infra y escaneo del historial en `Task/021` |
 | `Task/020-CI-Backend` | Ruff. MyPy. Pytest. Migraciones. Build Docker. Escaneo. | backend | 018 | Pendiente |
 | `Task/021-CI-Infraestructura` | Docker Compose config. Validación de scripts. Escaneo de secretos. **Terraform todavía no existe** (llega en `Task/025`): sus verificaciones **no se declaran aquí como checks vacíos**; `Task/025` amplía este workflow con `fmt` y `validate`. | infra | 018 | Pendiente |
 
@@ -454,7 +454,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `18 / 41 ≈ 44 %`.
+Actualmente: `19 / 41 ≈ 46 %`.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de

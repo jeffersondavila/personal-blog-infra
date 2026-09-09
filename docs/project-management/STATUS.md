@@ -8,9 +8,10 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 05 — Calidad y Seguridad — Completada** (**3 de 3** aprobadas). ETAPAS 00 a 05 **completadas**; ETAPA 06 **Pendiente** |
-| **Tarea actual** | **`Task/018-Endurecimiento-de-Seguridad`** — **Aprobada** el 2026-09-08 por el usuario |
-| **Estado de la tarea** | **Aprobada** mediante `approved: Task/018-Endurecimiento-de-Seguridad`. Mínimo privilegio en PostgreSQL y MinIO; cabeceras y CORS por superficie; **E-06 cerrado sin JavaScript**; errores opacos, redacción y subidas endurecidas. **1854** pruebas de backend y **703** de frontend en verde; **0 dependencias nuevas**. Riesgos residuales declarados en el [reporte](../task-reports/TASK-018-report.md). Cuenta en el avance: **18 de 41** |
+| **Etapa actual** | **ETAPA 06 — Integración Continua — En progreso** (**1 de 3** aprobadas, **33 %**). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
+| **Tarea actual** | **`Task/019-CI-Frontend`** — **Aprobada** el 2026-09-08 por el usuario |
+| **Estado de la tarea** | **Aprobada** mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
+| **Tarea aprobada anterior a `Task/019`** | `Task/018-Endurecimiento-de-Seguridad` — **Aprobada** el 2026-09-08 por el usuario mediante `approved: Task/018-Endurecimiento-de-Seguridad`. Mínimo privilegio en PostgreSQL y MinIO; cabeceras y CORS por superficie; **E-06 cerrado sin JavaScript**; errores opacos, redacción y subidas endurecidas. **1854** pruebas de backend y **703** de frontend en verde; **0 dependencias nuevas**. Riesgos residuales declarados en el [reporte](../task-reports/TASK-018-report.md). Cuenta en el avance: **18 de 41** |
 | **Tarea aprobada anterior a `Task/018`** | `Task/017-Observabilidad-Local` — **Aprobada** mediante `approved: Task/017-Observabilidad-Local`. Correlation ID `X-Request-ID` de extremo a extremo —respuesta, todas las líneas de log de la petición y `audit_events.request_id`—, `GET /ready` con sonda real de PostgreSQL y almacenamiento bajo **presupuesto total** por debajo del `timeout` del proxy, redacción automática de secretos en el log (cierra el plano local de **R-36**) y `healthCheck` de Traefik en `/ready` conservando `/health` como liveness de Docker. **1808** pruebas de backend en verde y **1** omitida (estructural de Windows), con `-W error`. **0 dependencias nuevas**. **O-07** quedó verificado por Docker por el agente; la comprobación en la **interfaz de Portainer** la cubre la aprobación del usuario, y así consta (reporte §22). Detalle en el [reporte](../task-reports/TASK-017-report.md). Cuenta en el avance: **17 de 41** |
 | **Tarea aprobada anterior a `Task/017`** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** mediante `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`. **E-02**, **E-04**, **E-05**, **E-07**, **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**, ambos con su motivo medido. **688** pruebas de frontend y **1631** de backend en verde. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-016-report.md). Cuenta en el avance: **16 de 41** |
 | **Tarea aprobada anterior a `Task/016`** | `Task/015-Panel-Administrativo` — **Aprobada** el 2026-09-05. **18 superficies**, dashboard completo, sesión administrativa, editor Markdown y medios. **600 pruebas**, cero dependencias nuevas. **D-04 resuelta**; completa ETAPA 04 |
@@ -25,9 +26,9 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna**. `Task/018` aprobada; `Task/019` pendiente y no iniciada |
-| **Próxima tarea prevista** | `Task/019-CI-Frontend` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
-| **Avance global** | **44 %** — 18 de 41 tareas aprobadas |
+| **Tarea en curso** | **Ninguna**. `Task/019` aprobada; `Task/020` pendiente y no iniciada |
+| **Próxima tarea prevista** | `Task/020-CI-Backend` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
+| **Avance global** | **46 %** — 19 de 41 tareas aprobadas |
 | **Bloqueos activos** | **0 que detengan trabajo.** `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **48** (R-01 y **R-08** cerrados; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
@@ -49,7 +50,69 @@
 
 ---
 
-## Última tarea aprobada — `Task/018-Endurecimiento-de-Seguridad`
+## Última tarea aprobada — `Task/019-CI-Frontend`
+
+**Aprobada el 2026-09-08** mediante `approved: Task/019-CI-Frontend`, en
+`personal-blog-frontend` (funcional) e infra (gobierno documental). **El backend
+no participa.** Primera tarea de la ETAPA 06. Avance: **19/41 — 46 %**,
+ETAPA 06 **1/3 — 33 %**.
+
+### Qué entrega
+
+Un workflow de GitHub Actions, `CI Frontend`, que ejecuta en cada `push` y
+`pull_request` —sin filtros de ramas ni rutas— los gates canónicos del frontend
+en un único job de `ubuntu-24.04`: `npm ci`, `format:check`, `lint`, `typecheck`,
+`build` y `test:run`, más `npm audit`. **El build precede a las pruebas** porque
+las guardas de SEO y P-05 usan `describe.skipIf(!hayBuild)` y se omitirían en un
+checkout limpio. Runtime **Node 22.23.2**, el mismo parche del builder del
+Dockerfile. Instalación por lockfile, caché de npm derivada de
+`package-lock.json`, `contents: read`, `persist-credentials: false`, acciones
+oficiales fijadas por SHA de commit, concurrencia por workflow, evento y
+referencia, y un límite de diez minutos por job.
+
+Cierra la **porción frontend de S-09**: la auditoría puntual de `Task/018` pasa a
+ser automática, sin umbral de tolerancia ni lista de exclusiones.
+
+### Qué NO entrega
+
+**S-09 no queda cerrado globalmente:** backend es `Task/020` e infra `Task/021`.
+El **escaneo de secretos de todo el historial** sigue asignado a `Task/021` y al
+cierre global de la etapa. Los checks de Terraform llegan con `Task/025`, cuando
+exista IaC real. No se añaden matrix, cobertura mínima, E2E, Lighthouse, build de
+Docker, despliegue, cloud, OIDC, secretos ni configuración de GitHub.
+
+### Evidencia del cierre
+
+*Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución
+**34305529115**, disparada por `push`, concluyó **`success`** en **79 s** —job de
+**76 s**— con los once pasos declarados en verde, **704** pruebas en **75**
+archivos y **0** vulnerabilidades. Los controles negativos de lint, tipos,
+pruebas y build son **locales** y están etiquetados como tales: acreditan que
+cada gate rechaza su defecto y vuelve a verde tras restaurar el archivo por
+hash, **no** que GitHub haya rechazado un commit roto.
+
+La advertencia heredada del futuro cargador nativo de Vite se reprodujo, se
+corrigió con imports `.ts` explícitos y quedó protegida por una regresión
+permanente, `vite.config.test.ts`. Los artefactos de `dist` coinciden byte a byte
+con los del build previo. **0 dependencias nuevas.**
+
+### Decisiones y riesgos
+
+Las decisiones de implementación de la
+[ficha §12](../tasks/TASK-019-ci-frontend.md) quedan **vigentes**. **No hay ADR
+nuevo**: son decisiones reversibles dentro del stack aprobado.
+
+**R-016-1 continúa Abierto.** El baseline lo reprodujo —702 de 703, timeout en
+`formularios.test.tsx`— y el runner no, pero una ejecución remota verde aislada
+no cierra un fallo por sensibilidad temporal. El **control negativo remoto**
+sigue sin autorizar: publicar una mutación deliberadamente rota exige un permiso
+adicional del usuario.
+
+Detalle completo en el [reporte](../task-reports/TASK-019-report.md), §J y §R.
+
+---
+
+## Tarea aprobada anterior — `Task/018-Endurecimiento-de-Seguridad`
 
 **Aprobada el 2026-09-08** mediante
 `approved: Task/018-Endurecimiento-de-Seguridad`, en backend, frontend e infra.
@@ -1490,24 +1553,24 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 02 — Fundaciones de las Aplicaciones | 3 | 3 | **100 %** — **completada** |
 | 03 — Dominio y Backend | 5 | **5** | **100 %** — **completada** |
 | 04 — Experiencia del Usuario | 3 | **3** | **100 %** — **completada** |
-| 05 — Calidad y Seguridad | 3 | 0 | 0 % |
-| 06 — Integración Continua | 3 | 0 | 0 % |
+| 05 — Calidad y Seguridad | 3 | 3 | **100 %** — **completada** |
+| 06 — Integración Continua | 3 | **1** | **33 %** |
 | 07 — Validación Local | 1 | 0 | 0 % |
 | 08 — Preparación Cloud sin Cuentas | 4 | 0 | 0 % |
 | 09 — Cuentas y Seguridad Cloud | 3 | 0 | 0 % |
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **15** | **37 %** |
+| **Total** | **41** | **19** | **46 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **26** |
+| Pendiente | **22** |
 | En progreso | 0 |
 | Lista para validación | **0** |
-| **Aprobada** | **15** |
+| **Aprobada** | **19** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |
@@ -1690,7 +1753,7 @@ Distribución por estado:
 | `Task/016-SEO-Accesibilidad-y-Rendimiento` | 05 | frontend, backend, infra (documentación + wiring local mínimo) | **Aprobada** (2026-09-06) |
 | `Task/017-Observabilidad-Local` | 05 | backend, infra | **Aprobada** (2026-09-06) |
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | **Aprobada** (2026-09-08) |
-| `Task/019-CI-Frontend` | 06 | frontend | Pendiente |
+| `Task/019-CI-Frontend` | 06 | frontend, infra (documentación) | **Aprobada** (2026-09-08) |
 | `Task/020-CI-Backend` | 06 | backend | Pendiente |
 | `Task/021-CI-Infraestructura` | 06 | infra | Pendiente |
 | `Task/022-Validacion-Local-Production-Like` | 07 | infra, frontend, backend | Pendiente |
@@ -1722,6 +1785,26 @@ Distribución por estado:
 > `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
 > El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
 > `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
+
+**Observado el 2026-09-08**, al ejecutar el cierre aprobado de `Task/019`:
+
+- Las dos ramas `Task/019-CI-Frontend` —frontend e infra— nacieron **desde `main`**,
+  con `HEAD == main` verificado inmediatamente después de crearlas: `2ee15342…`
+  (frontend) y `4ca82210…` (infra).
+- El frontend llevaba **1 commit** propio sobre `main`, `6f3a292`, publicado antes de la
+  aprobación bajo la **autorización excepcional de bootstrap del 2026-09-08**, para poder
+  validar CI real. Esa autorización cubría **solo** eso y **ya fue utilizada**. Infra llegó
+  al cierre con **0 commits** propios y nada en *staging*.
+- `personal-blog-backend` **no participó**: en `main`, worktree limpio, sin rama Task.
+- El cierre integra cada rama en `dev` con merge `--no-ff`, publica `dev` y la rama Task, y
+  abre el pull request **`Task/019-CI-Frontend → main`** en cada repositorio. **Ningún PR
+  usa `dev` como *head*** y **ninguno lo fusiona Claude**.
+- Las ramas Task **locales** se eliminan con `git branch -d`; las **remotas se conservan**:
+  eliminarlas es decisión del usuario.
+- **El estado vivo** —si el PR sigue abierto o ya se fusionó, si la rama remota existe, los
+  SHA concretos— **no se escribe aquí**: se consulta con `git fetch --prune`,
+  `git ls-remote --heads origin "Task/*"` y `gh pr list`
+  ([WORKFLOW §6.1](WORKFLOW.md)).
 
 **Observado el 2026-09-07**, tras la fusión del PR `#31` de `Task/004.1` y su normalización:
 
