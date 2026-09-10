@@ -184,15 +184,22 @@ Con la aprobación del 2026-09-10, **D-020-A** a **D-020-H** quedan **vigentes**
 Backend: `README.md` (§5.1 dependencias y locks, §10.3 integración continua, y la
 nota de advertencias con el caso de `anyio`), comentarios de `pyproject.toml` y
 del `Dockerfile`. Infra: esta ficha, el reporte, `STATUS.md`, `ROADMAP.md`,
-`STAGE-06` y el índice de reportes.
+`STAGE-06`, el índice de reportes y, del preflight, el reporte de `Task/019`.
 
 ## 14. Archivos modificados
 
-Backend, en un commit: `.github/workflows/ci-backend.yml`, `requirements.lock`,
+Backend, en **cuatro commits** —`557ca7e`, `f2b3d85`, `81ce14c` y `22af3f1`—:
+`.github/workflows/ci-backend.yml`, `requirements.lock`,
 `requirements-dev.lock`, `scripts/generar-locks.sh` (nuevos);
 `pyproject.toml`, `Dockerfile`, `README.md`, `.dockerignore` (modificados);
-`requirements.txt`, `requirements-dev.txt` (eliminados).
-Infra: seis documentos, **sin commit**. Frontend: sin modificaciones.
+`requirements.txt`, `requirements-dev.txt` (eliminados). Los dos últimos commits
+son los de la revisión previa a la aprobación y solo tocaron documentación y
+comentarios.
+
+Infra: **siete documentos** en el commit documental del cierre aprobado,
+`6bc80e8` —esta ficha, el reporte, `STATUS.md`, `ROADMAP.md`, `STAGE-06`, el
+índice de reportes y, del preflight, el reporte de `Task/019`—. Frontend: sin
+modificaciones.
 
 ## 15. Resultado de pruebas
 
@@ -229,10 +236,12 @@ Detalle y evidencia en el [reporte](../task-reports/TASK-020-report.md).
 
 ## 17. Pasos de validación para el usuario
 
-Revisar el diff del backend y los seis documentos de infra. Abrir la ejecución
-de GitHub Actions enlazada en el reporte y comprobar los 19 pasos, no solo el
-resultado global. Los comandos de §9 son reproducibles; la integración exige
-PostgreSQL y MinIO descartables, nunca el entorno local.
+Revisar el diff del backend y los siete documentos de infra. Abrir la ejecución
+de GitHub Actions enlazada en el reporte y comprobar sus pasos uno a uno, no solo
+el resultado global: el workflow declara **19 pasos** y la ejecución muestra
+**21**, porque GitHub añade *Set up job* e *Initialize containers*. Los comandos
+de §9 son reproducibles; la integración exige PostgreSQL y MinIO descartables,
+nunca el entorno local.
 
 **Acción pendiente del usuario en su máquina:** el `.venv` de Windows conserva
 las versiones anteriores. Tras aprobar, reinstalar por la vía que corresponda a
@@ -258,7 +267,15 @@ inicio debe seguir el flujo canónico aprobado.
 
 El cierre aprobado integró la rama en `dev` con merge `--no-ff` en backend e
 infra, publicó ambas ramas y abrió los pull request
-**`Task/020-CI-Backend → main`**, que quedan **sin fusionar**: aceptarlos o
-rechazarlos es responsabilidad exclusiva del usuario. La rama Task local se
-eliminó con `git branch -d`; la remota **se conserva**. Detalle y URL en el
+**`Task/020-CI-Backend → main`**, que se dejaron **para revisión manual del
+usuario**: aceptarlos o rechazarlos es responsabilidad exclusiva suya. La rama
+Task local se eliminó con `git branch -d`.
+
+*Observado el 2026-09-10 UTC, después del cierre:* el usuario fusionó los dos
+pull request —backend `#15` a las 14:42:42Z, merge `8055878`; infra `#36` a las
+14:42:24Z, merge `68469dd`— y eliminó las dos ramas Task remotas. La
+normalización `main → dev` se ejecutó a continuación en los dos repositorios,
+con los merges `5fedcb3` (backend) y `122c90a` (infra). El estado operativo
+vigente se consulta en Git y GitHub, no aquí
+([WORKFLOW §6.1](../project-management/WORKFLOW.md)). Detalle en el
 [reporte](../task-reports/TASK-020-report.md).
