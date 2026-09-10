@@ -90,6 +90,7 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/018-Endurecimiento-de-Seguridad` | [TASK-018-report.md](TASK-018-report.md) | Aprobada (2026-09-08) |
 | `Task/019-CI-Frontend` | [TASK-019-report.md](TASK-019-report.md) | Aprobada (2026-09-08) |
 | `Task/019.1-Corregir-Drift-Documental-Post-Merge` | [TASK-019.1-report.md](TASK-019.1-report.md) | Aprobada (2026-09-09) |
+| `Task/020-CI-Backend` | [TASK-020-report.md](TASK-020-report.md) | Aprobada (2026-09-10) |
 
 > Las tareas de **mantenimiento** llevan sufijo (`004.1`, `004.2`, `005.1`, `005.2`,
 > `005.3`, `005.4`, `005.5`, `005.6`, `005.7`, `006.1`, `006.2`, `009.1`, `012.1`,

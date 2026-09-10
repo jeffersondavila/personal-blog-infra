@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 06 |
-| **Estado** | En progreso — 1 de 3 aprobadas (33 %) |
+| **Estado** | En progreso — 2 de 3 aprobadas (67 %) |
 | **Dependencias** | [ETAPA 05](STAGE-05-quality-security.md) |
 | **Tareas** | 3 |
-| **Aprobadas** | 1 |
-| **Avance** | 0 % |
+| **Aprobadas** | 2 |
+| **Avance** | 67 % |
 | **Hito que completa** | CI verde en los tres repositorios. |
 
 ---
@@ -49,11 +49,58 @@ pull request `#12`, con conclusión **`success`**; y la ejecución **34308234554
 disparada por `push` sobre `dev`, también concluyó **`success`**. Ambos triggers
 del workflow del frontend tienen, por tanto, ejecución real registrada.
 
-### `Task/020-CI-Backend` — *Pendiente*
+### `Task/020-CI-Backend` — *Aprobada (2026-09-10)*
 
 Ruff, MyPy, Pytest, verificación de migraciones, build de imagen Docker y escaneo.
 
-**Depende de:** `Task/018`. **Repositorio:** `personal-blog-backend`.
+**Depende de:** `Task/018`. **Repositorios:** `personal-blog-backend` e infra
+(documentación). [Ficha](../tasks/TASK-020-ci-backend.md) ·
+[Reporte](../task-reports/TASK-020-report.md).
+
+*Observado el 2026-09-09 (Guatemala):* se completó el preflight y se corrigió,
+con autorización expresa, el avance heredado de esta tabla de 0 % a 33 %.
+La lectura posterior detectó B-020-1, otra contradicción preexistente en README
+backend §3, y se detuvo antes de implementar CI. También se detectó B-020-2
+en el Total de ROADMAP. El usuario autorizó ambas correcciones y se aplicaron:
+son D preexistentes resueltas durante el preflight. Task020 retomó En progreso.
+Al registrar ese desbloqueo no se había obtenido todavía una ejecución real
+de Task020 en Actions.
+
+La lectura obligatoria posterior del 2026-09-09 detectó B-020-3 en el reporte
+Task019: §H negaba su aprobación y §R conservaba el PR como abierto en presente.
+Se detuvo Task020 antes de corregir esos párrafos. El desbloqueo requirió tratamiento
+autorizado por el usuario. Después se autorizaron y corrigieron: B-020-3A (D) y B-020-3B (C) resueltas; Task020 retomó En progreso. No se reabren Task019/019.1.
+
+*Implementación del 2026-09-10:* workflow `CI Backend` en cada `push` y
+`pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14,
+PostgreSQL y MinIO efímeros del propio runner, migraciones sobre el motor real,
+la suite completa con `-W error` y escaneo de imagen con política *fail-closed*.
+**R-14 queda resuelto** como propuesta: dos *locks* transitivos con hashes,
+instalación `--require-hashes` y detección de desfase. El baseline destapó dos
+defectos reales y preexistentes —la regresión de `anyio` y tres
+vulnerabilidades con corrección en `httpx2`— y ambos se corrigieron, el segundo
+con autorización expresa. Ejecuciones reales de Actions y su auditoría paso a
+paso en el [reporte](../task-reports/TASK-020-report.md).
+
+*Revisión previa a la aprobación, 2026-09-10:* a petición del usuario se
+auditaron dos puntos y los dos resultaron ser contradicciones reales, ya
+corregidas. **D-020-1**: la instalación local documentada usaba
+`pip install -e ".[dev]"`, que vuelve a resolver transitivas y elude el propio
+*lock* que la tarea declara como garantía; el alcance real quedó documentado por
+entorno, con la razón técnica por la que los *locks* no son instalables en
+Windows. **D-020-2**: una sobreafirmación atribuía SHA o digest a todas las
+herramientas externas cuando `pip-audit` solo está fijado por versión exacta.
+**D-020-3**: el texto afirmaba que `--require-hashes` implica `--no-deps`, y no
+es así; la garantía viene de que el *lock* enumera el cierre transitivo, no de
+desactivar la resolución. Las tres son defectos del texto, no de la
+implementación, y ninguna reabre etapas anteriores. **Criterion 12 cierra en
+C = 0 y D = 0**.
+
+*Aprobada el 2026-09-10* mediante `approved: Task/020-CI-Backend`. Avance
+**20/41 — 49 %**; esta etapa pasa a **2/3 — 67 %** y **sigue sin completarse**:
+falta `Task/021`. **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global**
+abierto. Las decisiones **D-020-A** a **D-020-H** quedan **vigentes**, sin ADR
+nuevo.
 
 ### `Task/021-CI-Infraestructura` — *Pendiente*
 

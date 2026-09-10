@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-08 (aprobación de `Task/018`: ETAPA 05 **Completada**, **3 de 3 — 100 %**. **18 de 41 — 44 %**; **D-21** sigue **Abierta**)
+- **Última actualización:** 2026-09-10 (aprobación de `Task/020`: **20 de 41 — 49 %**, ETAPA 06 **2 de 3 — 67 %**, **En progreso**; **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global** aún abierto con `Task/021`)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -16,7 +16,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **44 %** (18 de 41 tareas aprobadas)
+- **Avance global:** **49 %** (20 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -94,14 +94,14 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 03 | Dominio y Backend | 5 | **5** | **100 %** | **Completada** | 02 ✔ |
 | 04 | Experiencia del Usuario | 3 | **3** | **100 %** | **Completada** | 03 ✔ |
 | 05 | Calidad y Seguridad | 3 | **3** | **100 %** | **Completada** | 04 ✔ |
-| 06 | Integración Continua | 3 | **1** | **33 %** | En progreso | 05 ✔ |
+| 06 | Integración Continua | 3 | **2** | **67 %** | En progreso | 05 ✔ |
 | 07 | Validación Local | 1 | 0 | 0 % | Pendiente | 06 |
 | 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 |
 | 09 | Cuentas y Seguridad Cloud | 3 | 0 | 0 % | Pendiente | 08 |
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **18** | **44 %** | | |
+| | **Total** | **41** | **20** | **49 %** | | |
 
 ---
 
@@ -258,7 +258,7 @@ residuales de imágenes registrados en [STAGE-05](../stages/STAGE-05-quality-sec
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
 | `Task/019-CI-Frontend` | Lint. Type-check. Tests. Build. Formato y auditoría npm (S-09 frontend). | frontend, infra (documentación) | 018 | **Aprobada** (2026-09-08) — workflow `CI Frontend` en cada `push` y `pull_request`, un job en `ubuntu-24.04` con Node 22.23.2, build antes de las pruebas para no omitir las guardas SEO/P-05, y `npm audit` sin umbral. Ejecución **34305529115** en `success`: **704** pruebas, **0** vulnerabilidades. **S-09 global sigue abierto**: backend en `Task/020`, infra y escaneo del historial en `Task/021` |
-| `Task/020-CI-Backend` | Ruff. MyPy. Pytest. Migraciones. Build Docker. Escaneo. | backend | 018 | Pendiente |
+| `Task/020-CI-Backend` | Ruff. MyPy. Pytest. Migraciones. Build Docker. Escaneo. | backend, infra (documentación) | 018 | **Aprobada** (2026-09-10) — workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, suite completa con `-W error` y escaneo con política fail-closed. **R-14 resuelto** con dos *locks* transitivos con hashes e instalación `--require-hashes`, más detección de desfase. **S-09 backend satisfecho**; **S-09 global sigue abierto** con `Task/021`. Hallazgos heredados STAGE-06 y B-020-1/2/3 resueltos con autorización durante el preflight. [Reporte](../task-reports/TASK-020-report.md) |
 | `Task/021-CI-Infraestructura` | Docker Compose config. Validación de scripts. Escaneo de secretos. **Terraform todavía no existe** (llega en `Task/025`): sus verificaciones **no se declaran aquí como checks vacíos**; `Task/025` amplía este workflow con `fmt` y `validate`. | infra | 018 | Pendiente |
 
 ---
@@ -454,7 +454,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `19 / 41 ≈ 46 %`.
+Actualmente: `20 / 41 ≈ 49 %`.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de
