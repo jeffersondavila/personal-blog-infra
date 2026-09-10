@@ -41,9 +41,13 @@ y sin secretos ni despliegue. Sus decisiones de implementación quedan
 *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución
 **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** —job de
 **76 s**— con los once pasos declarados en verde, **704** pruebas en **75**
-archivos y **0** vulnerabilidades. Es evidencia del trigger `push`; el trigger
-`pull_request` está declarado en el YAML, pero **Task019 no aporta evidencia de
-ninguna ejecución con ese evento**: se comprueba en el cierre ordinario autorizado.
+archivos y **0** vulnerabilidades. Esa ejecución acreditó el trigger `push`.
+
+*Observado el 2026-09-09 UTC, durante el cierre aprobado:* el trigger
+`pull_request` quedó acreditado por la ejecución **34308296565**, disparada por el
+pull request `#12`, con conclusión **`success`**; y la ejecución **34308234554**,
+disparada por `push` sobre `dev`, también concluyó **`success`**. Ambos triggers
+del workflow del frontend tienen, por tanto, ejecución real registrada.
 
 ### `Task/020-CI-Backend` — *Pendiente*
 
@@ -78,9 +82,11 @@ Task025 incorpora las verificaciones Terraform cuando existan archivos reales.
 
 Los controles negativos locales se distinguen de la ejecución remota. En Task019,
 el usuario autorizó el 2026-09-08 el bootstrap por push antes de aprobar; la
-ejecución real de `pull_request` y el verde sobre `dev` se comprueban en el cierre
-ordinario autorizado. Publicar una mutación deliberadamente rota exige un permiso
-adicional. Ninguna de estas observaciones completa por sí sola la etapa.
+ejecución real de `pull_request` y el verde sobre `dev` quedaron comprobados
+después, durante el cierre ordinario autorizado, con las ejecuciones citadas
+arriba. Publicar una mutación deliberadamente rota exige un permiso adicional y
+**sigue sin autorizarse**. Ninguna de estas observaciones completa por sí sola la
+etapa: los criterios de salida exigen los **tres** repositorios.
 
 - [ ] Cada repositorio ejecuta su workflow en cada push y pull request.
 - [ ] Los tres workflows terminan en verde sobre `dev`.
