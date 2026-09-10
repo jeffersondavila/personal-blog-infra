@@ -306,9 +306,21 @@ reproducción local de §D. El fallo del baseline (§C, R-016-1) **no se reprodu
 en el runner**; eso **no cierra R-016-1**: una única ejecución verde no basta
 para declarar resuelto un fallo por sensibilidad temporal.
 
-Esta ejecución acredita **únicamente el trigger `push`**. El trigger
-`pull_request` está declarado en el YAML y fue inspeccionado, pero **Task019 no
-aporta evidencia de ninguna ejecución con ese evento** (§P).
+**Al redactarse el bootstrap, esta ejecución acreditaba únicamente el trigger
+`push`.** El trigger `pull_request` estaba declarado en el YAML y solo había sido
+inspeccionado. Son dos momentos distintos y no deben confundirse.
+
+*Observado el 2026-09-09 UTC, ya durante el cierre aprobado:* el trigger
+`pull_request` quedó acreditado por una ejecución real.
+
+| Run | Evento | Origen | Conclusión |
+| --- | --- | --- | --- |
+| 34305529115 | `push` | rama `Task/019-CI-Frontend` | `success` |
+| 34308234554 | `push` | rama `dev`, tras el merge `--no-ff` | `success` |
+| 34308296565 | `pull_request` | pull request `#12` hacia `main` | `success` |
+
+Los **dos triggers declarados en el workflow** tienen ejecución real registrada.
+La de `pull_request` recorrió los mismos once pasos y terminó en verde (§P).
 
 ## K. Seguridad, permisos y logs
 
@@ -423,8 +435,8 @@ ficha, este reporte, STATUS, ROADMAP, STAGE-06, non-functional-requirements e
 
 | Clase | Contenido | Recuento |
 | --- | --- | ---: |
-| **A — reglas y diseño permanentes** | Gates y su orden, runtime, instalación reproducible, permisos mínimos, caché, política *fail-closed*, reparto de responsabilidades de S-09 y del escaneo histórico. Las decisiones técnicas quedan como **Propuesta — pendiente de aprobación** | — |
-| **B — hechos históricos fechados** | Preflight y SHA base, autorización de bootstrap, baseline con R-016-1, RED/GREEN de Vite, controles negativos locales, auditorías de secretos, tiempos medidos y la ejecución remota 34305529115 con su fecha, evento, SHA y conclusión | — |
+| **A — reglas y diseño permanentes** | Gates y su orden, runtime, instalación reproducible, permisos mínimos, caché, política *fail-closed*, reparto de responsabilidades de S-09 y del escaneo histórico. Las decisiones técnicas quedaron **vigentes** con la aprobación del 2026-09-08; antes de ella se mantuvieron como *Propuesta* | — |
+| **B — hechos históricos fechados** | Preflight y SHA base, autorización de bootstrap, baseline con R-016-1, RED/GREEN de Vite, controles negativos locales, auditorías de secretos, tiempos medidos y las tres ejecuciones remotas —34305529115, 34308234554 y 34308296565— con su fecha, evento y conclusión | — |
 | **C — estado transitorio de Git/GitHub persistido como vigente** | Ninguno | **0** |
 
 Criterio de clasificación aplicado: todo enunciado sobre el estado vivo del
@@ -458,16 +470,23 @@ remota existe y los SHA concretos— **no se escribe aquí**: se consulta con
 `git fetch --prune`, `git ls-remote --heads origin "Task/*"` y `gh pr list`,
 conforme a [WORKFLOW §6.1](../project-management/WORKFLOW.md).
 
-Lo siguiente **sigue sin estar validado por Task019** y no se declara cubierto:
+*Observado el 2026-09-09 UTC:* el usuario fusionó manualmente los dos pull
+request y eliminó las ramas Task remotas. A continuación se ejecutó la
+normalización `main` hacia `dev` con merge `--no-ff` en ambos repositorios.
 
-- **Normalización `main → dev`** posterior a la fusión, que solo puede ocurrir
-  después de que el usuario acepte el pull request. Es responsabilidad exclusiva
-  del usuario aceptarlo o rechazarlo.
+| Repositorio | PR | Merge commit del PR | Merge de normalización |
+| --- | --- | --- | --- |
+| frontend | `#12` | `7dce98a` | `b261e65` |
+| infra | `#34` | `32474e5` | `efeb6b8` |
+
+Lo siguiente **sigue sin estar cubierto por Task019** y no se declara validado:
+
 - **Verde de los tres workflows sobre `dev`**, criterio de salida de la etapa que
-  requiere también `Task/020` y `Task/021`.
+  requiere también `Task/020` y `Task/021`. Task019 solo acredita el frontend.
 - **Control negativo remoto.** Publicar una mutación deliberadamente rota para
   ver fallar el workflow **exige un permiso adicional** que no se ha concedido.
   Los negativos de §I siguen siendo **locales**.
+- **R-016-1**, que no se cierra por ejecuciones remotas verdes aisladas.
 
 La **autorización excepcional de bootstrap del 2026-09-08** cubrió únicamente los
 commits y el push de la rama frontend antes de aprobar. **Ya fue utilizada y no

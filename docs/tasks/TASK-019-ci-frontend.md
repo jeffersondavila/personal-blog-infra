@@ -73,9 +73,12 @@ Terraform: Task025 ampliará CI cuando exista. No se añaden E2E, cobertura mín
 Lighthouse, Docker build, matrix, CD, cloud, OIDC, secretos ni GitHub settings.
 No se cambia D-21, la política de seguridad HTTP ni el modelo de rendering.
 
-La ejecución real del trigger `pull_request` y el verde sobre `dev` se validan
-durante el cierre autorizado. La mutación remota requiere autorización adicional;
-no se publican cambios deliberadamente rotos con el permiso de bootstrap.
+La ejecución real del trigger `pull_request` y el verde sobre `dev` quedaron
+fuera del alcance del bootstrap y se obtuvieron después, durante el cierre
+autorizado: *observado el 2026-09-09 UTC*, las ejecuciones **34308296565**
+(`pull_request`) y **34308234554** (`push` sobre `dev`) concluyeron `success`.
+La mutación remota **sigue requiriendo autorización adicional**; no se publican
+cambios deliberadamente rotos con el permiso de bootstrap.
 
 ## 5. Entregables
 
@@ -225,18 +228,22 @@ antes de tests. R-016-1 conserva su evidencia en el reporte.
 
 ## 17. Pasos de validación para el usuario
 
-Ejecutar §9; revisar el YAML y el diff respecto a los SHA base; consultar la
-ejecución remota identificada en el reporte. Los controles negativos registrados
-no son evidencia de un push roto. El trigger PR se comprueba en el cierre
-ordinario; no se crea un PR pre-aprobación.
+Ejecutar §9; revisar el YAML y el diff respecto a los SHA base; consultar las
+ejecuciones remotas identificadas en el reporte §J. Los controles negativos
+registrados no son evidencia de un push roto. El trigger `pull_request` **no** se
+comprobó antes de aprobar —no se crea un PR pre-aprobación— sino en el cierre
+ordinario, con la ejecución **34308296565**.
 
 ## 18. Deuda técnica pendiente
 
 Task020: CI backend, lock/escaneo correspondientes. Task021: CI infra y cobertura
 del historial de secretos de STAGE-06. Task025: gates Terraform cuando exista IaC.
-En el cierre autorizado de Task019: ejecución `pull_request` y verde sobre dev.
 Negativo remoto: requiere estrategia y autorización adicional del usuario.
 R-016-1 no se cierra por una sola ejecución remota verde.
+
+La ejecución `pull_request` y el verde sobre `dev` **dejaron de ser deuda** al
+obtenerse en el cierre autorizado (§4). El criterio de salida de STAGE-06 sigue
+exigiendo los **tres** repositorios, no solo el frontend.
 
 ## 19. Próxima tarea
 
