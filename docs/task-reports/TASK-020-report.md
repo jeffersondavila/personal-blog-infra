@@ -303,12 +303,16 @@ haya. **No se reutilizaron los conteos de Task018**: se volvió a medir.
 ## Ejecución real de GitHub Actions
 
 Dentro de la excepción de *bootstrap* autorizada **solo para
-`personal-blog-backend`**, se crearon los commits, se publicó la rama y se
-observaron dos ejecuciones reales. No se integró `dev`, no se creó pull request
-y no se tocó `main`.
+`personal-blog-backend`**, se crearon los commits y se publicó la rama.
+*Estado observado antes de la aprobación:* en esa fase no se había integrado
+`dev`, no se había creado ningún pull request y no se había tocado `main`. Eso
+dejó de ser cierto con el cierre aprobado del 2026-09-10, registrado en §Cierre
+aprobado.
 
-Las cuatro son del workflow `CI Backend`, evento `push`, sobre
-`Task/020-CI-Backend`. **Las cuatro concluyeron en `success`.**
+Se observaron **cuatro** ejecuciones del workflow `CI Backend`, evento `push`,
+sobre `Task/020-CI-Backend`: las dos primeras durante la implementación y las dos
+últimas tras los commits de la revisión previa a la aprobación. **Las cuatro
+concluyeron en `success`.**
 
 | | Primera | Segunda | Tercera | Cuarta |
 | --- | --- | --- | --- | --- |
@@ -373,11 +377,17 @@ local. El resto del workflow no cambió.
 
 La integración se ejecutó **de verdad**: PostgreSQL y MinIO respondieron, las
 migraciones corrieron contra el motor real y **ninguna prueba se omitió por
-falta de infraestructura**. Búsqueda de patrones de secretos reales —claves
-privadas, `AKIA…`, `ghp_…`, `gho_…`— sobre las 2 448 y 2 447 líneas de log de
-las dos ejecuciones: **0 coincidencias**. Las únicas credenciales visibles son
-las de los servicios efímeros del runner, deliberadamente a la vista y
-nombradas como lo que son.
+falta de infraestructura**.
+
+**Alcance exacto de este barrido de secretos.** La búsqueda de patrones de
+secretos reales —claves privadas, `AKIA…`, `ghp_…`, `gho_…`— se ejecutó sobre
+los logs completos de **dos** ejecuciones concretas, la primera y la segunda,
+de **2 448** y **2 447** líneas: **0 coincidencias**. No se extrapola a las
+demás ejecuciones; los barridos de la tercera y la cuarta se registran en su
+propio párrafo, más arriba, y el de la ejecución `pull_request` y la de `dev` en
+§Evidencia posterior al cierre. Las únicas credenciales visibles son las de los
+servicios efímeros del runner, deliberadamente a la vista y nombradas como lo
+que son.
 
 ## Seguridad, permisos y secretos
 
@@ -528,18 +538,27 @@ atribuirlo a la revisión sería más cómodo y menos cierto.
 
 | | Resultado |
 | --- | --- |
-| **A — reglas de gobierno** | Rama Task nacida de `main` y verificada; sin merge a `dev`, sin PR, sin tocar `main`; commits solo en backend, dentro de la excepción autorizada |
-| **B — evidencia fechada** | Baseline, regresión, controles negativos, escaneos y dos ejecuciones reales, cada uno con su código de salida y su fecha |
-| **C — estado Git/GitHub vivo persistido** | **0.** Los identificadores de ejecución y los SHA son hechos fechados, no estados vivos; no se afirma la existencia de ningún PR |
-| **D — contradicciones documentales** | **0**. Cuatro del preflight, resueltas con autorización; **D-020-1**, **D-020-2** y **D-020-3**, detectadas en la revisión previa a la aprobación del 2026-09-10 y corregidas, quedan registradas arriba con su nombre. Los estados temporales que dejaron de ser ciertos se sustituyeron |
+| **A — reglas de gobierno** | Rama Task nacida de `main` y verificada; commits solo en backend, dentro de la excepción de *bootstrap* autorizada. **Regla permanente:** antes de la aprobación no se integra `dev`, no se crea PR y no se toca `main`. *Estado pre-aprobación observado:* así fue durante toda la implementación; el cierre aprobado del 2026-09-10 ejecutó esos pasos, y la fusión es acto exclusivo del usuario |
+| **B — evidencia fechada** | Baseline, regresión, controles negativos y escaneos, cada uno con su código de salida y su fecha. Ejecuciones reales de Actions: **cuatro** de evento `push` sobre la rama Task, **una** de evento `pull_request` y **una** de `push` sobre `dev` tras la normalización. Seis en total, todas `success`, cada una con su identificador |
+| **C — estado Git/GitHub vivo persistido** | **0.** Los identificadores de ejecución, los números de PR, los `mergedAt`, los merge commits y los SHA son **hechos fechados**, no estados vivos. No se afirma que ningún PR esté abierto, que ninguna rama remota exista ahora, ni cuál es el estado actual de `main` o `dev`: eso se consulta en vivo ([WORKFLOW §6.1](../project-management/WORKFLOW.md)) |
+| **D — contradicciones documentales** | **0**. Cuatro del preflight, resueltas con autorización; **D-020-1**, **D-020-2** y **D-020-3**, detectadas en la revisión previa a la aprobación del 2026-09-10 y corregidas, quedan registradas arriba con su nombre. Los estados temporales que dejaron de ser ciertos se sustituyeron. **B-020-4** y **B-020-5**, detectados durante el cierre y **fuera** del alcance de Task020, los corrigió `Task/020.1` |
+
+> **Recalculado el 2026-09-10 por [`Task/020.1`](TASK-020.1-report.md).** Esta
+> tabla se escribió durante el cierre aprobado, cuando el resultado de la fusión
+> todavía no existía, y afirmaba **C = 0** conviviendo con **ocho** afirmaciones
+> de estado vivo de este documento —la novena estaba en la ficha §20— que la
+> propia fusión volvió falsas. `Task/020.1` las convirtió en
+> hechos fechados y corrigió las contradicciones heredadas. **C = 0 y D = 0
+> vuelven a ser ciertos**, ahora sí verificados sobre el texto vigente.
 
 ## Documentación
 
 Backend: `README.md` §5.1 —una fuente manual y dos *locks* generados—, §10.3
 —integración continua— y la nota de advertencias, ampliada con el caso de
 `anyio`. Comentarios de `pyproject.toml` y del `Dockerfile` reescritos para que
-describan el mecanismo vigente y no el anterior. Infra: ficha, este reporte,
-`STATUS.md`, `ROADMAP.md`, `STAGE-06` y el índice de reportes.
+describan el mecanismo vigente y no el anterior. Infra, **siete documentos**:
+ficha, este reporte, `STATUS.md`, `ROADMAP.md`, `STAGE-06`, el índice de reportes
+y, del preflight, el reporte de `Task/019`.
 
 Validación documental del 2026-09-10 sobre los siete documentos de infra:
 **259 referencias relativas comprobadas, 0 rotas**; **0 coincidencias** de
@@ -568,18 +587,18 @@ patrones de claves privadas, credenciales de AWS o tokens de GitHub;
 | **P. Escaneo de dependencias** | `pip-audit` 2.10.1 `--strict` sobre los dos *locks*: `No known vulnerabilities found`. Antes destapó las tres de `httpx2`, que se corrigieron |
 | **Q. Escaneo de imagen** | Trivy 0.74.0. Inventario 173 hallazgos, **0 con corrección**; gate accionable en 0. Medido de nuevo, sin reutilizar Task018 |
 | **R. Política de vulnerabilidades** | Inventario sin filtrar + gate que falla ante cualquier HIGH/CRITICAL **con arreglo**. Sin `\|\| true`, sin `.trivyignore`, sin umbral inventado. Demostrada con tres controles |
-| **S. Diseño del workflow** | `push` y `pull_request`, sin `pull_request_target`, sin filtros, `contents: read`, un job en `ubuntu-24.04`, 19 pasos |
+| **S. Diseño del workflow** | `push` y `pull_request`, sin `pull_request_target`, sin filtros, `contents: read`, un job en `ubuntu-24.04`, **19 pasos declarados** en el YAML —que GitHub muestra como 21 en la ejecución al añadir *Set up job* e *Initialize containers*— |
 | **T. Controles negativos** | **7 gates rotos y restaurados**, más 3 controles del escáner. Ninguna mutación quedó en el repositorio |
-| **U. Actions real** | **Cuatro** ejecuciones `push` en **`success`**: 34481253970, 34481957688, 34485074950 y 34488083060. Auditados los 21 pasos de las tres últimas |
+| **U. Actions real** | **Cuatro** ejecuciones `push` sobre la rama Task en **`success`**: 34481253970, 34481957688, 34485074950 y 34488083060. Auditados los 21 pasos de las tres últimas. Tras el cierre se sumaron **34489982595** (`pull_request`) y **34491446991** (`push` sobre `dev`), las dos en `success` con sus 21 pasos en verde: §Evidencia posterior al cierre |
 | **V. Seguridad y secretos** | 0 patrones de secreto real en los logs de las cuatro ejecuciones ni en los archivos nuevos; permisos mínimos confirmados por el runner. Fijado por herramienta declarado con precisión tras **D-020-2**: Actions por SHA, `uv` y Trivy por versión y digest verificado, `pip-audit` solo por versión exacta |
 | **W. Duraciones** | 283 s, 319 s, 276 s y 295 s de extremo a extremo; la suite domina con 176 s, 203 s, 170 s y 186 s |
 | **X. Documentación** | README backend §5.1 y §10.3, comentarios de `pyproject` y `Dockerfile`; ficha, reporte, STATUS, ROADMAP, STAGE-06 e índice |
 | **Y. Riesgos** | **R-14 resuelto** como propuesta. **R-15** abierto, ahora detectado por la CI. **R-17 abierto y sin cambio**: Task020 **no** lo reforzó. **R-37** abierto, sin paralelismo habilitado |
-| **Z. Criterion 12** | **C = 0 · D = 0** |
-| **AA. Git backend** | `Task/020-CI-Backend` en `22af3f18d9fd2f955319ea1131bac7c40e57b3df`, **4 commits** sobre `main`, árbol limpio, staging vacío, rama publicada. Sin merge a `dev`, sin PR |
-| **AB. Git infra** | `Task/020-CI-Backend` en `c5b16070d5d3e128bbc299f6bd886a4d8410f075`, **0 commits** sobre `main`, staging vacío, siete documentos **sin commit**. Sin push, sin PR |
+| **Z. Criterion 12** | **C = 0 · D = 0**, recalculado el 2026-09-10 por [`Task/020.1`](TASK-020.1-report.md) sobre el texto vigente |
+| **AA. Git backend** | *Estado observado antes de la aprobación, 2026-09-10:* `Task/020-CI-Backend` en `22af3f18d9fd2f955319ea1131bac7c40e57b3df`, **4 commits** sobre `main`, árbol limpio, staging vacío, rama ya publicada por la excepción de *bootstrap*, y todavía sin merge a `dev` y sin PR. El cierre aprobado y la fusión posterior están en §Cierre aprobado y §Evidencia posterior al cierre |
+| **AB. Git infra** | *Estado observado antes de la aprobación, 2026-09-10:* `Task/020-CI-Backend` en `c5b16070d5d3e128bbc299f6bd886a4d8410f075`, **0 commits** sobre `main`, staging vacío, siete documentos aún sin commit, y todavía sin push y sin PR. El cierre aprobado los commiteó en `6bc80e8` y siguió el flujo; el detalle fechado está en §Evidencia posterior al cierre |
 | **AC. Roadmap** | Task020 **Aprobada** el 2026-09-10. Avance **20/41 (49 %)** y ETAPA 06 **2/3 (67 %)**, etapa **no completada**. Task021 pendiente y no iniciada |
-| **AD. Pendientes post-approved** | Ejecutado el 2026-09-10: integración en `dev` con `--no-ff`, publicación y PR **`Task/020-CI-Backend → main`** en ambos repositorios, **sin fusionar**. Queda para el usuario aceptar o rechazar el PR, y después la normalización `main → dev` |
+| **AD. Cierre y normalización** | Ejecutado el 2026-09-10: integración en `dev` con `--no-ff`, publicación y PR **`Task/020-CI-Backend → main`** en ambos repositorios, dejados para revisión manual. *Observado el 2026-09-10 UTC:* el usuario fusionó `#15` (backend, merge `8055878`) y `#36` (infra, merge `68469dd`), eliminó las dos ramas Task remotas, y la normalización `main → dev` quedó completada con `5fedcb3` y `122c90a`. **Nada pendiente** de este flujo |
 | **AE. Bloqueos** | **Ninguno abierto.** Las dos detenciones de la implementación —`anyio` y `httpx2`— se resolvieron, la segunda con autorización expresa. **D-020-1**, **D-020-2** y **D-020-3**, de la revisión previa a la aprobación, también quedan resueltas. Sigue abierta y anotada la decisión **D-020-H**: el `.venv` de Windows no reproduce el árbol bloqueado |
 | **AF. Veredicto** | **TASK020 IMPLEMENTADA — LISTA PARA VALIDACIÓN.** No aprobada |
 
@@ -606,11 +625,11 @@ tarea.
 
 ## Archivos modificados
 
-**Backend** (4 commits, rama publicada):
+**Backend** — 4 commits: `557ca7e`, `f2b3d85`, `81ce14c` y `22af3f1`.
 
 | Archivo | Cambio |
 | --- | --- |
-| `.github/workflows/ci-backend.yml` | Nuevo. Workflow `CI Backend`, 19 pasos |
+| `.github/workflows/ci-backend.yml` | Nuevo. Workflow `CI Backend`, 19 pasos declarados |
 | `requirements.lock` | Nuevo. 40 paquetes de ejecución con hashes |
 | `requirements-dev.lock` | Nuevo. 60 paquetes con hashes |
 | `scripts/generar-locks.sh` | Nuevo. Fuente única de los argumentos de `uv` |
@@ -624,7 +643,8 @@ tarea.
 | `requirements.txt` | **Eliminado** |
 | `requirements-dev.txt` | **Eliminado** |
 
-**Infra** (sin commit): `docs/tasks/TASK-020-ci-backend.md`,
+**Infra** — siete documentos, commiteados en el cierre aprobado como `6bc80e8`:
+`docs/tasks/TASK-020-ci-backend.md`,
 `docs/task-reports/TASK-020-report.md`,
 `docs/project-management/STATUS.md`, `docs/project-management/ROADMAP.md`,
 `docs/stages/STAGE-06-continuous-integration.md`,
@@ -650,15 +670,63 @@ de STATUS, ROADMAP, ficha, reporte, etapa e índice, validaciones finales,
 commits pendientes, integración en `dev` mediante merge **`--no-ff`**,
 publicación de `dev` y de la rama Task, creación del pull request con base
 `main` y head `Task/020-CI-Backend`, y borrado de la rama Task **local** con
-`git branch -d`. La rama Task **remota se conserva**.
+`git branch -d`. Al terminar ese cierre, la rama Task **remota** seguía
+publicada en los dos repositorios.
 
-**Los pull request se dejan sin fusionar.** Aceptarlos, rechazarlos o eliminar
-la rama remota es responsabilidad exclusiva del usuario. Su estado operativo se
-consulta en GitHub, no aquí: este documento registra estado **duradero**, no el
-estado vivo de Git ni de GitHub ([WORKFLOW §6.1](../project-management/WORKFLOW.md)).
+**Los pull request se dejaron para revisión manual del usuario**, sin fusionar:
+aceptarlos, rechazarlos o eliminar la rama remota es responsabilidad exclusiva
+suya. Esa es la regla permanente. El estado operativo vigente se consulta en Git
+y GitHub, no aquí: este documento registra estado **duradero**
+([WORKFLOW §6.1](../project-management/WORKFLOW.md)).
 
-Pendiente después de que el usuario fusione: la normalización `main → dev` en
-los dos repositorios. **`Task/021` no se inicia en esta tarea.**
+**`Task/021` no se inicia en esta tarea.**
+
+## Evidencia posterior al cierre
+
+*Observado el 2026-09-10 UTC.* El usuario fusionó manualmente los dos pull
+request y eliminó las dos ramas Task remotas. La normalización `main → dev` se
+ejecutó a continuación en los dos repositorios y quedó verificada. Son hechos
+fechados, no estado vigente.
+
+| Repositorio | PR | `mergedAt` | Merge commit | Normalización `dev` |
+| --- | --- | --- | --- | --- |
+| backend | `#15` | 2026-09-10T14:42:42Z | `8055878e415ace2bfc4e7685e0549c5ab8a642ef` | `5fedcb34f8f1542fcfb0957547e58f472529f6f2` |
+| infra | `#36` | 2026-09-10T14:42:24Z | `68469dd016514fafc7ce07da120e908fa8873849` | `122c90a5d321d5dd3808d1d38f8c0b60351d9175` |
+
+Los dos pull request fueron **`Task/020-CI-Backend → main`**, la dirección que
+exige el flujo. Las ramas Task locales se habían eliminado durante el cierre con
+`git branch -d`; las **remotas** las eliminó después el usuario, que es su
+decisión exclusiva.
+
+### Las otras dos ejecuciones del workflow
+
+Las cuatro ejecuciones auditadas arriba son de evento `push` sobre la rama Task.
+El cierre aprobado y la fusión produjeron dos más, que acreditan los triggers y
+el contexto que faltaban:
+
+| Ejecución | Evento | Head | Conclusión | Suite |
+| --- | --- | --- | --- | --- |
+| **34489982595** | `pull_request` | `22af3f18d9fd2f955319ea1131bac7c40e57b3df` | **`success`** | **1855** pruebas, **0** omitidas |
+| **34491446991** | `push` sobre `dev` | `5fedcb34f8f1542fcfb0957547e58f472529f6f2` | **`success`** | **1855** pruebas, **0** omitidas |
+
+Enlaces:
+[34489982595](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34489982595)
+· [34491446991](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34491446991).
+
+Las dos concluyeron con sus **21 pasos** en verde —los 19 declarados en el
+workflow más *Set up job* e *Initialize containers*, que añade GitHub—. La
+segunda es la ejecución sobre `dev` posterior a la normalización, y su head es
+justamente el merge de normalización del backend.
+
+**Barrido de secretos sobre estos dos logs**, hecho con los mismos patrones que
+el de la implementación —claves privadas, `AKIA…`, `ghp_…`, `gho_…`, `ghs_…`,
+`github_pat_…`, `aws_secret_access_key`—: **2 480** y **2 469** líneas,
+**0 coincidencias** en ambos.
+
+Con estas dos ejecuciones, el workflow del backend tiene evidencia real de sus
+**dos** triggers, `push` y `pull_request`, y de un verde sobre `dev`. Eso **no**
+completa la ETAPA 06: sus criterios de salida exigen los **tres** repositorios y
+`Task/021` sigue pendiente.
 
 ### Dos hallazgos detectados durante el cierre y NO corregidos
 
@@ -668,8 +736,8 @@ requieren autorización expresa:
 
 | | Hallazgo | Estado |
 | --- | --- | --- |
-| **B-020-4** | La ficha histórica de `Task/002.1` —mantenimiento de 2026-07-26— lleva una fila «Avance global» con **44 % — 18 de 41**: un contador vivo dentro de un registro histórico, que ni era cierto en esa fecha ni lo es ahora | **Detectado, no corregido** |
-| **B-020-5** | En `origin/main` hay **cinco** encabezados «Última tarea aprobada» —Task/019, 016, 015, 013 y 006—, porque cada tarea añadió el suyo sin degradar el anterior | **Detectado, parcialmente contenido:** el cierre degradó el de Task/019 para no añadir un sexto; los cuatro restantes quedan intactos |
+| **B-020-4** | El registro histórico de `Task/002.1` en STATUS —mantenimiento de 2026-07-26— lleva una fila «Avance global» con **44 % — 18 de 41**: un contador vivo dentro de un registro histórico, que ni era cierto en esa fecha ni lo es ahora | **Detectado en `Task/020`, no corregido en ella.** Corregido después por `Task/020.1` |
+| **B-020-5** | *Observado el 2026-09-10 sobre `origin/main` en `c5b1607`, antes del cierre:* **cinco** encabezados «Última tarea aprobada» —Task/019, 016, 015, 013 y 006—, porque cada tarea añadió el suyo sin degradar el anterior | **Detectado, parcialmente contenido:** el cierre degradó el de Task/019 para no añadir un sexto, así que tras el merge los cinco pasaron a ser Task/020, 016, 015, 013 y 006. Los cuatro heredados los degradó después `Task/020.1` |
 
 Sí se corrigió, por ser parte del propio cierre, el **avance global de ROADMAP**,
 que seguía en **44 % — 18 de 41** mientras la fila Total decía otra cosa. Era el
@@ -683,6 +751,8 @@ Aprobada por el usuario el 2026-09-10 mediante `approved: Task/020-CI-Backend`.
 Avance **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **no completada**: falta
 `Task/021`. Durante el cierre aprobado la rama se integró en `dev` con merge
 `--no-ff` en backend e infra, se publicaron ambas ramas y se crearon los pull
-request `Task/020-CI-Backend → main`, que **quedan sin fusionar**: aceptarlos o
-rechazarlos es responsabilidad exclusiva del usuario. **Task021 no se inicia en
-esta tarea.**
+request `Task/020-CI-Backend → main`, que se dejaron para revisión manual del
+usuario. *Observado el 2026-09-10 UTC:* el usuario los fusionó, eliminó las
+ramas remotas y la normalización `main → dev` quedó completada; el detalle
+fechado está en §Evidencia posterior al cierre. **Task021 no se inicia en esta
+tarea.**
