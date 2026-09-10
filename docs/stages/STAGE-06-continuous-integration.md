@@ -93,14 +93,27 @@ herramientas externas cuando `pip-audit` solo está fijado por versión exacta.
 **D-020-3**: el texto afirmaba que `--require-hashes` implica `--no-deps`, y no
 es así; la garantía viene de que el *lock* enumera el cierre transitivo, no de
 desactivar la resolución. Las tres son defectos del texto, no de la
-implementación, y ninguna reabre etapas anteriores. **Criterion 12 cierra en
-C = 0 y D = 0**.
+implementación, y ninguna reabre etapas anteriores.
 
 *Aprobada el 2026-09-10* mediante `approved: Task/020-CI-Backend`. Avance
 **20/41 — 49 %**; esta etapa pasa a **2/3 — 67 %** y **sigue sin completarse**:
 falta `Task/021`. **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global**
 abierto. Las decisiones **D-020-A** a **D-020-H** quedan **vigentes**, sin ADR
 nuevo.
+
+*Observado el 2026-09-10 UTC, durante y después del cierre aprobado:* el trigger
+`pull_request` quedó acreditado por la ejecución **34489982595**, disparada por el
+pull request `#15` sobre el head `22af3f1`, con conclusión **`success`**; y la
+ejecución **34491446991**, disparada por `push` sobre `dev` con head en el merge
+de normalización `5fedcb3`, también concluyó **`success`**. Las dos con sus **21**
+pasos en verde, **1855** pruebas y **0** omitidas. Ambos triggers del workflow del
+backend tienen, por tanto, ejecución real registrada.
+
+**Criterion 12 de `Task/020` cierra en C = 0 y D = 0**, recalculado el 2026-09-10
+por [`Task/020.1`](../tasks/TASK-020.1-correct-post-merge-documentation-drift.md):
+la afirmación se escribió durante el cierre, cuando el resultado de la fusión
+todavía no existía, y ese mantenimiento convirtió en hechos fechados las
+afirmaciones de estado vivo que la fusión volvió falsas.
 
 ### `Task/021-CI-Infraestructura` — *Pendiente*
 
@@ -131,9 +144,11 @@ Los controles negativos locales se distinguen de la ejecución remota. En Task01
 el usuario autorizó el 2026-09-08 el bootstrap por push antes de aprobar; la
 ejecución real de `pull_request` y el verde sobre `dev` quedaron comprobados
 después, durante el cierre ordinario autorizado, con las ejecuciones citadas
-arriba. Publicar una mutación deliberadamente rota exige un permiso adicional y
-**sigue sin autorizarse**. Ninguna de estas observaciones completa por sí sola la
-etapa: los criterios de salida exigen los **tres** repositorios.
+arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorización
+de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
+deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
+Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
+salida exigen los **tres** repositorios, y `Task/021` sigue pendiente.
 
 - [ ] Cada repositorio ejecuta su workflow en cada push y pull request.
 - [ ] Los tres workflows terminan en verde sobre `dev`.

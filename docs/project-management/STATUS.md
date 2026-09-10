@@ -21,20 +21,21 @@
 | **Tarea aprobada previa** | `Task/012-API-Administrativa` — **Aprobada** el 2026-09-03 por jeffersondavila. Las **23 rutas administrativas** del contrato, validación de publicación por tipo, *slug* estable, transiciones seguras ante concurrencia, **escritura y exigencia del texto alternativo donde se usa la imagen** y auditoría de once acciones nuevas. **Completa la ETAPA 03** |
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
-| **Último mantenimiento aprobado** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-06 por jeffersondavila. Aplica el **criterio 12** al contenido durable que dejó `Task/004.1`: cuatro afirmaciones sobre el pull request estaban escritas **en presente** y dejaron de ser ciertas al fusionarse. Se convierten en hechos históricos fechados, sin eliminar evidencia, y se añade la observación fechada de la fusión y la normalización. **No cuenta en las 41 tareas** ni altera el avance |
-| **Último mantenimiento** | `Task/019.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-09 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/019`: **ocho** afirmaciones de clase **C** convertidas en hechos fechados y **una** contradicción de clase **D** corregida —las decisiones de `Task/019` seguían descritas como *Propuesta* pese a estar ya vigentes—. La causa fue que `Task/019` era la primera tarea cuya evidencia dependía de su propio cierre. **No cuenta en las 41 tareas** ni altera el avance |
+| **Mantenimiento aprobado anterior** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-06 por jeffersondavila. Aplica el **criterio 12** al contenido durable que dejó `Task/004.1`: cuatro afirmaciones sobre el pull request estaban escritas **en presente** y dejaron de ser ciertas al fusionarse. Se convierten en hechos históricos fechados, sin eliminar evidencia, y se añade la observación fechada de la fusión y la normalización. **No cuenta en las 41 tareas** ni altera el avance |
+| **Último mantenimiento aprobado** | `Task/020.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-10 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/020`: **nueve** afirmaciones de clase **C** convertidas en hechos fechados y **ocho** contradicciones de clase **D** corregidas, entre ellas **B-020-4** —un contador vivo dentro del registro histórico de `Task/002.1`, restaurado a su valor probado de **2 de 41 ≈ 5 %**— y **B-020-5** —cinco encabezados «Última tarea aprobada» simultáneos, reducidos a uno—. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
+| **Mantenimiento aprobado previo** | `Task/019.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-09 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/019`: **ocho** afirmaciones de clase **C** convertidas en hechos fechados y **una** contradicción de clase **D** corregida —las decisiones de `Task/019` seguían descritas como *Propuesta* pese a estar ya vigentes—. La causa fue que `Task/019` era la primera tarea cuya evidencia dependía de su propio cierre. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior a `Task/004.2`** | `Task/004.1-Corregir-Backup-Rutas-Literales` — **Aprobada** el 2026-09-06 por jeffersondavila. Corrige un defecto **demostrado en ejecución** del sistema de respaldo de `Task/004`: una ruta ya resuelta se pasaba a parámetros de PowerShell que interpretan comodines, de modo que una clave de objeto con `[` abortaba el respaldo. El mismo defecto afectaba a la **prueba de restauración**. Respaldo real, verificación y restauración **superados** sobre 64 objetos, 44 de ellos con corchetes. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior a `Task/004.1`** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` — **Aprobada** el 2026-09-05 por jeffersondavila. Añade **una** operación administrativa de solo lectura, `GET /api/v1/admin/audit-events`, que cierra la laguna entre `MVP_SCOPE.md` §3.3 y la API administrativa. **Sin migración**, sin filtros y sin datos personales; la inmutabilidad de `AuditEvent` queda intacta y leer no audita. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior** | `Task/013.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-04. Convierte en instantánea histórica fechada la sección 24 del reporte de `Task/013`, que conservaba estado operativo de Git redactado en presente. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna.** `Task/020` aprobada y cerrada; `Task/021` pendiente y **no iniciada** |
+| **Tarea en curso** | **Ninguna.** `Task/020` aprobada y cerrada, `Task/020.1` aprobada y cerrada; `Task/021` pendiente y **no iniciada** |
 | **Próxima tarea prevista** | `Task/021-CI-Infraestructura` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
 | **Avance global** | **49 %** — 20 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
-| **Bloqueos activos** | **0 que detengan trabajo.** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4 detectado y NO corregido**, pendiente de autorización: la ficha histórica de `Task/002.1` (mantenimiento de 2026-07-26) lleva una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que nunca fue cierto en esa fecha y tampoco lo es ahora. Se detectó durante el cierre aprobado de `Task/020`, al corregir el avance global de ROADMAP, que arrastraba el mismo valor **también en `origin/main`**. No se tocó por estar fuera del alcance de Task020. **B-020-5**, misma clase y tampoco corregido: en `origin/main` hay **cinco** encabezados «Última tarea aprobada» —Task/019, 016, 015, 013 y 006—, porque cada tarea añadió el suyo sin degradar el anterior. El cierre de `Task/020` degradó el de Task/019 para no añadir un sexto, y dejó los cuatro restantes intactos. Ambos hallazgos requieren autorización expresa y encajan en una tarea de mantenimiento documental. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
+| **Bloqueos activos** | **0 que detengan trabajo.** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **47** (R-01, **R-08** y **R-14** cerrados; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
@@ -55,7 +56,48 @@
 
 ---
 
-## Último mantenimiento aprobado — `Task/019.1`
+## Último mantenimiento aprobado — `Task/020.1`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/020.1-Corregir-Drift-Documental-Post-Merge` |
+| **Tipo** | Mantenimiento de gobierno documental posterior a la fusión |
+| **Estado** | **Aprobada** ✔ el 2026-09-10 por el usuario |
+| **Expresión de aprobación** | `approved: Task/020.1-Corregir-Drift-Documental-Post-Merge` |
+| **Cuenta en las 41 tareas** | **No.** Avance global y ETAPA 06 **sin cambios** |
+| **Repositorios** | `personal-blog-infra` únicamente |
+| **Rama** | `Task/020.1-Corregir-Drift-Documental-Post-Merge`, nacida de `main` (`68469dd`) |
+| **Ficha** | [TASK-020.1](../tasks/TASK-020.1-correct-post-merge-documentation-drift.md) |
+| **Reporte** | [TASK-020.1-report.md](../task-reports/TASK-020.1-report.md) |
+
+### Qué corrige
+
+`Task/020` documentó su cierre **antes** de que el usuario fusionara los pull request, así
+que dejó escrito en presente lo que el paso siguiente del flujo volvió falso: que los PR
+quedaban sin fusionar, que la rama remota se conservaba y que la normalización `main → dev`
+estaba pendiente. Son **nueve** afirmaciones de clase **C**, ya convertidas en hechos
+fechados. Es el mismo defecto estructural que [WORKFLOW §6.1](WORKFLOW.md) describe.
+
+A eso se sumaron **ocho** contradicciones de clase **D**, dos de ellas ya detectadas y
+declaradas fuera de alcance por `Task/020`: **B-020-4**, el contador vivo dentro del
+registro histórico de `Task/002.1`, y **B-020-5**, los cinco encabezados «Última tarea
+aprobada» simultáneos. Las otras seis son conteos internos del reporte de `Task/020` que no
+cuadraban entre sí: ejecuciones de Actions, commits, documentos y alcance del barrido de
+secretos.
+
+### Qué NO cambia
+
+No se reabre `Task/020`, que sigue **Aprobada**. **R-14** sigue **Cerrado** y **S-09
+backend** satisfecho. La ETAPA 06 sigue en **2/3 — 67 %** y **sin completarse**. El avance
+sigue en **20/41 — 49 %**. `Task/021` sigue **Pendiente y no iniciada**. No se tocó
+backend, frontend, código, tests, workflows, locks, `Dockerfile`, Terraform ni ningún ADR.
+No se repitió la normalización de Git, ya completada y verificada. Es el sexto
+mantenimiento de este tipo, tras `Task/004.2`, `Task/006.1`, `Task/009.1`, `Task/013.1` y
+`Task/019.1`.
+
+---
+
+## Mantenimiento aprobado previo — `Task/019.1`
 
 | Campo | Valor |
 | --- | --- |
@@ -178,6 +220,28 @@ ocurrió. **R-37** sigue **Abierto**, sin paralelismo habilitado.
 Siete hallazgos documentales se detectaron y resolvieron durante la tarea:
 **B-020-1/2/3** en el preflight y **D-020-1/2/3** en la revisión previa a la
 aprobación. El control negativo **remoto** sigue sin autorizar.
+
+### Cierre y normalización
+
+*Observado el 2026-09-10 UTC.* El cierre aprobado integró la rama en `dev` con
+merge `--no-ff` en los dos repositorios y creó los pull request
+**`Task/020-CI-Backend → main`**, dejados para revisión manual del usuario.
+Después el usuario los fusionó y eliminó las dos ramas Task remotas, y la
+normalización `main → dev` quedó completada. Hechos fechados; el estado operativo
+vigente se consulta en Git y GitHub ([WORKFLOW §6.1](WORKFLOW.md)).
+
+| Repositorio | PR | `mergedAt` | Merge commit | Normalización `dev` |
+| --- | --- | --- | --- | --- |
+| backend | `#15` | 2026-09-10T14:42:42Z | `8055878` | `5fedcb3` |
+| infra | `#36` | 2026-09-10T14:42:24Z | `68469dd` | `122c90a` |
+
+El cierre y la fusión produjeron además las dos ejecuciones de Actions que la
+tarea no podía tener antes: **34489982595**, evento `pull_request` sobre
+`22af3f1`, y **34491446991**, evento `push` sobre `dev` con head en el merge de
+normalización. Las dos en **`success`**, con sus **21** pasos en verde, **1855**
+pruebas y **0** omitidas. El workflow del backend tiene así evidencia real de sus
+dos triggers y un verde sobre `dev`; eso **no** completa la ETAPA 06, cuyos
+criterios de salida exigen los tres repositorios.
 
 Detalle completo en el [reporte](../task-reports/TASK-020-report.md).
 
@@ -310,7 +374,7 @@ usuario**, no una evidencia del agente, y así consta en el [reporte](../task-re
 
 ---
 
-## Última tarea aprobada — `Task/016-SEO-Accesibilidad-y-Rendimiento`
+## Tarea aprobada anterior — `Task/016-SEO-Accesibilidad-y-Rendimiento`
 
 | Campo | Valor |
 | --- | --- |
@@ -454,7 +518,7 @@ pasan a `http://localhost:9317`.
 
 ---
 
-## Última tarea aprobada — `Task/015-Panel-Administrativo`
+## Tarea aprobada anterior — `Task/015-Panel-Administrativo`
 
 | Campo | Valor |
 | --- | --- |
@@ -538,7 +602,7 @@ local (`Task/022`) el recorrido funcional real no puede completarse. Detalle en 
 
 ---
 
-## Último mantenimiento aprobado — `Task/012.1-Exponer-Auditoria-Para-Dashboard`
+## Mantenimiento funcional anterior — `Task/012.1-Exponer-Auditoria-Para-Dashboard`
 
 | Campo | Valor |
 | --- | --- |
@@ -706,7 +770,7 @@ propio:
 
 ---
 
-## Último mantenimiento aprobado — `Task/004.2`
+## Mantenimiento aprobado anterior — `Task/004.2`
 
 | Campo | Valor |
 | --- | --- |
@@ -829,7 +893,7 @@ los reportes de `Task/008` y `Task/009` ya usaban y que el de `Task/013` no apli
 
 ---
 
-## Última tarea aprobada — `Task/013-Sistema-de-Diseno`
+## Tarea aprobada anterior — `Task/013-Sistema-de-Diseno`
 
 **Estado:** **Aprobada** ✔ el 2026-09-04 por jeffersondavila. Cuenta en el avance: **13 de 41**.
 
@@ -1255,7 +1319,7 @@ como toda rama Task.
 
 ---
 
-## Última tarea aprobada — `Task/006-Fundacion-Frontend-React`
+## Tarea aprobada anterior — `Task/006-Fundacion-Frontend-React`
 
 | Campo | Valor |
 | --- | --- |
@@ -1669,11 +1733,21 @@ permanece en **5 de 41 (12 %)** y la ETAPA 02 en **1 de 3** tareas aprobadas.
 | **Normalización posterior** | `main` integrada en `dev` mediante el merge `cca847c`; ambas ramas con contenido idéntico |
 | **Rama Task** | Eliminada local y remotamente |
 | **Roadmap** | No cuenta dentro de las 41 tareas |
-| **Avance global** | **44 %** — 18 de 41 tareas aprobadas |
+| **Avance global en su fecha** | **2 de 41 — ≈5 %**, el valor vigente el 2026-07-26. Este mantenimiento no cuenta dentro de las 41 tareas y su aprobación no alteró el avance canónico |
 | **Bloqueos activos** | Ninguno |
 
 La aprobación de este mantenimiento no modificó el conteo del roadmap. La
 normalización `main → dev` se completó, lo que habilitó el inicio de `Task/003`.
+
+> **Corrección de `Task/020.1` (B-020-4), 2026-09-10.** Esta fila decía
+> **«44 % — 18 de 41»**, un contador que no era cierto en 2026-07-26 ni después.
+> El valor histórico real está **probado en el propio historial**: el commit
+> `700be94`, que es el del cierre de `Task/002.1`, registraba aquí
+> «Permanece en **2 de 41**, aproximadamente **5 %**», coherente con la tabla de
+> avance de ese mismo commit —Total **41 · 2 aprobadas · 5 %**—. El valor
+> correcto se restaura y queda **fechado**. El defecto entró el 2026-09-08 con
+> el commit `83cffe4`, del cierre de `Task/018`, que actualizó el contador
+> global y alcanzó también este registro histórico.
 
 ---
 
@@ -1918,6 +1992,40 @@ Distribución por estado:
 > `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
 > El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
 > `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
+
+**Observado el 2026-09-10**, al ejecutar el cierre aprobado de `Task/020`:
+
+- Las dos ramas `Task/020-CI-Backend` —backend e infra— nacieron **desde `main`**, con
+  `HEAD == main` verificado inmediatamente después de crearlas: `8762bbad…` (backend) y
+  `c5b16070…` (infra).
+- El backend llevaba **4 commits** propios sobre `main` —`557ca7e`, `f2b3d85`, `81ce14c` y
+  `22af3f1`—, publicados antes de la aprobación bajo la **autorización excepcional de
+  bootstrap** concedida solo a ese repositorio, para poder validar CI real. Infra llegó al
+  cierre con **0 commits** propios y nada en *staging*; sus siete documentos se commitearon
+  en el propio cierre como **`6bc80e8`**.
+- `personal-blog-frontend` **no participó**: en `main`, worktree limpio, sin rama Task.
+- El cierre integró cada rama en `dev` con merge `--no-ff`, publicó `dev` y la rama Task, y
+  abrió el pull request **`Task/020-CI-Backend → main`** en cada repositorio: **`#15`** en
+  backend y **`#36`** en infra. **Ningún PR usó `dev` como *head*** y **ninguno lo fusionó
+  Claude**. Las ramas Task **locales** se eliminaron con `git branch -d`.
+- **Regla permanente:** aceptar o rechazar un pull request hacia `main`, y decidir si se
+  elimina la rama remota, es **responsabilidad exclusiva del usuario**.
+
+**Observado el 2026-09-10 UTC**, tras la fusión manual de los dos PR por el usuario y la
+normalización posterior:
+
+- **PR `#15`** (backend) fusionado, `mergedAt = 2026-09-10T14:42:42Z`, merge commit
+  **`8055878`**. **PR `#36`** (infra) fusionado, `mergedAt = 2026-09-10T14:42:24Z`, merge
+  commit **`68469dd`**. El usuario eliminó las dos ramas Task remotas.
+- La normalización `main → dev` se ejecutó con merge `--no-ff` en ambos repositorios:
+  `dev` = **`5fedcb3`** (backend) y **`122c90a`** (infra), publicados.
+- El workflow del backend registró sus dos triggers en verde: **34489982595**
+  (`pull_request`, PR `#15`) y **34491446991** (`push` sobre `dev`), las dos con **21**
+  pasos en verde, **1855** pruebas y **0** omitidas.
+- **El estado vivo** —si un PR sigue abierto o ya se fusionó, si la rama remota existe, los
+  SHA actuales— **no se escribe aquí**: se consulta con `git fetch --prune`,
+  `git ls-remote --heads origin "Task/*"` y `gh pr list`
+  ([WORKFLOW §6.1](WORKFLOW.md)).
 
 **Observado el 2026-09-08**, al ejecutar el cierre aprobado de `Task/019`:
 
