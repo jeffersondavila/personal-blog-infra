@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-08
+**Última actualización:** 2026-09-10
 
 ---
 
@@ -8,9 +8,11 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 06 — Integración Continua — En progreso** (**1 de 3** aprobadas, **33 %**). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
-| **Tarea actual** | **`Task/019-CI-Frontend`** — **Aprobada** el 2026-09-08 por el usuario |
-| **Estado de la tarea** | **Aprobada** mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
+| **Etapa actual** | **ETAPA 06 — Integración Continua — En progreso** (**2 de 3** aprobadas, **67 %**). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
+| **Tarea actual** | **`Task/020-CI-Backend`** — **Aprobada** el 2026-09-10 por el usuario |
+| **Última tarea canónica aprobada** | **`Task/020-CI-Backend`** — **Aprobada** el 2026-09-10 por el usuario |
+| **Resultado de la última tarea aprobada** | **Aprobada** mediante `approved: Task/020-CI-Backend`. Workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, migraciones sobre el motor real, suite completa con `-W error` y escaneo de imagen *fail-closed*. **R-14 cerrado**: dos *locks* transitivos con hashes, instalación `--require-hashes` y detección de desfase. *Observado el 2026-09-10:* cuatro ejecuciones `push` en **`success`**, la última **34488083060** en **295 s** con **1855** pruebas, **0** omitidas y **0** vulnerabilidades accionables. El baseline destapó y corrigió dos defectos reales preexistentes: la regresión de `anyio` y tres vulnerabilidades de `httpx2`. **S-09 backend** satisfecho; **S-09 global** sigue abierto con `Task/021`. Detalle en el [reporte](../task-reports/TASK-020-report.md). Cuenta en el avance: **20 de 41** |
+| **Tarea aprobada anterior a `Task/020`** | `Task/019-CI-Frontend` — **Aprobada** el 2026-09-08 mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
 | **Tarea aprobada anterior a `Task/019`** | `Task/018-Endurecimiento-de-Seguridad` — **Aprobada** el 2026-09-08 por el usuario mediante `approved: Task/018-Endurecimiento-de-Seguridad`. Mínimo privilegio en PostgreSQL y MinIO; cabeceras y CORS por superficie; **E-06 cerrado sin JavaScript**; errores opacos, redacción y subidas endurecidas. **1854** pruebas de backend y **703** de frontend en verde; **0 dependencias nuevas**. Riesgos residuales declarados en el [reporte](../task-reports/TASK-018-report.md). Cuenta en el avance: **18 de 41** |
 | **Tarea aprobada anterior a `Task/018`** | `Task/017-Observabilidad-Local` — **Aprobada** mediante `approved: Task/017-Observabilidad-Local`. Correlation ID `X-Request-ID` de extremo a extremo —respuesta, todas las líneas de log de la petición y `audit_events.request_id`—, `GET /ready` con sonda real de PostgreSQL y almacenamiento bajo **presupuesto total** por debajo del `timeout` del proxy, redacción automática de secretos en el log (cierra el plano local de **R-36**) y `healthCheck` de Traefik en `/ready` conservando `/health` como liveness de Docker. **1808** pruebas de backend en verde y **1** omitida (estructural de Windows), con `-W error`. **0 dependencias nuevas**. **O-07** quedó verificado por Docker por el agente; la comprobación en la **interfaz de Portainer** la cubre la aprobación del usuario, y así consta (reporte §22). Detalle en el [reporte](../task-reports/TASK-017-report.md). Cuenta en el avance: **17 de 41** |
 | **Tarea aprobada anterior a `Task/017`** | `Task/016-SEO-Accesibilidad-y-Rendimiento` — **Aprobada** mediante `approved: Task/016-SEO-Accesibilidad-y-Rendimiento`. **E-02**, **E-04**, **E-05**, **E-07**, **E-08** cumplidos; **E-03 NO cerrado** y **E-06 parcial**, ambos con su motivo medido. **688** pruebas de frontend y **1631** de backend en verde. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-016-report.md). Cuenta en el avance: **16 de 41** |
@@ -27,11 +29,13 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna**. `Task/019` y `Task/019.1` aprobadas; `Task/020` pendiente y no iniciada |
-| **Próxima tarea prevista** | `Task/020-CI-Backend` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
-| **Avance global** | **46 %** — 19 de 41 tareas aprobadas |
-| **Bloqueos activos** | **0 que detengan trabajo.** `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
-| **Riesgos abiertos** | **48** (R-01 y **R-08** cerrados; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
+| **Tarea en curso** | **Ninguna.** `Task/020` aprobada y cerrada; `Task/021` pendiente y **no iniciada** |
+| **Próxima tarea prevista** | `Task/021-CI-Infraestructura` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
+| **Avance global** | **49 %** — 20 de 41 tareas aprobadas |
+| **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
+| **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
+| **Bloqueos activos** | **0 que detengan trabajo.** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4 detectado y NO corregido**, pendiente de autorización: la ficha histórica de `Task/002.1` (mantenimiento de 2026-07-26) lleva una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que nunca fue cierto en esa fecha y tampoco lo es ahora. Se detectó durante el cierre aprobado de `Task/020`, al corregir el avance global de ROADMAP, que arrastraba el mismo valor **también en `origin/main`**. No se tocó por estar fuera del alcance de Task020. **B-020-5**, misma clase y tampoco corregido: en `origin/main` hay **cinco** encabezados «Última tarea aprobada» —Task/019, 016, 015, 013 y 006—, porque cada tarea añadió el suyo sin degradar el anterior. El cierre de `Task/020` degradó el de Task/019 para no añadir un sexto, y dejó los cuatro restantes intactos. Ambos hallazgos requieren autorización expresa y encajan en una tarea de mantenimiento documental. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
+| **Riesgos abiertos** | **47** (R-01, **R-08** y **R-14** cerrados; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
 > **Recuento tras la aprobación de `Task/018`, 2026-09-08:**
@@ -100,7 +104,86 @@ Definition of Done**; queda como observación en el [reporte](../task-reports/TA
 
 ---
 
-## Última tarea aprobada — `Task/019-CI-Frontend`
+## Última tarea aprobada — `Task/020-CI-Backend`
+
+**Aprobada el 2026-09-10** mediante `approved: Task/020-CI-Backend`, en
+`personal-blog-backend` (funcional) e infra (gobierno documental). **El frontend
+no participa.** Segunda tarea de la ETAPA 06. Avance: **20/41 — 49 %**,
+ETAPA 06 **2/3 — 67 %**.
+
+### Qué entrega
+
+Un workflow de GitHub Actions, `CI Backend`, que ejecuta en cada `push` y
+`pull_request` —sin filtros de ramas ni rutas— los gates canónicos del backend en
+un único job de `ubuntu-24.04` con **Python 3.12.14**, el mismo parche que fija el
+`Dockerfile` por digest: *lock* al día, instalación con `--require-hashes`,
+`pip check`, formato, lint, tipos, migraciones sobre PostgreSQL real, la suite
+completa con `-W error`, auditoría de dependencias, construcción de la imagen y
+escaneo con Trivy. `contents: read`, `persist-credentials: false`, Actions
+fijadas por SHA de commit, `uv` y Trivy por versión y digest verificado, y
+`pip-audit` por versión exacta.
+
+**PostgreSQL y MinIO son efímeros del propio runner**, con las dos bases que el
+harness exige y la marca de seguridad `personal-blog:test-database` escrita
+dentro de la base. No se usa ningún secreto del proyecto.
+
+**Cierra R-14.** `requirements.lock` y `requirements-dev.lock` fijan el cierre
+transitivo con `--hash=sha256:` para Linux x86_64 y CPython 3.12, generados desde
+`pyproject.toml` —única fuente manual— con `uv` y una fecha de índice fija que
+hace la resolución determinista. La CI regenera y exige `git diff --exit-code`.
+`requirements.txt` y `requirements-dev.txt` se eliminaron.
+
+Cierra la **porción backend de S-09**: la auditoría pasa a ser automática, sobre
+los dos *locks*, sin umbral ni exclusiones.
+
+### Qué NO entrega
+
+**S-09 no queda cerrado globalmente:** infra es `Task/021`, que también cubre el
+**escaneo de secretos de todo el historial**. No se habilita paralelismo de la
+suite (**R-37**). El `.venv` de Windows **queda fuera** del árbol bloqueado, por
+una razón medida: los *locks* exigen `uvloop`, que no publica distribución de
+Windows. No se añaden cobertura mínima, E2E, despliegue, cloud, OIDC, secretos ni
+configuración de GitHub.
+
+### Evidencia del cierre
+
+*Observado el 2026-09-10 (Guatemala) / UTC:* **cuatro** ejecuciones `push` en
+**`success`**. La última, **34488083060**, concluyó en **295 s** con los **21**
+pasos en verde, **1855** pruebas y **0** omitidas en 186,16 s, las dos auditorías
+de dependencias sin hallazgos, **168** vulnerabilidades de inventario en la
+imagen y **0** accionables, permisos `Contents: read` / `Metadata: read` y **0**
+patrones de secreto real en el log. Los **siete** controles negativos de gates y
+los **tres** del escáner son **locales** y están etiquetados como tales.
+
+El baseline destapó **dos defectos reales y preexistentes**, invisibles hasta
+resolver las dependencias en Linux, y los dos se corrigieron: `anyio` 4.15.0
+marcó obsoleto un alias que `starlette.testclient` sigue usando, y `pytest -W
+error` no llegaba a recolectar; y `pip-audit` devolvió **tres vulnerabilidades
+con corrección publicada** en `httpx2` 2.10.0, una **HIGH**, que motivaron una
+detención y la subida autorizada a 2.12.0. **0 dependencias nuevas.**
+
+### Decisiones y riesgos
+
+Las decisiones de implementación de la
+[ficha §12](../tasks/TASK-020-ci-backend.md), **D-020-A** a **D-020-H**, quedan
+**vigentes**. **No hay ADR nuevo**: son decisiones reversibles dentro del stack
+aprobado.
+
+**R-14 CERRADO.** **R-15** sigue **Abierto**, ahora *detectado* por la CI: hoy la
+imagen no tiene ningún HIGH o CRITICAL con corrección publicada. **R-17** sigue
+**Abierto y sin cambio**: Task020 **no** añadió refuerzo automático de la
+evidencia RED → GREEN, y se registra para no dar por hecho un cierre que no
+ocurrió. **R-37** sigue **Abierto**, sin paralelismo habilitado.
+
+Siete hallazgos documentales se detectaron y resolvieron durante la tarea:
+**B-020-1/2/3** en el preflight y **D-020-1/2/3** en la revisión previa a la
+aprobación. El control negativo **remoto** sigue sin autorizar.
+
+Detalle completo en el [reporte](../task-reports/TASK-020-report.md).
+
+---
+
+## Tarea aprobada anterior — `Task/019-CI-Frontend`
 
 **Aprobada el 2026-09-08** mediante `approved: Task/019-CI-Frontend`, en
 `personal-blog-frontend` (funcional) e infra (gobierno documental). **El backend
@@ -1604,23 +1687,23 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 03 — Dominio y Backend | 5 | **5** | **100 %** — **completada** |
 | 04 — Experiencia del Usuario | 3 | **3** | **100 %** — **completada** |
 | 05 — Calidad y Seguridad | 3 | 3 | **100 %** — **completada** |
-| 06 — Integración Continua | 3 | **1** | **33 %** |
+| 06 — Integración Continua | 3 | **2** | **67 %** |
 | 07 — Validación Local | 1 | 0 | 0 % |
 | 08 — Preparación Cloud sin Cuentas | 4 | 0 | 0 % |
 | 09 — Cuentas y Seguridad Cloud | 3 | 0 | 0 % |
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **19** | **46 %** |
+| **Total** | **41** | **20** | **49 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **22** |
+| Pendiente | **21** |
 | En progreso | 0 |
 | Lista para validación | **0** |
-| **Aprobada** | **19** |
+| **Aprobada** | **20** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |
@@ -1666,9 +1749,9 @@ Distribución por estado:
 | R-13 | La copia de Portainer exige detener su contenedor: una interrupción anómala podría dejarlo parado. | Bajo | El arranque está dentro de un bloque `finally`: se ejecuta aunque la copia falle. Si aun así quedara parado, `docker start personal-blog-local-portainer` lo resuelve. | Abierto |
 | R-09 | Portainer tiene acceso al socket del daemon de Docker y conserva **capacidad administrativa sobre el host**: puede crear, detener, eliminar y modificar contenedores, redes y volúmenes de este y de cualquier otro proyecto de la máquina. El montaje `:ro` protege el **archivo** del socket pero **no** convierte la Docker API en solo lectura, y la separación de redes **no** limita las acciones enviadas por el daemon. Agravante: conviven dos instancias de Portainer sobre el mismo daemon. | **Medio** | El riesgo se acepta únicamente porque Portainer es **local**, se publica en **`127.0.0.1`** y exige **autenticación propia**. **Regla vigente: no exponerlo nunca** a la red local ni a internet. Un control real de solo lectura exigiría un **socket proxy** o una política de autorización adicional, fuera del alcance de `Task/003`; se propone evaluarlo en `Task/018`. Detalle: [runbook §2.1](../runbooks/local-environment.md). | Abierto |
 | R-10 | Las etiquetas de imagen fijadas envejecen y acumulan vulnerabilidades sin corregir. | Medio | Escaneo de imágenes en `Task/018-Endurecimiento-de-Seguridad`; validación del Compose en cada cambio en `Task/021-CI-Infraestructura`. | Abierto |
-| R-14 | Las dependencias **transitivas** del backend no están bloqueadas: dos instalaciones en fechas distintas pueden traer versiones indirectas distintas. **Comprobado el 2026-08-11:** la imagen resolvió `starlette 1.6.0` y el entorno de Windows, instalado el 2026-08-01, tiene `starlette 1.3.1`. | Medio | Las dependencias directas están fijadas con `==` en `pyproject.toml` y `requirements.txt`, y `pip check` forma parte de las validaciones. Mientras el riesgo siga abierto, el `Dockerfile` instala con `pip install -r requirements.txt`, **sin `--require-hashes` ni `--no-deps`**, que serían incoherentes con un archivo sin hashes y sin transitivas. El bloqueo completo con hashes, resuelto en Linux, se añade en `Task/020-CI-Backend`. | Abierto (`Task/005`) |
-| R-15 | La imagen base del backend (`python:3.12.14-slim` desde `Task/018`; `3.12.13-slim` cuando se abrió el riesgo) envejece y acumula vulnerabilidades sin corregir. | Medio | Misma naturaleza que R-10. Escaneo de la imagen en `Task/018` y verificación en CI en `Task/020`. | Abierto (`Task/005`) |
-| R-17 | Una práctica escrita puede no aplicarse: el ciclo **RED → GREEN** es fácil de saltarse si nadie exige la evidencia, y las pruebas acabarían escribiéndose después del código. | Medio | La evidencia de RED y GREEN es un **criterio de la Definition of Done** (B-2 y B-3), no una recomendación: sin ella la tarea no puede marcarse `Lista para validación`. `Task/020-CI-Backend` podrá reforzarlo automáticamente. Detectado en `Task/005.1`. | Abierto |
+| R-14 | Las dependencias **transitivas** del backend no están bloqueadas: dos instalaciones en fechas distintas pueden traer versiones indirectas distintas. **Comprobado el 2026-08-11:** la imagen resolvió `starlette 1.6.0` y el entorno de Windows, instalado el 2026-08-01, tiene `starlette 1.3.1`. | Medio | Las dependencias directas están fijadas con `==` en `pyproject.toml` y `requirements.txt`, y `pip check` forma parte de las validaciones. Mientras el riesgo siga abierto, el `Dockerfile` instala con `pip install -r requirements.txt`, **sin `--require-hashes` ni `--no-deps`**, que serían incoherentes con un archivo sin hashes y sin transitivas. El bloqueo completo con hashes, resuelto en Linux, se añade en `Task/020-CI-Backend`.  **Cerrado por `Task/020`, aprobada el 2026-09-10:** `requirements.lock` y `requirements-dev.lock` fijan las transitivas con `--hash=sha256:` para Linux x86_64 y CPython 3.12; el `Dockerfile` instala con `--require-hashes`; la CI regenera los locks y exige `git diff --exit-code`. El baseline volvio a reproducir el riesgo en vivo: sin lock, Linux resolvio `starlette` 1.6.0 y `anyio` 4.15.1 frente a 1.3.1 y 4.14.2 del entorno de Windows, y esa deriva rompia `pytest -W error`. **Alcance declarado:** el arbol bloqueado cubre la imagen, la CI y el desarrollo sobre Linux, WSL o contenedor; el `.venv` de Windows queda deliberadamente fuera, porque los locks exigen `uvloop`, que no publica distribucion de Windows. Corregido el 2026-09-10 como **D-020-1** durante la revision previa a la aprobacion. | **CERRADO** el 2026-09-10 (`Task/020`) |
+| R-15 | La imagen base del backend (`python:3.12.14-slim` desde `Task/018`; `3.12.13-slim` cuando se abrió el riesgo) envejece y acumula vulnerabilidades sin corregir. | Medio | Misma naturaleza que R-10. Escaneo de la imagen en `Task/018` y verificación en CI en `Task/020`.  Verificacion en CI **implementada** en `Task/020`: un paso bloqueante falla ante cualquier HIGH o CRITICAL con correccion publicada. Medicion del 2026-09-10 sobre la imagen: 173 vulnerabilidades de la base Debian 13.6 —3 CRITICAL, 51 HIGH, 57 MEDIUM, 57 LOW, 5 UNKNOWN— y **ninguna con version corregida disponible**; 0 en los paquetes Python. | Abierto (`Task/005`) — ahora **detectado** por la CI |
+| R-17 | Una práctica escrita puede no aplicarse: el ciclo **RED → GREEN** es fácil de saltarse si nadie exige la evidencia, y las pruebas acabarían escribiéndose después del código. | Medio | La evidencia de RED y GREEN es un **criterio de la Definition of Done** (B-2 y B-3), no una recomendación: sin ella la tarea no puede marcarse `Lista para validación`. `Task/020-CI-Backend` podrá reforzarlo automáticamente. Detectado en `Task/005.1`.  **`Task/020` NO lo reforzo automaticamente:** la CI comprueba que la suite pasa, no que las pruebas se escribieran antes que el codigo. El refuerzo automatico sigue sin propietario. | Abierto |
 | R-18 | El coste de escribir primero la prueba puede empujar a **matrices superficiales** que aparenten cumplimiento sin cubrir edge cases ni casos negativos. | Bajo | La matriz obligatoria exige explícitamente edge cases, errores y seguridad ([BACKEND_TESTING_STRATEGY](BACKEND_TESTING_STRATEGY.md) §6), y la revisión del usuario es el control final. Detectado en `Task/005.1`. | Abierto |
 | R-16 | El `.env` real del entorno local **conserva las contraseñas de ejemplo** `change-me-local-postgres` y `change-me-local-minio`, publicadas en `.env.example` desde `Task/003`: las credenciales locales de PostgreSQL y MinIO son, de hecho, públicas. | **Bajo** | Acotado porque los tres servicios se publican solo en `127.0.0.1` y no son alcanzables desde la red. Rotar la contraseña de PostgreSQL **no exige recrear el volumen ni la base**: se cambia la del rol existente con `ALTER ROLE` y se actualiza el `.env` de forma coordinada — procedimiento completo en el [reporte de `Task/005`](../task-reports/TASK-005-report.md) §6.1. **MinIO se trata por separado:** su credencial raíz procede de variables de entorno del contenedor, no de un rol almacenado, por lo que su rotación **no** sigue el mismo procedimiento. La rotación **queda a decisión del usuario** y no se ejecutó en `Task/005`. Detectado en `Task/005`. | Abierto |
 
@@ -1724,7 +1807,7 @@ Distribución por estado:
 
 | # | Riesgo | Impacto | Mitigación prevista | Tarea que lo valida | Estado |
 | --- | --- | --- | --- | --- | --- |
-| R-37 | **La suite de integración no es segura para ejecución concurrente sobre la misma base de datos** (`CERT-AUD-009`). Tres causas concretas, reproducidas por inspección en `Task/005.7`: (1) `tabla_de_pruebas` usa un **nombre fijo** —`prueba_transaccional_005_6`—, así que dos procesos se pisan la tabla y el `DROP` de uno rompe al otro; (2) `test_migrations` ejecuta **`alembic downgrade base` sobre el esquema compartido**, que revierte el esquema entero por debajo de cualquier otro test en vuelo; (3) las fixtures **mutan estado de proceso** —`os.environ["BLOG_DATABASE_URL"]`, `get_settings.cache_clear()`, `dispose_engine()`—, que es seguro entre procesos pero no entre hilos. | Medio | **Deliberadamente NO se corrige en `Task/005.7`.** Hoy no hay ejecución paralela oficial: `pytest-xdist` **no está instalado** y el único flujo de integración esperado es secuencial, así que el riesgo **no es explotable en el estado actual**. Construir aislamiento por trabajador —esquema o base por *worker*, nombres de tabla derivados del `worker_id`, aislamiento del estado de proceso— es diseño de CI, no cierre de fundaciones, y hacerlo ahora sería sobrediseñar sin un consumidor real. **Debe revisarse antes de habilitar cualquier ejecución paralela**, y la decisión de habilitarla es lo que activa este riesgo. | `Task/020-CI-Backend` — propietaria de la concurrencia de CI del backend | **Abierto** |
+| R-37 | **La suite de integración no es segura para ejecución concurrente sobre la misma base de datos** (`CERT-AUD-009`). Tres causas concretas, reproducidas por inspección en `Task/005.7`: (1) `tabla_de_pruebas` usa un **nombre fijo** —`prueba_transaccional_005_6`—, así que dos procesos se pisan la tabla y el `DROP` de uno rompe al otro; (2) `test_migrations` ejecuta **`alembic downgrade base` sobre el esquema compartido**, que revierte el esquema entero por debajo de cualquier otro test en vuelo; (3) las fixtures **mutan estado de proceso** —`os.environ["BLOG_DATABASE_URL"]`, `get_settings.cache_clear()`, `dispose_engine()`—, que es seguro entre procesos pero no entre hilos. | Medio | **Deliberadamente NO se corrige en `Task/005.7`.** Hoy no hay ejecución paralela oficial: `pytest-xdist` **no está instalado** y el único flujo de integración esperado es secuencial, así que el riesgo **no es explotable en el estado actual**. Construir aislamiento por trabajador —esquema o base por *worker*, nombres de tabla derivados del `worker_id`, aislamiento del estado de proceso— es diseño de CI, no cierre de fundaciones, y hacerlo ahora sería sobrediseñar sin un consumidor real. **Debe revisarse antes de habilitar cualquier ejecución paralela**, y la decisión de habilitarla es lo que activa este riesgo. | `Task/020-CI-Backend` — propietaria de la concurrencia de CI del backend  **Decidido en `Task/020` el 2026-09-10 (D-020-G):** la CI del backend ejecuta la suite **secuencial**, sin `pytest-xdist`, sin `matrix` y sin particiones, asi que el riesgo sigue sin ser explotable. El `concurrency` del workflow es otra cosa: cancela ejecuciones superadas de la misma referencia, cada una con su propio PostgreSQL efimero. | **Abierto** — sin paralelismo habilitado |
 
 ### Riesgos introducidos por `Task/005.2` — AWS Local Parity
 
@@ -1804,7 +1887,7 @@ Distribución por estado:
 | `Task/017-Observabilidad-Local` | 05 | backend, infra | **Aprobada** (2026-09-06) |
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | **Aprobada** (2026-09-08) |
 | `Task/019-CI-Frontend` | 06 | frontend, infra (documentación) | **Aprobada** (2026-09-08) |
-| `Task/020-CI-Backend` | 06 | backend | Pendiente |
+| `Task/020-CI-Backend` | 06 | backend, infra (documentación) | **Aprobada** (2026-09-10) |
 | `Task/021-CI-Infraestructura` | 06 | infra | Pendiente |
 | `Task/022-Validacion-Local-Production-Like` | 07 | infra, frontend, backend | Pendiente |
 | `Task/023-Compatibilidad-FastAPI-Lambda` | 08 | backend | Pendiente |

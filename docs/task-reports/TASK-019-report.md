@@ -218,10 +218,13 @@ error de consulta. STAGE-05 fija como mínimo la ausencia de críticas/altas;
 mantener el comando existente, sin flags de tolerancia, preserva la comprobación
 previa en cero y satisface ese mínimo. **No se inventa un umbral ni una excepción.**
 
-La instalación usa versiones exactas e integridad del lockfile. S-09 frontend
-queda **implementado para revisión**; Task019 no está aprobada. S-09 **global**
-conserva pendientes backend e infra con Task020 y Task021. El escaneo de secretos
-es un control distinto y **no** un sustituto de `npm audit`.
+La instalación usa versiones exactas e integridad del lockfile. Al registrar
+la evidencia pre-aprobación, S-09 frontend estaba **implementado para revisión**
+y Task019 todavía no había sido aprobada. Posteriormente el usuario la aprobó
+el 2026-09-08 mediante `approved: Task/019-CI-Frontend`; S-09 frontend quedó
+vigente. S-09 **global** conserva pendientes backend e infra con Task020 y
+Task021. El escaneo de secretos es un control distinto y **no** un sustituto
+de `npm audit`.
 
 ## I. Controles negativos LOCALES
 
@@ -519,10 +522,13 @@ controles negativos locales acreditan que cada gate rechaza su defecto y vuelve
 a verde tras restaurar. La documentación está completa y **Criterion 12 cierra
 en C = 0**.
 
-Aprobada por el usuario mediante `approved: Task/019-CI-Frontend`. Avance
-**19/41 — 46 %**; ETAPA 06 **1/3 — 33 %**, **no completada**. El pull request
-hacia `main` queda **abierto**: aceptarlo o rechazarlo es responsabilidad
-exclusiva del usuario. **Task020 no se inicia en esta tarea.**
+Aprobada por el usuario mediante `approved: Task/019-CI-Frontend` el 2026-09-08.
+El avance tras esa aprobación fue **19/41 — 46 %** y ETAPA 06 **1/3 — 33 %**,
+**no completada**. Durante el cierre aprobado se crearon los pull request
+`Task/019-CI-Frontend → main` y se dejaron sin fusionar para revisión del usuario.
+Su estado operativo se consulta en GitHub; la fusión manual del 2026-09-09 UTC
+está registrada como observación histórica en §P. Aceptar o rechazar un PR es
+responsabilidad exclusiva del usuario. **Task020 no se inició en esta tarea.**
 
 Fuentes técnicas consultadas el 2026-09-08: documentación oficial de
 [carga de configuración Vite](https://vite.dev/config/#config-loading),
