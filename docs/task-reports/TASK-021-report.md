@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/021-CI-Infraestructura` |
-| **Estado** | **En progreso** — B-021-1/2 resueltos; medición técnica completa; **B-021-3** abierto |
+| **Estado** | **Lista para validación** — `CI Infra` implementado y verde; B-021-1/2/3 resueltos |
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
@@ -230,7 +230,7 @@ Las «dependencias» de infraestructura son hoy, exactamente:
 | Mitad del requisito | Estado medido |
 | --- | --- |
 | Versiones fijadas | **Satisfecha.** Las 4 imágenes llevan tag **y** digest; **0** coincidencias de `:latest` o `:nightly` en todo el árbol versionado |
-| Escaneo en CI | **Implementado** el 2026-09-11 en `CI Infra`, con la política de §Ñ. Se marca satisfecho cuando la ejecución remota lo demuestre |
+| Escaneo en CI | **Implementado y demostrado.** Ejecución **34604423915** en `success`, con 116 hallazgos comparados |
 
 ## I. Escáner de secretos
 
@@ -679,11 +679,52 @@ nombró los tres hallazgos afectados y obligó a revisar la regla. Un gate con
 sin que nadie se enterara: los conteos eran **100 y 16**, exactamente los
 mismos del baseline.
 
+### V.2 Segunda ejecución: verde
+
+*Observado el 2026-09-11 UTC.* Ejecución **34604423915**, evento `push`, rama
+`Task/021-CI-Infraestructura`, SHA `4808d7c`. **`success`** en **51 s**, del
+13:27:42 al 13:28:33 UTC. **Los 15 pasos del job `Infra quality` en verde.**
+
+| Gate | Resultado observado en el runner |
+| --- | --- |
+| Guarda de Terraform | 0 archivos. Sus verificaciones siguen siendo de `Task/025` |
+| Guarda de shell | 0 scripts. No se declara un check para una familia inexistente |
+| Compose | **7** servicios cubiertos: `backend`, `frontend`, **`migrations`**, `minio`, `portainer`, `postgres`, `traefik` |
+| Variables del Compose | **26** usadas y **26** declaradas |
+| PowerShell | **6** archivos, **0** fallos |
+| Python | **3** archivos, **0** fallos, incluido el propio comparador |
+| Secretos del historial | **44 commits** escaneados, **`no leaks found`** |
+| Inventario de vulnerabilidades | Publicado completo para las 4 imágenes, sin filtrar |
+| Gate S-09 | **116** hallazgos comparados, **0** nuevos, **0** escalados, **3** rebajas informadas como mejora |
+
+**El escaneo del historial cubrió 44 commits, no 42.** La diferencia son los dos
+commits propios de esta rama: en el runner existen y se escanean. Es la
+comprobación de que `fetch-depth: 0` funciona y de que el gate mira el historial
+real, no una copia superficial.
+
+### V.3 Auditoría de los logs
+
+Se descargó el log completo de la ejecución, **1 861 líneas**, y se revisó
+entero.
+
+| Comprobación | Resultado |
+| --- | --- |
+| Claves privadas, credenciales AWS, tokens de GitHub o Slack | **0 coincidencias** |
+| Los valores de `.env.example` (usuarios y contraseñas de ejemplo) | **0 apariciones** |
+| Cadenas enmascaradas | **2**, ambas de `actions/checkout`: su `token: ***`, ya redactado por GitHub, y la ruta del archivo temporal de credenciales, sin valor |
+| Hallazgos de Gitleaks con su valor expuesto | **0**. `--redact=100` lo impide por diseño |
+
+**Ningún secreto aparece en los logs de CI.**
+
 ## W. Logs y duraciones
 
-No hay logs de CI de Task021 que auditar: no existe ejecución remota. Las
-duraciones registradas son **mediciones locales** y se presentan como tales,
-**nunca** como tiempos de CI.
+**Duración de CI, medida sobre la ejecución real:** el job `Infra quality`
+tardó **51 s** en la ejecución verde **34604423915** y **36 s** en la fallida
+**34604012128**. Es un tiempo razonable y comparable al de los otros dos
+repositorios: 79 s el frontend y 295 s el backend, que además levanta servicios.
+
+Las duraciones de la tabla siguiente son **mediciones locales** y se presentan
+como tales, **nunca** como tiempos de CI.
 
 | Operación local | Duración |
 | --- | --- |
@@ -701,27 +742,32 @@ duraciones registradas son **mediciones locales** y se presentan como tales,
 
 | Criterio literal | Frontend | Backend | Infra | Estado global |
 | --- | --- | --- | --- | --- |
-| Workflow en cada push y pull_request | Registrados push `34305529115` y PR `34308296565` | Registrados push `34488083060` y PR `34489982595` | **Sin workflow** | **Sin demostrar en los tres** |
-| Los tres verdes sobre `dev` | Registrado `34308234554` | Registrado `34491446991` | Sin workflow | **Pendiente** |
-| Un cambio roto hace fallar el workflow | Negativos locales | Negativos locales | **Negativos locales A, B, D y E demostrados** | **Evidencia remota no demostrada**; el broken push sigue sin autorizarse |
-| Ningún secreto en los logs de CI | Evidencia previa | Evidencia previa | Sin run | **No verificado por Task021** |
-| Duración documentada | 79 s (push de bootstrap) | 334 s sobre `dev` | Solo mediciones locales | **Pendiente** |
-| El escaneo cubre todo el historial | **Auditado por Task021: 13 commits, 0 hallazgos** | **Auditado por Task021: 19 commits, 2 falsos positivos demostrados** | **Auditado por Task021: 42 commits, 0 hallazgos** | **Auditado en lectura**; falta automatizarlo en CI |
-| Ningún check vacío | Pendiente de inspección | Pendiente de inspección | Terraform y Bash/sh **declarados explícitamente** como inexistentes | **Pendiente** |
+| Workflow en cada push y pull_request | Registrados push `34305529115` y PR `34308296565` | Registrados push `34488083060` y PR `34489982595` | **Declarado**; `push` demostrado con `34604423915`. **`pull_request` sin ejecutar**: no se crea PR antes de aprobar | **Sin demostrar en los tres** |
+| Los tres verdes sobre `dev` | Registrado `34308234554` | Registrado `34491446991` | **Sin ejecución sobre `dev`**: la integración pertenece al cierre aprobado | **Pendiente** |
+| Un cambio roto hace fallar el workflow | Negativos locales | Negativos locales | **Negativos locales A, B, D, E y F**, más un **fallo remoto real**: `34604012128` en `failure` por el gate S-09 | **Demostrado en local y, para infra, también en remoto**; el broken push deliberado sigue sin autorizarse |
+| Ningún secreto en los logs de CI | Evidencia previa | Evidencia previa | **Auditado**: 1 861 líneas, 0 secretos, 0 valores de `.env.example` | **Verificado para infra**; frontend y backend conservan su evidencia previa |
+| Duración documentada | 79 s (push de bootstrap) | 334 s sobre `dev` | **51 s** | **Documentada en los tres** |
+| El escaneo cubre todo el historial | **Auditado por Task021: 13 commits, 0 hallazgos** | **Auditado por Task021: 19 commits, 2 falsos positivos demostrados** | **Automatizado**: 44 commits en cada ejecución, 0 hallazgos | **Automatizado solo en infra**; en frontend y backend es auditoría fechada, no gate |
+| Ningún check vacío | Pendiente de inspección | Pendiente de inspección | **Cumplido**: Terraform y Bash/sh son **guardas activas** que fallan si aparece el artefacto, y los gates de scripts fallan si no encuentran ninguno | **Pendiente** en los otros dos |
 
 Los identificadores de ejecuciones anteriores se citan como **evidencia
 documental heredada**. Task021 **no** volvió a consultarlos en GitHub y **no**
 los presenta como auditoría remota propia.
 
-**ETAPA 06 no se declara completada.**
+**ETAPA 06 no se declara completada.** Para infra faltan la ejecución de
+`pull_request` y el verde sobre `dev`, que pertenecen al cierre aprobado, y el
+control negativo remoto deliberado, que **sigue sin autorizarse**. Para frontend
+y backend falta inspeccionar sus workflows contra el criterio de «ningún check
+vacío» y automatizar el escaneo del historial, hoy solo auditado.
 
 ## Y. Estado de S-09 global
 
 Frontend y backend conservan sus porciones aprobadas. **Infraestructura tiene
 ahora las dos mitades**: versiones fijadas por tag y digest, y escaneo
 automatizado en `CI Infra` con la política de §Ñ.
-`non-functional-requirements.md` se actualiza **solo cuando la ejecución
-remota lo demuestre**, no antes.
+`non-functional-requirements.md` **queda actualizado**, ya con la ejecución
+remota que lo demuestra. **S-09 global** sigue **abierto** hasta que la
+aprobación cierre la porción de infraestructura.
 
 ## Z. Documentación de esta fase
 
@@ -761,11 +807,11 @@ abierto y con decisión pendiente.
 
 ## AB. Git de infra
 
-Observado el 2026-09-10 al cerrar esta fase: rama
-`Task/021-CI-Infraestructura`, `HEAD = d7136b29a906563af6edbae0b67dfac101c1f3fa`,
-**`main..HEAD` = 0**, staging **0**, **9** archivos sin commit. Sin commit, sin
-push, sin merge y sin PR. El estado operativo posterior se consulta en Git y
-GitHub, no en este documento.
+*Observado el 2026-09-11:* rama `Task/021-CI-Infraestructura` con **2 commits**
+sobre `main`, `de3cb47` y `4808d7c`, árbol limpio y staging vacío. La rama se
+publicó en `origin` bajo la excepción de bootstrap autorizada. **No** se integró
+en `dev`, **no** se creó pull request y **no** se tocó `main`. El estado
+operativo posterior se consulta en Git y GitHub, no en este documento.
 
 ## AC. Integridad del entorno
 
@@ -776,8 +822,10 @@ nunca se leyó ni se imprimió.
 
 ## AD. Contadores
 
-**20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. Task021 **En
-progreso**, sin aprobación. `Task/022` **Pendiente** y no iniciada.
+**20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. **Sin cambio**:
+Task021 está **Lista para validación**, no aprobada, así que **no suma**. No se
+escribe 21/41, ni 3/3, ni «ETAPA 06 Completada». `Task/022` **Pendiente** y no
+iniciada.
 
 ## AE. Bloqueos
 
@@ -787,13 +835,26 @@ progreso**, sin aprobación. `Task/022` **Pendiente** y no iniciada.
 | **B-021-2** | **Resuelto** con autorización explícita el 2026-09-10 |
 | **B-021-3** | **Resuelto** el 2026-09-11 por decisión explícita del usuario: baseline exacto de riesgo aceptado, sin `.trivyignore`, sin umbral por cantidad y sin excluir ninguna imagen |
 
+**Ningún bloqueo abierto.** El defecto que destapó la primera ejecución remota
+—la severidad tratada como parte de la identidad— se corrigió dentro de la
+misma rama, como permite la autorización del bootstrap, y está documentado en
+§V.1.
+
 ## AF. Veredicto
 
-**TASK021 EN PROGRESO — DETENIDA EN B-021-3.**
+**TASK021 IMPLEMENTADA — LISTA PARA VALIDACIÓN.**
 
-Inventario, baseline, validación de scripts, auditoría histórica de los tres
-repositorios y cinco controles negativos: **completados y verdes**. El workflow,
-el gate de vulnerabilidades y el bootstrap remoto **no se ejecutan** a la espera
-de la decisión sobre MinIO y Portainer.
+**ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.**
 
-**No está Lista para validación. No aprobada.**
+Inventario, baseline de Compose, validación de las dos familias de scripts,
+auditoría histórica de los tres repositorios, siete controles negativos y el
+gate S-09 con baseline exacto de riesgo aceptado: **completados**. El workflow
+`CI Infra` está implementado y su ejecución por `push` terminó en **`success`**
+sobre el SHA exacto de la rama.
+
+Lo que falta para cerrar la **etapa** no depende de esta implementación: la
+ejecución de `pull_request` y el verde sobre `dev` pertenecen al cierre
+aprobado, y el **control negativo remoto deliberado sigue sin autorizarse**.
+
+**No aprobada.** No se hizo merge a `dev`, ni pull request, ni se inició
+`Task/022`.

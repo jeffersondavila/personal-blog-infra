@@ -9,7 +9,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | **ETAPA 06 — Integración Continua — En progreso** (**2 de 3** aprobadas, **67 %**). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
-| **Tarea actual** | **`Task/021-CI-Infraestructura`** — **En progreso**; B-021-1, B-021-2 y **B-021-3** resueltos con autorización explícita. `CI Infra` implementado con baseline exacto de riesgo aceptado |
+| **Tarea actual** | **`Task/021-CI-Infraestructura`** — **Lista para validación** el 2026-09-11; B-021-1, B-021-2 y **B-021-3** resueltos con autorización explícita. **No aprobada**: no suma al avance |
 | **Última tarea canónica aprobada** | **`Task/020-CI-Backend`** — **Aprobada** el 2026-09-10 por el usuario |
 | **Resultado de la última tarea aprobada** | **Aprobada** mediante `approved: Task/020-CI-Backend`. Workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, migraciones sobre el motor real, suite completa con `-W error` y escaneo de imagen *fail-closed*. **R-14 cerrado**: dos *locks* transitivos con hashes, instalación `--require-hashes` y detección de desfase. *Observado el 2026-09-10:* cuatro ejecuciones `push` en **`success`**, la última **34488083060** en **295 s** con **1855** pruebas, **0** omitidas y **0** vulnerabilidades accionables. El baseline destapó y corrigió dos defectos reales preexistentes: la regresión de `anyio` y tres vulnerabilidades de `httpx2`. **S-09 backend** satisfecho; **S-09 global** sigue abierto con `Task/021`. Detalle en el [reporte](../task-reports/TASK-020-report.md). Cuenta en el avance: **20 de 41** |
 | **Tarea aprobada anterior a `Task/020`** | `Task/019-CI-Frontend` — **Aprobada** el 2026-09-08 mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
@@ -57,9 +57,10 @@
 
 ---
 
-## Tarea en curso — `Task/021`
+## Tarea lista para validación — `Task/021`
 
-**Estado: En progreso.** Iniciada el 2026-09-10 (Guatemala). El preflight y la
+**Estado: Lista para validación**, el 2026-09-11. **No aprobada**, así que el
+avance **no cambia**. Iniciada el 2026-09-10 (Guatemala); el preflight y la
 creación desde `main` quedaron verificados antes de comenzar la lectura
 canónica. La implementación se detuvo al encontrar dos contradicciones
 documentales independientes de clase D en la ficha/reporte de Task020.1:
@@ -109,8 +110,26 @@ el número cambie. Propietarios del residual: **R-018-3** para MinIO y
 **R-021-1** para Portainer. Detalle en §M, §N y §Ñ del
 [reporte](../task-reports/TASK-021-report.md).
 
-Avance **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, En progreso. S-09 global
-sigue abierto. Task022 permanece Pendiente. [Ficha Task021](../tasks/TASK-021-ci-infraestructura.md).
+**Entregado y demostrado el 2026-09-11.** El workflow **`CI Infra`** valida el
+Compose con los **7** servicios, las **26** variables, los **6** scripts
+PowerShell, los **3** Python, el **historial completo** de secretos y la porción
+de **S-09** de infraestructura. *Observado el 2026-09-11 UTC:* la ejecución
+**34604423915**, por `push` sobre el SHA exacto de la rama, terminó en
+**`success`** en **51 s** con los **15** pasos en verde, **44** commits
+escaneados sin hallazgos y **116** hallazgos de imagen comparados, **0** fuera
+del baseline. Los **1 861** renglones de log se auditaron: **0** secretos.
+
+**El gate probó su utilidad en la primera ejecución, que falló.** La
+**34604012128** terminó en `failure` porque la base de datos del scanner
+reclasificó una CVE conocida de CRITICAL a HIGH, y la regla trataba cualquier
+cambio de severidad como hallazgo nuevo. Se corrigió la regla, no el baseline:
+ahora una severidad **mayor** falla y una **menor** se informa como mejora. Los
+conteos eran idénticos a los aprobados, así que un umbral por cantidad no
+habría detectado nada.
+
+Avance **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, En progreso, **sin cambio
+hasta la aprobación**. S-09 global sigue abierto. Task022 permanece Pendiente.
+[Ficha Task021](../tasks/TASK-021-ci-infraestructura.md).
 
 ---
 
@@ -1874,8 +1893,8 @@ Distribución por estado:
 | Estado | Tareas |
 | --- | --- |
 | Pendiente | **20** |
-| En progreso | **1** |
-| Lista para validación | **0** |
+| En progreso | 0 |
+| Lista para validación | **1** |
 | **Aprobada** | **20** |
 | Bloqueada | **0** |
 | Descartada | 0 |
@@ -2072,7 +2091,7 @@ Distribución por estado:
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | **Aprobada** (2026-09-08) |
 | `Task/019-CI-Frontend` | 06 | frontend, infra (documentación) | **Aprobada** (2026-09-08) |
 | `Task/020-CI-Backend` | 06 | backend, infra (documentación) | **Aprobada** (2026-09-10) |
-| `Task/021-CI-Infraestructura` | 06 | infra | **En progreso** — B-021-1/2 resueltos con autorización |
+| `Task/021-CI-Infraestructura` | 06 | infra | **Lista para validación** (2026-09-11) |
 | `Task/022-Validacion-Local-Production-Like` | 07 | infra, frontend, backend | Pendiente |
 | `Task/023-Compatibilidad-FastAPI-Lambda` | 08 | backend | Pendiente |
 | `Task/024-Artefacto-ZIP-Lambda` | 08 | backend | Pendiente |

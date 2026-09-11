@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *En progreso*
+### `Task/021-CI-Infraestructura` — *Lista para validación*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -159,6 +159,16 @@ se oculta**: se enumera en `security/vulnerability-baseline.json` y la CI falla
 ante cualquier hallazgo accionable nuevo. Propietarios: **R-018-3** y
 **R-021-1**. Evidencia en el
 [reporte Task021](../task-reports/TASK-021-report.md) §M, §N y §Ñ.
+
+*Observado el 2026-09-11 UTC:* el workflow **`CI Infra`** quedó implementado y
+la ejecución **34604423915**, por `push` sobre el SHA exacto de la rama Task,
+terminó en **`success`** en **51 s** con los **15** pasos en verde: **7**
+servicios de Compose, **26** variables, **6** scripts PowerShell, **3** Python,
+**44** commits de historial sin hallazgos de secretos y **116** hallazgos de
+imagen comparados sin ninguno fuera del baseline. La ejecución anterior,
+**34604012128**, terminó en **`failure`** y **destapó un defecto real de la
+regla de severidad**, corregido dentro de la misma rama: es la demostración de
+que el gate no es decorativo. Logs auditados, **0** secretos.
 [Ficha](../tasks/TASK-021-ci-infraestructura.md). Contadores intactos;
 los criterios de salida siguientes no se relajan ni se dan por demostrados.
 
@@ -179,11 +189,12 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios. `Task/021` está **En progreso** con
-`CI Infra` ya implementado y sus gates verdes en local. El criterio del escaneo
-del historial quedó **auditado en lectura** sobre los tres repositorios y
-**automatizado** para infra. Los criterios remotos de infra siguen sin
-demostrarse mientras no exista su ejecución.
+salida exigen los **tres** repositorios. `Task/021` está **Lista para
+validación**: su workflow existe y su ejecución por `push` terminó en
+**`success`** en **51 s**. El criterio del escaneo del historial quedó
+**auditado en lectura** sobre los tres repositorios y **automatizado** para
+infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
+`dev`, que pertenecen al cierre aprobado.
 
 - [ ] Cada repositorio ejecuta su workflow en cada push y pull request.
 - [ ] Los tres workflows terminan en verde sobre `dev`.

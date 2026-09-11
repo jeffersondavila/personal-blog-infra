@@ -70,6 +70,32 @@ UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
 secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
 
+**S-09 infraestructura — implementado y demostrado el 2026-09-11 (`Task/021`),
+pendiente de aprobación.**
+Las dos mitades del requisito quedan cubiertas. *Versiones fijadas:* las cuatro
+imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna
+coincidencia de `:latest` ni `:nightly` en el árbol versionado. *Escaneo en CI:*
+el workflow `CI Infra` construye las dos imágenes que el proyecto arma sobre sus
+bases fijadas, escanea las cuatro con **Trivy 0.74.0** —versión y SHA256
+verificados—, publica el **inventario completo sin filtrar** y aplica un gate
+*fail-closed*.
+
+La política **separa dos clases y no oculta hallazgos**: las imágenes
+construidas por el proyecto mantienen **tolerancia cero** y su baseline está
+**vacío**; las de terceros fijadas por digest se comparan por **identidad
+exacta** contra
+[`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json),
+que enumera el residual aceptado. La CI falla ante un hallazgo accionable nuevo,
+un digest distinto del revisado o una **severidad mayor** que la aprobada; una
+severidad menor se informa como mejora. **No se emplea** `.trivyignore`, umbral
+por cantidad, `|| true`, `continue-on-error` ni exclusión de ninguna imagen.
+
+**Esto no significa «sin vulnerabilidades».** MinIO y Portainer conservan
+residual real y aceptado de forma explícita, con propietarios **R-018-3** y
+**R-021-1**. *Observado el 2026-09-11 UTC:* la ejecución **34604423915**, por
+`push`, terminó en **`success`** en **51 s**, con **116** hallazgos accionables
+comparados y **0** fuera del baseline.
+
 ---
 
 ## 2. Rendimiento

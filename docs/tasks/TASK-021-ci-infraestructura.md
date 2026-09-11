@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/021-CI-Infraestructura` |
 | **Nombre** | CI Infraestructura |
 | **Etapa** | ETAPA 06 — Integración Continua |
-| **Estado** | **En progreso** — `CI Infra` implementado; **B-021-3 resuelto** |
+| **Estado** | **Lista para validación** — `CI Infra` verde el 2026-09-11 |
 | **Repositorios involucrados** | `personal-blog-infra`; backend/frontend solo lectura |
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
@@ -54,8 +54,8 @@ reanudó sin crear otra maintenance.
 - [x] Controles negativos locales de las familias existentes, restaurados.
 - [x] Implementar `CI Infra` con permisos mínimos y herramientas fijadas.
 - [x] Gate S-09 de infraestructura con baseline exacto de riesgo aceptado.
-- [ ] Bootstrap remoto autorizado solo tras verde local y C = 0 / D = 0.
-- [ ] Auditar pasos, logs, tiempos y matriz global de STAGE-06.
+- [x] Bootstrap remoto autorizado, ejecutado tras verde local y C = 0 / D = 0.
+- [x] Auditar pasos, logs, tiempos y matriz global de STAGE-06.
 
 ## 4. Fuera del alcance
 
@@ -188,12 +188,15 @@ a byte idénticos tras los controles negativos.
 
 ## 15. Resultado de pruebas
 
+*Ejecución **34604423915**, `push`, `success` en **51 s**, 15 de 15 pasos.*
 Preflight Git superado. Compose **exit 0** sin warnings, con los 7 servicios
 cubiertos mediante `--profile admin`. PowerShell **6/6** y Python **2/2** sin
 errores de sintaxis. Gitleaks sobre el historial: infra **0 hallazgos**,
 frontend **0**, backend **2 falsos positivos demostrados**. Controles negativos
-A, B, D y E en rojo y restaurados. Trivy: las dos imágenes propias en **0**;
-MinIO y Portainer, en **B-021-3**.
+A, B, D, E y F en rojo y restaurados. Trivy: las dos imágenes propias en **0**;
+el residual de MinIO y Portainer, aceptado y vigilado. En CI: **44** commits
+escaneados, **116** hallazgos comparados y **0** fuera del baseline. Logs
+auditados: **1 861** líneas, **0** secretos.
 
 ## 16. Problemas encontrados
 
