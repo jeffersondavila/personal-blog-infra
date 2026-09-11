@@ -320,7 +320,7 @@ Queda escrita, fechada y sin estado vivo:
 | --- | --- |
 | `docs/tasks/TASK-020-ci-backend.md` | §20 con la fusión fechada (**C-1**); §14 con 4 commits y 7 documentos (**D-8**); §13 y §17 alineados con ese conteo y con la distinción 19/21 pasos |
 | `docs/task-reports/TASK-020-report.md` | **C-2** a **C-9**; **D-3** a **D-8**; nueva sección «Evidencia posterior al cierre»; estado de **B-020-4** / **B-020-5** actualizado |
-| `docs/project-management/STATUS.md` | **D-1** (B-020-4) y **D-2** (B-020-5); `Task/020.1` registrada como mantenimiento en curso; observación fechada del cierre y la fusión de `Task/020`; familia «Último mantenimiento aprobado» normalizada |
+| `docs/project-management/STATUS.md` | **D-1** (B-020-4) y **D-2** (B-020-5); `Task/020.1` registrada primero como mantenimiento en curso durante la fase pre-aprobación y promovida a último mantenimiento aprobado durante el cierre; observación fechada del cierre y la fusión de `Task/020`; familia «Último mantenimiento aprobado» normalizada |
 | `docs/stages/STAGE-06-continuous-integration.md` | Evidencia fechada de los runs `pull_request` y `push` sobre `dev`; nota de recálculo del criterio 12 |
 | `docs/task-reports/README.md` | `Task/020.1` añadida al índice y a la nota de mantenimientos; marcador de `Task/019.1` |
 
