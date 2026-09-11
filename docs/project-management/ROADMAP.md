@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-10 (aprobación de `Task/020`: **20 de 41 — 49 %**, ETAPA 06 **2 de 3 — 67 %**, **En progreso**; **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global** aún abierto con `Task/021`)
+- **Última actualización:** 2026-09-11 (`Task/021` **En progreso**, `CI Infra` implementado y **B-021-3 resuelto**; avance aprobado intacto: **20 de 41 — 49 %**, ETAPA 06 **2 de 3 — 67 %**, **En progreso**; **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global** aún abierto)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -259,7 +259,7 @@ residuales de imágenes registrados en [STAGE-05](../stages/STAGE-05-quality-sec
 | --- | --- | --- | --- | --- |
 | `Task/019-CI-Frontend` | Lint. Type-check. Tests. Build. Formato y auditoría npm (S-09 frontend). | frontend, infra (documentación) | 018 | **Aprobada** (2026-09-08) — workflow `CI Frontend` en cada `push` y `pull_request`, un job en `ubuntu-24.04` con Node 22.23.2, build antes de las pruebas para no omitir las guardas SEO/P-05, y `npm audit` sin umbral. Ejecución **34305529115** en `success`: **704** pruebas, **0** vulnerabilidades. **S-09 global sigue abierto**: backend en `Task/020`, infra y escaneo del historial en `Task/021` |
 | `Task/020-CI-Backend` | Ruff. MyPy. Pytest. Migraciones. Build Docker. Escaneo. | backend, infra (documentación) | 018 | **Aprobada** (2026-09-10) — workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, suite completa con `-W error` y escaneo con política fail-closed. **R-14 resuelto** con dos *locks* transitivos con hashes e instalación `--require-hashes`, más detección de desfase. **S-09 backend satisfecho**; **S-09 global sigue abierto** con `Task/021`. Hallazgos heredados STAGE-06 y B-020-1/2/3 resueltos con autorización durante el preflight. [Reporte](../task-reports/TASK-020-report.md) |
-| `Task/021-CI-Infraestructura` | Docker Compose config. Validación de scripts. Escaneo de secretos. **Terraform todavía no existe** (llega en `Task/025`): sus verificaciones **no se declaran aquí como checks vacíos**; `Task/025` amplía este workflow con `fmt` y `validate`. | infra | 018 | Pendiente |
+| `Task/021-CI-Infraestructura` | Docker Compose config. Validación de scripts. Escaneo de secretos. **Terraform todavía no existe** (llega en `Task/025`): sus verificaciones **no se declaran aquí como checks vacíos**; `Task/025` amplía este workflow con `fmt` y `validate`. | infra | 018 | **En progreso** — B-021-1/2 corregidas con autorización explícita. Medición técnica completa y verde en Compose, scripts, historial de secretos y negativos locales. **B-021-3 resuelto** el 2026-09-11 por decisión explícita: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer no se corrige ni se oculta: queda enumerado y vigilado. [Reporte](../task-reports/TASK-021-report.md) |
 
 ---
 

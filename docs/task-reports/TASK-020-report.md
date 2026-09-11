@@ -460,8 +460,10 @@ posible: un tercer *lock* con `--python-platform x86_64-pc-windows-msvc`, o una
 resolución `uv pip compile --universal` que conserve los marcadores en un solo
 archivo. Ambas cambian el árbol resuelto y obligarían a regenerar, repetir la
 suite completa y revalidar. La revisión pedía precisión documental, no
-rediseño, así que quedan anotadas como decisión abierta en la ficha
-(**D-020-H**) en lugar de ejecutarse por iniciativa propia.
+rediseño, así que quedaron documentadas como alternativas no adoptadas en
+**D-020-H**, vigente desde la aprobación de Task020. La limitación del
+`.venv` nativo de Windows permanece documentada; una eventual mejora requiere
+una decisión posterior.
 
 **Clasificación: D**, documental y técnica de reproducibilidad. **Resuelta.**
 
@@ -599,7 +601,7 @@ patrones de claves privadas, credenciales de AWS o tokens de GitHub;
 | **AB. Git infra** | *Estado observado antes de la aprobación, 2026-09-10:* `Task/020-CI-Backend` en `c5b16070d5d3e128bbc299f6bd886a4d8410f075`, **0 commits** sobre `main`, staging vacío, siete documentos aún sin commit, y todavía sin push y sin PR. El cierre aprobado los commiteó en `6bc80e8` y siguió el flujo; el detalle fechado está en §Evidencia posterior al cierre |
 | **AC. Roadmap** | Task020 **Aprobada** el 2026-09-10. Avance **20/41 (49 %)** y ETAPA 06 **2/3 (67 %)**, etapa **no completada**. Task021 pendiente y no iniciada |
 | **AD. Cierre y normalización** | Ejecutado el 2026-09-10: integración en `dev` con `--no-ff`, publicación y PR **`Task/020-CI-Backend → main`** en ambos repositorios, dejados para revisión manual. *Observado el 2026-09-10 UTC:* el usuario fusionó `#15` (backend, merge `8055878`) y `#36` (infra, merge `68469dd`), eliminó las dos ramas Task remotas, y la normalización `main → dev` quedó completada con `5fedcb3` y `122c90a`. **Nada pendiente** de este flujo |
-| **AE. Bloqueos** | **Ninguno abierto.** Las dos detenciones de la implementación —`anyio` y `httpx2`— se resolvieron, la segunda con autorización expresa. **D-020-1**, **D-020-2** y **D-020-3**, de la revisión previa a la aprobación, también quedan resueltas. Sigue abierta y anotada la decisión **D-020-H**: el `.venv` de Windows no reproduce el árbol bloqueado |
+| **AE. Bloqueos** | **Ninguno abierto.** Las dos detenciones de la implementación —`anyio` y `httpx2`— se resolvieron, la segunda con autorización expresa. **D-020-1**, **D-020-2** y **D-020-3**, de la revisión previa a la aprobación, también quedan resueltas. **D-020-H sigue vigente**: permanece documentada la limitación del `.venv` nativo de Windows, que no reproduce el árbol bloqueado. Las alternativas de lock Windows o universal no fueron adoptadas por Task020 |
 | **AF. Veredicto** | **TASK020 IMPLEMENTADA — LISTA PARA VALIDACIÓN.** No aprobada |
 
 ## Recursos temporales que siguen en la máquina

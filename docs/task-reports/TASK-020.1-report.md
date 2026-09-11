@@ -373,7 +373,9 @@ fecha, como el **2 de 41** de `Task/002.1`.
 - **R-14** sigue **Cerrado**; **S-09 backend** sigue satisfecho; **S-09 global**
   sigue abierto con `Task/021`.
 - **R-15**, **R-17** y **R-37** siguen abiertos, sin cambio. **D-020-H** sigue
-  anotada como decisión abierta.
+  vigente. La limitación del `.venv` nativo de Windows permanece documentada;
+  un lock Windows separado o universal fueron alternativas consideradas,
+  no adoptadas por Task020. Una eventual mejora requiere una decisión posterior.
 - ETAPA 06 sigue en **2/3 — 67 %** y **sin completarse**.
 - Avance global sigue en **20/41 — 49 %**. `Task/020.1` **no suma**.
 - `Task/021` sigue **Pendiente y no iniciada**.
@@ -412,10 +414,11 @@ gh run view 34491446991 --repo jeffersondavila/personal-blog-backend
 Ninguno nuevo. Esta maintenance no introduce funcionalidad, dependencias ni
 decisiones. La deuda estructural que la origina —documentar el cierre antes de
 que la fusión ocurra— **no se cierra aquí**: se contiene omitiendo el estado
-operativo de esta propia tarea, tal como exige [WORKFLOW
-§6.1](../project-management/WORKFLOW.md). Por eso los documentos de `Task/020.1`
-no dicen nada del estado de su rama, su PR o su normalización, y su post-merge
-debería ser **Git-only**, sin generar una `Task/020.2`.
+operativo vigente de esta propia tarea, tal como exige [WORKFLOW
+§6.1](../project-management/WORKFLOW.md). Los documentos de `Task/020.1` pueden
+conservar hechos históricos fechados —como la creación del PR durante el
+cierre aprobado— sin afirmar el estado actual del PR, de las ramas remotas
+ni de la sincronización. La normalización posterior es **Git-only**.
 
 ## 13. Próxima tarea
 

@@ -1,0 +1,264 @@
+# ---------------------------------------------------------------------------
+# personal-blog-infra — Integracion continua (Task/021)
+#
+# Valida los artefactos de infraestructura que EXISTEN hoy: el Compose, los
+# scripts PowerShell y Python, el historial completo de secretos y la porcion
+# de S-09 que corresponde a infraestructura.
+#
+# Dos guardas convierten "todavia no aplica" en una comprobacion con contenido
+# real, en lugar de un check que pasa por no tener nada que mirar: si aparece
+# el primer `.tf` o el primer script de shell, la ejecucion falla y pide que se
+# amplie este workflow. Terraform llega en `Task/025`.
+# ---------------------------------------------------------------------------
+name: CI Infra
+
+on:
+  push:
+  pull_request:
+
+# El workflow solo lee el repositorio: no publica, no comenta, no despliega y
+# no necesita ningun secreto del proyecto.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Gitleaks y Trivy se descargan como archivo comprimido: version exacta Y
+  # digest del artefacto, comprobado con `sha256sum`. Fijar solo la version
+  # confiaria en que la etiqueta del release no se reescriba.
+  VERSION_DE_GITLEAKS: '8.30.1'
+  SHA256_DE_GITLEAKS: '551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb'
+  # Misma version que ya usa el CI del backend, con el mismo digest verificado.
+  VERSION_DE_TRIVY: '0.74.0'
+  SHA256_DE_TRIVY: '2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a'
+  IMAGEN_POSTGRES_CI: 'personal-blog-postgres:ci'
+  IMAGEN_TRAEFIK_CI: 'personal-blog-traefik:ci'
+  BASELINE: 'security/vulnerability-baseline.json'
+
+jobs:
+  infraestructura:
+    name: Infra quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      # `fetch-depth: 0` no es opcional: el gate de secretos recorre TODO el
+      # historial disponible, y un checkout superficial lo dejaria mirando un
+      # solo commit.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Runtime versions
+        run: |
+          set -euo pipefail
+          docker version --format 'docker {{.Client.Version}}'
+          docker compose version
+          python3 --version
+          pwsh --version
+          git --version
+
+      # --- Guardas de alcance -------------------------------------------
+      # No son checks vacios: fallan en cuanto aparezca el artefacto que este
+      # workflow todavia no sabe validar.
+      - name: Terraform is not here yet (Task/025 adds its gates)
+        run: |
+          set -euo pipefail
+          archivos=$(git ls-files '*.tf' '*.tfvars' '*.hcl')
+          if [ -n "$archivos" ]; then
+            echo "Han aparecido archivos de Terraform:"
+            echo "$archivos"
+            echo "Task/025 debe ampliar este workflow con 'terraform fmt' y 'validate'."
+            echo "Hasta entonces no se integran sin verificacion."
+            exit 1
+          fi
+          echo "0 archivos Terraform. Sus verificaciones pertenecen a Task/025."
+
+      - name: No shell scripts yet (add a gate before introducing one)
+        run: |
+          set -euo pipefail
+          archivos=$(git ls-files '*.sh' '*.bash')
+          if [ -n "$archivos" ]; then
+            echo "Han aparecido scripts de shell:"
+            echo "$archivos"
+            echo "Anade un gate de sintaxis ('bash -n' como minimo) antes de integrarlos."
+            exit 1
+          fi
+          echo "0 scripts de shell. No se declara un check para una familia inexistente."
+
+      # --- Compose -------------------------------------------------------
+      # `--env-file .env.example` cumple dos funciones: aporta las 26 variables
+      # que el Compose necesita y evita cargar un `.env` que aqui no existe.
+      # `--profile admin` es imprescindible: sin el, el servicio `migrations`
+      # queda fuera y el gate solo cubriria 6 de los 7 servicios.
+      - name: Compose is valid
+        run: |
+          set -euo pipefail
+          servicios=$(docker compose --env-file .env.example --profile admin config --services | sort | tr '\n' ' ')
+          echo "Servicios cubiertos: $servicios"
+          docker compose --env-file .env.example --profile admin config --quiet
+          echo "Compose valido."
+
+      # Los contextos de `backend` y `frontend` viven en otros repositorios y
+      # no existen en el runner. `config` no los necesita, pero si alguien
+      # convirtiera este paso en un `build`, dejaria de funcionar: queda dicho.
+      - name: Compose declares every variable it uses
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+          compose = set(re.findall(r'\$\{([A-Za-z_][A-Za-z0-9_]*)', open('docker-compose.yml', encoding='utf-8').read()))
+          ejemplo = set()
+          for linea in open('.env.example', encoding='utf-8'):
+              linea = linea.strip()
+              if linea and not linea.startswith('#') and '=' in linea:
+                  ejemplo.add(linea.split('=', 1)[0])
+          faltan = sorted(compose - ejemplo)
+          print('Variables usadas por el Compose: %d' % len(compose))
+          print('Variables declaradas en .env.example: %d' % len(ejemplo))
+          if faltan:
+              raise SystemExit('Sin declarar en .env.example: %s' % ', '.join(faltan))
+          print('Todas las variables del Compose estan declaradas.')
+          PY
+
+      # --- Scripts -------------------------------------------------------
+      # El parser de PowerShell analiza, no ejecuta: ningun script de respaldo
+      # o restauracion llega a tocar nada.
+      - name: PowerShell scripts parse
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $archivos = Get-ChildItem -Path . -Recurse -Include *.ps1,*.psm1,*.psd1 -File |
+                      Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' } |
+                      Sort-Object FullName
+          if ($archivos.Count -eq 0) { throw 'No se encontro ningun script PowerShell; el gate quedaria vacio.' }
+          $fallos = 0
+          foreach ($archivo in $archivos) {
+              $tokens = $null; $errores = $null
+              [void][System.Management.Automation.Language.Parser]::ParseFile($archivo.FullName, [ref]$tokens, [ref]$errores)
+              if ($errores -and $errores.Count -gt 0) {
+                  $fallos++
+                  Write-Output ("FALLA {0}" -f $archivo.Name)
+                  foreach ($e in $errores) { Write-Output ("   {0} (linea {1})" -f $e.Message, $e.Extent.StartLineNumber) }
+              } else {
+                  Write-Output ("OK    {0}" -f $archivo.Name)
+              }
+          }
+          Write-Output ("archivos={0} fallos={1}" -f $archivos.Count, $fallos)
+          if ($fallos -gt 0) { exit 1 }
+
+      # `compile()` en lugar de `compileall` para no dejar `__pycache__` en el
+      # arbol de trabajo.
+      - name: Python scripts compile
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib, sys
+          archivos = sorted(p for p in pathlib.Path('scripts').rglob('*.py'))
+          if not archivos:
+              raise SystemExit('No se encontro ningun script Python; el gate quedaria vacio.')
+          fallos = 0
+          for archivo in archivos:
+              fuente = archivo.read_text(encoding='utf-8')
+              try:
+                  compile(fuente, str(archivo), 'exec', dont_inherit=True)
+                  print('OK    %s' % archivo)
+              except SyntaxError as error:
+                  fallos += 1
+                  print('FALLA %s: %s (linea %s)' % (archivo, error.msg, error.lineno))
+          print('archivos=%d fallos=%d' % (len(archivos), fallos))
+          sys.exit(1 if fallos else 0)
+          PY
+
+      # --- Secretos ------------------------------------------------------
+      - name: Install Gitleaks (pinned version and verified digest)
+        run: |
+          set -euo pipefail
+          url="https://github.com/gitleaks/gitleaks/releases/download/v${VERSION_DE_GITLEAKS}/gitleaks_${VERSION_DE_GITLEAKS}_linux_x64.tar.gz"
+          curl --fail --silent --show-error --location --output /tmp/gitleaks.tar.gz "$url"
+          echo "${SHA256_DE_GITLEAKS}  /tmp/gitleaks.tar.gz" | sha256sum --check --strict -
+          mkdir -p /tmp/gitleaks
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp/gitleaks
+          sudo install -m 0755 /tmp/gitleaks/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
+
+      # `--log-opts=--all` cubre cada rama y etiqueta descargadas, no solo la
+      # referencia actual. `--redact=100` impide que un hallazgo imprima su
+      # propio valor en un log publico.
+      - name: No secrets in the full history
+        run: |
+          set -euo pipefail
+          echo "Commits alcanzables: $(git rev-list --all --count)"
+          echo "Referencias: $(git for-each-ref | wc -l)"
+          gitleaks git . --log-opts="--all" --redact=100 --no-banner
+
+      # --- S-09: vulnerabilidades de imagen -------------------------------
+      - name: Install Trivy (pinned version and verified digest)
+        run: |
+          set -euo pipefail
+          url="https://github.com/aquasecurity/trivy/releases/download/v${VERSION_DE_TRIVY}/trivy_${VERSION_DE_TRIVY}_Linux-64bit.tar.gz"
+          curl --fail --silent --show-error --location --output /tmp/trivy.tar.gz "$url"
+          echo "${SHA256_DE_TRIVY}  /tmp/trivy.tar.gz" | sha256sum --check --strict -
+          mkdir -p /tmp/trivy
+          tar -xzf /tmp/trivy.tar.gz -C /tmp/trivy
+          sudo install -m 0755 /tmp/trivy/trivy /usr/local/bin/trivy
+          trivy --version
+
+      # Las imagenes propias se construyen aqui con la MISMA base fijada por
+      # digest que declara `.env.example`: se escanea lo que el proyecto corre,
+      # con sus parches aplicados, no la base sin parchear.
+      - name: Build the project images
+        run: |
+          set -euo pipefail
+          postgres_base="postgres:$(grep -m1 '^POSTGRES_VERSION=' .env.example | cut -d= -f2-)"
+          traefik_base="traefik:$(grep -m1 '^TRAEFIK_VERSION=' .env.example | cut -d= -f2-)"
+          echo "base de postgres: $postgres_base"
+          echo "base de traefik : $traefik_base"
+          docker build --build-arg "POSTGRES_IMAGE=${postgres_base}" -t "$IMAGEN_POSTGRES_CI" ./docker/postgres
+          docker build --build-arg "TRAEFIK_IMAGE=${traefik_base}" -t "$IMAGEN_TRAEFIK_CI" ./docker/traefik
+
+      - name: Scan every infrastructure image
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/trivy-reports
+          minio="minio/minio:$(grep -m1 '^MINIO_VERSION=' .env.example | cut -d= -f2-)"
+          portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
+          escanear() {
+            echo "::group::Trivy $2"
+            trivy image --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \
+              --format json --output "/tmp/trivy-reports/$1.json" "$2"
+            echo "::endgroup::"
+          }
+          escanear postgres "$IMAGEN_POSTGRES_CI"
+          escanear traefik "$IMAGEN_TRAEFIK_CI"
+          escanear minio "$minio"
+          escanear portainer "$portainer"
+
+      # Inventario completo, sin filtrar por severidad y sin `--ignore-unfixed`:
+      # incluye lo que hoy no tiene correccion publicada. No lleva `--exit-code`
+      # porque es un informe; el gate real es el paso siguiente. No oculta nada.
+      - name: Full vulnerability inventory (report only)
+        run: |
+          set -euo pipefail
+          for informe in /tmp/trivy-reports/*.json; do
+            nombre=$(basename "$informe" .json)
+            echo "::group::Inventario de ${nombre}"
+            trivy convert --scanners vuln --format table "$informe"
+            echo "::endgroup::"
+          done
+
+      # Gate real y fail-closed. Tolerancia cero en las imagenes que construye
+      # el proyecto; baseline de riesgo aceptado, por identidad exacta y ligado
+      # al digest, en las de terceros. Sin `.trivyignore`, sin umbral por
+      # cantidad y sin excluir ninguna imagen.
+      - name: Image vulnerability gate (S-09)
+        run: |
+          set -euo pipefail
+          python3 scripts/security/vulnerability_gate.py \
+            --baseline "$BASELINE" \
+            --reports /tmp/trivy-reports

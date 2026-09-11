@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *Pendiente*
+### `Task/021-CI-Infraestructura` — *En progreso*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -130,6 +130,37 @@ afirmaciones de estado vivo que la fusión volvió falsas.
 > explícito, no implícito.
 
 **Depende de:** `Task/018`. **Repositorio:** `personal-blog-infra`.
+
+*Observado el 2026-09-10 (Guatemala):* preflight y creación desde `main`
+superados. La lectura canónica detectó **B-021-1** y **B-021-2**, dos
+contradicciones de clase D en la ficha/reporte Task020.1. Se detuvo antes de
+corregirlas y antes de implementar CI, conforme al prompt. El usuario autorizó
+las correcciones el mismo día; se aplicaron y ambos bloqueos quedaron
+**Resueltos**. Task021 retomó **En progreso**.
+
+*Medido el mismo día, tras la reanudación:* inventario exacto —**1** Compose,
+**2** Dockerfiles, **6** scripts PowerShell, **2** Python, **0** Bash/sh,
+**0** Terraform—, baseline de Compose en **exit 0** sin warnings con los **7**
+servicios cubiertos vía `--profile admin`, sintaxis de scripts sin errores, y
+auditoría del historial de secretos de los **tres** repositorios con Gitleaks
+8.30.1: **0** hallazgos en infra y frontend, y **2 falsos positivos
+demostrados** en tests de redacción del backend. Cuatro controles negativos
+locales en rojo y restaurados byte a byte.
+
+**B-021-3, detectada y resuelta.** El gate de vulnerabilidades **no podía
+quedar verde** con la política de Task020 aplicada tal cual: las dos imágenes
+que el proyecto construye están en **0** hallazgos, pero `minio/minio` suma
+**100** HIGH/CRITICAL con corrección aguas arriba y `portainer-ce` **16**, y la
+imagen de MinIO **ya es la última publicada en Docker Hub**. El 2026-09-11 el
+usuario autorizó la política definitiva: **tolerancia cero** en las imágenes
+propias y **baseline exacto de riesgo aceptado**, ligado al digest y por
+identidad de cada hallazgo, en las de terceros. El residual **no se corrige ni
+se oculta**: se enumera en `security/vulnerability-baseline.json` y la CI falla
+ante cualquier hallazgo accionable nuevo. Propietarios: **R-018-3** y
+**R-021-1**. Evidencia en el
+[reporte Task021](../task-reports/TASK-021-report.md) §M, §N y §Ñ.
+[Ficha](../tasks/TASK-021-ci-infraestructura.md). Contadores intactos;
+los criterios de salida siguientes no se relajan ni se dan por demostrados.
 
 ## Criterios de salida de la etapa
 
@@ -148,7 +179,11 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios, y `Task/021` sigue pendiente.
+salida exigen los **tres** repositorios. `Task/021` está **En progreso** con
+`CI Infra` ya implementado y sus gates verdes en local. El criterio del escaneo
+del historial quedó **auditado en lectura** sobre los tres repositorios y
+**automatizado** para infra. Los criterios remotos de infra siguen sin
+demostrarse mientras no exista su ejecución.
 
 - [ ] Cada repositorio ejecuta su workflow en cada push y pull request.
 - [ ] Los tres workflows terminan en verde sobre `dev`.

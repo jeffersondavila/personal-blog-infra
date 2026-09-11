@@ -144,10 +144,11 @@ elimina es la **pretensión de vigencia**, no la evidencia.
 | El estado pre-aprobación, **fechado y nombrado como tal** | El estado pre-aprobación presentado como resultado final |
 | Un contador histórico **probado** para su fecha | Un contador vivo dentro de un registro histórico |
 
-**Sobre esta propia maintenance:** sus documentos **no** describen el estado
-operativo de su propia rama, PR o normalización. No dicen que estén pendientes ni
-que hayan ocurrido: simplemente lo **omiten**. Así el post-merge de `Task/020.1`
-es Git-only y no genera una `Task/020.2`.
+**Sobre esta propia maintenance:** sus documentos no persisten como estado
+vigente si su PR está abierto o fusionado, si la rama remota existe ni si
+`main` y `dev` están sincronizados. Pueden registrar hechos históricos
+fechados —como la creación del PR durante el cierre aprobado— sin convertirlos
+en estado operativo actual. La normalización posterior es Git-only.
 
 ## 6. Criterio de éxito
 
@@ -174,5 +175,7 @@ es Git-only y no genera una `Task/020.2`.
   repositorios y `Task/021` sigue pendiente.
 - El control negativo **remoto** sigue sin autorizarse.
 - **R-15**, **R-17** y **R-37** siguen abiertos, sin cambio.
-- **D-020-H** sigue anotada como decisión abierta: el `.venv` de Windows no
-  reproduce el árbol bloqueado.
+- **D-020-H** sigue vigente. La limitación del `.venv` nativo de Windows
+  permanece documentada: no reproduce el árbol bloqueado. Un lock Windows
+  separado o universal fueron alternativas consideradas, no adoptadas por
+  Task020; una eventual mejora requiere una decisión posterior.
