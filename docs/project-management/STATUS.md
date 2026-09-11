@@ -22,7 +22,8 @@
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
 | **Mantenimiento aprobado anterior** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-06 por jeffersondavila. Aplica el **criterio 12** al contenido durable que dejó `Task/004.1`: cuatro afirmaciones sobre el pull request estaban escritas **en presente** y dejaron de ser ciertas al fusionarse. Se convierten en hechos históricos fechados, sin eliminar evidencia, y se añade la observación fechada de la fusión y la normalización. **No cuenta en las 41 tareas** ni altera el avance |
-| **Último mantenimiento aprobado** | `Task/020.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-10 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/020`: **nueve** afirmaciones de clase **C** convertidas en hechos fechados y **ocho** contradicciones de clase **D** corregidas, entre ellas **B-020-4** —un contador vivo dentro del registro histórico de `Task/002.1`, restaurado a su valor probado de **2 de 41 ≈ 5 %**— y **B-020-5** —cinco encabezados «Última tarea aprobada» simultáneos, reducidos a uno—. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
+| **Último mantenimiento aprobado** | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` — **Aprobada** el 2026-09-10 por el usuario mediante `approved: Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1`. Corrige el único residual **D** que dejó `Task/020.1`: una celda de su propio reporte describía el registro de STATUS solo en su fase pre-aprobación, cuando STATUS ya lo había promovido a mantenimiento aprobado. La celda conserva ahora ambos momentos. **C = 0 · D = 0** tras el barrido del criterio 12. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
+| **Mantenimiento aprobado anterior a `Task/020.2`** | `Task/020.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-10 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/020`: **nueve** afirmaciones de clase **C** convertidas en hechos fechados y **ocho** contradicciones de clase **D** corregidas, entre ellas **B-020-4** —un contador vivo dentro del registro histórico de `Task/002.1`, restaurado a su valor probado de **2 de 41 ≈ 5 %**— y **B-020-5** —cinco encabezados «Última tarea aprobada» simultáneos, reducidos a uno—. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
 | **Mantenimiento aprobado previo** | `Task/019.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-09 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/019`: **ocho** afirmaciones de clase **C** convertidas en hechos fechados y **una** contradicción de clase **D** corregida —las decisiones de `Task/019` seguían descritas como *Propuesta* pese a estar ya vigentes—. La causa fue que `Task/019` era la primera tarea cuya evidencia dependía de su propio cierre. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior a `Task/004.2`** | `Task/004.1-Corregir-Backup-Rutas-Literales` — **Aprobada** el 2026-09-06 por jeffersondavila. Corrige un defecto **demostrado en ejecución** del sistema de respaldo de `Task/004`: una ruta ya resuelta se pasaba a parámetros de PowerShell que interpretan comodines, de modo que una clave de objeto con `[` abortaba el respaldo. El mismo defecto afectaba a la **prueba de restauración**. Respaldo real, verificación y restauración **superados** sobre 64 objetos, 44 de ellos con corchetes. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior a `Task/004.1`** | `Task/012.1-Exponer-Auditoria-Para-Dashboard` — **Aprobada** el 2026-09-05 por jeffersondavila. Añade **una** operación administrativa de solo lectura, `GET /api/v1/admin/audit-events`, que cierra la laguna entre `MVP_SCOPE.md` §3.3 y la API administrativa. **Sin migración**, sin filtros y sin datos personales; la inmutabilidad de `AuditEvent` queda intacta y leer no audita. **No cuenta en las 41 tareas** ni altera el avance |
@@ -30,7 +31,7 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna.** `Task/020` aprobada y cerrada, `Task/020.1` aprobada y cerrada; `Task/021` pendiente y **no iniciada** |
+| **Tarea en curso** | **Ninguna.** `Task/020` aprobada y cerrada, `Task/020.1` aprobada y cerrada, `Task/020.2` aprobada y cerrada el 2026-09-10; `Task/021` pendiente y **no iniciada** |
 | **Próxima tarea prevista** | `Task/021-CI-Infraestructura` — **Pendiente, no iniciada**. Toda nueva Task nace desde `main` actualizado y limpio tras la normalización exigida por [WORKFLOW §2.1 y §6.1](WORKFLOW.md) |
 | **Avance global** | **49 %** — 20 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
@@ -56,7 +57,46 @@
 
 ---
 
-## Último mantenimiento aprobado — `Task/020.1`
+## Último mantenimiento aprobado — `Task/020.2`
+
+| Campo | Valor |
+| --- | --- |
+| **Tarea** | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` |
+| **Tipo** | Mantenimiento de gobierno documental |
+| **Estado** | **Aprobada** ✔ el 2026-09-10 por el usuario |
+| **Expresión de aprobación** | `approved: Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` |
+| **Alcance** | Una celda de la tabla de archivos de [TASK-020.1-report.md](../task-reports/TASK-020.1-report.md): registro durante la fase pre-aprobación y promoción durante el cierre como último mantenimiento aprobado |
+| **Cuenta en las 41 tareas** | **No.** Avance **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** sin cambios |
+| **Repositorios** | `personal-blog-infra` únicamente |
+| **Rama** | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1`, nacida de `main` (`ebd6428`) |
+| **Ficha** | [TASK-020.2](../tasks/TASK-020.2-correct-stale-self-description.md) |
+| **Reporte** | [TASK-020.2-report.md](../task-reports/TASK-020.2-report.md) |
+
+### Qué corrige
+
+`Task/020.1` promovió su propio registro en STATUS a **Aprobada** y a «Último mantenimiento
+aprobado», pero la tabla de archivos de su reporte siguió describiendo únicamente la fase
+anterior: *«`Task/020.1` registrada como mantenimiento en curso»*. Era una descripción final
+sin ancla temporal, contradicha por el propio STATUS, donde «Mantenimiento en curso»
+aparecía **0 veces**. La celda relata ahora la transición completa —registro durante la fase
+pre-aprobación y promoción durante el cierre— y conserva los dos momentos históricos.
+
+Es el mismo patrón que [WORKFLOW §6.1](WORKFLOW.md) describe, aplicado esta vez a la
+**autodescripción** de una tarea de mantenimiento: el texto que una tarea escribe sobre sí
+misma envejece en cuanto su cierre modifica lo que describía.
+
+### Qué NO cambia
+
+No se reabre `Task/020` ni `Task/020.1`, ambas **Aprobadas**. El avance sigue en **20/41 —
+49 %** y la ETAPA 06 en **2/3 — 67 %**, **sin completarse**. `Task/021` sigue **Pendiente y
+no iniciada**. No se tocó backend, frontend, código, tests, workflows, `Dockerfile`,
+Terraform, ADR, ROADMAP, STAGE-06 ni la ficha y el reporte de `Task/020`. Es el séptimo
+mantenimiento documental, tras `Task/004.2`, `Task/006.1`, `Task/009.1`, `Task/013.1`,
+`Task/019.1` y `Task/020.1`.
+
+---
+
+## Mantenimiento aprobado anterior — `Task/020.1`
 
 | Campo | Valor |
 | --- | --- |
