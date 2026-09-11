@@ -418,8 +418,15 @@ Cada hallazgo se identifica por:
 | `id` | Identificador de la vulnerabilidad |
 | `package` · `package_path` | Paquete afectado |
 | `installed_version` | Versión presente en la imagen |
-| `severity` | **Forma parte de la identidad**: si un hallazgo conocido sube de severidad, deja de estar aprobado y la CI falla |
+| `severity` | **Se registra y se comprueba aparte, de forma asimétrica.** Si un hallazgo conocido **sube** de severidad, deja de estar aprobado y la CI falla. Si **baja**, se informa como mejora y no rompe nada |
 | `fixed_version` | **Se registra, pero queda fuera de la identidad**: que el proyecto de origen publique otra versión corregida no es un riesgo nuevo, y convertirlo en rojo sería un falso positivo |
+
+**La severidad no entra en la identidad, y hay una razón medida.** La primera
+ejecución remota lo demostró: ver §V.1. Si formara parte de la identidad,
+cualquier reclasificación del scanner —incluida una **rebaja**— convertiría un
+hallazgo conocido en «nuevo» y obligaría a regenerar el baseline cada vez que
+la base de datos se actualiza. Un baseline que se regenera de forma refleja
+deja de proteger. La severidad anotada es la **máxima aprobada**.
 
 El `scope` de los paquetes de sistema se normaliza a la familia —por ejemplo
 `os-pkgs:redhat`— en lugar de usar el `Target` crudo de Trivy, que incluye el
@@ -455,11 +462,12 @@ hallazgos normalizados. No copia las descripciones extensas del scanner.
 
 1. un hallazgo accionable que **no** esté en el baseline;
 2. un **digest** distinto del revisado;
-3. una **severidad mayor** en un hallazgo conocido, porque cambia su identidad;
+3. una **severidad mayor** que la aprobada en un hallazgo conocido;
 4. un informe del scanner **ausente o ilegible**;
 5. un **baseline inválido**: schema, versión, política, digest o campos de
    identidad incompletos;
-6. un baseline de tolerancia cero que **no** esté vacío.
+6. un baseline de tolerancia cero que **no** esté vacío;
+7. una **severidad desconocida** dentro del propio baseline.
 
 Un hallazgo que **desaparece** no rompe la ejecución: se informa como aviso,
 porque una mejora no puede presentarse como fallo de seguridad. Queda anotado
@@ -583,6 +591,8 @@ un baseline auxiliar, fuera del árbol versionado.
 | **F3** | Baseline con `schema` desconocido | Rojo | **exit 2**, `schema desconocido` |
 | **F4** | Informe de Portainer ausente | Rojo | **exit 2**, no puede comparar y no lo disimula |
 | **F5** | Hallazgo sintético en una imagen **propia** | Rojo | **exit 1**, la tolerancia cero lo rechaza |
+| **F6** | Hallazgo aprobado que **sube** de HIGH a CRITICAL | Rojo | **exit 1**, lo nombra e indica con qué severidad estaba aprobado |
+| **F7** | Hallazgo aprobado que **baja** de CRITICAL a HIGH | Verde | **exit 0**, informado como mejora |
 | **Restauración** | Fixtures eliminados, baseline real | Verde | **exit 0**, 116 comparados |
 
 Los fixtures temporales se eliminaron. El árbol versionado **nunca** contuvo un
@@ -610,6 +620,64 @@ Con **B-021-3 resuelto** y los gates locales en verde, se cumplen las
 condiciones de la excepción autorizada. La evidencia de la ejecución real
 —identificador, resultado y duración— se registra en §V.1 cuando existe. No se
 hizo merge a `dev`, ni pull request, ni publicación de ninguna mutación rota.
+
+### V.1 Primera ejecución: el gate encontró un defecto real de Task021
+
+*Observado el 2026-09-11 UTC.* Ejecución **34604012128**, evento `push`, rama
+`Task/021-CI-Infraestructura`, sobre el SHA exacto `de3cb47`. Terminó en
+**`failure`** en **36 s**. **Catorce de los quince pasos en verde**; falló el
+último, `Image vulnerability gate (S-09)`.
+
+**No fue una vulnerabilidad nueva.** El gate informó, con precisión:
+
+| Imagen | Observados | Aprobados | «Nuevos» | «Ya no presentes» |
+| --- | --- | --- | --- | --- |
+| `minio/minio` | 100 | 100 | 2 | 2 |
+| `portainer/portainer-ce` | 16 | 16 | 1 | 1 |
+
+Los tres pares eran **el mismo hallazgo**: `CVE-2026-56854` sobre
+`golang.org/x/crypto`, en `usr/bin/mc`, `usr/bin/minio` y `portainer`. La base
+de datos del scanner la había reclasificado de **CRITICAL a HIGH** entre la
+medición local y la ejecución remota. Mismo CVE, mismo paquete, misma versión
+instalada: **severidad menor**.
+
+**El defecto era mío, no del proyecto.** La autorización pide fallar cuando *«un
+hallazgo conocido cambia a una severidad **mayor** y la nueva identidad no está
+aprobada»*. Mi primera implementación metía `severity` dentro de la identidad,
+así que trataba **cualquier** cambio como hallazgo nuevo y ponía en rojo también
+las **rebajas**. Era más estricto de lo pedido y, sobre todo, incorrecto: una
+mejora no puede presentarse como regresión de seguridad.
+
+**Corrección aplicada**, dentro del margen de la propia rama Task:
+
+- `severity` **sale** de la identidad, que queda en `scope`, `id`, `package`,
+  `package_path` e `installed_version`.
+- La severidad se compara **aparte y de forma asimétrica**: si el hallazgo
+  **sube** respecto de la severidad aprobada, la ejecución **falla**; si
+  **baja**, se informa como mejora.
+- El baseline registra la **severidad máxima aprobada** y valida que ninguna
+  severidad declarada sea desconocida.
+
+**No se regeneró el baseline para tapar el rojo.** Esa habría sido la salida
+fácil y la equivocada: dejaría el mismo defecto dentro, y cada actualización de
+la base de datos del scanner volvería a exigir una regeneración refleja que
+vacía de sentido al baseline. Se corrigió la regla.
+
+Verificado en local con tres escenarios sobre copias temporales:
+
+| Escenario | Esperado | Obtenido |
+| --- | --- | --- |
+| Las tres rebajas exactas que vio el runner | Verde, informadas como mejora | **exit 0** |
+| Un hallazgo aprobado que sube de HIGH a CRITICAL | Rojo | **exit 1**, con la severidad aprobada citada |
+| Un CVE ausente del baseline | Rojo | **exit 1** |
+
+**Lo que esta ejecución demuestra**, y que ningún control negativo local podía
+demostrar igual de bien: el gate **no** es decorativo. Puesto frente a datos
+que habían cambiado de verdad desde la medición, **rompió la ejecución**,
+nombró los tres hallazgos afectados y obligó a revisar la regla. Un gate con
+`|| true`, con umbral por cantidad o con `.trivyignore` habría pasado en verde
+sin que nadie se enterara: los conteos eran **100 y 16**, exactamente los
+mismos del baseline.
 
 ## W. Logs y duraciones
 
