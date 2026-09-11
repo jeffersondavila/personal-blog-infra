@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/021-CI-Infraestructura` |
 | **Nombre** | CI Infraestructura |
 | **Etapa** | ETAPA 06 — Integración Continua |
-| **Estado** | **Lista para validación** — `CI Infra` verde el 2026-09-11 |
+| **Estado** | **En progreso** — baseline revisado explícitamente; nueva CI requerida |
 | **Repositorios involucrados** | `personal-blog-infra`; backend/frontend solo lectura |
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
@@ -67,9 +67,13 @@ alteran contenedores, volúmenes, datos, `.env` ni el laboratorio residual Task0
 ## 5. Entregables
 
 Inventario exacto, baseline de Compose, validación de las dos familias de
-scripts, auditoría histórica de los tres repositorios y cinco controles
-negativos locales, todo registrado en el reporte. **El workflow y el gate de
-vulnerabilidades no se implementan**: su forma depende de **B-021-3**. En la
+scripts, auditoría histórica de los tres repositorios y controles negativos
+locales, registrados en el reporte. **Durante la detención histórica en
+B-021-3, el workflow y el gate todavía no estaban implementados.** Tras la
+decisión explícita del usuario del 2026-09-11 se implementaron y se obtuvieron
+las ejecuciones históricas registradas en el reporte. La revisión posterior
+detectó un defecto funcional de identidad; esos runs no certifican su
+corrección. **D-021-A corregida** preservando esta cronología. En la
 reanudación autorizada del 2026-09-10 se corrigieron además los pasajes
 equivalentes de ficha y reporte de Task020.1 y del reporte de Task020. La ficha
 Task020 no necesitaba cambios.
@@ -94,19 +98,23 @@ aplicar una política efectiva y fail-closed al escaneo de vulnerabilidades.
 
 ### 7.2 Matriz de casos
 
-Pendiente de completar tras el desbloqueo y el inventario real. Mínimos
-autorizados: Compose inválido, sintaxis inválida por familia existente,
-canary solo histórico en repositorio temporal y negativo del gate S-09.
+La matriz inicial, pendiente durante la detención, se ejecutó después
+(reporte §U). La regresión del comparador cubre cada campo de identidad,
+nombre y digest, baseline inválido/incompleto, informe ausente, tolerancia
+cero, orden determinista y desaparición con aviso `baseline_stale`.
 
 ### 7.3 Tests RED esperados
 
 Exit distinto de cero en cada negativo, seguido de restauración byte a byte
-y GREEN. Ningún negativo se ha ejecutado en esta detención.
+y GREEN. Durante la detención inicial no se habían ejecutado negativos;
+la evidencia posterior está en el reporte §Q y §U. La nueva regresión se
+ejecutó antes de corregir el comparador y reprodujo sus fallos.
 
 ### 7.4 Integración necesaria
 
 Compose config no exige levantar servicios. CI real por `push`, dentro de
-la excepción estrecha del usuario. Herramientas aún no seleccionadas.
+la excepción estrecha del usuario. Herramientas seleccionadas: Gitleaks
+8.30.1 y Trivy 0.74.0, con SHA256 verificado.
 
 ### 7.5 Casos negativos y de seguridad
 
@@ -122,9 +130,11 @@ de scripts operativos no debe ejecutar sus operaciones sobre el entorno.
 
 Los dos bloqueos documentales quedaron resueltos mediante autorización
 explícita el 2026-09-10. El baseline se midió a continuación y quedó verde en
-Compose, scripts y secretos del historial. El diseño del workflow queda a la
-espera de la decisión sobre **B-021-3**, que determina qué imágenes escanea el
-gate de S-09 y con qué política.
+Compose, scripts y secretos del historial. Durante la detención posterior,
+el diseño del workflow esperaba la decisión sobre **B-021-3**. El usuario
+la tomó el 2026-09-11 y B-021-3 quedó **Resuelto**. Tras corregir la identidad,
+se exige repetir todos los gates locales y obtener CI por `push` sobre el
+HEAD corregido antes de declarar la tarea Lista para validación.
 
 ## 9. Comandos de validación
 
@@ -143,9 +153,11 @@ Contrastar D-020-H con §12 de la ficha Task020. Leer en el reporte la reproducc
 
 ## 10. Evidencia esperada
 
-El reporte registra las mediciones obtenidas y marca como no ejecutado el
-trabajo detenido. Acredita validación técnica **local**; **no** acredita
-ninguna ejecución de CI, que no existe todavía.
+Durante la detención inicial el reporte solo acreditaba validación local:
+CI todavía no existía. Después se registraron ejecuciones reales. Observado
+el 2026-09-11 UTC mediante GitHub: `34605076928`, `push` sobre `4d47346`,
+concluyó `success`. Es evidencia histórica del comparador heredado;
+no certifica el comparador corregido ni sustituye la nueva ejecución exigida.
 
 ## 11. Riesgos
 
@@ -155,7 +167,8 @@ como remotos. La detención y la separación explícita de evidencia los acotan.
 
 ## 12. Decisiones técnicas
 
-Ninguna decisión nueva de implementación o arquitectura tomada. Las
+Durante el preflight inicial no se tomó ninguna decisión de implementación
+o arquitectura. Las
 correcciones documentales de B-021-1/2 se aplicaron el 2026-09-10 con
 autorización explícita del usuario; no introducen decisiones nuevas.
 
@@ -169,26 +182,33 @@ hallazgo accionable nuevo o digest no revisado.*
 Gitleaks **8.30.1** y Trivy **0.74.0**, ambos fijados por versión y verificados
 por SHA256; `--profile admin` para que el gate de Compose cubra los 7
 servicios; `--env-file .env.example` para no tocar el `.env` real;
-PSScriptAnalyzer **considerado y no adoptado**. La identidad de un hallazgo
-excluye `fixed_version` a propósito: que el origen publique otra versión
-corregida no es un riesgo nuevo. **MinIO y Portainer no se actualizan** dentro
+PSScriptAnalyzer **considerado y no adoptado**. La identidad completa incluye
+`VulnerabilityID`, paquete, `Severity`, `InstalledVersion` y `FixedVersion`;
+se conservan además ámbito y ruta para distinguir los binarios. Cambiar
+cualquier campo de un hallazgo accionable produce FAIL, incluida una rebaja
+de CRITICAL a HIGH. El nombre y digest se validan antes de comparar findings.
+**MinIO y Portainer no se actualizan** dentro
 de esta tarea, y el backend **no se toca**.
 
 ## 13. Documentación creada o actualizada
 
 Esta ficha, reporte, STATUS, ROADMAP, STAGE-06 e índice de reportes. NFR
-permanece sin cambios: no se ha satisfecho S-09 infraestructura.
+permaneció intacto durante la detención histórica y se actualizó tras los
+primeros runs. La corrección del comparador requiere nueva evidencia remota
+para considerar S-09 infraestructura satisfecho.
 
 ## 14. Archivos modificados
 
-**9 documentos** de infra, enumerados en §Z del reporte: los seis de la primera
-detención más las tres fuentes heredadas corregidas por B-021-1/2. **Ningún
-artefacto funcional modificado**: Compose, Dockerfiles y scripts quedaron byte
-a byte idénticos tras los controles negativos.
+Durante la detención inicial se modificaron **9 documentos** de infra,
+enumerados en §Z del reporte. Compose, Dockerfiles y scripts quedaron byte
+a byte idénticos tras aquellos negativos. Después se añadieron workflow,
+baseline y comparador. La corrección autorizada añade regresiones permanentes
+del comparador; no altera imágenes ni hallazgos aceptados.
 
 ## 15. Resultado de pruebas
 
-*Ejecución **34604423915**, `push`, `success` en **51 s**, 15 de 15 pasos.*
+*Evidencia histórica del 2026-09-11, previa a corregir el comparador:
+ejecución **34604423915**, `push`, `success` en **51 s**, según el reporte heredado.*
 Preflight Git superado. Compose **exit 0** sin warnings, con los 7 servicios
 cubiertos mediante `--profile admin`. PowerShell **6/6** y Python **2/2** sin
 errores de sintaxis. Gitleaks sobre el historial: infra **0 hallazgos**,
@@ -241,3 +261,54 @@ inicia.
 
 No recibida. La expresión aplicable al futuro cierre es
 `approved: Task/021-CI-Infraestructura`; esta entrega no la solicita.
+
+## 21. Detención histórica durante la revalidación — 2026-09-11
+
+**D-021-A y D-021-B Resueltas.** El comparador incluye los cinco campos
+exigidos y tiene **13/13** regresiones sintéticas en verde. **El scan real es
+RED (exit 1):** CVE-2026-56854 pasó de CRITICAL en el baseline a HIGH en
+`usr/bin/minio`, `usr/bin/mc` y `portainer`, manteniendo paquete, versiones y
+digests. Son tres identidades completas fuera del baseline y se exige FAIL.
+Detalle exacto en el reporte §AG. No se ampliaron los hallazgos aceptados.
+
+Se detuvo la revalidación conforme al apartado 15 del usuario. No se hizo
+commit ni push de las correcciones, ni se obtuvo CI nueva. No se declara
+C=0/D=0, S-09 infraestructura satisfecho ni Task021 Lista para validación.
+B-021-3 conserva su resolución por decisión explícita; esta diferencia real
+requiere tratamiento autorizado. Contadores intactos: **20/41**, ETAPA06 **2/3**.
+
+## 22. Revisión humana del baseline — 2026-09-11
+
+Después de la detención de §21, el usuario revisó y aceptó explícitamente
+las tres reclasificaciones de CVE-2026-56854. Se sustituyeron únicamente
+esas tres severidades CRITICAL por HIGH. Prueba estructural: todo el JSON
+restante permanece igual, incluidas imágenes, digests y los otros findings;
+**116 entradas** antes y después, sin duplicados añadidos.
+
+La política estricta, el comparador corregido y sus expectativas se
+conservan. **13/13** regresiones verdes. Scan real nuevo: Postgres y Traefik
+**0 accionables**; MinIO **100** y Portainer **16**, todos con pertenencia
+exacta, **0 fuera del baseline**, gate **exit 0**. Es aceptación temporal del
+residual tras revisión humana, no corrección de la vulnerabilidad ni una
+excepción automática para futuras rebajas. Evidencia en reporte §AH.
+
+Se auditaron en GitHub los tres runs históricos de Task021. `34604423915`
+corresponde a `4808d7c`; `34605076928`, a `4d47346`. Ambos son históricos y
+no certifican la corrección. La entrega requiere un nuevo run conforme.
+
+## 23. Validación reproducible del comparador corregido
+
+Desde la raíz de infra, sin ejecutar scripts operativos:
+
+```powershell
+python -B -m unittest discover -s tests/security -p 'test_*.py' -v
+docker compose --env-file .env.example --profile admin config --quiet
+python -B scripts/security/vulnerability_gate.py --baseline security/vulnerability-baseline.json --reports tmp/task021-revalidation/reports-reviewed
+git diff --check
+```
+
+El último comando del gate requiere informes Trivy recién generados para
+las cuatro imágenes; el workflow describe su generación con Trivy 0.74.0
+verificado. No sustituir el scan por fixtures. Resultados locales posteriores
+a la revisión humana, enlaces, secretos y Criterion12 **C=0/D=0** en §AH
+del reporte. La nueva CI remota se registra después de existir, sin anticiparla.

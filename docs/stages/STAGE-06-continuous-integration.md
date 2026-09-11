@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *Lista para validación*
+### `Task/021-CI-Infraestructura` — *En progreso / revalidación*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -160,15 +160,20 @@ ante cualquier hallazgo accionable nuevo. Propietarios: **R-018-3** y
 **R-021-1**. Evidencia en el
 [reporte Task021](../task-reports/TASK-021-report.md) §M, §N y §Ñ.
 
-*Observado el 2026-09-11 UTC:* el workflow **`CI Infra`** quedó implementado y
-la ejecución **34604423915**, por `push` sobre el SHA exacto de la rama Task,
-terminó en **`success`** en **51 s** con los **15** pasos en verde: **7**
+**Revisión autorizada del 2026-09-11:** el comparador heredado excluía
+`Severity` y `FixedVersion` de la identidad. Es un defecto funcional que
+invalida la certificación de S-09 infraestructura hasta obtener un nuevo
+run conforme. D-021-A/B se corrigen preservando la cronología.
+
+*Evidencia histórica anterior a esa revisión, 2026-09-11 UTC:* el workflow **`CI Infra`** quedó implementado y
+la ejecución **34604423915**, por `push` sobre `4808d7c`,
+terminó en **`success`** en **51 s** con los **15** pasos declarados en verde (**18** registrados por GitHub): **7**
 servicios de Compose, **26** variables, **6** scripts PowerShell, **3** Python,
 **44** commits de historial sin hallazgos de secretos y **116** hallazgos de
 imagen comparados sin ninguno fuera del baseline. La ejecución anterior,
-**34604012128**, terminó en **`failure`** y **destapó un defecto real de la
-regla de severidad**, corregido dentro de la misma rama: es la demostración de
-que el gate no es decorativo. Logs auditados, **0** secretos.
+**34604012128**, terminó en **`failure`** ante un cambio de severidad. La relajación aplicada
+después se identificó como defecto funcional y requiere la corrección
+autorizada; no es una excepción válida a la identidad completa. Logs auditados, **0** secretos.
 [Ficha](../tasks/TASK-021-ci-infraestructura.md). Contadores intactos;
 los criterios de salida siguientes no se relajan ni se dan por demostrados.
 
@@ -189,9 +194,12 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios. `Task/021` está **Lista para
-validación**: su workflow existe y su ejecución por `push` terminó en
-**`success`** en **51 s**. El criterio del escaneo del historial quedó
+salida exigen los **tres** repositorios. `Task/021` está **En progreso / revalidación**. La detención local del
+2026-09-11 por tres identidades CRITICAL→HIGH de CVE-2026-56854 se resolvió
+mediante revisión humana explícita y sustitución exclusiva de esas tres
+severidades. El scan posterior fue GREEN, sin relajar el comparador. Su workflow
+existe y tuvo un `push` histórico en **`success`** en **51 s** con la regla
+defectuosa, que no acredita la corrección actual. El criterio del escaneo del historial quedó
 **auditado en lectura** sobre los tres repositorios y **automatizado** para
 infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
 `dev`, que pertenecen al cierre aprobado.

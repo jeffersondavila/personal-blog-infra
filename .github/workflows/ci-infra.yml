@@ -175,6 +175,11 @@ jobs:
           sys.exit(1 if fallos else 0)
           PY
 
+      - name: Exact baseline comparator regressions
+        run: |
+          set -euo pipefail
+          python3 -B -m unittest discover -s tests/security -p 'test_*.py' -v
+
       # --- Secretos ------------------------------------------------------
       - name: Install Gitleaks (pinned version and verified digest)
         run: |

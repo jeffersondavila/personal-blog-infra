@@ -70,9 +70,10 @@ UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
 secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
 
-**S-09 infraestructura — implementado y demostrado el 2026-09-11 (`Task/021`),
-pendiente de aprobación.**
-Las dos mitades del requisito quedan cubiertas. *Versiones fijadas:* las cuatro
+**S-09 infraestructura — revalidación requerida el 2026-09-11 (`Task/021`).**
+El comparador heredado incumplía la identidad aprobada al excluir severidad
+y `FixedVersion`. Su corrección necesita un nuevo run verde sobre el HEAD
+corregido antes de considerar satisfecha esta porción del requisito. *Versiones fijadas:* las cuatro
 imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna
 coincidencia de `:latest` ni `:nightly` en el árbol versionado. *Escaneo en CI:*
 el workflow `CI Infra` construye las dos imágenes que el proyecto arma sobre sus
@@ -86,15 +87,18 @@ construidas por el proyecto mantienen **tolerancia cero** y su baseline está
 exacta** contra
 [`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json),
 que enumera el residual aceptado. La CI falla ante un hallazgo accionable nuevo,
-un digest distinto del revisado o una **severidad mayor** que la aprobada; una
-severidad menor se informa como mejora. **No se emplea** `.trivyignore`, umbral
+un nombre/digest distinto del revisado o cualquier diferencia en
+`VulnerabilityID`, paquete, `Severity`, `InstalledVersion` o `FixedVersion`
+de un hallazgo accionable. Una identidad aprobada que desaparece genera
+un aviso `baseline_stale`; una identidad distinta no queda aceptada. **No se emplea** `.trivyignore`, umbral
 por cantidad, `|| true`, `continue-on-error` ni exclusión de ninguna imagen.
 
 **Esto no significa «sin vulnerabilidades».** MinIO y Portainer conservan
 residual real y aceptado de forma explícita, con propietarios **R-018-3** y
 **R-021-1**. *Observado el 2026-09-11 UTC:* la ejecución **34604423915**, por
 `push`, terminó en **`success`** en **51 s**, con **116** hallazgos accionables
-comparados y **0** fuera del baseline.
+comparados según la regla heredada. Ese run **no acredita** la corrección
+del comparador ni sustituye la evidencia final requerida.
 
 ---
 

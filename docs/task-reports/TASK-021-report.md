@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/021-CI-Infraestructura` |
-| **Estado** | **Lista para validación** — `CI Infra` implementado y verde; B-021-1/2/3 resueltos |
+| **Estado** | **En progreso** — revisión humana del baseline aplicada; validación local y nueva CI requeridas |
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
@@ -230,7 +230,7 @@ Las «dependencias» de infraestructura son hoy, exactamente:
 | Mitad del requisito | Estado medido |
 | --- | --- |
 | Versiones fijadas | **Satisfecha.** Las 4 imágenes llevan tag **y** digest; **0** coincidencias de `:latest` o `:nightly` en todo el árbol versionado |
-| Escaneo en CI | **Implementado y demostrado.** Ejecución **34604423915** en `success`, con 116 hallazgos comparados |
+| Escaneo en CI | Evidencia histórica: **34604423915** en `success` sobre `4808d7c`, con el comparador defectuoso. La corrección exige nueva CI conforme |
 
 ## I. Escáner de secretos
 
@@ -408,35 +408,30 @@ decisión arquitectónica de sustitución.
 
 ### Ñ.2 Identidad de un hallazgo
 
-La comparación **no** usa conteos. Un umbral por cantidad sería insuficiente:
-podrían desaparecer cinco CVE y entrar otras cinco sin que el número cambie.
-Cada hallazgo se identifica por:
+La política aprobada exige pertenencia exacta, con normalización explícita:
 
-| Campo | Papel |
+| Campo normalizado | Fuente Trivy / baseline v1 |
 | --- | --- |
-| `scope` | Familia de paquetes del sistema, o ruta del binario dentro de la imagen |
-| `id` | Identificador de la vulnerabilidad |
-| `package` · `package_path` | Paquete afectado |
-| `installed_version` | Versión presente en la imagen |
-| `severity` | **Se registra y se comprueba aparte, de forma asimétrica.** Si un hallazgo conocido **sube** de severidad, deja de estar aprobado y la CI falla. Si **baja**, se informa como mejora y no rompe nada |
-| `fixed_version` | **Se registra, pero queda fuera de la identidad**: que el proyecto de origen publique otra versión corregida no es un riesgo nuevo, y convertirlo en rojo sería un falso positivo |
+| `vulnerability_id` | `VulnerabilityID` / `id` |
+| `package` | `PkgName` / `package` |
+| `severity` | `Severity` / `severity` |
+| `installed_version` | `InstalledVersion` / `installed_version` |
+| `fixed_version` | `FixedVersion` / `fixed_version` |
 
-**La severidad no entra en la identidad, y hay una razón medida.** La primera
-ejecución remota lo demostró: ver §V.1. Si formara parte de la identidad,
-cualquier reclasificación del scanner —incluida una **rebaja**— convertiría un
-hallazgo conocido en «nuevo» y obligaría a regenerar el baseline cada vez que
-la base de datos se actualiza. Un baseline que se regenera de forma refleja
-deja de proteger. La severidad anotada es la **máxima aprobada**.
+Se conservan además `scope` y `package_path` del baseline para distinguir
+copias en diferentes binarios. Las claves se ordenan antes de comparar;
+no intervienen descripciones humanas ni conteos. El nombre exacto de la
+imagen y su digest se comprueban antes de aceptar sus hallazgos.
 
-El `scope` de los paquetes de sistema se normaliza a la familia —por ejemplo
-`os-pkgs:redhat`— en lugar de usar el `Target` crudo de Trivy, que incluye el
-texto completo de la etiqueta de la imagen. Así el baseline no queda atado a
-cómo se escribió el tag. Los paquetes de lenguaje conservan su ruta, que
-distingue dos copias del mismo CVE: en MinIO, `usr/bin/minio` y `usr/bin/mc`.
+`actual - approved` produce FAIL, incluido cualquier cambio de severidad,
+versión instalada o versión corregida de un hallazgo accionable. Incluso
+CRITICAL → HIGH requiere que la nueva identidad esté aprobada.
+`approved - actual` genera `baseline_stale`, sin fallar por la desaparición.
 
-Con esta identidad, las **100** entradas de MinIO y las **16** de Portainer son
-**únicas**, sin colisiones, y coinciden exactamente con los hallazgos
-accionables medidos.
+La implementación heredada excluía `FixedVersion` y comparaba `Severity`
+fuera de la identidad. **Eso era un defecto funcional, no una decisión
+válida de B-021-3.** Su corrección fue autorizada el 2026-09-11 y no amplía
+los hallazgos aceptados. Los runs anteriores no certifican esta corrección.
 
 ### Ñ.3 Generación y auditoría del baseline
 
@@ -462,7 +457,7 @@ hallazgos normalizados. No copia las descripciones extensas del scanner.
 
 1. un hallazgo accionable que **no** esté en el baseline;
 2. un **digest** distinto del revisado;
-3. una **severidad mayor** que la aprobada en un hallazgo conocido;
+3. cualquier cambio de los cinco campos de identidad de un hallazgo accionable;
 4. un informe del scanner **ausente o ilegible**;
 5. un **baseline inválido**: schema, versión, política, digest o campos de
    identidad incompletos;
@@ -476,7 +471,7 @@ para depurar el baseline en una revisión documental posterior.
 El gate imprime siempre cuántos hallazgos comparó, por imagen y en total, de
 modo que la comparación es demostrable y no un resultado opaco.
 
-### Ñ.5 Resultado sobre el escaneo real
+### Ñ.5 Resultado histórico sobre el escaneo real (antes de corregir el comparador)
 
 | Imagen | Política | Observados | Aprobados | Nuevos | Ausentes | Resultado |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -578,7 +573,7 @@ quedan correctamente desindentados al procesarse el bloque, y que las dos
 imágenes propias se construyen **sin caché**: los parches Alpine con versión
 exacta siguen disponibles aguas arriba, en **14,2 s** y **11,4 s**.
 
-## Q. Control negativo F — el gate S-09
+## Q. Control negativo F — evidencia histórica anterior a la corrección
 
 Completado **sin introducir ninguna vulnerabilidad real en el proyecto**. Las
 mutaciones se hicieron sobre **copias temporales** del informe normalizado y de
@@ -592,7 +587,7 @@ un baseline auxiliar, fuera del árbol versionado.
 | **F4** | Informe de Portainer ausente | Rojo | **exit 2**, no puede comparar y no lo disimula |
 | **F5** | Hallazgo sintético en una imagen **propia** | Rojo | **exit 1**, la tolerancia cero lo rechaza |
 | **F6** | Hallazgo aprobado que **sube** de HIGH a CRITICAL | Rojo | **exit 1**, lo nombra e indica con qué severidad estaba aprobado |
-| **F7** | Hallazgo aprobado que **baja** de CRITICAL a HIGH | Verde | **exit 0**, informado como mejora |
+| **F7** | Hallazgo aprobado que **baja** de CRITICAL a HIGH | Expectativa heredada incorrecta: verde | **exit 0** histórico; no satisface la política exacta. La nueva regresión exige RED |
 | **Restauración** | Fixtures eliminados, baseline real | Verde | **exit 0**, 116 comparados |
 
 Los fixtures temporales se eliminaron. El árbol versionado **nunca** contuvo un
@@ -621,69 +616,31 @@ condiciones de la excepción autorizada. La evidencia de la ejecución real
 —identificador, resultado y duración— se registra en §V.1 cuando existe. No se
 hizo merge a `dev`, ni pull request, ni publicación de ninguna mutación rota.
 
-### V.1 Primera ejecución: el gate encontró un defecto real de Task021
+### V.1 Primera ejecución y defecto introducido después (histórico)
 
-*Observado el 2026-09-11 UTC.* Ejecución **34604012128**, evento `push`, rama
-`Task/021-CI-Infraestructura`, sobre el SHA exacto `de3cb47`. Terminó en
-**`failure`** en **36 s**. **Catorce de los quince pasos en verde**; falló el
-último, `Image vulnerability gate (S-09)`.
+Observado y registrado el 2026-09-11 UTC: run **34604012128**, evento `push`,
+rama `Task/021-CI-Infraestructura`, SHA `de3cb47`, conclusión `failure`.
+El scanner reclasificó `CVE-2026-56854` sobre `golang.org/x/crypto` de
+CRITICAL a HIGH en `usr/bin/mc`, `usr/bin/minio` y `portainer`.
 
-**No fue una vulnerabilidad nueva.** El gate informó, con precisión:
+El commit posterior `4808d7c` retiró `severity` de la identidad y permitió
+rebajas; `fixed_version` ya estaba excluido. El reporte heredado presentó
+esa relajación como una corrección. **La revisión posterior determinó que
+era un defecto funcional del comparador:** la política aprobada exige
+ambos campos dentro de la identidad y no permite aceptar una reclasificación
+por iniciativa del agente. Se conserva el fallo remoto como evidencia
+histórica, sin convertirlo en un broken push deliberado autorizado.
 
-| Imagen | Observados | Aprobados | «Nuevos» | «Ya no presentes» |
-| --- | --- | --- | --- | --- |
-| `minio/minio` | 100 | 100 | 2 | 2 |
-| `portainer/portainer-ce` | 16 | 16 | 1 | 1 |
+El usuario autorizó corregir el defecto dentro de Task021 el 2026-09-11,
+con regresiones para cada campo. No autorizó regenerar el baseline para
+aceptar diferencias reales nuevas ni actualizar MinIO o Portainer.
 
-Los tres pares eran **el mismo hallazgo**: `CVE-2026-56854` sobre
-`golang.org/x/crypto`, en `usr/bin/mc`, `usr/bin/minio` y `portainer`. La base
-de datos del scanner la había reclasificado de **CRITICAL a HIGH** entre la
-medición local y la ejecución remota. Mismo CVE, mismo paquete, misma versión
-instalada: **severidad menor**.
-
-**El defecto era mío, no del proyecto.** La autorización pide fallar cuando *«un
-hallazgo conocido cambia a una severidad **mayor** y la nueva identidad no está
-aprobada»*. Mi primera implementación metía `severity` dentro de la identidad,
-así que trataba **cualquier** cambio como hallazgo nuevo y ponía en rojo también
-las **rebajas**. Era más estricto de lo pedido y, sobre todo, incorrecto: una
-mejora no puede presentarse como regresión de seguridad.
-
-**Corrección aplicada**, dentro del margen de la propia rama Task:
-
-- `severity` **sale** de la identidad, que queda en `scope`, `id`, `package`,
-  `package_path` e `installed_version`.
-- La severidad se compara **aparte y de forma asimétrica**: si el hallazgo
-  **sube** respecto de la severidad aprobada, la ejecución **falla**; si
-  **baja**, se informa como mejora.
-- El baseline registra la **severidad máxima aprobada** y valida que ninguna
-  severidad declarada sea desconocida.
-
-**No se regeneró el baseline para tapar el rojo.** Esa habría sido la salida
-fácil y la equivocada: dejaría el mismo defecto dentro, y cada actualización de
-la base de datos del scanner volvería a exigir una regeneración refleja que
-vacía de sentido al baseline. Se corrigió la regla.
-
-Verificado en local con tres escenarios sobre copias temporales:
-
-| Escenario | Esperado | Obtenido |
-| --- | --- | --- |
-| Las tres rebajas exactas que vio el runner | Verde, informadas como mejora | **exit 0** |
-| Un hallazgo aprobado que sube de HIGH a CRITICAL | Rojo | **exit 1**, con la severidad aprobada citada |
-| Un CVE ausente del baseline | Rojo | **exit 1** |
-
-**Lo que esta ejecución demuestra**, y que ningún control negativo local podía
-demostrar igual de bien: el gate **no** es decorativo. Puesto frente a datos
-que habían cambiado de verdad desde la medición, **rompió la ejecución**,
-nombró los tres hallazgos afectados y obligó a revisar la regla. Un gate con
-`|| true`, con umbral por cantidad o con `.trivyignore` habría pasado en verde
-sin que nadie se enterara: los conteos eran **100 y 16**, exactamente los
-mismos del baseline.
-
-### V.2 Segunda ejecución: verde
+### V.2 Segunda ejecución: verde histórico del comparador defectuoso
 
 *Observado el 2026-09-11 UTC.* Ejecución **34604423915**, evento `push`, rama
 `Task/021-CI-Infraestructura`, SHA `4808d7c`. **`success`** en **51 s**, del
-13:27:42 al 13:28:33 UTC. **Los 15 pasos del job `Infra quality` en verde.**
+13:27:42 al 13:28:33 UTC (duración del job; el run completo duró 55 s). **15 pasos declarados en verde; la API registra 18 al incluir preparación
+y limpieza del runner.**
 
 | Gate | Resultado observado en el runner |
 | --- | --- |
@@ -718,7 +675,7 @@ entero.
 
 ## W. Logs y duraciones
 
-**Duración de CI, medida sobre la ejecución real:** el job `Infra quality`
+**Duración histórica del job, no del run completo:** el job `Infra quality`
 tardó **51 s** en la ejecución verde **34604423915** y **36 s** en la fallida
 **34604012128**. Es un tiempo razonable y comparable al de los otros dos
 repositorios: 79 s el frontend y 295 s el backend, que además levanta servicios.
@@ -738,7 +695,7 @@ como tales, **nunca** como tiempos de CI.
 | Gitleaks historial frontend | 724 ms |
 | Trivy, 4 imágenes | de 252 ms a 12 362 ms |
 
-## X. Matriz de criterios de STAGE-06
+## X. Matriz histórica de criterios de STAGE-06 (previa a la corrección)
 
 | Criterio literal | Frontend | Backend | Infra | Estado global |
 | --- | --- | --- | --- | --- |
@@ -750,9 +707,9 @@ como tales, **nunca** como tiempos de CI.
 | El escaneo cubre todo el historial | **Auditado por Task021: 13 commits, 0 hallazgos** | **Auditado por Task021: 19 commits, 2 falsos positivos demostrados** | **Automatizado**: 44 commits en cada ejecución, 0 hallazgos | **Automatizado solo en infra**; en frontend y backend es auditoría fechada, no gate |
 | Ningún check vacío | Pendiente de inspección | Pendiente de inspección | **Cumplido**: Terraform y Bash/sh son **guardas activas** que fallan si aparece el artefacto, y los gates de scripts fallan si no encuentran ninguno | **Pendiente** en los otros dos |
 
-Los identificadores de ejecuciones anteriores se citan como **evidencia
-documental heredada**. Task021 **no** volvió a consultarlos en GitHub y **no**
-los presenta como auditoría remota propia.
+En esa matriz, los IDs de frontend y backend eran **evidencia documental
+heredada**, sin nueva consulta remota. Los tres runs de infra se auditaron
+posteriormente en GitHub: metadatos exactos y contexto en §AH.
 
 **ETAPA 06 no se declara completada.** Para infra faltan la ejecución de
 `pull_request` y el verde sobre `dev`, que pertenecen al cierre aprobado, y el
@@ -760,7 +717,7 @@ control negativo remoto deliberado, que **sigue sin autorizarse**. Para frontend
 y backend falta inspeccionar sus workflows contra el criterio de «ningún check
 vacío» y automatizar el escaneo del historial, hoy solo auditado.
 
-## Y. Estado de S-09 global
+## Y. Estado de S-09 global registrado antes de detectar el defecto
 
 Frontend y backend conservan sus porciones aprobadas. **Infraestructura tiene
 ahora las dos mitades**: versiones fijadas por tag y digest, y escaneo
@@ -769,7 +726,7 @@ automatizado en `CI Infra` con la política de §Ñ.
 remota que lo demuestra. **S-09 global** sigue **abierto** hasta que la
 aprobación cierre la porción de infraestructura.
 
-## Z. Documentación de esta fase
+## Z. Documentación de la implementación inicial
 
 | Archivo | Acción |
 | --- | --- |
@@ -793,7 +750,7 @@ También se actualizó **R-018-3** con su evidencia y mitigación nuevas, y se
 registró **R-021-1** para el residual de Portainer. **El backend y el frontend
 no se tocaron.**
 
-## AA. Criterion12 A/B/C/D
+## AA. Criterion12 A/B/C/D declarado antes de la revisión
 
 | Clase | Evaluación tras la medición |
 | --- | --- |
@@ -802,8 +759,12 @@ no se tocaron.**
 | **C** | **0.** Ningún estado vivo de Git o GitHub persistido en documentación. Las dos afirmaciones heredadas «`Task/021` sigue Pendiente y no iniciada», dentro de registros históricos de STATUS, quedaron **ancladas a su fecha** |
 | **D** | **0.** B-021-1 y B-021-2 resueltos y verificados; la contradicción residual de §12 de la ficha, dejada por la edición parcial, corregida; separador de sección restituido en STATUS |
 
-**B-021-3 no es una contradicción documental**: es un hallazgo técnico medido,
-abierto y con decisión pendiente.
+**Estado observado durante la detención previa a la decisión del usuario:**
+B-021-3 era un hallazgo técnico medido, abierto y con decisión pendiente.
+Posteriormente, con la autorización explícita del usuario del 2026-09-11,
+**B-021-3 quedó Resuelto** mediante el baseline exacto de riesgo aceptado.
+**D-021-B Resuelta:** se conserva la detención como historia, sin presentarla
+como un bloqueo vigente.
 
 ## AB. Git de infra
 
@@ -813,7 +774,7 @@ publicó en `origin` bajo la excepción de bootstrap autorizada. **No** se integ
 en `dev`, **no** se creó pull request y **no** se tocó `main`. El estado
 operativo posterior se consulta en Git y GitHub, no en este documento.
 
-## AC. Integridad del entorno
+## AC. Integridad del entorno en la medición histórica inicial
 
 **9** contenedores en ejecución antes y después, con el mismo estado. Los **5**
 volúmenes del proyecto, intactos. **0** imágenes añadidas al demonio Docker por
@@ -823,7 +784,7 @@ nunca se leyó ni se imprimió.
 ## AD. Contadores
 
 **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. **Sin cambio**:
-Task021 está **Lista para validación**, no aprobada, así que **no suma**. No se
+Task021 está **En progreso** durante la revalidación y no aprobada, así que **no suma**. No se
 escribe 21/41, ni 3/3, ni «ETAPA 06 Completada». `Task/022` **Pendiente** y no
 iniciada.
 
@@ -835,12 +796,13 @@ iniciada.
 | **B-021-2** | **Resuelto** con autorización explícita el 2026-09-10 |
 | **B-021-3** | **Resuelto** el 2026-09-11 por decisión explícita del usuario: baseline exacto de riesgo aceptado, sin `.trivyignore`, sin umbral por cantidad y sin excluir ninguna imagen |
 
-**Ningún bloqueo abierto.** El defecto que destapó la primera ejecución remota
-—la severidad tratada como parte de la identidad— se corrigió dentro de la
-misma rama, como permite la autorización del bootstrap, y está documentado en
-§V.1.
+**B-021-1/2/3 Resueltos.** D-021-A/B Resueltas; el defecto funcional
+consistía en excluir severidad y FixedVersion de la identidad, no en
+rechazar sus cambios. Quedó corregido con regresión permanente. La detención
+posterior por tres diferencias reales y su revisión humana se conservan en
+§AG–AH. La validación final exige un nuevo run conforme.
 
-## AF. Veredicto
+## AF. Veredicto histórico, invalidado por la revisión del comparador
 
 **TASK021 IMPLEMENTADA — LISTA PARA VALIDACIÓN.**
 
@@ -858,3 +820,233 @@ aprobado, y el **control negativo remoto deliberado sigue sin autorizarse**.
 
 **No aprobada.** No se hizo merge a `dev`, ni pull request, ni se inició
 `Task/022`.
+
+## AG. Corrección autorizada y detención histórica — 2026-09-11
+
+**Estado observado durante esa detención, antes de la revisión humana de §AH.**
+No había veredicto final de conformidad ni nueva aprobación. La revalidación se detuvo por tres identidades reales fuera del baseline,
+detalladas al final. Faltan gates locales, Criterion12 y un nuevo run `push`
+sobre el HEAD corregido. Los verdes históricos no
+certifican el comparador nuevo; S-09 infraestructura requiere esa evidencia.
+Contadores pre-aprobación: **20/41 — 49 %**, ETAPA 06 **2/3 — 67 %**.
+
+### Auditoría del commit heredado, antes de editar
+
+Observado el 2026-09-11 UTC mediante Git y GitHub, no inferido del reporte:
+`HEAD = 4d47346a6360961929b47603619880975278b2f8`, rama
+`Task/021-CI-Infraestructura`, árbol limpio, staging 0 y `main..HEAD = 3`.
+`git ls-remote` devolvió ese mismo SHA para la rama Task publicada.
+
+El commit contiene exclusivamente siete documentos: NFR, ROADMAP, STATUS,
+STAGE-06, índice de reportes, ficha y reporte Task021; 170 inserciones y
+50 eliminaciones. No cambia workflow, comparador ni baseline. Registró
+los runs anteriores y presentó la tarea como Lista para validación.
+
+La consulta con el SHA completo confirmó el run
+[34605076928](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34605076928),
+`CI Infra`, evento `push`, misma rama y SHA, `status=completed`,
+`conclusion=success`; inicio `2026-09-11T13:34:26Z`, actualización final
+`2026-09-11T13:35:07Z`. Se registra como hecho histórico; **no se reutiliza
+para certificar la corrección**.
+
+### Correcciones y regresión
+
+- **D-021-A Resuelta:** las frases de la ficha sobre la no implementación
+  y ausencia de CI quedan ancladas a la detención histórica.
+- **D-021-B Resuelta:** la afirmación antigua de B-021-3 abierto queda
+  temporalizada; **B-021-3 Resuelto** por decisión explícita del usuario.
+- **Defecto funcional de identidad corregido en local:** cinco campos
+  completos, orden determinista, nombre/digest previos a la comparación y
+  desaparición con aviso. La aceptación temporal del residual no cambia.
+
+Regresión permanente en
+[`tests/security/test_vulnerability_gate.py`](../../tests/security/test_vulnerability_gate.py).
+Primero se ejecutó contra el comparador heredado: **13 tests, 5 fallos**;
+reprodujo la aceptación indebida de `FixedVersion`, rebaja de severidad y
+nombre de imagen, y verificó la salida visible y el aviso de obsolescencia.
+Después de la corrección: **13/13 GREEN**. Los tests usan informes sintéticos
+en directorios temporales eliminados al terminar; ninguna imagen real se
+modifica. La regresión se incorpora al workflow.
+
+### Scan real nuevo: RED y detención obligatoria
+
+Observado el **2026-09-11; escaneos a las 12:29 Guatemala / 18:29 UTC**:
+Trivy **0.74.0**, ZIP Windows verificado por SHA256
+`94c40e0696e4b907a74b7b2e1438d5d72ebaca83115817407f568a002d520842`.
+Base de datos descargada de nuevo, sin reutilizar el cache heredado:
+`UpdatedAt=2026-09-11T07:00:51.617232631Z`.
+Los cuatro escaneos terminaron con exit 0; el comparador terminó con **exit 1**.
+
+| Imagen / ubicación | VulnerabilityID | Paquete | InstalledVersion | FixedVersion | Baseline | Scan actual |
+| --- | --- | --- | --- | --- | --- | --- |
+| MinIO / `usr/bin/minio` | CVE-2026-56854 | `golang.org/x/crypto` | `v0.37.0` | `0.55.0` | CRITICAL | HIGH |
+| MinIO / `usr/bin/mc` | CVE-2026-56854 | `golang.org/x/crypto` | `v0.40.0` | `0.55.0` | CRITICAL | HIGH |
+| Portainer / `portainer` | CVE-2026-56854 | `golang.org/x/crypto` | `v0.54.0` | `0.55.0` | CRITICAL | HIGH |
+
+**No es un VulnerabilityID nuevo ni una actualización de imagen.** Son tres
+identidades completas reales no incluidas en el baseline: la política exacta
+ordena FAIL también para esta rebaja de severidad. No se aceptaron por
+iniciativa del agente. Los nombres y digests de MinIO y Portainer coincidieron
+exactamente; las entradas `images` y `accepted_findings` permanecieron
+idénticas a las de `4d47346`, comprobado por comparación estructural.
+
+Postgres y Traefik: **0 accionables**. MinIO: **100** observados, **98**
+coincidencias exactas, **2** fuera del baseline. Portainer: **16** observados,
+**15** coincidencias exactas, **1** fuera. Las tres identidades CRITICAL del
+baseline se informaron además como `baseline_stale`; el aviso no convierte
+las nuevas identidades HIGH en aceptadas. Los conteos no se usan como permiso.
+
+**Detención conforme al apartado 15 de la autorización.** No se completó la
+revalidación general, no se afirma C=0/D=0 y no se hizo commit ni push de estas
+correcciones. No hay CI nueva que las certifique. La prueba A con estado real
+no obtuvo GREEN; tampoco puede declararse el GREEN final solicitado.
+Los 13 tests sintéticos pasaron y sus fixtures temporales se eliminaron.
+Los informes reales y el log se conservaron en `tmp/task021-revalidation/`,
+ignorado por Git, como evidencia local; no contienen mutaciones sintéticas.
+La revisión automática de aprobación rechazó la limpieza de la copia extraída
+de Trivy y su cache temporal con el motivo `blocked by policy`. Esos artefactos
+también permanecen dentro del mismo directorio ignorado; no se publicaron.
+
+**B-021-3 sigue Resuelto** por la decisión explícita sobre la política;
+no equivale a aprobar estas tres identidades distintas. D-021-A y D-021-B
+están Resueltas. El defecto de identidad está corregido y cubierto por
+regresión local; en esa detención la entrega completa quedó **Bloqueada**
+por el scan real. La revisión humana posterior se registra en §AH.
+MinIO y Portainer conservan el residual aceptado temporalmente, sin corregir.
+
+No se emite el veredicto de implementación lista. ETAPA 06 conserva **2/3**
+y el avance **20/41**. No se reconstruye una matriz final a partir de un run
+heredado; quedan pendientes CI conforme y las evidencias globales autorizadas.
+
+## AH. Revisión humana acotada del baseline — 2026-09-11
+
+El 2026-09-11 una actualización de la base de datos de Trivy reclasificó
+**CVE-2026-56854 de CRITICAL a HIGH** en tres ubicaciones, sin cambiar
+VulnerabilityID, paquete, InstalledVersion, FixedVersion ni digest.
+**El gate estricto la rechazó correctamente.** Después de revisión humana
+explícita se actualizaron únicamente esas tres identidades del baseline.
+**La política no se relajó: cualquier cambio futuro de identidad vuelve a
+requerir revisión.** La vulnerabilidad no fue corregida; sigue siendo residual
+real aceptado temporalmente bajo R-018-3 y R-021-1.
+
+### Demostración estructural
+
+La comparación anterior/posterior produjo exactamente estos tres cambios:
+
+| Imagen | Scope | Paquete | InstalledVersion | FixedVersion | Severity |
+| --- | --- | --- | --- | --- | --- |
+| MinIO | `usr/bin/minio` | `golang.org/x/crypto` | `v0.37.0` | `0.55.0` | CRITICAL → HIGH |
+| MinIO | `usr/bin/mc` | `golang.org/x/crypto` | `v0.40.0` | `0.55.0` | CRITICAL → HIGH |
+| Portainer | `portainer` | `golang.org/x/crypto` | `v0.54.0` | `0.55.0` | CRITICAL → HIGH |
+
+Se comparó el JSON completo, se revirtieron esas tres severidades en una
+copia en memoria y se comprobó igualdad estructural con la entrada anterior.
+Mismas cuatro imágenes, referencias, digests, riesgos, ubicación, package_path,
+VulnerabilityID, paquetes y versiones; **116** accepted_findings antes y
+después, sin duplicados añadidos. Ningún otro finding cambió. El texto de
+política ya corregido en la reanudación anterior se conservó intacto.
+
+El comparador y las expectativas de las pruebas no se modificaron en esta
+revisión humana: SHA256 del comparador
+`15c898abc8c1ac84e40d99301ecd2d856bb1701f7235ea74e701478596c98e8c`;
+de las pruebas
+`3365e59072850cae7aa08cd84b1e176aeaf9a4a492cc58ef59d80183e54541ff`.
+Regresión permanente ejecutada nuevamente: **13/13 GREEN**, incluyendo
+CRITICAL → HIGH sintético rechazado, FixedVersion cambiado rechazado y
+desaparición aceptada con `baseline_stale`. No se cambiaron expectativas.
+
+### Auditoría expresa de runs históricos desde GitHub
+
+Consultado el 2026-09-11 mediante la API de GitHub. En los tres:
+`workflow=CI Infra`, `event=push`, `headBranch=Task/021-CI-Infraestructura`,
+`status=completed`. Ninguno certifica el comparador corregido.
+
+| databaseId | headSha | conclusion | createdAt (UTC) | updatedAt (UTC) |
+| --- | --- | --- | --- | --- |
+| [34604012128](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34604012128) | `de3cb4788fe5177a60b6b74fafd4027d73e2352f` | `failure` | 2026-09-11T13:23:18Z | 2026-09-11T13:23:58Z |
+| [34604423915](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34604423915) | `4808d7c46a3e9f62a3a4760d5a53aeef58788c68` | `success` | 2026-09-11T13:27:39Z | 2026-09-11T13:28:34Z |
+| [34605076928](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34605076928) | `4d47346a6360961929b47603619880975278b2f8` | `success` | 2026-09-11T13:34:26Z | 2026-09-11T13:35:07Z |
+
+**34604423915 pertenece a `4808d7c`, no a `4d47346`.** Su job duró
+**51 s** y el intervalo createdAt→updatedAt del run, **55 s**.
+**34605076928 pertenece a `4d47346`**: job **37 s**, intervalo del run **41 s**.
+El primero verificó la relajación defectuosa de severidad; el segundo incluyó
+la documentación heredada y el mismo comparador. **34604012128** pertenece a
+`de3cb47`: job **36 s**, intervalo del run **40 s**; falló en S-09.
+
+La API registra **18 pasos** en cada run histórico: **15 declarados** más
+`Set up job`, `Post Checkout` y `Complete job`. En los verdes los 18 fueron
+`success`; en el rojo falló S-09. Se distingue esta contabilidad para no
+confundir pasos declarados con todos los registrados. La revisión agrega
+una regresión permanente: el workflow corregido declara **16 pasos**.
+No se reescribieron commits ni el mensaje histórico de `4d47346`.
+
+### Medición local posterior a la revisión humana
+
+Trivy **0.74.0**, archivo Windows y ejecutable verificados. Se usó la DB
+`UpdatedAt=2026-09-11T07:00:51.617232631Z`, descargada el mismo día a las
+18:28:40 UTC; el scan nuevo comenzó a las **18:51:59 UTC**. Las cuatro imágenes
+se escanearon de nuevo. Después se construyeron también las dos imágenes
+propias del workflow y se volvieron a escanear antes de validar el gate.
+
+| Gate | Resultado local |
+| --- | --- |
+| Comparador, regresión permanente | **13/13 GREEN** |
+| Postgres / Traefik | **0 / 0** accionables; tolerancia cero |
+| MinIO | **100** accionables, **100** coincidencias exactas, **0** fuera del baseline |
+| Portainer | **16** accionables, **16** coincidencias exactas, **0** fuera del baseline |
+| S-09 con baseline revisado | **exit 0**, residual visible |
+| Compose con `--profile admin` | **exit 0**, los **7** servicios |
+| Variables Compose | **26** usadas, **26** declaradas, **0** faltantes |
+| PowerShell | **6/6**, parser local 5.1; CI ejecuta su parser PowerShell 7 |
+| Python | **4/4** fuentes: dos scripts previos, gate y test; sin ejecutar operaciones de respaldo |
+| Gitleaks 8.30.1, historial `--all` | **45 commits**, **0** hallazgos |
+| Terraform / Bash | **0 / 0** artefactos; guardas activas, sin verificaciones vacías |
+| Builds de las dos imágenes propias | Ambos **exit 0**, mismas bases y parches fijados |
+| YAML, triggers, permisos y checkout | Válidos; **16** pasos declarados |
+
+El primer intento de validación adicional del YAML no disponía de PyYAML en
+el Python del host; no fue un fallo del workflow. Se instaló **PyYAML 6.0.2**
+exclusivamente en el temporal ignorado, con wheel verificado por SHA256
+`7e7401d0de89a9a855c839bc697c079a4af81cf878373abd7dc625847d25cbd8`,
+y la validación pasó. No es una dependencia nueva del repositorio ni de CI.
+Trivy informó la ausencia de Alpine 3.24 en su lista de EOL y el uso de
+severidades de distintos proveedores; sus escaneos finalizaron con exit 0
+sin silenciar esos avisos ni convertirlos en excepciones del baseline.
+
+Task021 permanece **En progreso / revalidación** hasta completar el barrido
+local final y obtener un nuevo `push` con `headSha` igual al HEAD corregido,
+`status=completed` y `conclusion=success`. No hay aprobación de la tarea.
+
+### Barrido local previo al bootstrap de las correcciones
+
+Ejecutado el 2026-09-11 tras aplicar la revisión humana y los gates anteriores:
+**1359 destinos de enlaces relativos** comprobados en **127 archivos Markdown**,
+**0 rotos**; **0** coincidencias de patrones sensibles. Dos cadenas
+`![alt](access_url)` en ejemplos de código de Task015 se excluyeron como
+código literal, no como enlaces renderizados; esos documentos no se tocaron.
+Gitleaks 8.30.1 escaneó además una copia de los **149 archivos versionados o
+no ignorados** del worktree: **0 hallazgos**. La copia excluyó los archivos
+ignorados, por lo que no se leyó el `.env` real ni los secretos locales.
+`git diff --check`: **exit 0**. Staging previo al bootstrap: **0**.
+
+La comparación estructural del baseline volvió a pasar, así como los hashes
+del comparador y de sus pruebas, sin modificar sus expectativas. No quedan
+negativos activos. `tmp/task021-revalidation/` está ignorado, no aparece en
+`git status` ni en `git ls-files`, y ningún temporal se incluye en el commit.
+Su conservación fue autorizada expresamente; no bloquea la entrega.
+
+**Criterion12 recalculado sobre la documentación afectada, 2026-09-11:**
+
+| Clase | Resultado de la revisión |
+| --- | --- |
+| A | Reglas durables de ramas, aprobación, límites del bootstrap y política estricta conservadas; revisión humana acotada de tres severidades documentada |
+| B | Creación de rama, detenciones, mediciones y los tres runs históricos con fecha y SHA correctos; ninguna evidencia histórica certifica por sí sola el comparador nuevo |
+| C | **0**. Las referencias a ramas, PR, staging y normalización son reglas o mediciones fechadas, sin estado operativo persistido como vigente |
+| D | **0**. D-021-A/B y defecto de identidad corregidos; estado pre-aprobación y distribución coherentes; semántica estricta común en ficha, reporte, baseline, NFR, STATUS y STAGE-06; runs reconciliados |
+
+Los conteos de etapas anteriores se conservan como historia fechada. La
+revisión no altera aprobaciones, R-14 ni el alcance de backend/frontend.
+No se amplía una autorización por el resultado de una prueba. Solo procede
+commit y push de la misma rama Task bajo la excepción explícita del usuario;
+la aprobación, PR, integración en dev y broken push remoto no están incluidos.
