@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/021-CI-Infraestructura` |
-| **Estado** | **En progreso** — revisión humana del baseline aplicada; validación local y nueva CI requeridas |
+| **Estado** | **Lista para validación** — local GREEN y CI estricta conforme el 2026-09-11; no aprobada |
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
@@ -784,7 +784,7 @@ nunca se leyó ni se imprimió.
 ## AD. Contadores
 
 **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. **Sin cambio**:
-Task021 está **En progreso** durante la revalidación y no aprobada, así que **no suma**. No se
+Task021 está **Lista para validación**, no aprobada, así que **no suma**. No se
 escribe 21/41, ni 3/3, ni «ETAPA 06 Completada». `Task/022` **Pendiente** y no
 iniciada.
 
@@ -800,7 +800,7 @@ iniciada.
 consistía en excluir severidad y FixedVersion de la identidad, no en
 rechazar sus cambios. Quedó corregido con regresión permanente. La detención
 posterior por tres diferencias reales y su revisión humana se conservan en
-§AG–AH. La validación final exige un nuevo run conforme.
+§AG–AH. La validación de la corrección quedó acreditada por el nuevo run de §AI.
 
 ## AF. Veredicto histórico, invalidado por la revisión del comparador
 
@@ -1014,9 +1014,9 @@ Trivy informó la ausencia de Alpine 3.24 en su lista de EOL y el uso de
 severidades de distintos proveedores; sus escaneos finalizaron con exit 0
 sin silenciar esos avisos ni convertirlos en excepciones del baseline.
 
-Task021 permanece **En progreso / revalidación** hasta completar el barrido
-local final y obtener un nuevo `push` con `headSha` igual al HEAD corregido,
-`status=completed` y `conclusion=success`. No hay aprobación de la tarea.
+Durante esa revalidación Task021 permaneció **En progreso** hasta completar
+el barrido local y obtener el nuevo `push` conforme registrado en §AI.
+La revisión humana del baseline no equivale a aprobación de la tarea.
 
 ### Barrido local previo al bootstrap de las correcciones
 
@@ -1050,3 +1050,105 @@ revisión no altera aprobaciones, R-14 ni el alcance de backend/frontend.
 No se amplía una autorización por el resultado de una prueba. Solo procede
 commit y push de la misma rama Task bajo la excepción explícita del usuario;
 la aprobación, PR, integración en dev y broken push remoto no están incluidos.
+
+## AI. CI nueva sobre las correcciones — 2026-09-11
+
+Tras todos los gates locales GREEN, C=0/D=0 y staging 0, se creó el commit
+`43c1bf20f3a75bca7d4cde294bae771c4f92acf3` y se publicó exclusivamente la rama
+`Task/021-CI-Infraestructura`. Contiene D-021-A/B, el comparador estricto,
+la regresión permanente y las tres severidades revisadas. No se integró dev,
+no se creó PR ni se publicaron mutaciones deliberadamente rotas.
+
+| Campo verificado desde GitHub | Valor |
+| --- | --- |
+| Workflow / databaseId | [CI Infra · 34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843) |
+| headSha | `43c1bf20f3a75bca7d4cde294bae771c4f92acf3` |
+| event / headBranch | `push` / `Task/021-CI-Infraestructura` |
+| status / conclusion | `completed` / `success` |
+| createdAt / updatedAt | `2026-09-11T19:02:06Z` / `2026-09-11T19:03:02Z` |
+| Duración del run | **56 s** |
+| Job / duración | `Infra quality`, `19:02:09Z` → `19:03:01Z`, **52 s** |
+| Pasos | **19/19 success**, **0 skipped**: 16 declarados y 3 de preparación/limpieza |
+
+### Auditoría de todos los pasos y logs
+
+Se verificaron las conclusiones de cada paso en la API de jobs y se descargó
+el log completo, **1998 líneas**. No se utilizó ningún run anterior a la
+corrección para certificarla. El cliente `gh` mostró `UNKNOWN STEP` al
+etiquetar las líneas descargadas; los nombres y conclusiones se obtuvieron
+de la API de jobs y los contenidos se verificaron contra sus salidas.
+
+| Evidencia del runner | Resultado |
+| --- | --- |
+| Checkout | SHA correcto, credenciales no persistentes, historial completo |
+| Integridad de herramientas | Gitleaks 8.30.1 y Trivy 0.74.0; ambos archivos SHA256 `OK` |
+| Terraform y Bash | Guardas verdes, 0 artefactos; no hay fmt/validate o bash -n vacíos |
+| Compose | 7 servicios: backend, frontend, migrations, minio, portainer, postgres, traefik |
+| Variables | 26 utilizadas y 26 declaradas |
+| PowerShell | 6 fuentes, 0 fallos; runtime 7.6.5 |
+| Python | 3 fuentes compiladas, incluido el gate; runtime 3.12.3 del runner |
+| Regresión del comparador | 13/13 GREEN, incluido el archivo de tests; 0.604 s |
+| Gitleaks, historial `--all` | 46 commits, `no leaks found` |
+| Builds / scans | Dos imágenes propias construidas y las cuatro imágenes escaneadas |
+| Postgres / Traefik | 0 / 0 accionables; tolerancia cero |
+| MinIO / Portainer | 100 / 16 coincidencias exactas; **0 fuera del baseline** |
+| Residual visible | **116/116** identidades aprobadas localizadas literalmente en el log; nombres y digests exactos comprobados |
+| Resultado S-09 | `RESULTADO: CORRECTO`, exit 0 |
+| Secretos en logs | **0** patrones de claves/tokens y **0** hallazgos de Gitleaks 8.30.1 sobre el log completo |
+
+El historial creció de 45 commits escaneados localmente a **46** en CI por
+el commit de corrección. La clasificación HIGH de las tres entradas revisadas
+aparece explícitamente en el log. No se corrigieron MinIO ni Portainer:
+se preserva el residual real aceptado temporalmente.
+
+**S-09 infraestructura técnicamente satisfecho por esta ejecución real**, con
+Task021 **Lista para validación**, todavía no aprobada. Las evidencias globales
+pendientes de STAGE-06 no se sustituyen por este run.
+
+## AJ. Matriz literal de salida de STAGE-06 tras el nuevo verde
+
+Reconstruida el 2026-09-11 después del run `34636624843`. Se consultaron
+nuevamente desde GitHub los IDs de frontend y backend incluidos en la matriz:
+los seis son `completed/success` con los eventos y ramas indicados. Sus
+pruebas y auditorías de logs se citan desde los reportes de sus tareas;
+Task021 no volvió a ejecutar pruebas de aplicación ni modificó esos repositorios.
+La inspección en lectura de ambos workflows y sus scripts confirmó artefactos
+reales: 192 fuentes TS/TSX en frontend y 112 fuentes Python bajo tests backend.
+
+| Criterio literal de STAGE-06 | Frontend | Backend | Infraestructura | Estado global |
+| --- | --- | --- | --- | --- |
+| Cada repositorio ejecuta su workflow en cada push y pull request. | Push `34305529115` y PR `34308296565`, success | Push `34488083060` y PR `34489982595`, success | Push `34636624843`, success; PR real no ejecutado | **Pendiente: PR de infra** |
+| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, success | Sin run sobre dev autorizado para estas correcciones | **Pendiente: infra sobre dev** |
+| Un cambio deliberadamente roto hace fallar el workflow correspondiente. | Negativos locales, sin broken push autorizado | Negativos locales, sin broken push autorizado | Regresiones locales; `34604012128` fue un fallo real, no un broken push deliberado | **Pendiente: control remoto deliberado; no autorizado** |
+| Ningún secreto aparece en los logs de CI. | Auditoría documentada en Task019 §K | Auditorías documentadas en Task020 y su cierre | Run `34636624843`: 1998 líneas, patrones sensibles 0, Gitleaks 0 | **Verificado en las ejecuciones auditadas**, sin afirmar cobertura de todos los runs futuros |
+| El tiempo de ejecución de cada workflow está documentado y es razonable. | Run de bootstrap 79 s | Run dev 334 s | Run 56 s; job 52 s | **Documentado**, según createdAt→updatedAt para los runs |
+| El escaneo de secretos cubre todo el historial disponible. | Auditoría histórica Task021: 13 commits, 0 hallazgos | Auditoría histórica Task021: 19 commits, 2 falsos positivos demostrados | Gate con fetch-depth 0 y `--all`: 46 commits, 0 hallazgos | **Evidencia de auditoría en los tres**; automatización continua del historial solo en infra |
+| **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica todavía, se declara explícitamente con la tarea que la incorporará. | Scripts npm inspeccionados y fuentes presentes; 704 tests/75 archivos en evidencia de Task019 | Tests y migraciones referenciados presentes; 1855 tests/0 omitidos en evidencia de Task020 | 7 servicios, 6 PS, 3 fuentes Python más 13 tests, 4 imágenes e historial real; Terraform queda en Task025 y Bash sin familia existente | **Verificado por inspección de artefactos y evidencia registrada**; no se añadió ningún check vacío |
+
+El criterio del historial se distingue de su automatización continua:
+frontend y backend tienen una auditoría fechada, no un gate histórico en
+sus workflows. La matriz no inventa autorización para modificarlos.
+
+**ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.** Faltan al menos
+el PR real de infra, su run sobre dev y el control negativo remoto deliberado.
+Este último sigue **NO autorizado**; el fallo histórico de S-09 no lo sustituye.
+Las casillas literales de STAGE-06 no se marcan como cierre global de etapa.
+
+## AK. Veredicto de implementación
+
+**TASK021 IMPLEMENTADA — LISTA PARA VALIDACIÓN.**
+
+B-021-3 Resuelto por decisión explícita; D-021-A/B Resueltas; defecto del
+comparador Resuelto y cubierto por regresión; tres reclasificaciones revisadas
+y aceptadas mediante sustitución acotada. C=0/D=0 en el barrido de la entrega;
+contadores **20/41 — 49 %**, ETAPA06 **2/3 — 67 %**. No Aprobada.
+La documentación conserva las detenciones y los runs como hechos fechados.
+El estado operativo posterior se consulta en Git/GitHub, nunca se presume
+por esta instantánea. No merge dev, no PR, no Task022.
+
+Verificación posterior a registrar esta evidencia, antes del commit documental:
+**1360 destinos relativos**, **127 Markdown**, **0 rotos**, **0** patrones
+sensibles, Gitleaks del worktree **0**, historial **46 commits / 0 hallazgos**,
+`git diff --check` limpio y staging **0**. C=0/D=0 revalidados; los únicos
+cambios desde `43c1bf2` son siete documentos. Comparador, tests y baseline
+permanecen idénticos a los que ejecutó `34636624843`.

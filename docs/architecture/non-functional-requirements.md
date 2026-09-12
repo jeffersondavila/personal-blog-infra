@@ -70,10 +70,13 @@ UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
 secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
 
-**S-09 infraestructura — revalidación requerida el 2026-09-11 (`Task/021`).**
+**S-09 infraestructura — satisfecho técnicamente el 2026-09-11 (`Task/021`),
+pendiente de aprobación de la tarea.**
 El comparador heredado incumplía la identidad aprobada al excluir severidad
-y `FixedVersion`. Su corrección necesita un nuevo run verde sobre el HEAD
-corregido antes de considerar satisfecha esta porción del requisito. *Versiones fijadas:* las cuatro
+y `FixedVersion`. Se corrigió y se verificó en el nuevo run
+[34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843),
+`push` sobre `43c1bf20f3a75bca7d4cde294bae771c4f92acf3`, `completed/success`: 19 pasos
+verdes, 13 regresiones y 116 coincidencias exactas sin findings fuera del baseline. *Versiones fijadas:* las cuatro
 imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna
 coincidencia de `:latest` ni `:nightly` en el árbol versionado. *Escaneo en CI:*
 el workflow `CI Infra` construye las dos imágenes que el proyecto arma sobre sus
@@ -98,7 +101,10 @@ residual real y aceptado de forma explícita, con propietarios **R-018-3** y
 **R-021-1**. *Observado el 2026-09-11 UTC:* la ejecución **34604423915**, por
 `push`, terminó en **`success`** en **51 s**, con **116** hallazgos accionables
 comparados según la regla heredada. Ese run **no acredita** la corrección
-del comparador ni sustituye la evidencia final requerida.
+del comparador; la evidencia conforme es el nuevo run citado arriba. Las
+tres reclasificaciones CRITICAL→HIGH de CVE-2026-56854 se aceptaron después
+de revisión humana explícita, cambiando solo esas tres severidades. El residual
+permanece aceptado temporalmente; cualquier nueva identidad requiere revisión.
 
 ---
 

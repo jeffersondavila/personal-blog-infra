@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/021-CI-Infraestructura` |
 | **Nombre** | CI Infraestructura |
 | **Etapa** | ETAPA 06 — Integración Continua |
-| **Estado** | **En progreso** — baseline revisado explícitamente; nueva CI requerida |
+| **Estado** | **Lista para validación** — local GREEN y nueva CI estricta conforme; no aprobada |
 | **Repositorios involucrados** | `personal-blog-infra`; backend/frontend solo lectura |
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
@@ -294,7 +294,7 @@ excepción automática para futuras rebajas. Evidencia en reporte §AH.
 
 Se auditaron en GitHub los tres runs históricos de Task021. `34604423915`
 corresponde a `4808d7c`; `34605076928`, a `4d47346`. Ambos son históricos y
-no certifican la corrección. La entrega requiere un nuevo run conforme.
+no certifican la corrección. La entrega quedó acreditada por el nuevo run conforme de §24.
 
 ## 23. Validación reproducible del comparador corregido
 
@@ -311,4 +311,24 @@ El último comando del gate requiere informes Trivy recién generados para
 las cuatro imágenes; el workflow describe su generación con Trivy 0.74.0
 verificado. No sustituir el scan por fixtures. Resultados locales posteriores
 a la revisión humana, enlaces, secretos y Criterion12 **C=0/D=0** en §AH
-del reporte. La nueva CI remota se registra después de existir, sin anticiparla.
+del reporte. La nueva CI remota se registra en §24 como hecho observado, después de existir.
+
+## 24. Resultado conforme posterior — 2026-09-11
+
+[CI Infra 34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843):
+`push`, rama `Task/021-CI-Infraestructura`, SHA
+`43c1bf20f3a75bca7d4cde294bae771c4f92acf3`, `completed/success`,
+19/19 pasos registrados verdes, 0 skipped. Run **56 s**, job **52 s**.
+Comparador estricto, 13/13 tests, 46 commits sin secretos, cuatro imágenes,
+100/16 identidades aprobadas y **0 fuera del baseline**. Residual visible
+116/116; log completo auditado con Gitleaks y patrones sensibles: **0**.
+
+**TASK021 IMPLEMENTADA — LISTA PARA VALIDACIÓN.** S-09 infraestructura queda
+satisfecho técnicamente por el gate real. B-021-3 y defecto del comparador
+Resueltos; D-021-A/B Resueltas; revisión humana limitada a tres severidades.
+C=0/D=0; no aprobada. Historial completo, regresiones y matriz literal en
+reporte §AH–AK. Contadores **20/41**, ETAPA06 **2/3**.
+
+**ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA:** faltan PR real
+de infra, run sobre dev y broken push remoto deliberado, que no fue autorizado.
+Las detenciones de §21 y los runs anteriores se conservan como historia.

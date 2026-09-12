@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *En progreso / revalidación*
+### `Task/021-CI-Infraestructura` — *Lista para validación*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -162,8 +162,10 @@ ante cualquier hallazgo accionable nuevo. Propietarios: **R-018-3** y
 
 **Revisión autorizada del 2026-09-11:** el comparador heredado excluía
 `Severity` y `FixedVersion` de la identidad. Es un defecto funcional que
-invalida la certificación de S-09 infraestructura hasta obtener un nuevo
-run conforme. D-021-A/B se corrigen preservando la cronología.
+exigió un nuevo run conforme antes de acreditar S-09 infraestructura.
+Ese run se obtuvo después: `34636624843`, sobre `43c1bf2`, `push`, success,
+19 pasos verdes y 116 coincidencias exactas. El residual permanece aceptado
+temporalmente; se sustituyeron solo tres severidades tras revisión humana. D-021-A/B se corrigen preservando la cronología.
 
 *Evidencia histórica anterior a esa revisión, 2026-09-11 UTC:* el workflow **`CI Infra`** quedó implementado y
 la ejecución **34604423915**, por `push` sobre `4808d7c`,
@@ -194,12 +196,13 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios. `Task/021` está **En progreso / revalidación**. La detención local del
+salida exigen los **tres** repositorios. `Task/021` está **Lista para validación**. La detención local del
 2026-09-11 por tres identidades CRITICAL→HIGH de CVE-2026-56854 se resolvió
 mediante revisión humana explícita y sustitución exclusiva de esas tres
 severidades. El scan posterior fue GREEN, sin relajar el comparador. Su workflow
 existe y tuvo un `push` histórico en **`success`** en **51 s** con la regla
-defectuosa, que no acredita la corrección actual. El criterio del escaneo del historial quedó
+defectuosa. La corrección sí queda acreditada por `34636624843`, no por
+esa ejecución histórica. El criterio del escaneo del historial quedó
 **auditado en lectura** sobre los tres repositorios y **automatizado** para
 infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
 `dev`, que pertenecen al cierre aprobado.
@@ -212,6 +215,24 @@ infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
 - [ ] El escaneo de secretos cubre todo el historial disponible.
 - [ ] **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica
       todavía, se declara explícitamente con la tarea que la incorporará.
+
+### Matriz literal reconstruida el 2026-09-11 tras CI Infra conforme
+
+| Criterio literal de STAGE-06 | Frontend | Backend | Infraestructura | Estado global |
+| --- | --- | --- | --- | --- |
+| Cada repositorio ejecuta su workflow en cada push y pull request. | Push `34305529115` y PR `34308296565`, success | Push `34488083060` y PR `34489982595`, success | Push `34636624843`, success; PR real no ejecutado | **Pendiente: PR de infra** |
+| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, success | Sin run sobre dev autorizado para estas correcciones | **Pendiente: infra sobre dev** |
+| Un cambio deliberadamente roto hace fallar el workflow correspondiente. | Negativos locales, sin broken push autorizado | Negativos locales, sin broken push autorizado | Regresiones locales; `34604012128` fue un fallo real, no un broken push deliberado | **Pendiente: control remoto deliberado; no autorizado** |
+| Ningún secreto aparece en los logs de CI. | Auditoría documentada en Task019 §K | Auditorías documentadas en Task020 y su cierre | Run `34636624843`: 1998 líneas, patrones sensibles 0, Gitleaks 0 | **Verificado en las ejecuciones auditadas**, sin afirmar cobertura de todos los runs futuros |
+| El tiempo de ejecución de cada workflow está documentado y es razonable. | Run de bootstrap 79 s | Run dev 334 s | Run 56 s; job 52 s | **Documentado**, según createdAt→updatedAt para los runs |
+| El escaneo de secretos cubre todo el historial disponible. | Auditoría histórica Task021: 13 commits, 0 hallazgos | Auditoría histórica Task021: 19 commits, 2 falsos positivos demostrados | Gate con fetch-depth 0 y `--all`: 46 commits, 0 hallazgos | **Evidencia de auditoría en los tres**; automatización continua del historial solo en infra |
+| **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica todavía, se declara explícitamente con la tarea que la incorporará. | Scripts npm inspeccionados y fuentes presentes; 704 tests/75 archivos en evidencia de Task019 | Tests y migraciones referenciados presentes; 1855 tests/0 omitidos en evidencia de Task020 | 7 servicios, 6 PS, 3 fuentes Python más 13 tests, 4 imágenes e historial real; Terraform queda en Task025 y Bash sin familia existente | **Verificado por inspección de artefactos y evidencia registrada**; no se añadió ningún check vacío |
+
+La matriz distingue evidencia fechada y automatización continua; su detalle,
+metadatos de runs y auditorías están en el [reporte Task021](../task-reports/TASK-021-report.md).
+**ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.** No se marca
+completada ni se altera 2/3: PR de infra, dev y broken push deliberado permanecen
+pendientes; este último sigue no autorizado.
 
 ## Fuera del alcance de la etapa
 

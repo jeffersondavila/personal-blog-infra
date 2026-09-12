@@ -9,7 +9,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | **ETAPA 06 — Integración Continua — En progreso** (**2 de 3** aprobadas, **67 %**). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
-| **Tarea actual** | **`Task/021-CI-Infraestructura`** — **En progreso / revalidación** tras revisión humana acotada del baseline el 2026-09-11; B-021-1, B-021-2 y **B-021-3** resueltos con autorización explícita. **No aprobada**: no suma al avance |
+| **Tarea actual** | **`Task/021-CI-Infraestructura`** — **Lista para validación** tras revisión humana acotada del baseline y CI estricta conforme el 2026-09-11; B-021-1, B-021-2 y **B-021-3** resueltos con autorización explícita. **No aprobada**: no suma al avance |
 | **Última tarea canónica aprobada** | **`Task/020-CI-Backend`** — **Aprobada** el 2026-09-10 por el usuario |
 | **Resultado de la última tarea aprobada** | **Aprobada** mediante `approved: Task/020-CI-Backend`. Workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, migraciones sobre el motor real, suite completa con `-W error` y escaneo de imagen *fail-closed*. **R-14 cerrado**: dos *locks* transitivos con hashes, instalación `--require-hashes` y detección de desfase. *Observado el 2026-09-10:* cuatro ejecuciones `push` en **`success`**, la última **34488083060** en **295 s** con **1855** pruebas, **0** omitidas y **0** vulnerabilidades accionables. El baseline destapó y corrigió dos defectos reales preexistentes: la regresión de `anyio` y tres vulnerabilidades de `httpx2`. **S-09 backend** satisfecho; **S-09 global** sigue abierto con `Task/021`. Detalle en el [reporte](../task-reports/TASK-020-report.md). Cuenta en el avance: **20 de 41** |
 | **Tarea aprobada anterior a `Task/020`** | `Task/019-CI-Frontend` — **Aprobada** el 2026-09-08 mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
@@ -31,12 +31,12 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **`Task/021-CI-Infraestructura` — En progreso.** Inicio el 2026-09-10; preflight superado. B-021-1/2 corregidos con autorización explícita el mismo día; lectura canónica reanudada. [Reporte y propuestas](../task-reports/TASK-021-report.md) |
+| **Tarea en curso** | **`Task/021-CI-Infraestructura` — Lista para validación.** Revisión humana acotada del baseline y nueva CI estricta conforme, observadas el 2026-09-11. [Reporte](../task-reports/TASK-021-report.md) |
 | **Próxima tarea prevista** | `Task/022-Validacion-Local-Production-Like` — **Pendiente, no iniciada**; depende de Task021 y de los criterios de salida de ETAPA 06. No se inicia dentro de Task021. Toda nueva Task nace desde `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
 | **Avance global** | **49 %** — 20 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
-| **Bloqueos activos** | **Ninguno tras la revisión humana del 2026-09-11.** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde, nueva CI requerida. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
+| **Bloqueos activos** | **Ninguno tras la revisión humana del 2026-09-11.** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **48** (R-01, **R-08** y **R-14** cerrados; **R-021-1**, el residual de la imagen de Portainer, añadido el 2026-09-11 por `Task/021`, con su tabla en la sección de riesgos; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
@@ -57,15 +57,18 @@
 
 ---
 
-## Tarea en revalidación — `Task/021`
+## Tarea lista para validación — `Task/021`
 
-**Estado: En progreso / revalidación**, el 2026-09-11. El gate estricto
+**Estado: Lista para validación**, el 2026-09-11, tras local GREEN y
+[CI Infra 34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843),
+`push` sobre `43c1bf2`, `completed/success`, 19 pasos verdes, run 56 s. El gate estricto
 rechazó tres reclasificaciones de CVE-2026-56854 de CRITICAL a HIGH. Tras
 revisión humana explícita se sustituyeron únicamente esas tres severidades
 del baseline, sin cambiar imágenes, digests ni otros findings. Comparador y
 pruebas intactos: **13/13 GREEN**; scan nuevo con **0** fuera del baseline.
 El residual permanece aceptado temporalmente. D-021-A/B y el defecto del
-comparador Resueltos; nueva CI conforme requerida antes de validar.
+comparador Resueltos; S-09 infraestructura satisfecho técnicamente por el
+gate real: 116 coincidencias exactas y 0 fuera del baseline, residual visible.
 **No aprobada**, así que el
 avance **no cambia**. Iniciada el 2026-09-10 (Guatemala); el preflight y la
 creación desde `main` quedaron verificados antes de comenzar la lectura
@@ -1902,8 +1905,8 @@ Distribución por estado:
 | Estado | Tareas |
 | --- | --- |
 | Pendiente | **20** |
-| En progreso | **1** |
-| Lista para validación | 0 |
+| En progreso | 0 |
+| Lista para validación | **1** |
 | **Aprobada** | **20** |
 | Bloqueada | **0** |
 | Descartada | 0 |
@@ -2100,7 +2103,7 @@ Distribución por estado:
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | **Aprobada** (2026-09-08) |
 | `Task/019-CI-Frontend` | 06 | frontend, infra (documentación) | **Aprobada** (2026-09-08) |
 | `Task/020-CI-Backend` | 06 | backend, infra (documentación) | **Aprobada** (2026-09-10) |
-| `Task/021-CI-Infraestructura` | 06 | infra | **En progreso / revalidación** — baseline revisado explícitamente (2026-09-11) |
+| `Task/021-CI-Infraestructura` | 06 | infra | **Lista para validación** — baseline revisado explícitamente y CI estricta conforme (2026-09-11) |
 | `Task/022-Validacion-Local-Production-Like` | 07 | infra, frontend, backend | Pendiente |
 | `Task/023-Compatibilidad-FastAPI-Lambda` | 08 | backend | Pendiente |
 | `Task/024-Artefacto-ZIP-Lambda` | 08 | backend | Pendiente |
