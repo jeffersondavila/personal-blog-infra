@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-10
+**Última actualización:** 2026-09-12
 
 ---
 
@@ -8,8 +8,8 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 06 — Integración Continua — 3 de 3 tareas aprobadas (100 % de sus tareas)**; la etapa **no se declara completada**: su cierre global sigue pendiente de la evidencia restante, detallada en [STAGE-06](../stages/STAGE-06-continuous-integration.md). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
-| **Tarea actual** | **Ninguna en curso.** `Task/021-CI-Infraestructura` quedó **Aprobada** el 2026-09-12 y `Task/022` **no se inicia** dentro de este cierre |
+| **Etapa actual** | **ETAPA 06 — Integración Continua — Completada** el 2026-09-12: **3 de 3 tareas aprobadas (100 %)**, cierre técnico demostrado y mantenimiento [Task020.3](../task-reports/TASK-020.3-report.md) **Aprobado**. ETAPAS 00 a 05 completadas. **Siguiente: ETAPA 07 — Validación Local**, aún sin iniciar |
+| **Tarea actual** | **Ninguna en curso.** El mantenimiento `Task/020.3-Corregir-Registro-MinIO-CI-Backend` quedó **Aprobado** el 2026-09-12; no cuenta en las 41 tareas. Task020 y Task021 continúan Aprobadas |
 | **Última tarea canónica aprobada** | **`Task/021-CI-Infraestructura`** — **Aprobada** el 2026-09-12 por el usuario |
 | **Resultado de la última tarea aprobada** | **Aprobada** mediante `approved: Task/021-CI-Infraestructura`. Workflow `CI Infra` en cada `push` y `pull_request`, un job en `ubuntu-24.04` que valida Compose con sus **7** servicios y **26** variables, las dos familias de scripts, el historial completo de secretos con Gitleaks 8.30.1 y el gate **S-09** con **baseline exacto de riesgo aceptado** para las imágenes de terceros fijadas por digest. MinIO se toma de **Quay** con el mismo release y el **mismo digest** `sha256:14cea…`, tras demostrar byte a byte que el contenido OCI es idéntico. *Observado el 2026-09-12 UTC:* la ejecución **34670245277**, por `push` sobre `a3434eb`, concluyó **`success`** en **42 s** con **19 de 19** pasos, **116** identidades exactas, **0** hallazgos fuera del baseline y **0** secretos en los logs. **S-09 infraestructura** satisfecho técnicamente por ese gate; **el residual de MinIO no se resolvió**: son **100** hallazgos aceptados temporalmente bajo **R-018-3**, que sigue **ABIERTO**. Detalle en el [reporte](../task-reports/TASK-021-report.md). Cuenta en el avance: **21 de 41** |
 | **Tarea aprobada anterior a `Task/021`** | `Task/020-CI-Backend` — **Aprobada** el 2026-09-10 mediante `approved: Task/020-CI-Backend`. Workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, migraciones sobre el motor real, suite completa con `-W error` y escaneo de imagen *fail-closed*. **R-14 cerrado**: dos *locks* transitivos con hashes, instalación `--require-hashes` y detección de desfase. *Observado el 2026-09-10:* cuatro ejecuciones `push` en **`success`**, la última **34488083060** en **295 s** con **1855** pruebas, **0** omitidas y **0** vulnerabilidades accionables. El baseline destapó y corrigió dos defectos reales preexistentes: la regresión de `anyio` y tres vulnerabilidades de `httpx2`. **S-09 backend** satisfecho; *en esa fecha* **S-09 global** seguía abierto a falta de `Task/021`, aprobada después. Detalle en el [reporte](../task-reports/TASK-020-report.md). Llevó el avance a **20 de 41** |
@@ -23,7 +23,8 @@
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
 | **Mantenimiento aprobado anterior** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-06 por jeffersondavila. Aplica el **criterio 12** al contenido durable que dejó `Task/004.1`: cuatro afirmaciones sobre el pull request estaban escritas **en presente** y dejaron de ser ciertas al fusionarse. Se convierten en hechos históricos fechados, sin eliminar evidencia, y se añade la observación fechada de la fusión y la normalización. **No cuenta en las 41 tareas** ni altera el avance |
-| **Último mantenimiento aprobado** | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` — **Aprobada** el 2026-09-10 por el usuario mediante `approved: Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1`. Corrige el único residual **D** que dejó `Task/020.1`: una celda de su propio reporte describía el registro de STATUS solo en su fase pre-aprobación, cuando STATUS ya lo había promovido a mantenimiento aprobado. La celda conserva ahora ambos momentos. **C = 0 · D = 0** tras el barrido del criterio 12. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
+| **Último mantenimiento aprobado** | `Task/020.3-Corregir-Registro-MinIO-CI-Backend` — **Aprobada** el 2026-09-12 por el usuario mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`. Restauró la reproducibilidad de **CI Backend**: MinIO pasa a **Quay** con el mismo release y digest, y la etapa `runtime` del Dockerfile aplica las actualizaciones de seguridad de Debian que resuelven **B-020.3-C** —12 hallazgos accionables (9 HIGH, 3 CRITICAL) que el repositorio no introdujo—. Evidencia: [CI Backend 34719123905](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34719123905), **completed/success**, 25/25 pasos, **1855** pruebas, gate Trivy accionable **0**; y [CI Infra 34722681706](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34722681706), **completed/success**, 19/19 pasos. **D-020.3-A/B/C resueltas.** Con ella la **ETAPA 06 queda Completada**. **No cuenta en las 41 tareas** ni altera el avance: **21/41 — 51 %** intacto. [Reporte](../task-reports/TASK-020.3-report.md) |
+| **Mantenimiento aprobado anterior a `Task/020.3`** | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` — **Aprobada** el 2026-09-10 por el usuario mediante `approved: Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1`. Corrige el único residual **D** que dejó `Task/020.1`: una celda de su propio reporte describía el registro de STATUS solo en su fase pre-aprobación, cuando STATUS ya lo había promovido a mantenimiento aprobado. La celda conserva ahora ambos momentos. **C = 0 · D = 0** tras el barrido del criterio 12. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
 | **Mantenimiento aprobado anterior a `Task/020.2`** | `Task/020.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-10 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/020`: **nueve** afirmaciones de clase **C** convertidas en hechos fechados y **ocho** contradicciones de clase **D** corregidas, entre ellas **B-020-4** —un contador vivo dentro del registro histórico de `Task/002.1`, restaurado a su valor probado de **2 de 41 ≈ 5 %**— y **B-020-5** —cinco encabezados «Última tarea aprobada» simultáneos, reducidos a uno—. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
 | **Mantenimiento aprobado previo** | `Task/019.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-09 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/019`: **ocho** afirmaciones de clase **C** convertidas en hechos fechados y **una** contradicción de clase **D** corregida —las decisiones de `Task/019` seguían descritas como *Propuesta* pese a estar ya vigentes—. La causa fue que `Task/019` era la primera tarea cuya evidencia dependía de su propio cierre. **No cuenta en las 41 tareas** ni altera el avance |
 | **Mantenimiento anterior a `Task/004.2`** | `Task/004.1-Corregir-Backup-Rutas-Literales` — **Aprobada** el 2026-09-06 por jeffersondavila. Corrige un defecto **demostrado en ejecución** del sistema de respaldo de `Task/004`: una ruta ya resuelta se pasaba a parámetros de PowerShell que interpretan comodines, de modo que una clave de objeto con `[` abortaba el respaldo. El mismo defecto afectaba a la **prueba de restauración**. Respaldo real, verificación y restauración **superados** sobre 64 objetos, 44 de ellos con corchetes. **No cuenta en las 41 tareas** ni altera el avance |
@@ -32,12 +33,12 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna.** El cierre aprobado de `Task/021` se registró el 2026-09-12; la historia del bloqueo está en [§AL](../task-reports/TASK-021-report.md) y la revalidación con Quay en [§AM–§AP](../task-reports/TASK-021-report.md) |
-| **Próxima tarea prevista** | `Task/022-Validacion-Local-Production-Like` — **Pendiente, no iniciada**; depende de Task021 y de los criterios de salida de ETAPA 06. No se inicia dentro de Task021. Toda nueva Task nace desde `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
+| **Tarea en curso** | **Ninguna.** `Task/020.3` cerró aprobada: cambió el registro de MinIO en CI Backend conservando release y digest, y aplicó las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile para resolver B-020.3-C |
+| **Próxima tarea prevista** | `Task/022-Validacion-Local-Production-Like` — **Pendiente, no iniciada**. Su inicio queda fuera de Task020.3; toda Task nace de `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
 | **Avance global** | **51 %** — 21 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
-| **Bloqueos activos** | **Ninguno.** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
+| **Bloqueos activos** | **Ninguno abierto.** **B-020.3-C — RESUELTO** el 2026-09-12: el gate Trivy de la imagen backend pasó de 12 hallazgos accionables (9 HIGH, 3 CRITICAL, exit 1) a **0 accionables, exit 0**, tras autorización explícita del usuario para aplicar las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile. La política S-09 no se relajó: sigue siendo `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, sin `.trivyignore` ni baseline de backend. **Historia preservada:** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`). **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **48** (R-01, **R-08** y **R-14** cerrados; **R-021-1**, el residual de la imagen de Portainer, añadido el 2026-09-11 por `Task/021`, con su tabla en la sección de riesgos; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
 | **Decisiones abiertas** | **13** — **D-21** (estrategia de *rendering*) añadida por `Task/016`;  D-05, D-14, D-01 resueltas; **D-15**, **D-02** y **D-09** resueltas en `Task/011` y **Vigentes** desde el 2026-09-01; **D-03** resuelta en `Task/013` y **Vigente** desde el 2026-09-04; **D-04** resuelta en `Task/015` y **Vigente** desde el 2026-09-05; **D-16** añadida en `Task/005.5`; **D-17** a **D-20** en `Task/006.2` |
 
@@ -58,13 +59,64 @@
 
 ---
 
+## Último mantenimiento aprobado — `Task/020.3-Corregir-Registro-MinIO-CI-Backend`
+
+**Estado: Aprobada** el **2026-09-12** por el usuario mediante
+`approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`. No cuenta entre las
+41 tareas: el avance permanece en **21/41 ≈ 51 %**. Con esta aprobación la
+**ETAPA 06 queda Completada**, con **3/3 tareas aprobadas**. Task020 y Task021
+no se reabren.
+
+*Observado el 2026-09-12:* el run backend `34491446991`, mismo SHA `5fedcb3`
+y evento `push` sobre `dev`, conserva **attempt 1: success, 2026-09-10** y
+**attempt 2: failure, 2026-09-12**. El segundo falló al descargar el manifiesto
+de MinIO desde Docker Hub, antes de los gates posteriores. La solución autorizada
+cambió solo `IMAGEN_DE_MINIO` a Quay, con idéntico release y digest.
+
+*Observado el 2026-09-12 UTC:* [CI Backend 34713222925](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34713222925),
+push, `e8693eb`, attempt 1, **completed/failure**, 291 s. MinIO Quay success,
+1855 tests, 0 skipped y 0 warnings de tests; ambos locks auditados sin
+vulnerabilidades conocidas. Falló el gate final de imagen: **12 accionables,
+9 HIGH y 3 CRITICAL**, exit 1. Logs: Gitleaks y patrones sensibles 0.
+**B-020.3-C quedó abierto al cierre de esa ejecución.**
+
+*Observado el 2026-09-12 UTC, tras autorizar la corrección:* [CI Backend 34719123905](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34719123905),
+push, `32c3992`, attempt 1, **completed/success**, 296 s, **25 de 25 pasos en
+success**. MinIO Quay success, migraciones 13 passed, 1855 tests con 0 skipped
+y 0 warnings, ambos locks sin vulnerabilidades conocidas, build con
+`12 upgraded, 0 newly installed, 0 to remove`, inventario **149** en Debian 13.7
+con **CRITICAL 0** y gate accionable **0**, exit 0. **B-020.3-C — RESUELTO.**
+**Cierre técnico de STAGE-06 demostrado, pendiente de la aprobación de este
+mantenimiento.**
+
+La causa medida: la información de vulnerabilidades disponible para el **mismo
+artefacto** evolucionó entre ejecuciones. Diez CVE ya figuraban en el inventario
+anterior pero no eran accionables bajo `--ignore-unfixed` por no tener
+`FixedVersion` utilizable, y después adquirieron corrección publicada; además
+aparecieron dos CVE adicionales de `libpcre2-8-0`. Con el mismo artefacto y la
+misma versión de Trivy, el gate pasó de 0 a 12 accionables. **El repositorio no
+introdujo esas vulnerabilidades**, y tampoco existía una reconstrucción
+disponible aguas arriba. La corrección conserva Python 3.12.14, la distribución
+base, el digest del `FROM`, los dos locks, el baseline y la política S-09.
+
+**Preflight autorizado:** D-020.3-A (contador vigente obsoleto en ROADMAP) y
+D-020.3-B (fecha obsoleta de esta cabecera), preexistentes en `main`, corregidos
+con autorización explícita el 2026-09-12. Historia interna conservada.
+**D-020.3-C**, cuatro presuntos enlaces rotos señalados durante el cierre, quedó
+**RESUELTA sin modificar documentos**: eran código literal dentro de un bloque
+*fenced*, no enlaces renderizados. El barrido final da **0 enlaces renderizados
+rotos** sobre 1394 destinos en 129 archivos.
+[Ficha](../tasks/TASK-020.3-fix-minio-registry-backend-ci.md) ·
+[Reporte](../task-reports/TASK-020.3-report.md).
+
 ## Última tarea aprobada — `Task/021-CI-Infraestructura`
 
 **Estado: Aprobada** el **2026-09-12** mediante
 `approved: Task/021-CI-Infraestructura`. Cuenta en el avance: **21 de 41 —
-51 %**. Con ella la ETAPA 06 alcanza **3 de 3 tareas aprobadas**, y la etapa
-**no se declara completada**: su cierre global sigue pendiente de la evidencia
-restante que enumera [STAGE-06](../stages/STAGE-06-continuous-integration.md).
+51 %**. Al registrar esa aprobación la ETAPA 06 alcanzó **3 de 3 tareas
+aprobadas**, sin declarar completado el cierre global. La evidencia posterior
+y el mantenimiento de reproducibilidad se registran en
+[STAGE-06](../stages/STAGE-06-continuous-integration.md) y Task020.3.
 
 Las decisiones de implementación de la tarea quedan **vigentes** con esta
 aprobación, incluida la política de S-09 de infraestructura —tolerancia cero en
@@ -198,7 +250,7 @@ Pendiente.
 
 ---
 
-## Último mantenimiento aprobado — `Task/020.2`
+## Mantenimiento aprobado anterior a `Task/020.3` — `Task/020.2`
 
 | Campo | Valor |
 | --- | --- |
@@ -420,7 +472,7 @@ vigente se consulta en Git y GitHub ([WORKFLOW §6.1](WORKFLOW.md)).
 
 El cierre y la fusión produjeron además las dos ejecuciones de Actions que la
 tarea no podía tener antes: **34489982595**, evento `pull_request` sobre
-`22af3f1`, y **34491446991**, evento `push` sobre `dev` con head en el merge de
+`22af3f1`, y **34491446991, attempt 1 (2026-09-10)**, evento `push` sobre `dev` con head en el merge de
 normalización. Las dos en **`success`**, con sus **21** pasos en verde, **1855**
 pruebas y **0** omitidas. El workflow del backend tiene así evidencia real de sus
 dos triggers y un verde sobre `dev`; eso **no** completa la ETAPA 06, cuyos
@@ -2214,7 +2266,7 @@ normalización posterior:
 - La normalización `main → dev` se ejecutó con merge `--no-ff` en ambos repositorios:
   `dev` = **`5fedcb3`** (backend) y **`122c90a`** (infra), publicados.
 - El workflow del backend registró sus dos triggers en verde: **34489982595**
-  (`pull_request`, PR `#15`) y **34491446991** (`push` sobre `dev`), las dos con **21**
+  (`pull_request`, PR `#15`) y **34491446991, attempt 1 (2026-09-10)** (`push` sobre `dev`), las dos con **21**
   pasos en verde, **1855** pruebas y **0** omitidas.
 - **El estado vivo** —si un PR sigue abierto o ya se fusionó, si la rama remota existe, los
   SHA actuales— **no se escribe aquí**: se consulta con `git fetch --prune`,

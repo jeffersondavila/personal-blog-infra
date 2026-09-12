@@ -13,7 +13,7 @@
 | **SHA base backend** | `8762bbad2ce6bd67e6e736c6697a38f2d999e453` |
 | **SHA base infra** | `c5b16070d5d3e128bbc299f6bd886a4d8410f075` |
 | **Fecha de inicio** | 2026-09-09 (Guatemala) |
-| **Última actualización** | 2026-09-10 |
+| **Última actualización** | 2026-09-12 |
 
 ## 0. Preparación Git
 
@@ -257,7 +257,8 @@ retirará cuando starlette publique una versión que no use el alias obsoleto.
 
 ## 19. Próxima tarea
 
-Task021 permanece pendiente y **no se inicia en esta tarea**. El siguiente
+*Al cierre de Task020, el 2026-09-10:* Task021 permanecía pendiente y **no se
+inició en esa tarea**. Quedó aprobada después, el 2026-09-12. El siguiente
 inicio debe seguir el flujo canónico aprobado.
 
 ## 20. Aprobación
@@ -279,3 +280,16 @@ con los merges `5fedcb3` (backend) y `122c90a` (infra). El estado operativo
 vigente se consulta en Git y GitHub, no aquí
 ([WORKFLOW §6.1](../project-management/WORKFLOW.md)). Detalle en el
 [reporte](../task-reports/TASK-020-report.md).
+
+## Mantenimiento posterior de reproducibilidad — 2026-09-12
+
+Task020 continúa **Aprobada**; no se reabre. El run backend `34491446991`
+conserva **attempt 1: success el 2026-09-10** y **attempt 2: failure el
+2026-09-12**, mismo SHA `5fedcb3` y evento `push` sobre `dev`. El segundo falló
+en `Start the ephemeral MinIO` (exit 125): Docker Hub denegó el acceso al
+manifiesto. Los gates posteriores no llegaron a ejecutarse.
+
+La corrección independiente, sin cambiar release ni digest, se desarrolla en
+[Task020.3](../task-reports/TASK-020.3-report.md). Es mantenimiento y no cuenta
+entre las 41 tareas. El estado y el resultado del mantenimiento se consultan
+en su ficha y reporte; los resultados anteriores conservan su fecha e intento.
