@@ -100,7 +100,7 @@ services:
   # traves de la interfaz ObjectStorage (Task/010).
   # -------------------------------------------------------------------------
   minio:
-    image: minio/minio:${MINIO_VERSION}
+    image: quay.io/minio/minio:${MINIO_VERSION}
     container_name: ${COMPOSE_PROJECT_NAME:-personal-blog-local}-minio
     restart: unless-stopped
     cap_drop: [ALL]

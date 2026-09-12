@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/021-CI-Infraestructura` |
-| **Estado** | **Lista para validación** — local GREEN y CI estricta conforme el 2026-09-11; no aprobada |
+| **Estado** | **En progreso** — revalidación autorizada con MinIO desde Quay; mismo release y mismo digest |
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
@@ -784,7 +784,7 @@ nunca se leyó ni se imprimió.
 ## AD. Contadores
 
 **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. **Sin cambio**:
-Task021 está **Lista para validación**, no aprobada, así que **no suma**. No se
+Task021 está **En progreso** en la revalidación de §AM, no aprobada, así que **no suma**. No se
 escribe 21/41, ni 3/3, ni «ETAPA 06 Completada». `Task/022` **Pendiente** y no
 iniciada.
 
@@ -1134,7 +1134,7 @@ el PR real de infra, su run sobre dev y el control negativo remoto deliberado.
 Este último sigue **NO autorizado**; el fallo histórico de S-09 no lo sustituye.
 Las casillas literales de STAGE-06 no se marcan como cierre global de etapa.
 
-## AK. Veredicto de implementación
+## AK. Veredicto tras el primer verde, anterior al bloqueo de §AL
 
 **TASK021 IMPLEMENTADA — LISTA PARA VALIDACIÓN.**
 
@@ -1152,3 +1152,212 @@ sensibles, Gitleaks del worktree **0**, historial **46 commits / 0 hallazgos**,
 `git diff --check` limpio y staging **0**. C=0/D=0 revalidados; los únicos
 cambios desde `43c1bf2` son siete documentos. Comparador, tests y baseline
 permanecen idénticos a los que ejecutó `34636624843`.
+
+## AL. Bloqueo de la CI del commit documental final
+
+**Observado el 2026-09-11 Guatemala / 2026-09-12 UTC**, después de registrar
+el primer run conforme. El commit `94c5e6779d1d00063567a3f93fb6b7fee4dda17d`
+solo incorporó los siete documentos de evidencia; comparador, tests, baseline
+y workflow son idénticos a `43c1bf2`. Su publicación estaba precedida por los
+gates locales y el run verde de §AI. No fue un broken push deliberado.
+
+La ejecución
+[34663425054](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34663425054)
+se disparó por `push`, rama `Task/021-CI-Infraestructura`, headSha
+`94c5e6779d1d00063567a3f93fb6b7fee4dda17d`. Los **dos intentos** terminaron
+`completed/failure` en `Scan every infrastructure image`.
+
+| Campo | Observación desde GitHub |
+| --- | --- |
+| databaseId / event | `34663425054` / `push` |
+| headBranch | `Task/021-CI-Infraestructura` |
+| headSha | `94c5e6779d1d00063567a3f93fb6b7fee4dda17d` |
+| createdAt | `2026-09-12T00:59:38Z` |
+| updatedAt tras intento 2 | `2026-09-12T01:02:53Z` |
+| Intento 2, job | `01:02:16Z` → `01:02:52Z`, **36 s** |
+| status / conclusion / run_attempt | `completed` / `failure` / `2` |
+
+**Causa medida:** Docker Hub respondió `UNAUTHORIZED: authentication required`
+al solicitar el manifiesto del **mismo digest exacto**:
+
+`minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e`.
+
+La consulta anónima independiente desde el equipo al endpoint OCI del registro
+también devolvió **HTTP 401**. Se realizó un único reintento del job, sin
+modificar archivos ni suministrar credenciales del usuario; volvió a fallar
+por la misma causa. No se atribuye una causa administrativa concreta al
+registro: lo demostrado es la denegación del acceso anónimo a ese manifiesto.
+
+Los pasos anteriores pasaron: Compose, scripts, **13/13 regresiones**, builds
+y Gitleaks con **47 commits** sin hallazgos. Al fallar el scan, el inventario y
+el gate S-09 quedaron **skipped** por dependencia. Es el comportamiento
+fail-closed esperado ante imagen no disponible; **no certifica un gate S-09
+verde sobre este HEAD**. Los logs completos de ambos intentos se conservaron
+y se escanearon con Gitleaks 8.30.1: **0 hallazgos**.
+
+**Task021 queda Bloqueada.** El verde `34636624843` sobre `43c1bf2` permanece
+como evidencia histórica del comparador estricto y el baseline revisado;
+no se reutiliza para declarar verde `94c5e67`. La matriz de §AJ conserva su
+valor histórico tras ese primer verde, pero la validación final añade este
+bloqueo de acceso a MinIO. No hay veredicto final Lista para validación.
+
+No se cambiaron imagen, digest, findings, política, settings ni secretos para
+eludir el fallo. Continuar requiere recuperar el acceso permitido al mismo
+manifiesto desde CI; si exige credenciales/settings o cambiar la imagen,
+se necesita tratamiento explícito fuera de esta autorización. *Registrado el
+2026-09-12 UTC:* no se hicieron más commits ni pushes tras confirmar el fallo
+repetido, y aquella anotación quedó entonces **sin commit** para no publicar
+deliberadamente otra ejecución con el bloqueo conocido. Esa contención terminó
+con la autorización posterior de §AM.
+
+B-021-3, D-021-A/B y defecto de identidad conservan su resolución. La revisión
+humana de las tres severidades sigue vigente. Los riesgos R-018-3 y R-021-1
+no se cierran. Contadores **20/41**, ETAPA06 **2/3**; no aprobación, merge dev,
+PR, cambio de backend/frontend, actualización de MinIO/Portainer ni Task022.
+
+**Alcance exacto de lo demostrado en §AL.** El acceso **anónimo** a **ese
+manifiesto concreto** devolvió **HTTP 401 / `UNAUTHORIZED`** durante esos dos
+intentos. Nada más. No se afirma, ni se deduce, que Docker Hub esté roto, se
+haya vuelto privado o haya retirado el repositorio. Esta sección se conserva
+íntegra como historia y **no se reescribe** con lo aprendido después.
+
+## AM. Revalidación autorizada: MinIO desde Quay
+
+**Autorización explícita del usuario**, recibida el 2026-09-11 (Guatemala):
+cambiar el **registro de origen** de MinIO de Docker Hub a **Quay**, sin tocar
+release, digest, contenido OCI, `accepted_findings`, versión de MinIO ni
+Portainer. La excepción de *bootstrap* para publicar el commit y observar su
+CI también quedó autorizada.
+
+### AM.1 Superficie exacta del cambio
+
+Tres archivos funcionales, **una línea modificada en cada uno**:
+
+| Archivo | Antes | Después |
+| --- | --- | --- |
+| [`docker-compose.yml`](../../docker-compose.yml) | `image: minio/minio:${MINIO_VERSION}` | `image: quay.io/minio/minio:${MINIO_VERSION}` |
+| [`.github/workflows/ci-infra.yml`](../../.github/workflows/ci-infra.yml) | `minio="minio/minio:$(…)"` | `minio="quay.io/minio/minio:$(…)"` |
+| [`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json) | `"reference": "minio/minio:…"` | `"reference": "quay.io/minio/minio:…"` |
+
+`git diff --numstat` confirma **1 línea añadida y 1 eliminada** en cada uno.
+En el baseline, `expected_digest`, `policy`, `risk` y las **100** identidades
+aprobadas quedan **byte a byte intactas**. `MINIO_VERSION` en `.env.example`
+**no se tocó**: ya fijaba tag y digest.
+
+Referencia efectiva, idéntica salvo el prefijo de registro:
+
+```text
+quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+```
+
+### AM.2 Disponibilidad anónima medida
+
+La OCI Registry API de Quay respondió **HTTP 200** sin cabecera
+`Authorization`, sin login y sin intercambio de token. Se calculó el SHA256 de
+los bytes recibidos y se contrastó con el digest solicitado y con
+`Docker-Content-Digest`.
+
+| Objeto | Digest medido | HTTP |
+| --- | --- | ---: |
+| Índice multiarch | `sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e` | 200 |
+| Manifiesto `linux/amd64` | `sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2` | 200 |
+| Configuración `amd64` | `sha256:69b2ec208575b69597784255eec6fa6a2985ee9e1a47f4411a51f7f5fdd193a9` | 200 |
+
+El digest del índice es **el mismo** que el fijado desde Task003 para Docker
+Hub. El digest no cambia porque la imagen no cambia.
+
+### AM.3 Equivalencia de contenido OCI demostrada
+
+Se exportó con `docker image save` la imagen de Docker Hub **ya almacenada
+localmente**, sin *pull*, sin retag, sin ejecutarla y sin modificarla. Sus
+blobs se compararon con los bytes recibidos de Quay.
+
+| Comparación | Resultado |
+| --- | --- |
+| Índice de distribución | Bytes idénticos, SHA256 verificado |
+| Manifiesto `amd64` | Bytes idénticos, SHA256 verificado |
+| Configuración `amd64` completa | Bytes idénticos, SHA256 verificado |
+| Layer digests comprimidos | **9/9** iguales |
+| RootFS diff IDs, en orden | **9/9** iguales |
+| `architecture` / `os` | `amd64` / `linux`, iguales |
+| `Created` | `2025-09-07T18:42:37.017942402Z`, igual |
+| `Entrypoint` / `Cmd` | `["/usr/bin/docker-entrypoint.sh"]` / `["minio"]`, iguales |
+| Labels y configuración de ejecución | Iguales |
+
+**Clasificación: el mismo contenido OCI, no un reempaquetado.** Los blobs de
+`arm64` y `ppc64le` no se escanearon por separado; el proyecto consume
+`linux/amd64`.
+
+### AM.4 Identidad estricta de hallazgos
+
+Trivy **0.74.0**, `--image-src remote`, plataforma `linux/amd64`, scanner
+`vuln`, severidades `LOW,MEDIUM,HIGH,CRITICAL`. Sin `.trivyignore`, sin
+`--ignore-unfixed`, sin umbrales por cantidad y sin supresión de errores. La
+comparación importa `identidad` y `extraer_accionables` del gate versionado.
+
+| Resultado estructural | Cantidad |
+| --- | ---: |
+| Aprobados en el baseline | **100** |
+| Accionables observados en Quay | **100** |
+| Coincidencias exactas de identidad | **100** |
+| Solo en el baseline | **0** |
+| Solo en Quay | **0** |
+| Identidades cambiadas | **0** |
+
+Scopes: `os-pkgs:redhat` **2**, `usr/bin/mc` **45**, `usr/bin/minio` **53**.
+Accionables: **96 HIGH + 4 CRITICAL**, todos con `FixedVersion`. El informe
+completo conserva **223** hallazgos en las severidades solicitadas, incluidos
+los no accionables. **El baseline no se regeneró.**
+
+### AM.5 Validación local de esta revalidación
+
+| Control | Resultado |
+| --- | --- |
+| `docker compose --profile admin config` | **GREEN**, 7 servicios, exit 0 |
+| MinIO renderizado por Compose | `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea…` |
+| Gate S-09 real, informes Quay | **CORRECTO**: postgres **0**, traefik **0**, MinIO **100 exactas / 0 nuevas**, Portainer **16 exactas / 0 nuevas** |
+| Regresiones del comparador | **13/13 GREEN** |
+| Scripts PowerShell | **6** archivos, **0** fallos |
+| Scripts Python | **3** compilan, **0** fallos; más **1** archivo de pruebas |
+| Terraform / shell scripts | **0** archivos; sus gates siguen declarados, no vacíos |
+| Gitleaks 8.30.1, historial completo | **47** commits, **0** hallazgos |
+| `git diff --check` | Limpio |
+| Finales de línea | **LF** en los 10 archivos modificados, **0** CRLF |
+
+**Control negativo.** Un informe con `ArtifactName` de Docker Hub contra el
+baseline aprobado de Quay se rechaza con **FALLO: nombre de imagen inesperado**
+**antes** de comparar hallazgos, y devuelve código distinto de cero. La
+comparación estricta **no se relajó** para acomodar el cambio de registro.
+
+Los artefactos de esta revalidación viven bajo `tmp/`, que está en
+`.gitignore` y **no se versiona**.
+
+### AM.6 Lo que esta sección no declara
+
+No declara verde ninguna CI. El run real de `CI Infra` sobre el commit de esta
+revalidación se registra **después de existir**, con su identificador, evento,
+`headSha`, conclusión y duración observados en GitHub.
+
+El residual **no se corrige ni se oculta**: siguen siendo los mismos **100**
+hallazgos de MinIO aceptados temporalmente bajo **R-018-3**, que permanece
+**ABIERTO**. Portainer conserva sus **16** y **R-021-1** sigue abierto. No se
+actualizó ninguna imagen.
+
+La CI del backend mantiene una **referencia independiente** a MinIO en Docker
+Hub. Task021 corrige la dependencia del repositorio de infraestructura; esa
+otra referencia **queda fuera de este alcance** y se evaluará por separado, si
+resulta necesario, antes del cierre global de ETAPA 06. No se creó ninguna
+tarea nueva para ello.
+
+### AM.7 Criterion12 de esta fase
+
+| Clase | Resultado de la revisión |
+| --- | --- |
+| **A** | Reglas durables conservadas: base `main` de las ramas Task, aprobación exclusiva del usuario, límites del bootstrap y política estricta de S-09. **Regla durable nueva:** la infraestructura toma MinIO de Quay por el mismo digest; el cambio de registro no autoriza cambiar imagen, versión ni baseline |
+| **B** | Hechos fechados y anclados: run `34663425054` sobre `94c5e67` con su failure de dos intentos, run histórico `34636624843` sobre `43c1bf2`, y las mediciones de esta revalidación. La contención de «sin commit» de §AL quedó anclada a su fecha, porque la autorización posterior la levantó |
+| **C** | **0.** Ninguna mención a PR, rama remota o normalización se persiste como estado vigente. No se declara ningún run de esta fase antes de que exista |
+| **D** | **0.** Estado **En progreso** coherente en ficha, reporte, STATUS, ROADMAP, STAGE-06, NFR y README de reportes; distribución por estado actualizada a En progreso **1** / Bloqueada **0**; contadores **20/41** y ETAPA 06 **2/3** sin tocar; el bloqueo histórico se conserva sin reescribir y acotado a lo demostrado |
+
+Contadores sin cambio: **20/41 ≈ 49 %**, ETAPA 06 **2/3 ≈ 67 %**. Sin
+aprobación, sin merge a `dev`, sin PR, sin cambios en backend o frontend y sin
+iniciar `Task/022`.

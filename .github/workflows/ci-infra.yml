@@ -231,7 +231,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/trivy-reports
-          minio="minio/minio:$(grep -m1 '^MINIO_VERSION=' .env.example | cut -d= -f2-)"
+          minio="quay.io/minio/minio:$(grep -m1 '^MINIO_VERSION=' .env.example | cut -d= -f2-)"
           portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
           escanear() {
             echo "::group::Trivy $2"

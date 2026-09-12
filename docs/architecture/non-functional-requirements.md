@@ -70,8 +70,18 @@ UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
 secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
 
-**S-09 infraestructura — satisfecho técnicamente el 2026-09-11 (`Task/021`),
-pendiente de aprobación de la tarea.**
+**S-09 infraestructura — evidencia estricta histórica el 2026-09-11;
+revalidación en curso con MinIO desde Quay.**
+El run `34663425054` sobre `94c5e67` terminó en failure en dos intentos
+(2026-09-12 UTC): el acceso **anónimo** a ese manifiesto de MinIO devolvió
+**HTTP 401 / `UNAUTHORIZED`**; el scan falló y S-09 quedó skipped. Ese hecho
+se conserva acotado a lo observado y no se reescribe. Con autorización
+explícita, la infraestructura pasa a tomar la misma imagen desde **Quay**:
+**mismo release**, **mismo digest** `sha256:14cea…`, contenido OCI verificado
+idéntico y las **mismas 100** identidades aceptadas, sin regenerar el
+baseline. El residual **no se resolvió** y **R-018-3** sigue **ABIERTO**. La
+evidencia verde siguiente no certifica el HEAD final ni permite declarar
+Task021 Lista para validación.
 El comparador heredado incumplía la identidad aprobada al excluir severidad
 y `FixedVersion`. Se corrigió y se verificó en el nuevo run
 [34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843),

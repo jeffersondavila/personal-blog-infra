@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *Lista para validación*
+### `Task/021-CI-Infraestructura` — *En progreso: revalidación con MinIO desde Quay*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -196,7 +196,13 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios. `Task/021` está **Lista para validación**. La detención local del
+salida exigen los **tres** repositorios. `Task/021` está **En progreso**: la CI final `34663425054` sobre `94c5e67`
+falló en dos intentos porque el acceso **anónimo** a ese manifiesto de MinIO
+devolvió **HTTP 401**, hecho que se conserva sin reescribir, y el usuario
+**autorizó** tomar la misma imagen desde **Quay** —mismo release, mismo digest
+`sha256:14cea…`, contenido OCI idéntico y **100/100** identidades del baseline,
+que no se regeneró—. El primer
+verde estricto se conserva como antecedente, no certifica ese HEAD final. La detención local del
 2026-09-11 por tres identidades CRITICAL→HIGH de CVE-2026-56854 se resolvió
 mediante revisión humana explícita y sustitución exclusiva de esas tres
 severidades. El scan posterior fue GREEN, sin relajar el comparador. Su workflow
@@ -216,7 +222,7 @@ infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
 - [ ] **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica
       todavía, se declara explícitamente con la tarea que la incorporará.
 
-### Matriz literal reconstruida el 2026-09-11 tras CI Infra conforme
+### Matriz literal tras el primer verde — anterior al bloqueo final de acceso
 
 | Criterio literal de STAGE-06 | Frontend | Backend | Infraestructura | Estado global |
 | --- | --- | --- | --- | --- |
@@ -228,7 +234,12 @@ infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
 | El escaneo de secretos cubre todo el historial disponible. | Auditoría histórica Task021: 13 commits, 0 hallazgos | Auditoría histórica Task021: 19 commits, 2 falsos positivos demostrados | Gate con fetch-depth 0 y `--all`: 46 commits, 0 hallazgos | **Evidencia de auditoría en los tres**; automatización continua del historial solo en infra |
 | **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica todavía, se declara explícitamente con la tarea que la incorporará. | Scripts npm inspeccionados y fuentes presentes; 704 tests/75 archivos en evidencia de Task019 | Tests y migraciones referenciados presentes; 1855 tests/0 omitidos en evidencia de Task020 | 7 servicios, 6 PS, 3 fuentes Python más 13 tests, 4 imágenes e historial real; Terraform queda en Task025 y Bash sin familia existente | **Verificado por inspección de artefactos y evidencia registrada**; no se añadió ningún check vacío |
 
-La matriz distingue evidencia fechada y automatización continua; su detalle,
+La matriz conserva la reconstrucción posterior al primer verde. La
+revalidación final añadió el bloqueo de acceso a MinIO: el nuevo run no
+alcanzó a ejecutar S-09. La revalidación autorizada con Quay repara la
+dependencia sin alterar ninguna casilla de la matriz, porque no cambian ni la
+imagen ni sus hallazgos; su verde en CI se registrará cuando exista.
+Distingue evidencia fechada y automatización continua; su detalle,
 metadatos de runs y auditorías están en el [reporte Task021](../task-reports/TASK-021-report.md).
 **ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.** No se marca
 completada ni se altera 2/3: PR de infra, dev y broken push deliberado permanecen

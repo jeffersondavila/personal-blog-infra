@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/021-CI-Infraestructura` |
 | **Nombre** | CI Infraestructura |
 | **Etapa** | ETAPA 06 — Integración Continua |
-| **Estado** | **Lista para validación** — local GREEN y nueva CI estricta conforme; no aprobada |
+| **Estado** | **En progreso** — revalidación autorizada con MinIO desde Quay; mismo release y mismo digest |
 | **Repositorios involucrados** | `personal-blog-infra`; backend/frontend solo lectura |
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
@@ -313,7 +313,7 @@ verificado. No sustituir el scan por fixtures. Resultados locales posteriores
 a la revisión humana, enlaces, secretos y Criterion12 **C=0/D=0** en §AH
 del reporte. La nueva CI remota se registra en §24 como hecho observado, después de existir.
 
-## 24. Resultado conforme posterior — 2026-09-11
+## 24. Primer resultado conforme — antes del bloqueo de §25
 
 [CI Infra 34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843):
 `push`, rama `Task/021-CI-Infraestructura`, SHA
@@ -332,3 +332,75 @@ reporte §AH–AK. Contadores **20/41**, ETAPA06 **2/3**.
 **ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA:** faltan PR real
 de infra, run sobre dev y broken push remoto deliberado, que no fue autorizado.
 Las detenciones de §21 y los runs anteriores se conservan como historia.
+
+## 25. Revalidación del commit documental: bloqueo externo
+
+Observado el 2026-09-11 Guatemala / 2026-09-12 UTC: el run
+[34663425054](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34663425054)
+sobre `94c5e6779d1d00063567a3f93fb6b7fee4dda17d`, evento `push`, terminó
+`completed/failure` en dos intentos. Docker Hub negó con `UNAUTHORIZED`
+el acceso anónimo al mismo manifiesto de MinIO fijado por digest; una
+comprobación independiente también devolvió HTTP 401.
+
+Las 13 regresiones y los gates anteriores al scan pasaron. El inventario y
+S-09 quedaron skipped tras fallar el scan. **Task021 Bloqueada:** no existe
+verde sobre el HEAD final y no se reutiliza el primer run conforme de §24.
+El reporte §AL conserva la evidencia exacta. *Registrado el 2026-09-12 UTC:*
+la documentación del bloqueo quedó entonces sin commit y no se publicó otro
+push con el fallo conocido; esa contención terminó con la autorización de §26.
+No se cambiaron imágenes, baseline, política, settings ni secretos para
+evitarlo.
+
+Ese bloqueo se conserva como hecho histórico y **no se reescribe**. Lo
+demostrado entonces es acotado: el acceso **anónimo** a **ese manifiesto**
+devolvió **HTTP 401 / `UNAUTHORIZED`** durante esos dos intentos. No se
+afirma que Docker Hub esté roto, se haya vuelto privado ni haya retirado
+el repositorio.
+
+## 26. Revalidación autorizada: MinIO desde Quay
+
+Autorización explícita del usuario, recibida el 2026-09-11 (Guatemala):
+sustituir el registro de origen de MinIO por **Quay**, sin tocar release,
+digest, contenido OCI, `accepted_findings`, versión de MinIO ni Portainer.
+
+La referencia pasa de `minio/minio` a `quay.io/minio/minio`. El resto de la
+cadena permanece **carácter por carácter**:
+
+`quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e`
+
+El cambio toca **tres** archivos funcionales, con **una línea cada uno**:
+[`docker-compose.yml`](../../docker-compose.yml),
+[`.github/workflows/ci-infra.yml`](../../.github/workflows/ci-infra.yml) y
+[`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json),
+donde solo cambia el campo `reference`. `expected_digest`, `policy`, `risk` y
+las **100** identidades aprobadas quedan intactas.
+
+**Disponibilidad anónima.** La OCI Registry API de Quay respondió **HTTP 200**
+sin cabecera `Authorization`, sin login y sin intercambio de token, para el
+índice multiarch, el manifiesto `linux/amd64` y su configuración.
+
+**Equivalencia de contenido demostrada.** Se comparó la imagen de Docker Hub
+ya almacenada localmente, exportada con `docker image save` y sin *pull*,
+contra los bytes recibidos de Quay: índice, manifiesto `amd64`, configuración,
+los **9** layer digests, los **9** RootFS diff IDs, `architecture`, `os`,
+`Created`, `Entrypoint`, `Cmd` y labels. Todos **idénticos**. Es el mismo
+contenido OCI, no un reempaquetado.
+
+**Identidad de hallazgos.** Trivy **0.74.0** escaneó Quay con el comparador
+versionado: **100** aprobados, **100** accionables, **100** coincidencias
+exactas, **0** solo en baseline, **0** solo en Quay, **0** identidades
+cambiadas. El baseline **no se regenera**.
+
+**Control negativo.** Un informe con `ArtifactName` de Docker Hub contra el
+baseline aprobado de Quay se rechaza **antes** de comparar hallazgos, por
+nombre de imagen inesperado. La comparación estricta no se relajó.
+
+El residual **no se corrige ni se oculta**: siguen siendo los mismos **100**
+hallazgos aceptados temporalmente bajo **R-018-3**, que permanece **ABIERTO**.
+La referencia independiente de MinIO en la CI del backend **no entra en este
+alcance** y se evaluará por separado, si resulta necesario, antes del cierre
+global de ETAPA 06.
+
+Esta sección registra la decisión y la evidencia local. **No declara verde
+ninguna CI**: el run real sobre el commit de esta revalidación se registra en
+el reporte cuando exista.
