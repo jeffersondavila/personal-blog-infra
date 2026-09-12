@@ -3,12 +3,12 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 06 |
-| **Estado** | **3 de 3 tareas aprobadas (100 %)** — la etapa **no se declara completada**: cierre global pendiente de la evidencia restante |
+| **Estado** | **Completada** el **2026-09-12** — **3 de 3 tareas aprobadas (100 %)**; el cierre técnico quedó demostrado y el mantenimiento `Task/020.3` fue **Aprobado** ese mismo día |
 | **Dependencias** | [ETAPA 05](STAGE-05-quality-security.md) |
 | **Tareas** | 3 |
 | **Aprobadas** | 3 |
-| **Avance** | 100 % de sus tareas; **cierre de etapa pendiente** |
-| **Hito que completa** | CI verde en los tres repositorios. |
+| **Avance** | 100 % de sus tareas; **etapa completada** |
+| **Hito que completa** | CI verde en los tres repositorios. **Alcanzado:** `CI Frontend`, `CI Backend` y `CI Infra` conformes, con CI Backend reproducible de nuevo tras `Task/020.3`. |
 
 ---
 
@@ -104,7 +104,7 @@ nuevo.
 *Observado el 2026-09-10 UTC, durante y después del cierre aprobado:* el trigger
 `pull_request` quedó acreditado por la ejecución **34489982595**, disparada por el
 pull request `#15` sobre el head `22af3f1`, con conclusión **`success`**; y la
-ejecución **34491446991**, disparada por `push` sobre `dev` con head en el merge
+ejecución **34491446991, attempt 1**, disparada por `push` sobre `dev` con head en el merge
 de normalización `5fedcb3`, también concluyó **`success`**. Las dos con sus **21**
 pasos en verde, **1855** pruebas y **0** omitidas. Ambos triggers del workflow del
 backend tienen, por tanto, ejecución real registrada.
@@ -201,7 +201,47 @@ de MinIO no se corrigió**: **100** hallazgos aceptados temporalmente bajo
 **R-018-3**, que sigue **ABIERTO**, y **16** de Portainer bajo **R-021-1**.
 Los criterios de salida siguientes no se relajan ni se dan por demostrados.
 
+## Mantenimiento de reproducibilidad — Task020.3, 2026-09-12
+
+**Bloqueada**, sin reabrir Task020 ni Task021 y sin añadir una tarea a las 41.
+El control negativo remoto ya se ejecutó: `34710854803`, `push`, failure en
+`Compose is valid`, 12 s; no se repite. El PR de infra quedó acreditado por
+`34709782197` y su `dev` normalizado por `34711465394`, success, 50 s, 19/19 pasos.
+
+El backend conserva el verde histórico `34491446991` **attempt 1** del
+2026-09-10. El **attempt 2**, mismo SHA `5fedcb3`, falló el 2026-09-12 por la
+descarga del manifiesto de MinIO desde Docker Hub. Task020.3 cambia solo el
+registro a Quay. *Observado el 2026-09-12 UTC:* [run 34713222925](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34713222925),
+push, `e8693eb`, attempt 1, **completed/failure**, 291 s. MinIO success en
+5 s, migraciones y suite 1855/0 skipped/0 warnings en verde; ambos locks sin
+vulnerabilidades conocidas. Falló el gate Trivy sobre la imagen backend:
+**12 accionables (9 HIGH, 3 CRITICAL)**, exit 1. **B-020.3-C quedó abierto al
+cierre de esa ejecución**, y la sesión se detuvo a pedir autorización.
+
+Con la corrección autorizada —actualizaciones de seguridad de Debian en la etapa
+`runtime` del Dockerfile backend, sin tocar Python, distribución base, digest
+del `FROM`, locks ni la política S-09—, *observado el 2026-09-12 UTC:*
+[run 34719123905](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34719123905),
+push, `32c3992`, attempt 1, **completed/success**, 296 s, **25 de 25 pasos en
+success**. MinIO desde Quay success en 4 s, migraciones 13 passed, suite
+**1855 passed / 0 skipped / 0 warnings**, ambos locks sin vulnerabilidades
+conocidas, inventario Trivy **149** en **Debian 13.7** con **CRITICAL 0**, y
+gate accionable **0** con exit 0. **B-020.3-C resuelto.**
+
+Con CI Frontend, CI Infra y CI Backend completas en verde, y el control negativo
+remoto ya demostrado, **el cierre técnico de la etapa queda demostrado y
+pendiente únicamente de la aprobación de este mantenimiento**. No se relajó
+ningún criterio. Evidencia y trazabilidad en el
+[reporte](../task-reports/TASK-020.3-report.md).
+
 ## Criterios de salida de la etapa
+
+### Registro histórico al aprobar Task021 — 2026-09-12
+
+Los párrafos y la matriz histórica de esta sección describen la evidencia y
+los permisos existentes **antes** de ejecutar el cierre aprobado y el control
+negativo posterior. No describen el estado vigente de Git/GitHub ni revocan
+la autorización posterior. El seguimiento de Task020.3 figura arriba.
 
 **Distribución de responsabilidades reconstruida en Task019:** cada repositorio
 implementa sus triggers, gates, medición y revisión de logs en su tarea de CI.
@@ -261,7 +301,7 @@ implícita.
 | Criterio literal de STAGE-06 | Frontend | Backend | Infraestructura | Estado global |
 | --- | --- | --- | --- | --- |
 | Cada repositorio ejecuta su workflow en cada push y pull request. | Push `34305529115` y PR `34308296565`, success | Push `34488083060` y PR `34489982595`, success | Push `34670245277` sobre `a3434eb`, success; el `pull_request` se ejecuta durante este cierre | **Pendiente al aprobar: PR de infra** |
-| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, success | La integración en `dev` se ejecuta durante este cierre | **Pendiente al aprobar: infra sobre dev** |
+| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, attempt 1, success el 2026-09-10 | La integración en `dev` se ejecuta durante este cierre | **Pendiente al aprobar: infra sobre dev** |
 | Un cambio deliberadamente roto hace fallar el workflow correspondiente. | Negativos locales, sin broken push autorizado | Negativos locales, sin broken push autorizado | Regresiones locales; `34604012128` fue un fallo real, no un broken push deliberado | **Pendiente: control remoto deliberado; no autorizado** |
 | Ningún secreto aparece en los logs de CI. | Auditoría documentada en Task019 §K | Auditorías documentadas en Task020 y su cierre | Run `34670245277`: 538 470 bytes de log, patrones sensibles 0, Gitleaks 0 | **Verificado en las ejecuciones auditadas**, sin afirmar cobertura de todos los runs futuros |
 | El tiempo de ejecución de cada workflow está documentado y es razonable. | Run de bootstrap 79 s | Run dev 334 s | Run 42 s; job 39 s | **Documentado**, según createdAt→updatedAt para los runs |
@@ -276,14 +316,21 @@ dos filas marcadas «Pendiente al aprobar» son precisamente las que este cierre
 aprobado produce después del registro documental. La matriz
 distingue evidencia fechada y automatización continua; su detalle,
 metadatos de runs y auditorías están en el [reporte Task021](../task-reports/TASK-021-report.md).
-**ETAPA 06 — 3 DE 3 TAREAS APROBADAS; CIERRE GLOBAL PENDIENTE DE EVIDENCIA
-AUTORIZADA.** Las tres tareas de la etapa están aprobadas —Task019 el
+*Veredicto registrado el 2026-09-12 al aprobar `Task/021`, conservado como hecho
+fechado:* **ETAPA 06 — 3 DE 3 TAREAS APROBADAS; CIERRE GLOBAL PENDIENTE DE
+EVIDENCIA AUTORIZADA.** Las tres tareas de la etapa estaban aprobadas —Task019 el
 2026-09-08, Task020 el 2026-09-10 y Task021 el 2026-09-12—, y **la etapa no se
-marca completada**: son dos cosas distintas. El **control negativo remoto
-deliberado** sigue **sin autorizarse** y ninguna aprobación de tarea lo
-autoriza implícitamente. El `pull_request` de infra y su verde sobre `dev` se
-producen dentro del cierre aprobado de `Task/021`, después del registro
-documental de esa aprobación.
+marcaba completada**: eran dos cosas distintas. En aquel momento el **control
+negativo remoto deliberado** seguía **sin autorizarse**, y ninguna aprobación de
+tarea lo autorizaba implícitamente. El `pull_request` de infra y su verde sobre
+`dev` se produjeron dentro del cierre aprobado de `Task/021`, después del
+registro documental de esa aprobación.
+
+*Estado posterior, vigente:* el control negativo remoto **se autorizó y se
+ejecutó** —`34710854803`, failure deliberado en `Compose is valid`—, la
+reproducibilidad de CI Backend se restauró con `Task/020.3` y **la etapa quedó
+Completada el 2026-09-12** al aprobarse ese mantenimiento. Ninguna evidencia
+anterior se repitió ni se invalidó.
 
 ## Fuera del alcance de la etapa
 

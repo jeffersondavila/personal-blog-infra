@@ -591,7 +591,7 @@ patrones de claves privadas, credenciales de AWS o tokens de GitHub;
 | **R. Política de vulnerabilidades** | Inventario sin filtrar + gate que falla ante cualquier HIGH/CRITICAL **con arreglo**. Sin `\|\| true`, sin `.trivyignore`, sin umbral inventado. Demostrada con tres controles |
 | **S. Diseño del workflow** | `push` y `pull_request`, sin `pull_request_target`, sin filtros, `contents: read`, un job en `ubuntu-24.04`, **19 pasos declarados** en el YAML —que GitHub muestra como 21 en la ejecución al añadir *Set up job* e *Initialize containers*— |
 | **T. Controles negativos** | **7 gates rotos y restaurados**, más 3 controles del escáner. Ninguna mutación quedó en el repositorio |
-| **U. Actions real** | **Cuatro** ejecuciones `push` sobre la rama Task en **`success`**: 34481253970, 34481957688, 34485074950 y 34488083060. Auditados los 21 pasos de las tres últimas. Tras el cierre se sumaron **34489982595** (`pull_request`) y **34491446991** (`push` sobre `dev`), las dos en `success` con sus 21 pasos en verde: §Evidencia posterior al cierre |
+| **U. Actions real** | **Cuatro** ejecuciones `push` sobre la rama Task en **`success`**: 34481253970, 34481957688, 34485074950 y 34488083060. Auditados los 21 pasos de las tres últimas. Tras el cierre se sumaron **34489982595** (`pull_request`) y **34491446991, attempt 1** (`push` sobre `dev`, 2026-09-10), las dos en `success` con sus 21 pasos en verde: §Evidencia posterior al cierre |
 | **V. Seguridad y secretos** | 0 patrones de secreto real en los logs de las cuatro ejecuciones ni en los archivos nuevos; permisos mínimos confirmados por el runner. Fijado por herramienta declarado con precisión tras **D-020-2**: Actions por SHA, `uv` y Trivy por versión y digest verificado, `pip-audit` solo por versión exacta |
 | **W. Duraciones** | 283 s, 319 s, 276 s y 295 s de extremo a extremo; la suite domina con 176 s, 203 s, 170 s y 186 s |
 | **X. Documentación** | README backend §5.1 y §10.3, comentarios de `pyproject` y `Dockerfile`; ficha, reporte, STATUS, ROADMAP, STAGE-06 e índice |
@@ -602,7 +602,7 @@ patrones de claves privadas, credenciales de AWS o tokens de GitHub;
 | **AC. Roadmap** | Task020 **Aprobada** el 2026-09-10. Avance **20/41 (49 %)** y ETAPA 06 **2/3 (67 %)**, etapa **no completada**. Task021 pendiente y no iniciada |
 | **AD. Cierre y normalización** | Ejecutado el 2026-09-10: integración en `dev` con `--no-ff`, publicación y PR **`Task/020-CI-Backend → main`** en ambos repositorios, dejados para revisión manual. *Observado el 2026-09-10 UTC:* el usuario fusionó `#15` (backend, merge `8055878`) y `#36` (infra, merge `68469dd`), eliminó las dos ramas Task remotas, y la normalización `main → dev` quedó completada con `5fedcb3` y `122c90a`. **Nada pendiente** de este flujo |
 | **AE. Bloqueos** | **Ninguno abierto.** Las dos detenciones de la implementación —`anyio` y `httpx2`— se resolvieron, la segunda con autorización expresa. **D-020-1**, **D-020-2** y **D-020-3**, de la revisión previa a la aprobación, también quedan resueltas. **D-020-H sigue vigente**: permanece documentada la limitación del `.venv` nativo de Windows, que no reproduce el árbol bloqueado. Las alternativas de lock Windows o universal no fueron adoptadas por Task020 |
-| **AF. Veredicto** | **TASK020 IMPLEMENTADA — LISTA PARA VALIDACIÓN.** No aprobada |
+| **AF. Veredicto previo a la aprobación del 2026-09-10** | **TASK020 IMPLEMENTADA — LISTA PARA VALIDACIÓN.** En esa fase todavía no estaba aprobada; aprobación posterior registrada abajo |
 
 ## Recursos temporales que siguen en la máquina
 
@@ -709,11 +709,11 @@ el contexto que faltaban:
 | Ejecución | Evento | Head | Conclusión | Suite |
 | --- | --- | --- | --- | --- |
 | **34489982595** | `pull_request` | `22af3f18d9fd2f955319ea1131bac7c40e57b3df` | **`success`** | **1855** pruebas, **0** omitidas |
-| **34491446991** | `push` sobre `dev` | `5fedcb34f8f1542fcfb0957547e58f472529f6f2` | **`success`** | **1855** pruebas, **0** omitidas |
+| **34491446991, attempt 1 (2026-09-10)** | `push` sobre `dev` | `5fedcb34f8f1542fcfb0957547e58f472529f6f2` | **`success`** | **1855** pruebas, **0** omitidas |
 
 Enlaces:
 [34489982595](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34489982595)
-· [34491446991](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34491446991).
+· [34491446991, attempt 1](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34491446991/attempts/1).
 
 Las dos concluyeron con sus **21 pasos** en verde —los 19 declarados en el
 workflow más *Set up job* e *Initialize containers*, que añade GitHub—. La
@@ -758,3 +758,16 @@ usuario. *Observado el 2026-09-10 UTC:* el usuario los fusionó, eliminó las
 ramas remotas y la normalización `main → dev` quedó completada; el detalle
 fechado está en §Evidencia posterior al cierre. **Task021 no se inicia en esta
 tarea.**
+
+## Mantenimiento posterior de reproducibilidad — 2026-09-12
+
+Task020 continúa **Aprobada**; no se reabre. El run backend `34491446991`
+conserva **attempt 1: success el 2026-09-10** y **attempt 2: failure el
+2026-09-12**, mismo SHA `5fedcb3` y evento `push` sobre `dev`. El segundo falló
+en `Start the ephemeral MinIO` (exit 125): Docker Hub denegó el acceso al
+manifiesto. Los gates posteriores no llegaron a ejecutarse.
+
+La corrección independiente, sin cambiar release ni digest, se desarrolla en
+[Task020.3](../task-reports/TASK-020.3-report.md). Es mantenimiento y no cuenta
+entre las 41 tareas. El estado y el resultado del mantenimiento se consultan
+en su ficha y reporte; los resultados anteriores conservan su fecha e intento.
