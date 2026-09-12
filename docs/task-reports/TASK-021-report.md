@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/021-CI-Infraestructura` |
-| **Estado** | **En progreso** — revalidación autorizada con MinIO desde Quay; mismo release y mismo digest |
+| **Estado** | **Lista para validación** — MinIO desde Quay con el mismo digest; CI `34669960835` en `success`; no aprobada |
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
@@ -784,7 +784,7 @@ nunca se leyó ni se imprimió.
 ## AD. Contadores
 
 **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. **Sin cambio**:
-Task021 está **En progreso** en la revalidación de §AM, no aprobada, así que **no suma**. No se
+Task021 está **Lista para validación** tras la revalidación de §AM–§AN, no aprobada, así que **no suma**. No se
 escribe 21/41, ni 3/3, ni «ETAPA 06 Completada». `Task/022` **Pendiente** y no
 iniciada.
 
@@ -1361,3 +1361,122 @@ tarea nueva para ello.
 Contadores sin cambio: **20/41 ≈ 49 %**, ETAPA 06 **2/3 ≈ 67 %**. Sin
 aprobación, sin merge a `dev`, sin PR, sin cambios en backend o frontend y sin
 iniciar `Task/022`.
+
+## AN. CI real de la revalidación Quay — hechos fechados
+
+**Observado el 2026-09-11 Guatemala / 2026-09-12 UTC** mediante GitHub, no
+inferido. El commit `a6bd1eccbe2b30ea49a60cd5286fc7727eb36102` reúne los tres
+cambios funcionales de registro y los documentos durables de esa fase. Se
+publicó únicamente la rama Task, bajo la excepción de *bootstrap* autorizada:
+`94c5e67..a6bd1ec`. No hubo push a `dev`, a `main` ni pull request.
+
+| Campo | Observación desde GitHub |
+| --- | --- |
+| databaseId | **34669960835** |
+| workflowName | `CI Infra` |
+| event | `push` |
+| headBranch | `Task/021-CI-Infraestructura` |
+| headSha | `a6bd1eccbe2b30ea49a60cd5286fc7727eb36102` |
+| status / conclusion | **`completed`** / **`success`** |
+| run_attempt | **1**, sin reintentos |
+| createdAt → updatedAt | `2026-09-12T03:17:22Z` → `2026-09-12T03:18:06Z`, **44 s** |
+| Job `Infra quality` | `03:17:24Z` → `03:18:05Z`, **41 s** |
+| Pasos | **19 de 19 en `success`**, ningún `skipped` ni `failure` |
+
+### AN.1 Auditoría paso a paso
+
+| Paso | Resultado observado en el log |
+| --- | --- |
+| Terraform / shell scripts | **0** archivos de cada familia; ambos gates declarados, no vacíos |
+| Compose válido | Servicios cubiertos: `backend frontend migrations minio portainer postgres traefik` — **7**, exit 0 |
+| Variables del Compose | Usadas **26**, declaradas **26**, ninguna sin declarar |
+| PowerShell | `archivos=6 fallos=0` |
+| Python | `archivos=3 fallos=0` |
+| Regresiones del comparador | `Ran 13 tests` … `OK` — **13/13** |
+| Gitleaks 8.30.1, historial completo | **48 commits scanned**, `no leaks found` |
+| Imágenes escaneadas | **4**: `personal-blog-postgres:ci`, `personal-blog-traefik:ci`, `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea…`, `portainer/portainer-ce:2.39.7@sha256:0e3c8b…` |
+
+### AN.2 MinIO descargado desde Quay sin credenciales
+
+El grupo de Trivy del log nombra `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea…`.
+**No hubo `docker login`, ni usuario, ni contraseña, ni secreto de registro**:
+el workflow no declara ninguno y el log no contiene ninguna respuesta
+`UNAUTHORIZED` ni HTTP 401. Las únicas líneas de autenticación del log
+pertenecen al *build* de las imágenes base oficiales y al `GITHUB_TOKEN`, que
+aparece redactado. **No se añadieron *settings*, secretos ni credenciales de
+Docker Hub.**
+
+### AN.3 Gate S-09 sobre el HEAD real
+
+| Imagen | Política | Observados | Baseline | Nuevos | Exactas | Ya no presentes |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| `personal-blog-postgres` | zero-tolerance | **0** | 0 | **0** | 0 | 0 |
+| `personal-blog-traefik` | zero-tolerance | **0** | 0 | **0** | 0 | 0 |
+| `quay.io/minio/minio:…@sha256:14cea…` | accepted-baseline, **R-018-3** | **100** | 100 | **0** | **100** | **0** |
+| `portainer/portainer-ce:2.39.7@sha256:0e3c8b…` | accepted-baseline, **R-021-1** | **16** | 16 | **0** | **16** | **0** |
+
+Digest observado para MinIO:
+`sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e`,
+idéntico al aprobado. **Hallazgos accionables comparados en total: 116.**
+**RESULTADO: CORRECTO.**
+
+El residual queda **visible**, no silenciado: el paso de inventario imprime la
+enumeración completa de MinIO desde `quay.io`, con **37** hallazgos del sistema
+operativo y **84** en `usr/bin/minio` entre todas las severidades.
+
+### AN.4 Secretos en los logs
+
+Los **541 157** bytes de log del run se escanearon con Gitleaks **8.30.1**:
+**0 hallazgos**. El escaneo del historial dentro del propio run también
+devolvió **0** sobre **48** commits.
+
+### AN.5 Lo que este verde no significa
+
+El bloqueo histórico de §AL **se conserva sin reescribir**: el run
+`34663425054` sobre `94c5e67` sigue registrado como `failure` en dos intentos.
+Este verde **no lo anula**, lo sucede.
+
+**El residual de MinIO no se resolvió.** Son los mismos **100** hallazgos
+aceptados temporalmente bajo **R-018-3**, que permanece **ABIERTO**. Portainer
+conserva sus **16** bajo **R-021-1**, también abierto. No se actualizó ninguna
+imagen ni se elevó ninguna versión.
+
+Siguen sin demostrarse, para el cierre global de ETAPA 06, el pull request real
+de infraestructura, su run sobre `dev` y el control negativo remoto deliberado,
+que **sigue sin autorizarse**. Contadores **20/41 ≈ 49 %** y ETAPA 06
+**2/3 ≈ 67 %**, sin cambio: Task021 **no está aprobada**.
+
+## AO. Veredicto final de implementación
+
+**TASK021 IMPLEMENTADA — LISTA PARA VALIDACIÓN.**
+
+`CI Infra` valida los artefactos reales de infraestructura en cada `push` y
+`pull_request`: Compose con sus **7** servicios y **26** variables, las dos
+familias de scripts, el historial completo de secretos y el gate **S-09** con
+baseline exacto de riesgo aceptado. El comparador exige identidad literal de
+los siete campos y rechaza un nombre de imagen o un digest inesperados **antes**
+de comparar hallazgos.
+
+La dependencia de registro quedó reparada con el mínimo cambio posible: **tres
+líneas**, solo el prefijo. **El release, el digest y los 100 hallazgos
+aceptados no cambiaron**, y la equivalencia del contenido OCI se demostró byte
+a byte antes de proponerla.
+
+Evidencia del HEAD final en §AN: run **34669960835**, `push`, `a6bd1ec`,
+`completed/success` en **44 s**, **19/19** pasos, **116** identidades exactas,
+**0** hallazgos fuera del baseline y **0** secretos.
+
+**No aprobada.** La aprobación es responsabilidad exclusiva del usuario. No se
+hizo merge a `dev`, ni push a `dev` o `main`, ni pull request. Backend y
+frontend permanecieron en **solo lectura**. `Task/022` **no se inició**.
+
+**ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.**
+
+### AO.1 Criterion12 final
+
+| Clase | Resultado de la revisión |
+| --- | --- |
+| **A** | Reglas durables intactas: base `main` de las ramas Task, aprobación exclusiva del usuario, límites del *bootstrap*, política estricta de S-09 y la regla nueva de §AM.7 sobre el registro de MinIO |
+| **B** | Hechos fechados y anclados: failure `34663425054` sobre `94c5e67`, verde histórico `34636624843` sobre `43c1bf2` y verde final `34669960835` sobre `a6bd1ec`, cada uno con su fecha, evento y conclusión |
+| **C** | **0.** Ninguna mención a PR, rama remota o normalización persiste como estado vigente. El único estado de rama registrado es el `push` fechado de la rama Task, que es historia, no condición de la tarea siguiente |
+| **D** | **0.** Estado **Lista para validación** coherente en ficha, reporte, STATUS, ROADMAP, STAGE-06, NFR y README de reportes; distribución por estado con Lista para validación **1** y Bloqueada **0**; contadores **20/41** y ETAPA 06 **2/3** sin tocar; el bloqueo histórico conservado sin reescribir y acotado a lo demostrado |

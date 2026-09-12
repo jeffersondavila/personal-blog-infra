@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *En progreso: revalidación con MinIO desde Quay*
+### `Task/021-CI-Infraestructura` — *Lista para validación: MinIO desde Quay*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -196,12 +196,16 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios. `Task/021` está **En progreso**: la CI final `34663425054` sobre `94c5e67`
+salida exigen los **tres** repositorios. `Task/021` está **Lista para validación**: la CI `34663425054` sobre `94c5e67`
 falló en dos intentos porque el acceso **anónimo** a ese manifiesto de MinIO
 devolvió **HTTP 401**, hecho que se conserva sin reescribir, y el usuario
 **autorizó** tomar la misma imagen desde **Quay** —mismo release, mismo digest
 `sha256:14cea…`, contenido OCI idéntico y **100/100** identidades del baseline,
-que no se regeneró—. El primer
+que no se regeneró—. *Observado el 2026-09-12 UTC:* el run
+[34669960835](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34669960835),
+por `push` sobre `a6bd1ec`, concluyó **`success`** en **44 s** con **19/19**
+pasos, **116** identidades exactas, **0** hallazgos fuera del baseline y **0**
+secretos. **No aprobada.** El primer
 verde estricto se conserva como antecedente, no certifica ese HEAD final. La detención local del
 2026-09-11 por tres identidades CRITICAL→HIGH de CVE-2026-56854 se resolvió
 mediante revisión humana explícita y sustitución exclusiva de esas tres
@@ -238,7 +242,8 @@ La matriz conserva la reconstrucción posterior al primer verde. La
 revalidación final añadió el bloqueo de acceso a MinIO: el nuevo run no
 alcanzó a ejecutar S-09. La revalidación autorizada con Quay repara la
 dependencia sin alterar ninguna casilla de la matriz, porque no cambian ni la
-imagen ni sus hallazgos; su verde en CI se registrará cuando exista.
+imagen ni sus hallazgos; su verde en CI es el run `34669960835` sobre `a6bd1ec`,
+`completed/success` el 2026-09-12 UTC.
 Distingue evidencia fechada y automatización continua; su detalle,
 metadatos de runs y auditorías están en el [reporte Task021](../task-reports/TASK-021-report.md).
 **ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.** No se marca

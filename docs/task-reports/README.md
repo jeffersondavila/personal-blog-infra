@@ -93,7 +93,7 @@ Ejemplo: `TASK-001-report.md`.
 | `Task/020-CI-Backend` | [TASK-020-report.md](TASK-020-report.md) | Aprobada (2026-09-10) |
 | `Task/020.1-Corregir-Drift-Documental-Post-Merge` *(mantenimiento)* | [TASK-020.1-report.md](TASK-020.1-report.md) | Aprobada (2026-09-10) |
 | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` *(mantenimiento)* | [TASK-020.2-report.md](TASK-020.2-report.md) | Aprobada (2026-09-10) |
-| `Task/021-CI-Infraestructura` | [TASK-021-report.md](TASK-021-report.md) | En progreso: revalidación autorizada con MinIO desde Quay, mismo digest (2026-09-11) |
+| `Task/021-CI-Infraestructura` | [TASK-021-report.md](TASK-021-report.md) | Lista para validación: MinIO desde Quay, mismo digest, CI 34669960835 en success (2026-09-11) |
 
 > Las tareas de **mantenimiento** llevan sufijo (`004.1`, `004.2`, `005.1`, `005.2`,
 > `005.3`, `005.4`, `005.5`, `005.6`, `005.7`, `006.1`, `006.2`, `009.1`, `012.1`,

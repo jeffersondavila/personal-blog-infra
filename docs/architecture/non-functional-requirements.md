@@ -70,8 +70,8 @@ UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
 secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
 
-**S-09 infraestructura — evidencia estricta histórica el 2026-09-11;
-revalidación en curso con MinIO desde Quay.**
+**S-09 infraestructura — satisfecho técnicamente el 2026-09-12 con MinIO
+desde Quay; pendiente de aprobación de la tarea.**
 El run `34663425054` sobre `94c5e67` terminó en failure en dos intentos
 (2026-09-12 UTC): el acceso **anónimo** a ese manifiesto de MinIO devolvió
 **HTTP 401 / `UNAUTHORIZED`**; el scan falló y S-09 quedó skipped. Ese hecho
@@ -79,14 +79,22 @@ se conserva acotado a lo observado y no se reescribe. Con autorización
 explícita, la infraestructura pasa a tomar la misma imagen desde **Quay**:
 **mismo release**, **mismo digest** `sha256:14cea…`, contenido OCI verificado
 idéntico y las **mismas 100** identidades aceptadas, sin regenerar el
-baseline. El residual **no se resolvió** y **R-018-3** sigue **ABIERTO**. La
-evidencia verde siguiente no certifica el HEAD final ni permite declarar
-Task021 Lista para validación.
+baseline. El residual **no se resolvió** y **R-018-3** sigue **ABIERTO**.
 El comparador heredado incumplía la identidad aprobada al excluir severidad
 y `FixedVersion`. Se corrigió y se verificó en el nuevo run
 [34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843),
 `push` sobre `43c1bf20f3a75bca7d4cde294bae771c4f92acf3`, `completed/success`: 19 pasos
-verdes, 13 regresiones y 116 coincidencias exactas sin findings fuera del baseline. *Versiones fijadas:* las cuatro
+verdes, 13 regresiones y 116 coincidencias exactas sin findings fuera del baseline.
+
+*Observado el 2026-09-12 UTC:* la CI de ese cambio, run `34669960835` por
+`push` sobre `a6bd1ec`, concluyó **`completed/success`** en **44 s** con
+**19/19** pasos. **S-09 infraestructura queda satisfecho técnicamente** por el
+gate real: postgres **0**, traefik **0**, MinIO **100** exactas y **0** nuevas,
+Portainer **16** exactas y **0** nuevas, **116** identidades comparadas y
+residual visible. Task021 **no está aprobada**, así que **S-09 global** sigue
+abierto hasta el cierre de la etapa.
+
+*Versiones fijadas:* las cuatro
 imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna
 coincidencia de `:latest` ni `:nightly` en el árbol versionado. *Escaneo en CI:*
 el workflow `CI Infra` construye las dos imágenes que el proyecto arma sobre sus

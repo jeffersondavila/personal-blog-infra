@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/021-CI-Infraestructura` |
 | **Nombre** | CI Infraestructura |
 | **Etapa** | ETAPA 06 — Integración Continua |
-| **Estado** | **En progreso** — revalidación autorizada con MinIO desde Quay; mismo release y mismo digest |
+| **Estado** | **Lista para validación** — MinIO desde Quay con el mismo digest; CI `34669960835` en `success`; no aprobada |
 | **Repositorios involucrados** | `personal-blog-infra`; backend/frontend solo lectura |
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
@@ -401,6 +401,32 @@ La referencia independiente de MinIO en la CI del backend **no entra en este
 alcance** y se evaluará por separado, si resulta necesario, antes del cierre
 global de ETAPA 06.
 
-Esta sección registra la decisión y la evidencia local. **No declara verde
-ninguna CI**: el run real sobre el commit de esta revalidación se registra en
-el reporte cuando exista.
+Esta sección registra la decisión y la evidencia local. El run real sobre el
+commit de esta revalidación se registra en §27, después de existir.
+
+## 27. CI conforme del HEAD de la revalidación — 2026-09-12 UTC
+
+[CI Infra 34669960835](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34669960835):
+evento `push`, rama `Task/021-CI-Infraestructura`, headSha
+`a6bd1eccbe2b30ea49a60cd5286fc7727eb36102`, **`completed/success`** en el
+**primer intento**, **44 s** de run y **41 s** de job, con **19 de 19** pasos
+en verde y ningún paso omitido.
+
+Compose con **7** servicios y **26/26** variables; **6** scripts PowerShell y
+**3** Python sin fallos; **13/13** regresiones; Gitleaks 8.30.1 sobre **48**
+commits sin hallazgos; **4** imágenes escaneadas.
+
+MinIO se descargó de `quay.io` **sin `docker login`, sin credenciales y sin
+secretos de registro**. S-09 devolvió **CORRECTO**: postgres **0**, traefik
+**0**, MinIO **100** exactas y **0** nuevas, Portainer **16** exactas y **0**
+nuevas, **116** identidades comparadas. Los **541 157** bytes de log se
+escanearon con Gitleaks: **0** hallazgos.
+
+El bloqueo de §25 **se conserva sin reescribir**; este verde lo sucede, no lo
+anula. El residual **no se resolvió**: **R-018-3** sigue **ABIERTO** con los
+mismos **100** hallazgos aceptados temporalmente, y **R-021-1** con los **16**
+de Portainer.
+
+**Task021 queda Lista para validación. No aprobada.** Contadores **20/41 ≈
+49 %**, ETAPA 06 **2/3 ≈ 67 %**. Sin merge a `dev`, sin PR, sin cambios en
+backend o frontend y sin iniciar `Task/022`. Detalle en el reporte §AN–§AO.

@@ -9,7 +9,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Etapa actual** | **ETAPA 06 — Integración Continua — En progreso** (**2 de 3** aprobadas, **67 %**). ETAPAS 00 a 05 **completadas**; ETAPA 05 **3 de 3 — 100 %** |
-| **Tarea actual** | **`Task/021-CI-Infraestructura`** — **En progreso**: revalidación autorizada que toma MinIO desde **Quay**, con el mismo release, el mismo digest y los mismos 100 hallazgos aceptados. El bloqueo de acceso observado el 2026-09-11 Guatemala / 2026-09-12 UTC se conserva como historia; B-021-1, B-021-2 y **B-021-3** resueltos con autorización explícita. **No aprobada**: no suma al avance |
+| **Tarea actual** | **`Task/021-CI-Infraestructura`** — **Lista para validación**: MinIO pasa a **Quay** con el mismo release, el mismo digest y los mismos 100 hallazgos aceptados, y la CI `34669960835` sobre `a6bd1ec` concluyó **`success`** en **44 s** con **19/19** pasos. El bloqueo de acceso observado el 2026-09-11 Guatemala / 2026-09-12 UTC se conserva como historia; B-021-1, B-021-2 y **B-021-3** resueltos con autorización explícita. **No aprobada**: no suma al avance |
 | **Última tarea canónica aprobada** | **`Task/020-CI-Backend`** — **Aprobada** el 2026-09-10 por el usuario |
 | **Resultado de la última tarea aprobada** | **Aprobada** mediante `approved: Task/020-CI-Backend`. Workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, migraciones sobre el motor real, suite completa con `-W error` y escaneo de imagen *fail-closed*. **R-14 cerrado**: dos *locks* transitivos con hashes, instalación `--require-hashes` y detección de desfase. *Observado el 2026-09-10:* cuatro ejecuciones `push` en **`success`**, la última **34488083060** en **295 s** con **1855** pruebas, **0** omitidas y **0** vulnerabilidades accionables. El baseline destapó y corrigió dos defectos reales preexistentes: la regresión de `anyio` y tres vulnerabilidades de `httpx2`. **S-09 backend** satisfecho; **S-09 global** sigue abierto con `Task/021`. Detalle en el [reporte](../task-reports/TASK-020-report.md). Cuenta en el avance: **20 de 41** |
 | **Tarea aprobada anterior a `Task/020`** | `Task/019-CI-Frontend` — **Aprobada** el 2026-09-08 mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
@@ -31,7 +31,7 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **`Task/021-CI-Infraestructura` — En progreso.** Revalidación autorizada con MinIO desde Quay: mismo digest, contenido OCI idéntico y 100/100 identidades. Historia del bloqueo en [§AL](../task-reports/TASK-021-report.md); revalidación en [§AM](../task-reports/TASK-021-report.md) |
+| **Tarea en curso** | **`Task/021-CI-Infraestructura` — Lista para validación.** MinIO desde Quay con el mismo digest y 100/100 identidades; CI `34669960835` sobre `a6bd1ec` en `success`. **No aprobada.** Historia del bloqueo en [§AL](../task-reports/TASK-021-report.md); revalidación y CI en [§AM–§AO](../task-reports/TASK-021-report.md) |
 | **Próxima tarea prevista** | `Task/022-Validacion-Local-Production-Like` — **Pendiente, no iniciada**; depende de Task021 y de los criterios de salida de ETAPA 06. No se inicia dentro de Task021. Toda nueva Task nace desde `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
 | **Avance global** | **49 %** — 20 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
@@ -57,9 +57,9 @@
 
 ---
 
-## Tarea en curso — revalidación de `Task/021` con MinIO desde Quay
+## Tarea lista para validación — `Task/021` con MinIO desde Quay
 
-**Estado: En progreso.** Tras el bloqueo del run `34663425054` sobre `94c5e67`
+**Estado: Lista para validación.** Tras el bloqueo del run `34663425054` sobre `94c5e67`
 —dos intentos en failure, acceso **anónimo** a **ese manifiesto** de MinIO
 rechazado con **HTTP 401**, observado el 2026-09-11 Guatemala / 2026-09-12 UTC
 y conservado en el reporte §AL— el usuario **autorizó explícitamente** tomar
@@ -75,9 +75,19 @@ OCI, no un reempaquetado. El comparador estricto cuenta **100** aprobados,
 **100** accionables, **100** coincidencias exactas, **0** nuevos y **0**
 desaparecidos; el baseline **no se regeneró**. Detalle en el reporte §AM.
 
+*Observado el 2026-09-12 UTC:* la CI del HEAD de esa revalidación,
+[34669960835](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34669960835),
+por `push` sobre `a6bd1ec`, concluyó **`completed/success`** en el primer
+intento, **44 s** de run y **19 de 19** pasos en verde. MinIO se descargó de
+`quay.io` **sin credenciales ni secretos de registro**. S-09 devolvió
+**CORRECTO**: postgres **0**, traefik **0**, MinIO **100** exactas y **0**
+nuevas, Portainer **16** exactas y **0** nuevas, **116** identidades
+comparadas. Gitleaks: **48** commits y los **541 157** bytes de log, **0**
+hallazgos en ambos.
+
 El residual **no se resolvió**: son los mismos **100** hallazgos de MinIO
-aceptados temporalmente bajo **R-018-3**, que sigue **ABIERTO**. **No hay
-todavía ninguna CI verde declarada** para esta revalidación.
+aceptados temporalmente bajo **R-018-3**, que sigue **ABIERTO**. **No aprobada**,
+así que el avance **no cambia**.
 
 **Antecedente histórico del 2026-09-11, anterior a ese bloqueo:** local GREEN y
 [CI Infra 34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843),
@@ -1926,8 +1936,8 @@ Distribución por estado:
 | Estado | Tareas |
 | --- | --- |
 | Pendiente | **20** |
-| En progreso | **1** |
-| Lista para validación | 0 |
+| En progreso | 0 |
+| Lista para validación | **1** |
 | **Aprobada** | **20** |
 | Bloqueada | 0 |
 | Descartada | 0 |
@@ -2124,7 +2134,7 @@ Distribución por estado:
 | `Task/018-Endurecimiento-de-Seguridad` | 05 | infra, frontend, backend | **Aprobada** (2026-09-08) |
 | `Task/019-CI-Frontend` | 06 | frontend, infra (documentación) | **Aprobada** (2026-09-08) |
 | `Task/020-CI-Backend` | 06 | backend, infra (documentación) | **Aprobada** (2026-09-10) |
-| `Task/021-CI-Infraestructura` | 06 | infra | **En progreso** — revalidación autorizada con MinIO desde Quay, mismo digest (2026-09-11 Guatemala) |
+| `Task/021-CI-Infraestructura` | 06 | infra | **Lista para validación** — MinIO desde Quay con el mismo digest; CI `34669960835` en `success` (2026-09-11 Guatemala) |
 | `Task/022-Validacion-Local-Production-Like` | 07 | infra, frontend, backend | Pendiente |
 | `Task/023-Compatibilidad-FastAPI-Lambda` | 08 | backend | Pendiente |
 | `Task/024-Artefacto-ZIP-Lambda` | 08 | backend | Pendiente |
