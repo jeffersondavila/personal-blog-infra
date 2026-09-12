@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-12 — Task020.3 **Lista para validación**, mantenimiento de reproducibilidad de CI Backend. Task020 y Task021 siguen **Aprobadas**; **21/41 ≈ 51 %**, ETAPA 06 **3/3 tareas aprobadas**. La descarga MinIO quedó reparada y **B-020.3-C resuelto**: el gate Trivy de la imagen backend pasó de 12 accionables a **0**, con la política S-09 intacta. **Cierre técnico de la etapa demostrado, pendiente de aprobar el mantenimiento.** S-09 conserva su definición y verificaciones canónicas en [NFR](../architecture/non-functional-requirements.md)
+- **Última actualización:** 2026-09-12 — Task020.3 **Aprobada** mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`; con ella la **ETAPA 06 queda Completada**. Task020 y Task021 siguen **Aprobadas**; el avance permanece en **21/41 ≈ 51 %** porque el mantenimiento **no cuenta** entre las 41. La descarga MinIO quedó reparada y **B-020.3-C resuelto**: el gate Trivy de la imagen backend pasó de 12 accionables a **0**, con la política S-09 intacta. Siguiente: **ETAPA 07 — Validación Local**, con `Task/022` **Pendiente, no iniciada**. S-09 conserva su definición y verificaciones canónicas en [NFR](../architecture/non-functional-requirements.md)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -94,7 +94,7 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 03 | Dominio y Backend | 5 | **5** | **100 %** | **Completada** | 02 ✔ |
 | 04 | Experiencia del Usuario | 3 | **3** | **100 %** | **Completada** | 03 ✔ |
 | 05 | Calidad y Seguridad | 3 | **3** | **100 %** | **Completada** | 04 ✔ |
-| 06 | Integración Continua | 3 | **3** | **100 %** | Tareas aprobadas; **cierre pendiente** | 05 ✔ |
+| 06 | Integración Continua | 3 | **3** | **100 %** | **Completada** | 05 ✔ |
 | 07 | Validación Local | 1 | 0 | 0 % | Pendiente | 06 |
 | 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 |
 | 09 | Cuentas y Seguridad Cloud | 3 | 0 | 0 % | Pendiente | 08 |
@@ -263,8 +263,8 @@ residuales de imágenes registrados en [STAGE-05](../stages/STAGE-05-quality-sec
 
 ---
 
-**Mantenimiento Task020.3 — Lista para validación (2026-09-12).** No forma
-parte de las 41 tareas. Recupera CI Backend cambiando el registro de MinIO a
+**Mantenimiento Task020.3 — Aprobada (2026-09-12).** No forma
+parte de las 41 tareas y no altera el avance. Recupera CI Backend cambiando el registro de MinIO a
 Quay, con el mismo release y digest. `34491446991` **attempt 1** fue success
 el 2026-09-10; **attempt 2** falló el 2026-09-12 al descargar desde Docker Hub.
 La evidencia posterior de STAGE-06 y el resultado de este mantenimiento se
@@ -280,8 +280,8 @@ independiente del cambio de registro.
 **CRITICAL 0** y gate accionable **0**. **B-020.3-C resuelto** aplicando las
 actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile,
 sin tocar Python, distribución base, digest del `FROM`, locks ni la política
-S-09. **Cierre técnico de STAGE-06 demostrado, pendiente de la aprobación de
-este mantenimiento.** Task022 permanece **Pendiente, no iniciada**.
+S-09. Con su aprobación el mismo 2026-09-12, la **ETAPA 06 quedó Completada**.
+Task022 permanece **Pendiente, no iniciada**.
 
 ## ETAPA 07 — Validación Local
 

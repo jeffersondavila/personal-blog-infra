@@ -138,6 +138,23 @@ ninguna severidad, ni se creó baseline de vulnerabilidades del backend. Nada de
 esto cambia la política de auditoría, el baseline de terceros ni la definición
 de S-09.
 
+**Cierre de la ETAPA 06 — 2026-09-12.** Con la aprobación de `Task/020.3` la
+etapa queda **Completada**. S-09 queda satisfecho **técnicamente por capas**:
+
+| Capa | Satisfecho por | Gate |
+| --- | --- | --- |
+| Frontend | `Task/019` | `npm audit` sin umbral inventado |
+| Backend | `Task/020` más el mantenimiento `Task/020.3` | `pip-audit` sobre ambos *locks* y Trivy `HIGH,CRITICAL --ignore-unfixed --exit-code 1` sobre la imagen |
+| Infraestructura | `Task/021` | Trivy con tolerancia cero en las imágenes propias y baseline exacto de riesgo aceptado en las de terceros |
+
+**Completar la ETAPA 06 no elimina ninguna verificación futura del NFR.** Las que
+esta especificación asigna a las ETAPAS 07 y 12 siguen pendientes y no quedan
+sustituidas por los gates de CI. **R-018-3** y **R-021-1** siguen **ABIERTOS**:
+**100** hallazgos de MinIO y **16** de Portainer permanecen aceptados
+temporalmente, enumerados y ligados a su digest. **No se afirma que MinIO ni
+Portainer hayan quedado libres de vulnerabilidades**; se afirma únicamente que no
+hay hallazgos accionables nuevos fuera del baseline declarado.
+
 *Consecuencia registrada:* el `FROM` de la imagen backend conserva tag y digest,
 pero la capa de APT aplica las correcciones publicadas en el momento del build,
 de modo que su sistema de archivos final deja de estar determinado únicamente

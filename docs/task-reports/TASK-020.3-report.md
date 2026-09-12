@@ -3,10 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/020.3-Corregir-Registro-MinIO-CI-Backend` |
-| **Estado** | Lista para validación |
+| **Estado** | Aprobada |
 | **Fecha** | 2026-09-12 |
 | **Ficha** | [TASK-020.3](../tasks/TASK-020.3-fix-minio-registry-backend-ci.md) |
-| **Avance** | **21/41 ≈ 51 %**; ETAPA 06 **3/3 tareas aprobadas** |
+| **Avance** | **21/41 ≈ 51 %**; ETAPA 06 **Completada**, 3/3 tareas aprobadas |
 | **Naturaleza** | Mantenimiento; no cuenta entre las 41; Task020 y Task021 continúan Aprobadas |
 
 ## 1. Alcance y autorización
@@ -557,14 +557,16 @@ la validación de integración corresponde al workflow completo existente.
 El usuario puede revisar `git diff main` en ambos repositorios, contrastar
 la referencia exacta y consultar el run 34713222925 con su auditoría en §6 y el
 run 34719123905 con su evidencia en §7.
-**TASK020.3 IMPLEMENTADA — LISTA PARA VALIDACIÓN.**
+**TASK020.3 APROBADA** el **2026-09-12** por el usuario mediante
+`approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`.
 
 **B-020.3-C — RESUELTO:** gate Trivy de la imagen backend en **0 accionables**,
 exit **0**, con la política S-09 intacta.
 
-**Descarga de MinIO reparada y CI Backend completa GREEN. ETAPA 06 — CIERRE
-TÉCNICO DEMOSTRADO, PENDIENTE DE APROBACIÓN DEL MANTENIMIENTO.** Avance
-intacto: **21/41 ≈ 51 %**. Task022 permanece **Pendiente, no iniciada**.
+**Descarga de MinIO reparada y CI Backend completa GREEN. Con esta aprobación la
+ETAPA 06 queda COMPLETADA**, con 3 de 3 tareas aprobadas. El mantenimiento **no
+cuenta entre las 41 tareas**: el avance permanece en **21/41 ≈ 51 %**.
+Task022 permanece **Pendiente, no iniciada**.
 
 *Estado observado al detenerse el 2026-09-12, antes de autorizar la corrección:*
 backend conservaba únicamente el commit `e8693eb` publicado en su rama Task; la

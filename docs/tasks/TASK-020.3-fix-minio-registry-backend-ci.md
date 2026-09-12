@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/020.3-Corregir-Registro-MinIO-CI-Backend` |
 | **Nombre** | Corregir registro de MinIO en CI Backend |
 | **Etapa** | ETAPA 06 — mantenimiento, fuera de las 41 tareas |
-| **Estado** | Lista para validación |
+| **Estado** | Aprobada |
 | **Repositorios involucrados** | backend: workflow; infra: documentación; frontend: solo lectura |
 | **Dependencias** | Task020 y Task021, Aprobadas |
 | **Rama base** | `main` actualizado y limpio |
@@ -243,7 +243,15 @@ Task022 — **Pendiente, no iniciada**. No se inicia dentro de este mantenimient
 
 ## 20. Aprobación
 
-**Pendiente, exclusiva del usuario.** El bootstrap autorizado permite commit y
-push de la rama Task después de local GREEN y C=0/D=0; no aprueba la tarea ni
-autoriza integraciones o PR. Regla permanente en
-[WORKFLOW](../project-management/WORKFLOW.md).
+**Aprobada** el **2026-09-12** por el usuario mediante
+`approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`.
+
+La aprobación autoriza el flujo de cierre del [WORKFLOW](../project-management/WORKFLOW.md):
+integración de la rama Task en `dev` mediante merge `--no-ff` en backend e infra,
+publicación de `dev`, y creación de los pull requests `Task/020.3-… → main` en
+ambos repositorios. **No autoriza fusionar esos PR**: aceptarlos sigue siendo
+responsabilidad exclusiva del usuario. Frontend permanece en solo lectura y
+`Task/022` no se inicia.
+
+Con esta aprobación la **ETAPA 06 queda Completada**. El mantenimiento **no
+cuenta entre las 41 tareas** y el avance permanece en **21/41 ≈ 51 %**.

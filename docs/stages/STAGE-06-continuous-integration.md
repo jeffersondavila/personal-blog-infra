@@ -3,12 +3,12 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 06 |
-| **Estado** | **3 de 3 tareas aprobadas (100 %)** — la etapa **no se declara completada**: **cierre técnico demostrado, pendiente de la aprobación** del mantenimiento Task020.3, **Lista para validación** con **B-020.3-C resuelto** |
+| **Estado** | **Completada** el **2026-09-12** — **3 de 3 tareas aprobadas (100 %)**; el cierre técnico quedó demostrado y el mantenimiento `Task/020.3` fue **Aprobado** ese mismo día |
 | **Dependencias** | [ETAPA 05](STAGE-05-quality-security.md) |
 | **Tareas** | 3 |
 | **Aprobadas** | 3 |
-| **Avance** | 100 % de sus tareas; **cierre de etapa pendiente** |
-| **Hito que completa** | CI verde en los tres repositorios. |
+| **Avance** | 100 % de sus tareas; **etapa completada** |
+| **Hito que completa** | CI verde en los tres repositorios. **Alcanzado:** `CI Frontend`, `CI Backend` y `CI Infra` conformes, con CI Backend reproducible de nuevo tras `Task/020.3`. |
 
 ---
 
@@ -316,14 +316,21 @@ dos filas marcadas «Pendiente al aprobar» son precisamente las que este cierre
 aprobado produce después del registro documental. La matriz
 distingue evidencia fechada y automatización continua; su detalle,
 metadatos de runs y auditorías están en el [reporte Task021](../task-reports/TASK-021-report.md).
-**ETAPA 06 — 3 DE 3 TAREAS APROBADAS; CIERRE GLOBAL PENDIENTE DE EVIDENCIA
-AUTORIZADA.** Las tres tareas de la etapa están aprobadas —Task019 el
+*Veredicto registrado el 2026-09-12 al aprobar `Task/021`, conservado como hecho
+fechado:* **ETAPA 06 — 3 DE 3 TAREAS APROBADAS; CIERRE GLOBAL PENDIENTE DE
+EVIDENCIA AUTORIZADA.** Las tres tareas de la etapa estaban aprobadas —Task019 el
 2026-09-08, Task020 el 2026-09-10 y Task021 el 2026-09-12—, y **la etapa no se
-marca completada**: son dos cosas distintas. El **control negativo remoto
-deliberado** sigue **sin autorizarse** y ninguna aprobación de tarea lo
-autoriza implícitamente. El `pull_request` de infra y su verde sobre `dev` se
-producen dentro del cierre aprobado de `Task/021`, después del registro
-documental de esa aprobación.
+marcaba completada**: eran dos cosas distintas. En aquel momento el **control
+negativo remoto deliberado** seguía **sin autorizarse**, y ninguna aprobación de
+tarea lo autorizaba implícitamente. El `pull_request` de infra y su verde sobre
+`dev` se produjeron dentro del cierre aprobado de `Task/021`, después del
+registro documental de esa aprobación.
+
+*Estado posterior, vigente:* el control negativo remoto **se autorizó y se
+ejecutó** —`34710854803`, failure deliberado en `Compose is valid`—, la
+reproducibilidad de CI Backend se restauró con `Task/020.3` y **la etapa quedó
+Completada el 2026-09-12** al aprobarse ese mantenimiento. Ninguna evidencia
+anterior se repitió ni se invalidó.
 
 ## Fuera del alcance de la etapa
 
