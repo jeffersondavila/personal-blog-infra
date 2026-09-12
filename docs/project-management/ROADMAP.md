@@ -2,7 +2,7 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-12 (`Task/021` **Aprobada**, MinIO pasa a **Quay** con el mismo digest tras el bloqueo histórico de acceso anónimo, CI `34670245277` en **`success`** y **B-021-3 resuelto**; avance: **21 de 41 — 51 %**, ETAPA 06 **3 de 3 tareas aprobadas** y **cierre de etapa pendiente** de la evidencia global restante; **R-14 cerrado**; **S-09 backend** e **infraestructura** satisfechos y **S-09 global** pendiente del cierre de la etapa)
+- **Última actualización:** 2026-09-12 — Task020.3 **Lista para validación**, mantenimiento de reproducibilidad de CI Backend. Task020 y Task021 siguen **Aprobadas**; **21/41 ≈ 51 %**, ETAPA 06 **3/3 tareas aprobadas**. La descarga MinIO quedó reparada y **B-020.3-C resuelto**: el gate Trivy de la imagen backend pasó de 12 accionables a **0**, con la política S-09 intacta. **Cierre técnico de la etapa demostrado, pendiente de aprobar el mantenimiento.** S-09 conserva su definición y verificaciones canónicas en [NFR](../architecture/non-functional-requirements.md)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -257,11 +257,31 @@ residuales de imágenes registrados en [STAGE-05](../stages/STAGE-05-quality-sec
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/019-CI-Frontend` | Lint. Type-check. Tests. Build. Formato y auditoría npm (S-09 frontend). | frontend, infra (documentación) | 018 | **Aprobada** (2026-09-08) — workflow `CI Frontend` en cada `push` y `pull_request`, un job en `ubuntu-24.04` con Node 22.23.2, build antes de las pruebas para no omitir las guardas SEO/P-05, y `npm audit` sin umbral. Ejecución **34305529115** en `success`: **704** pruebas, **0** vulnerabilidades. **S-09 global sigue abierto**: backend en `Task/020`, infra y escaneo del historial en `Task/021` |
-| `Task/020-CI-Backend` | Ruff. MyPy. Pytest. Migraciones. Build Docker. Escaneo. | backend, infra (documentación) | 018 | **Aprobada** (2026-09-10) — workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, suite completa con `-W error` y escaneo con política fail-closed. **R-14 resuelto** con dos *locks* transitivos con hashes e instalación `--require-hashes`, más detección de desfase. **S-09 backend satisfecho**; **S-09 global sigue abierto** con `Task/021`. Hallazgos heredados STAGE-06 y B-020-1/2/3 resueltos con autorización durante el preflight. [Reporte](../task-reports/TASK-020-report.md) |
-| `Task/021-CI-Infraestructura` | Docker Compose config. Validación de scripts. Escaneo de secretos. **Terraform todavía no existe** (llega en `Task/025`): sus verificaciones **no se declaran aquí como checks vacíos**; `Task/025` amplía este workflow con `fmt` y `validate`. | infra | 018 | **Aprobada** (2026-09-12) — MinIO pasa a **Quay** con el **mismo release y el mismo digest**, contenido OCI idéntico y **100/100** identidades; baseline no regenerado. CI `34670245277` sobre `a3434eb`, por `push`, **`completed/success`** en **42 s** con **19/19** pasos, **116** identidades exactas, **0** fuera del baseline y **0** secretos. **S-09 infraestructura** satisfecho por ese gate; el residual de MinIO **no se resolvió** y **R-018-3** sigue **ABIERTO**. Con ella la ETAPA 06 alcanza **3 de 3 tareas aprobadas**; el **cierre de la etapa sigue pendiente** de la evidencia global restante. **Historia preservada:** la CI final `34663425054` sobre `94c5e67` terminó en failure en dos intentos porque el acceso **anónimo** a ese manifiesto devolvió **HTTP 401**. **Antecedente previo al bloqueo:** D-021-A/B e identidad corregidas; revisión humana explícita de tres severidades, 13/13 regresiones, local y nuevo run `34636624843` sobre `43c1bf2` verdes: 56 s, 19 pasos success, 116 coincidencias exactas, 0 fuera del baseline. No aprobada. Evidencia anterior a la revisión: workflow `CI Infra` en cada `push` y `pull_request`: Compose con los 7 servicios, 26 variables, 6 scripts PowerShell, 3 Python, historial completo de secretos con Gitleaks 8.30.1 y gate S-09 con **baseline exacto de riesgo aceptado** para las imágenes third-party. Ejecución histórica **34604423915** sobre `4808d7c`, por `push` en **`success`** en **51 s**, 15 de 15 pasos. **B-021-1/2/3 resueltos** con autorización explícita. [Reporte](../task-reports/TASK-021-report.md) |
+| `Task/019-CI-Frontend` | Lint. Type-check. Tests. Build. Formato y auditoría npm (S-09 frontend). | frontend, infra (documentación) | 018 | **Aprobada** (2026-09-08) — workflow `CI Frontend` en cada `push` y `pull_request`, un job en `ubuntu-24.04` con Node 22.23.2, build antes de las pruebas para no omitir las guardas SEO/P-05, y `npm audit` sin umbral. Ejecución **34305529115** en `success`: **704** pruebas, **0** vulnerabilidades. *En la fecha de esa aprobación*, **S-09 global** esperaba backend en `Task/020`, infra y escaneo del historial en `Task/021` |
+| `Task/020-CI-Backend` | Ruff. MyPy. Pytest. Migraciones. Build Docker. Escaneo. | backend, infra (documentación) | 018 | **Aprobada** (2026-09-10) — workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, suite completa con `-W error` y escaneo con política fail-closed. **R-14 resuelto** con dos *locks* transitivos con hashes e instalación `--require-hashes`, más detección de desfase. **S-09 backend satisfecho**; *en la fecha de esa aprobación*, **S-09 global** esperaba `Task/021`. Hallazgos heredados STAGE-06 y B-020-1/2/3 resueltos con autorización durante el preflight. [Reporte](../task-reports/TASK-020-report.md) |
+| `Task/021-CI-Infraestructura` | Docker Compose config. Validación de scripts. Escaneo de secretos. **Terraform todavía no existe** (llega en `Task/025`): sus verificaciones **no se declaran aquí como checks vacíos**; `Task/025` amplía este workflow con `fmt` y `validate`. | infra | 018 | **Aprobada** (2026-09-12) — MinIO pasa a **Quay** con el **mismo release y el mismo digest**, contenido OCI idéntico y **100/100** identidades; baseline no regenerado. CI `34670245277` sobre `a3434eb`, por `push`, **`completed/success`** en **42 s** con **19/19** pasos, **116** identidades exactas, **0** fuera del baseline y **0** secretos. **S-09 infraestructura** satisfecho por ese gate; el residual de MinIO **no se resolvió** y **R-018-3** sigue **ABIERTO**. Con ella la ETAPA 06 alcanza **3 de 3 tareas aprobadas**; al registrar esa aprobación, el **cierre de la etapa quedó pendiente** de la evidencia global restante; seguimiento posterior en Task020.3. **Historia preservada:** la CI final `34663425054` sobre `94c5e67` terminó en failure en dos intentos porque el acceso **anónimo** a ese manifiesto devolvió **HTTP 401**. **Antecedente previo al bloqueo:** D-021-A/B e identidad corregidas; revisión humana explícita de tres severidades, 13/13 regresiones, local y nuevo run `34636624843` sobre `43c1bf2` verdes: 56 s, 19 pasos success, 116 coincidencias exactas, 0 fuera del baseline. No aprobada. Evidencia anterior a la revisión: workflow `CI Infra` en cada `push` y `pull_request`: Compose con los 7 servicios, 26 variables, 6 scripts PowerShell, 3 Python, historial completo de secretos con Gitleaks 8.30.1 y gate S-09 con **baseline exacto de riesgo aceptado** para las imágenes third-party. Ejecución histórica **34604423915** sobre `4808d7c`, por `push` en **`success`** en **51 s**, 15 de 15 pasos. **B-021-1/2/3 resueltos** con autorización explícita. [Reporte](../task-reports/TASK-021-report.md) |
 
 ---
+
+**Mantenimiento Task020.3 — Lista para validación (2026-09-12).** No forma
+parte de las 41 tareas. Recupera CI Backend cambiando el registro de MinIO a
+Quay, con el mismo release y digest. `34491446991` **attempt 1** fue success
+el 2026-09-10; **attempt 2** falló el 2026-09-12 al descargar desde Docker Hub.
+La evidencia posterior de STAGE-06 y el resultado de este mantenimiento se
+registran en su [reporte](../task-reports/TASK-020.3-report.md).
+*Observado el 2026-09-12 UTC:* run **34713222925**, push, `e8693eb`, attempt 1,
+**completed/failure**, 291 s. MinIO desde Quay y 1855 tests en verde; gate
+Trivy de la imagen backend falla con **12 accionables (9 HIGH, 3 CRITICAL)**.
+La sesión se detuvo y pidió autorización: **B-020.3-C** era un defecto
+independiente del cambio de registro.
+*Observado el 2026-09-12 UTC, tras autorizar la corrección:* run
+**34719123905**, push, `32c3992`, attempt 1, **completed/success**, 296 s,
+**25 de 25 pasos en success**; inventario Trivy **149** en Debian 13.7 con
+**CRITICAL 0** y gate accionable **0**. **B-020.3-C resuelto** aplicando las
+actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile,
+sin tocar Python, distribución base, digest del `FROM`, locks ni la política
+S-09. **Cierre técnico de STAGE-06 demostrado, pendiente de la aprobación de
+este mantenimiento.** Task022 permanece **Pendiente, no iniciada**.
 
 ## ETAPA 07 — Validación Local
 
@@ -454,7 +474,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `20 / 41 ≈ 49 %`.
+Actualmente: `21 / 41 ≈ 51 %`.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de

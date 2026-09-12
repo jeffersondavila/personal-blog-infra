@@ -107,8 +107,45 @@ satisfechos.
 Lo que **no** cambia con esa cobertura: el residual aceptado de MinIO y
 Portainer sigue vivo bajo **R-018-3** y **R-021-1**, ambos **abiertos**, así
 que S-09 no equivale a «sin vulnerabilidades»; y el cierre de la ETAPA 06 es un
-asunto distinto, con sus propios criterios de salida todavía pendientes. No se
+asunto distinto, con sus propios criterios de salida y seguimiento en
+[Task020.3](../task-reports/TASK-020.3-report.md). No se
 añaden a S-09 criterios ni propietarios que su definición no declare.
+
+**Mantenimiento de reproducibilidad de CI Backend — 2026-09-12.** Task020
+permanece aprobada. El run `34491446991` **attempt 1** fue success el
+2026-09-10; **attempt 2**, mismo SHA `5fedcb3`, falló el 2026-09-12 por acceso
+denegado al manifiesto de MinIO en Docker Hub. Task020.3 repara solo el registro
+de origen a Quay, con idéntico release y digest. Su resultado se registra en
+el reporte del mantenimiento: *observado el 2026-09-12 UTC*, run
+`34713222925`, push, `e8693eb`, attempt 1, **completed/failure**. La descarga
+Quay y ambos locks pasaron; el gate Trivy de la imagen backend falló con
+**12 accionables (9 HIGH, 3 CRITICAL)**, y **B-020.3-C** quedó abierto al cierre
+de esa ejecución.
+
+Tras autorización explícita del usuario, el mantenimiento aplicó las
+actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile
+backend: *observado el 2026-09-12 UTC*, run `34719123905`, push, `32c3992`,
+attempt 1, **completed/success**, con inventario **149** en Debian 13.7,
+**CRITICAL 0** y gate accionable **0**. **B-020.3-C resuelto:** CI Backend
+completa conforme; cierre técnico de STAGE-06 demostrado y pendiente de aprobar
+el mantenimiento.
+
+**S-09 no se relajó para conseguirlo.** El gate conserva
+`--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1` y pasa porque la
+imagen dejó de tener vulnerabilidades accionables, no porque se haya ocultado:
+no se añadió `.trivyignore`, ni `|| true`, ni `continue-on-error`, ni se bajó
+ninguna severidad, ni se creó baseline de vulnerabilidades del backend. Nada de
+esto cambia la política de auditoría, el baseline de terceros ni la definición
+de S-09.
+
+*Consecuencia registrada:* el `FROM` de la imagen backend conserva tag y digest,
+pero la capa de APT aplica las correcciones publicadas en el momento del build,
+de modo que su sistema de archivos final deja de estar determinado únicamente
+por ese digest. Queda aceptado para esa imagen local/CI —cuyo destino productivo
+es un artefacto ZIP de Lambda— y **no se generaliza al resto de imágenes**, que
+siguen fijadas por tag y digest sin capa de actualización. Completar STAGE-06 no cierra las verificaciones
+futuras del NFR en ETAPAS 07 y 12; R-018-3 y R-021-1 siguen abiertos, con
+100 hallazgos de MinIO y 16 de Portainer aceptados temporalmente.
 
 *Versiones fijadas:* las cuatro
 imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna

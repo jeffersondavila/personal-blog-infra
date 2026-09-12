@@ -7,7 +7,7 @@
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
-| **Avance aprobado** | **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, En progreso |
+| **Avance observado el 2026-09-10, antes de la aprobación de Task021** | **20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, En progreso |
 
 ## Reanudación autorizada — 2026-09-10
 
@@ -700,7 +700,7 @@ como tales, **nunca** como tiempos de CI.
 | Criterio literal | Frontend | Backend | Infra | Estado global |
 | --- | --- | --- | --- | --- |
 | Workflow en cada push y pull_request | Registrados push `34305529115` y PR `34308296565` | Registrados push `34488083060` y PR `34489982595` | **Declarado**; `push` demostrado con `34604423915`. **`pull_request` sin ejecutar**: no se crea PR antes de aprobar | **Sin demostrar en los tres** |
-| Los tres verdes sobre `dev` | Registrado `34308234554` | Registrado `34491446991` | **Sin ejecución sobre `dev`**: la integración pertenece al cierre aprobado | **Pendiente** |
+| Los tres verdes sobre `dev` | Registrado `34308234554` | Registrado `34491446991`, attempt 1, success el 2026-09-10 | **Sin ejecución sobre `dev`**: la integración pertenece al cierre aprobado | **Pendiente** |
 | Un cambio roto hace fallar el workflow | Negativos locales | Negativos locales | **Negativos locales A, B, D, E y F**, más un **fallo remoto real**: `34604012128` en `failure` por el gate S-09 | **Demostrado en local y, para infra, también en remoto**; el broken push deliberado sigue sin autorizarse |
 | Ningún secreto en los logs de CI | Evidencia previa | Evidencia previa | **Auditado**: 1 861 líneas, 0 secretos, 0 valores de `.env.example` | **Verificado para infra**; frontend y backend conservan su evidencia previa |
 | Duración documentada | 79 s (push de bootstrap) | 334 s sobre `dev` | **51 s** | **Documentada en los tres** |
@@ -1122,7 +1122,7 @@ reales: 192 fuentes TS/TSX en frontend y 112 fuentes Python bajo tests backend.
 | Criterio literal de STAGE-06 | Frontend | Backend | Infraestructura | Estado global |
 | --- | --- | --- | --- | --- |
 | Cada repositorio ejecuta su workflow en cada push y pull request. | Push `34305529115` y PR `34308296565`, success | Push `34488083060` y PR `34489982595`, success | Push `34636624843`, success; PR real no ejecutado | **Pendiente: PR de infra** |
-| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, success | Sin run sobre dev autorizado para estas correcciones | **Pendiente: infra sobre dev** |
+| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, attempt 1, success el 2026-09-10 | Sin run sobre dev autorizado para estas correcciones | **Pendiente: infra sobre dev** |
 | Un cambio deliberadamente roto hace fallar el workflow correspondiente. | Negativos locales, sin broken push autorizado | Negativos locales, sin broken push autorizado | Regresiones locales; `34604012128` fue un fallo real, no un broken push deliberado | **Pendiente: control remoto deliberado; no autorizado** |
 | Ningún secreto aparece en los logs de CI. | Auditoría documentada en Task019 §K | Auditorías documentadas en Task020 y su cierre | Run `34636624843`: 1998 líneas, patrones sensibles 0, Gitleaks 0 | **Verificado en las ejecuciones auditadas**, sin afirmar cobertura de todos los runs futuros |
 | El tiempo de ejecución de cada workflow está documentado y es razonable. | Run de bootstrap 79 s | Run dev 334 s | Run 56 s; job 52 s | **Documentado**, según createdAt→updatedAt para los runs |
@@ -1558,3 +1558,17 @@ fallar el workflow— **sigue sin autorizarse**. La expresión `approved:` no lo
 autoriza de forma implícita. Tampoco autoriza fusionar el pull request hacia
 `main`, que es responsabilidad exclusiva del usuario, ni iniciar `Task/022`, ni
 modificar backend o frontend.
+
+## Evidencia posterior al cierre aprobado — 2026-09-12
+
+Task021 continúa **Aprobada**. Las afirmaciones anteriores sobre permisos y
+evidencia pendiente pertenecen a sus fases fechadas, anteriores a estos hechos:
+Run `pull_request` `34709782197`, success; `dev` normalizado `34711465394`, success, 50 s,
+19/19 pasos; control negativo remoto autorizado `34710854803`, failure en
+`Compose is valid`, 12 s, YAML roto deliberadamente. No se repite ese control.
+
+La referencia de MinIO en CI Backend se atiende por separado en
+[Task020.3](../task-reports/TASK-020.3-report.md), sin reabrir Task021. La
+equivalencia OCI demostrada en Task021 se conserva; no se repite la investigación.
+R-018-3 y R-021-1 permanecen abiertos, con 100 y 16 hallazgos respectivamente,
+aceptados temporalmente. La reparación del registro no corrige vulnerabilidades.

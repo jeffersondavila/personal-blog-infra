@@ -10,7 +10,8 @@
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
 | **SHA base medido al crear la rama** | `d7136b29a906563af6edbae0b67dfac101c1f3fa` |
-| **Fecha de inicio / actualización** | 2026-09-10 (Guatemala) |
+| **Fecha de inicio** | 2026-09-10 (Guatemala) |
+| **Última actualización** | 2026-09-12 |
 | **Reporte** | [TASK-021-report.md](../task-reports/TASK-021-report.md) |
 
 ## 0. Preparación Git
@@ -459,3 +460,17 @@ El **control negativo remoto deliberado sigue sin autorizarse**; `approved:` no
 lo autoriza de forma implícita. Tampoco autoriza fusionar el pull request hacia
 `main`, responsabilidad exclusiva del usuario, ni iniciar `Task/022`. Detalle
 del cierre en el reporte §AP.
+
+## Evidencia posterior al cierre aprobado — 2026-09-12
+
+Task021 continúa **Aprobada**. Las afirmaciones anteriores sobre permisos y
+evidencia pendiente pertenecen a sus fases fechadas, anteriores a estos hechos:
+Run `pull_request` `34709782197`, success; `dev` normalizado `34711465394`, success, 50 s,
+19/19 pasos; control negativo remoto autorizado `34710854803`, failure en
+`Compose is valid`, 12 s, YAML roto deliberadamente. No se repite ese control.
+
+La referencia de MinIO en CI Backend se atiende por separado en
+[Task020.3](../task-reports/TASK-020.3-report.md), sin reabrir Task021. La
+equivalencia OCI demostrada en Task021 se conserva; no se repite la investigación.
+R-018-3 y R-021-1 permanecen abiertos, con 100 y 16 hallazgos respectivamente,
+aceptados temporalmente. La reparación del registro no corrige vulnerabilidades.
