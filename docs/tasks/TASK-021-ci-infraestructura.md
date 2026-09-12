@@ -5,7 +5,7 @@
 | **Identificador / rama** | `Task/021-CI-Infraestructura` |
 | **Nombre** | CI Infraestructura |
 | **Etapa** | ETAPA 06 — Integración Continua |
-| **Estado** | **Lista para validación** — MinIO desde Quay con el mismo digest; CI `34669960835` en `success`; no aprobada |
+| **Estado** | **Aprobada** el 2026-09-12 mediante `approved: Task/021-CI-Infraestructura` |
 | **Repositorios involucrados** | `personal-blog-infra`; backend/frontend solo lectura |
 | **Dependencias** | `Task/018`, aprobada; Task019 y Task020 aprobadas al inicio |
 | **Rama base** | **`main`** |
@@ -427,6 +427,35 @@ anula. El residual **no se resolvió**: **R-018-3** sigue **ABIERTO** con los
 mismos **100** hallazgos aceptados temporalmente, y **R-021-1** con los **16**
 de Portainer.
 
-**Task021 queda Lista para validación. No aprobada.** Contadores **20/41 ≈
-49 %**, ETAPA 06 **2/3 ≈ 67 %**. Sin merge a `dev`, sin PR, sin cambios en
-backend o frontend y sin iniciar `Task/022`. Detalle en el reporte §AN–§AO.
+*Escrito antes de la aprobación:* Task021 quedó **Lista para validación**, con
+contadores **20/41 ≈ 49 %** y ETAPA 06 **2/3 ≈ 67 %**, sin merge a `dev`, sin
+PR, sin cambios en backend o frontend y sin iniciar `Task/022`. Detalle en el
+reporte §AN–§AO.
+
+## 28. Aprobación — 2026-09-12
+
+**Aprobada el 2026-09-12** mediante `approved: Task/021-CI-Infraestructura`.
+
+El preflight del cierre confirmó, antes de editar, que `HEAD` seguía en
+`a3434eb8c18f256903f1f949b4e2376fe73e8739`, igual que la rama publicada, con
+árbol limpio, staging **0**, untracked **0** y sin pull request previo. Los dos
+runs de la revalidación se reconfirmaron desde GitHub. Al coincidir todo, **no
+se modificó la implementación**.
+
+Contadores tras la aprobación: **21/41 ≈ 51 %**; ETAPA 06 **3 de 3 tareas
+aprobadas**. La etapa **no se declara completada**: su cierre global sigue
+pendiente de la evidencia restante.
+
+Las decisiones de la tarea quedan **vigentes**, sin ADR nuevo: la política de
+S-09 de infraestructura, el registro de MinIO en Quay por el mismo digest y la
+identidad estricta de siete campos del comparador.
+
+**S-09 infraestructura** queda satisfecho técnicamente por el gate aprobado.
+El residual **no se corrigió**: **100** hallazgos de MinIO aceptados
+temporalmente bajo **R-018-3**, **ABIERTO**, y **16** de Portainer bajo
+**R-021-1**, también abierto.
+
+El **control negativo remoto deliberado sigue sin autorizarse**; `approved:` no
+lo autoriza de forma implícita. Tampoco autoriza fusionar el pull request hacia
+`main`, responsabilidad exclusiva del usuario, ni iniciar `Task/022`. Detalle
+del cierre en el reporte §AP.

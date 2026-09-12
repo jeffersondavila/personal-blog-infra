@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 06 |
-| **Estado** | En progreso — 2 de 3 aprobadas (67 %) |
+| **Estado** | **3 de 3 tareas aprobadas (100 %)** — la etapa **no se declara completada**: cierre global pendiente de la evidencia restante |
 | **Dependencias** | [ETAPA 05](STAGE-05-quality-security.md) |
 | **Tareas** | 3 |
-| **Aprobadas** | 2 |
-| **Avance** | 67 % |
+| **Aprobadas** | 3 |
+| **Avance** | 100 % de sus tareas; **cierre de etapa pendiente** |
 | **Hito que completa** | CI verde en los tres repositorios. |
 
 ---
@@ -95,9 +95,9 @@ es así; la garantía viene de que el *lock* enumera el cierre transitivo, no de
 desactivar la resolución. Las tres son defectos del texto, no de la
 implementación, y ninguna reabre etapas anteriores.
 
-*Aprobada el 2026-09-10* mediante `approved: Task/020-CI-Backend`. Avance
-**20/41 — 49 %**; esta etapa pasa a **2/3 — 67 %** y **sigue sin completarse**:
-falta `Task/021`. **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global**
+*Aprobada el 2026-09-10* mediante `approved: Task/020-CI-Backend`. Avance de
+aquel día: **20/41 — 49 %**; esa aprobación llevó la etapa a **2/3 — 67 %**,
+sin completarla, y faltaba entonces `Task/021`. **R-14 cerrado**; **S-09 backend** satisfecho y **S-09 global**
 abierto. Las decisiones **D-020-A** a **D-020-H** quedan **vigentes**, sin ADR
 nuevo.
 
@@ -115,7 +115,7 @@ la afirmación se escribió durante el cierre, cuando el resultado de la fusión
 todavía no existía, y ese mantenimiento convirtió en hechos fechados las
 afirmaciones de estado vivo que la fusión volvió falsas.
 
-### `Task/021-CI-Infraestructura` — *Lista para validación: MinIO desde Quay*
+### `Task/021-CI-Infraestructura` — *Aprobada (2026-09-12)*
 
 `docker compose config`, validación de scripts y escaneo de secretos.
 
@@ -176,8 +176,30 @@ imagen comparados sin ninguno fuera del baseline. La ejecución anterior,
 **34604012128**, terminó en **`failure`** ante un cambio de severidad. La relajación aplicada
 después se identificó como defecto funcional y requiere la corrección
 autorizada; no es una excepción válida a la identidad completa. Logs auditados, **0** secretos.
-[Ficha](../tasks/TASK-021-ci-infraestructura.md). Contadores intactos;
-los criterios de salida siguientes no se relajan ni se dan por demostrados.
+[Ficha](../tasks/TASK-021-ci-infraestructura.md).
+
+**Bloqueo intermedio y su resolución autorizada, 2026-09-12 UTC.** La CI del
+commit documental `94c5e67`, run `34663425054`, terminó en **failure** en dos
+intentos: el acceso **anónimo** a ese manifiesto de MinIO devolvió **HTTP 401 /
+`UNAUTHORIZED`** y el scan no pudo completarse, de modo que el inventario y
+S-09 quedaron `skipped`. Eso es lo único demostrado; no que Docker Hub esté
+roto, privado o retirado. Con autorización explícita, la infraestructura pasó a
+tomar la **misma imagen** desde **Quay**: mismo release, **mismo digest**
+`sha256:14cea…`, contenido OCI comparado byte a byte —índice, manifiesto
+`amd64`, configuración, 9 layers, 9 RootFS diff IDs, `Created`, `Entrypoint`,
+`Cmd` y labels, todos idénticos— y **100/100** identidades del baseline, que
+**no se regeneró**. El cambio ocupa **tres líneas**, solo el prefijo de
+registro.
+
+*Aprobada el 2026-09-12* mediante `approved: Task/021-CI-Infraestructura`.
+Avance **21/41 — 51 %**; con ella la etapa alcanza **3 de 3 tareas aprobadas**
+y **no se declara completada**. Las decisiones de la tarea quedan **vigentes**,
+sin ADR nuevo: la política de S-09 de infraestructura, el registro de MinIO en
+Quay por el mismo digest y la identidad estricta de siete campos. **S-09
+infraestructura** satisfecho técnicamente por el gate aprobado; **el residual
+de MinIO no se corrigió**: **100** hallazgos aceptados temporalmente bajo
+**R-018-3**, que sigue **ABIERTO**, y **16** de Portainer bajo **R-021-1**.
+Los criterios de salida siguientes no se relajan ni se dan por demostrados.
 
 ## Criterios de salida de la etapa
 
@@ -196,16 +218,18 @@ arriba. Task020 siguió el mismo patrón el 2026-09-10, con su propia autorizaci
 de bootstrap y sus dos ejecuciones posteriores al cierre. Publicar una mutación
 deliberadamente rota exige un permiso adicional y **sigue sin autorizarse**.
 Ninguna de estas observaciones completa por sí sola la etapa: los criterios de
-salida exigen los **tres** repositorios. `Task/021` está **Lista para validación**: la CI `34663425054` sobre `94c5e67`
+salida exigen los **tres** repositorios. `Task/021` quedó **Aprobada el 2026-09-12**. Su historia intermedia se conserva: la CI `34663425054` sobre `94c5e67`
 falló en dos intentos porque el acceso **anónimo** a ese manifiesto de MinIO
-devolvió **HTTP 401**, hecho que se conserva sin reescribir, y el usuario
+devolvió **HTTP 401**, hecho que no se reescribe, y el usuario
 **autorizó** tomar la misma imagen desde **Quay** —mismo release, mismo digest
 `sha256:14cea…`, contenido OCI idéntico y **100/100** identidades del baseline,
-que no se regeneró—. *Observado el 2026-09-12 UTC:* el run
-[34669960835](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34669960835),
-por `push` sobre `a6bd1ec`, concluyó **`success`** en **44 s** con **19/19**
-pasos, **116** identidades exactas, **0** hallazgos fuera del baseline y **0**
-secretos. **No aprobada.** El primer
+que no se regeneró—. *Observado el 2026-09-12 UTC:* los runs
+[34669960835](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34669960835)
+sobre `a6bd1ec` y
+[34670245277](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34670245277)
+sobre `a3434eb`, ambos por `push`, concluyeron **`success`** en **44 s** y
+**42 s**, cada uno con **19/19** pasos, **116** identidades exactas, **0**
+hallazgos fuera del baseline y **0** secretos. El primer
 verde estricto se conserva como antecedente, no certifica ese HEAD final. La detención local del
 2026-09-11 por tres identidades CRITICAL→HIGH de CVE-2026-56854 se resolvió
 mediante revisión humana explícita y sustitución exclusiva de esas tres
@@ -214,8 +238,14 @@ existe y tuvo un `push` histórico en **`success`** en **51 s** con la regla
 defectuosa. La corrección sí queda acreditada por `34636624843`, no por
 esa ejecución histórica. El criterio del escaneo del historial quedó
 **auditado en lectura** sobre los tres repositorios y **automatizado** para
-infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
-`dev`, que pertenecen al cierre aprobado.
+infra. *Registrado al aprobar la tarea, el 2026-09-12:* el `pull_request` de
+infra y su verde sobre `dev` todavía no se habían ejecutado. Ambos pertenecen
+a este cierre aprobado, que los produce **después** de este registro. Su
+evidencia se conserva fuera del árbol versionado: encadenar un commit
+documental por cada ejecución generaría a su vez nuevas ejecuciones, y ese
+ciclo no aporta garantía alguna. El **control negativo remoto deliberado**
+sigue **sin autorizarse**, y la expresión `approved:` no lo autoriza de forma
+implícita.
 
 - [ ] Cada repositorio ejecuta su workflow en cada push y pull request.
 - [ ] Los tres workflows terminan en verde sobre `dev`.
@@ -226,29 +256,34 @@ infra. Siguen sin demostrarse el `pull_request` de infra y su verde sobre
 - [ ] **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica
       todavía, se declara explícitamente con la tarea que la incorporará.
 
-### Matriz literal tras el primer verde — anterior al bloqueo final de acceso
+### Matriz literal reconstruida al aprobar `Task/021` — 2026-09-12
 
 | Criterio literal de STAGE-06 | Frontend | Backend | Infraestructura | Estado global |
 | --- | --- | --- | --- | --- |
-| Cada repositorio ejecuta su workflow en cada push y pull request. | Push `34305529115` y PR `34308296565`, success | Push `34488083060` y PR `34489982595`, success | Push `34636624843`, success; PR real no ejecutado | **Pendiente: PR de infra** |
-| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, success | Sin run sobre dev autorizado para estas correcciones | **Pendiente: infra sobre dev** |
+| Cada repositorio ejecuta su workflow en cada push y pull request. | Push `34305529115` y PR `34308296565`, success | Push `34488083060` y PR `34489982595`, success | Push `34670245277` sobre `a3434eb`, success; el `pull_request` se ejecuta durante este cierre | **Pendiente al aprobar: PR de infra** |
+| Los tres workflows terminan en verde sobre `dev`. | `34308234554`, success | `34491446991`, success | La integración en `dev` se ejecuta durante este cierre | **Pendiente al aprobar: infra sobre dev** |
 | Un cambio deliberadamente roto hace fallar el workflow correspondiente. | Negativos locales, sin broken push autorizado | Negativos locales, sin broken push autorizado | Regresiones locales; `34604012128` fue un fallo real, no un broken push deliberado | **Pendiente: control remoto deliberado; no autorizado** |
-| Ningún secreto aparece en los logs de CI. | Auditoría documentada en Task019 §K | Auditorías documentadas en Task020 y su cierre | Run `34636624843`: 1998 líneas, patrones sensibles 0, Gitleaks 0 | **Verificado en las ejecuciones auditadas**, sin afirmar cobertura de todos los runs futuros |
-| El tiempo de ejecución de cada workflow está documentado y es razonable. | Run de bootstrap 79 s | Run dev 334 s | Run 56 s; job 52 s | **Documentado**, según createdAt→updatedAt para los runs |
-| El escaneo de secretos cubre todo el historial disponible. | Auditoría histórica Task021: 13 commits, 0 hallazgos | Auditoría histórica Task021: 19 commits, 2 falsos positivos demostrados | Gate con fetch-depth 0 y `--all`: 46 commits, 0 hallazgos | **Evidencia de auditoría en los tres**; automatización continua del historial solo en infra |
+| Ningún secreto aparece en los logs de CI. | Auditoría documentada en Task019 §K | Auditorías documentadas en Task020 y su cierre | Run `34670245277`: 538 470 bytes de log, patrones sensibles 0, Gitleaks 0 | **Verificado en las ejecuciones auditadas**, sin afirmar cobertura de todos los runs futuros |
+| El tiempo de ejecución de cada workflow está documentado y es razonable. | Run de bootstrap 79 s | Run dev 334 s | Run 42 s; job 39 s | **Documentado**, según createdAt→updatedAt para los runs |
+| El escaneo de secretos cubre todo el historial disponible. | Auditoría histórica Task021: 13 commits, 0 hallazgos | Auditoría histórica Task021: 19 commits, 2 falsos positivos demostrados | Gate con fetch-depth 0 y `--all`: 49 commits, 0 hallazgos | **Evidencia de auditoría en los tres**; automatización continua del historial solo en infra |
 | **Ningún check pasa por no tener nada que verificar.** Si una verificación no aplica todavía, se declara explícitamente con la tarea que la incorporará. | Scripts npm inspeccionados y fuentes presentes; 704 tests/75 archivos en evidencia de Task019 | Tests y migraciones referenciados presentes; 1855 tests/0 omitidos en evidencia de Task020 | 7 servicios, 6 PS, 3 fuentes Python más 13 tests, 4 imágenes e historial real; Terraform queda en Task025 y Bash sin familia existente | **Verificado por inspección de artefactos y evidencia registrada**; no se añadió ningún check vacío |
 
-La matriz conserva la reconstrucción posterior al primer verde. La
-revalidación final añadió el bloqueo de acceso a MinIO: el nuevo run no
-alcanzó a ejecutar S-09. La revalidación autorizada con Quay repara la
-dependencia sin alterar ninguna casilla de la matriz, porque no cambian ni la
-imagen ni sus hallazgos; su verde en CI es el run `34669960835` sobre `a6bd1ec`,
-`completed/success` el 2026-09-12 UTC.
-Distingue evidencia fechada y automatización continua; su detalle,
+La matriz se reconstruyó al aprobar `Task/021` el 2026-09-12. El bloqueo
+intermedio de acceso a MinIO y el failure que produjo se conservan en la
+historia de la tarea; la revalidación con Quay repara la dependencia sin
+alterar ninguna casilla, porque no cambian ni la imagen ni sus hallazgos. Las
+dos filas marcadas «Pendiente al aprobar» son precisamente las que este cierre
+aprobado produce después del registro documental. La matriz
+distingue evidencia fechada y automatización continua; su detalle,
 metadatos de runs y auditorías están en el [reporte Task021](../task-reports/TASK-021-report.md).
-**ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.** No se marca
-completada ni se altera 2/3: PR de infra, dev y broken push deliberado permanecen
-pendientes; este último sigue no autorizado.
+**ETAPA 06 — 3 DE 3 TAREAS APROBADAS; CIERRE GLOBAL PENDIENTE DE EVIDENCIA
+AUTORIZADA.** Las tres tareas de la etapa están aprobadas —Task019 el
+2026-09-08, Task020 el 2026-09-10 y Task021 el 2026-09-12—, y **la etapa no se
+marca completada**: son dos cosas distintas. El **control negativo remoto
+deliberado** sigue **sin autorizarse** y ninguna aprobación de tarea lo
+autoriza implícitamente. El `pull_request` de infra y su verde sobre `dev` se
+producen dentro del cierre aprobado de `Task/021`, después del registro
+documental de esa aprobación.
 
 ## Fuera del alcance de la etapa
 

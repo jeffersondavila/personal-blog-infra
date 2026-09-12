@@ -66,12 +66,13 @@ de exclusiones. Esto automatiza la comprobación de Task018 y cubre el mínimo d
 críticas/altas de STAGE-05. *Observado el 2026-09-08 (Guatemala) / 2026-09-09
 UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 `found 0 vulnerabilities`. La evidencia completa está en el
-[reporte de Task019](../task-reports/TASK-019-report.md). S-09 **global** conserva
-como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
-secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
+[reporte de Task019](../task-reports/TASK-019-report.md). *En esa fecha,* S-09
+**global** conservaba como propietarios pendientes Task020 (backend) y Task021
+(infra); ambas quedaron aprobadas después. El escaneo histórico de secretos es
+un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
 
 **S-09 infraestructura — satisfecho técnicamente el 2026-09-12 con MinIO
-desde Quay; pendiente de aprobación de la tarea.**
+desde Quay; `Task/021` Aprobada el 2026-09-12.**
 El run `34663425054` sobre `94c5e67` terminó en failure en dos intentos
 (2026-09-12 UTC): el acceso **anónimo** a ese manifiesto de MinIO devolvió
 **HTTP 401 / `UNAUTHORIZED`**; el scan falló y S-09 quedó skipped. Ese hecho
@@ -88,11 +89,26 @@ verdes, 13 regresiones y 116 coincidencias exactas sin findings fuera del baseli
 
 *Observado el 2026-09-12 UTC:* la CI de ese cambio, run `34669960835` por
 `push` sobre `a6bd1ec`, concluyó **`completed/success`** en **44 s** con
-**19/19** pasos. **S-09 infraestructura queda satisfecho técnicamente** por el
-gate real: postgres **0**, traefik **0**, MinIO **100** exactas y **0** nuevas,
-Portainer **16** exactas y **0** nuevas, **116** identidades comparadas y
-residual visible. Task021 **no está aprobada**, así que **S-09 global** sigue
-abierto hasta el cierre de la etapa.
+**19/19** pasos, y el HEAD que quedó aprobado, run `34670245277` sobre
+`a3434eb`, concluyó igualmente **`success`** en **42 s**. **S-09
+infraestructura queda satisfecho técnicamente** por el gate real: postgres
+**0**, traefik **0**, MinIO **100** exactas y **0** nuevas, Portainer **16**
+exactas y **0** nuevas, **116** identidades comparadas y residual visible.
+`Task/021` quedó **Aprobada** el 2026-09-12, así que esas decisiones están
+**vigentes**.
+
+**S-09 global — sus propietarios declarados quedan cubiertos el 2026-09-12.**
+La fila de S-09 asigna el requisito a `Task/019`–`Task/021`: frontend en
+`Task/019`, backend en `Task/020` e infraestructura en `Task/021`, las tres
+**aprobadas**, cada una con su escaneo de vulnerabilidades automatizado en CI y
+sus versiones fijadas. Con eso, los propietarios que el requisito nombra están
+satisfechos.
+
+Lo que **no** cambia con esa cobertura: el residual aceptado de MinIO y
+Portainer sigue vivo bajo **R-018-3** y **R-021-1**, ambos **abiertos**, así
+que S-09 no equivale a «sin vulnerabilidades»; y el cierre de la ETAPA 06 es un
+asunto distinto, con sus propios criterios de salida todavía pendientes. No se
+añaden a S-09 criterios ni propietarios que su definición no declare.
 
 *Versiones fijadas:* las cuatro
 imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna

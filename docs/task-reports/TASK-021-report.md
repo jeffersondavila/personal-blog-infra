@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Tarea** | `Task/021-CI-Infraestructura` |
-| **Estado** | **Lista para validación** — MinIO desde Quay con el mismo digest; CI `34669960835` en `success`; no aprobada |
+| **Estado** | **Aprobada** el 2026-09-12 mediante `approved: Task/021-CI-Infraestructura` |
 | **Fecha de observación** | 2026-09-10 (Guatemala) |
 | **Repositorio de trabajo** | `personal-blog-infra` |
 | **Ficha** | [TASK-021](../tasks/TASK-021-ci-infraestructura.md) |
@@ -783,9 +783,13 @@ nunca se leyó ni se imprimió.
 
 ## AD. Contadores
 
-**20/41 — 49 %**; ETAPA 06 **2/3 — 67 %**, **En progreso**. **Sin cambio**:
-Task021 está **Lista para validación** tras la revalidación de §AM–§AN, no aprobada, así que **no suma**. No se
-escribe 21/41, ni 3/3, ni «ETAPA 06 Completada». `Task/022` **Pendiente** y no
+*Registrado durante la fase pre-aprobación:* **20/41 — 49 %** y ETAPA 06
+**2/3 — 67 %**, sin cambio mientras Task021 no estuviera aprobada.
+
+**Contadores tras la aprobación del 2026-09-12:** **21/41 — 51 %**; ETAPA 06
+**3 de 3 tareas aprobadas**. La etapa **no se declara completada**: su cierre
+global sigue pendiente de la evidencia restante, y «ETAPA 06 Completada» no se
+escribe. `Task/022` **Pendiente** y no
 iniciada.
 
 ## AE. Bloqueos
@@ -1466,13 +1470,15 @@ Evidencia del HEAD final en §AN: run **34669960835**, `push`, `a6bd1ec`,
 `completed/success` en **44 s**, **19/19** pasos, **116** identidades exactas,
 **0** hallazgos fuera del baseline y **0** secretos.
 
-**No aprobada.** La aprobación es responsabilidad exclusiva del usuario. No se
-hizo merge a `dev`, ni push a `dev` o `main`, ni pull request. Backend y
-frontend permanecieron en **solo lectura**. `Task/022` **no se inició**.
+*Escrito antes de la aprobación:* la aprobación es responsabilidad exclusiva
+del usuario, y en ese momento no se había hecho merge a `dev`, ni push a `dev`
+o `main`, ni pull request. Backend y frontend permanecieron en **solo lectura**
+y `Task/022` no se inició. La aprobación llegó el **2026-09-12** y su cierre se
+registra en §AP.
 
 **ETAPA 06 — CIERRE GLOBAL PENDIENTE DE EVIDENCIA AUTORIZADA.**
 
-### AO.1 Criterion12 final
+### AO.1 Criterion12 de la entrega
 
 | Clase | Resultado de la revisión |
 | --- | --- |
@@ -1480,3 +1486,75 @@ frontend permanecieron en **solo lectura**. `Task/022` **no se inició**.
 | **B** | Hechos fechados y anclados: failure `34663425054` sobre `94c5e67`, verde histórico `34636624843` sobre `43c1bf2` y verde final `34669960835` sobre `a6bd1ec`, cada uno con su fecha, evento y conclusión |
 | **C** | **0.** Ninguna mención a PR, rama remota o normalización persiste como estado vigente. El único estado de rama registrado es el `push` fechado de la rama Task, que es historia, no condición de la tarea siguiente |
 | **D** | **0.** Estado **Lista para validación** coherente en ficha, reporte, STATUS, ROADMAP, STAGE-06, NFR y README de reportes; distribución por estado con Lista para validación **1** y Bloqueada **0**; contadores **20/41** y ETAPA 06 **2/3** sin tocar; el bloqueo histórico conservado sin reescribir y acotado a lo demostrado |
+
+## AP. Cierre aprobado — 2026-09-12
+
+**Task021 quedó Aprobada el 2026-09-12** mediante la expresión exacta del
+usuario:
+
+```text
+approved: Task/021-CI-Infraestructura
+```
+
+### AP.1 Preflight del cierre
+
+Verificado antes de editar, no inferido: rama `Task/021-CI-Infraestructura`,
+`HEAD = a3434eb8c18f256903f1f949b4e2376fe73e8739` idéntico a
+`origin/Task/021-CI-Infraestructura`, árbol limpio, staging **0**, untracked
+**0** y **ningún** pull request previo para esa rama. `main` en `d7136b2` y
+`dev` en `0f38561`, ambos iguales a su remoto. Los dos runs de la revalidación
+se reconfirmaron desde GitHub: **34669960835** sobre `a6bd1ec` y
+**34670245277** sobre `a3434eb`, ambos `push` y `success`, el segundo con
+**19/19** pasos en el primer intento. Al coincidir todo, **no se modificó la
+implementación**: ni imagen, ni registro, ni baseline, ni gate.
+
+### AP.2 Efecto en el avance
+
+| Concepto | Antes | Después |
+| --- | --- | --- |
+| Avance global | 20/41 — 49 % | **21/41 — 51 %** |
+| ETAPA 06, tareas aprobadas | 2 de 3 | **3 de 3** |
+| ETAPA 06, cierre de etapa | Pendiente | **Pendiente** |
+
+Las tres tareas de la ETAPA 06 están aprobadas, y **la etapa no se declara
+completada**: su cierre permanece pendiente de completar y verificar la
+evidencia global restante, enumerada en
+[STAGE-06](../stages/STAGE-06-continuous-integration.md).
+
+### AP.3 Decisiones que quedan vigentes
+
+Con la aprobación, las decisiones de implementación de la tarea pasan de
+propuesta a **vigentes**, sin ADR nuevo:
+
+- La política de S-09 de infraestructura: **tolerancia cero** en las imágenes
+  que construye el proyecto y **baseline exacto de riesgo aceptado** en las de
+  terceros fijadas por digest, sin `.trivyignore`, sin umbral por cantidad y
+  sin excluir ninguna imagen.
+- El registro de origen de MinIO en **Quay**, por el mismo release y el mismo
+  digest, tras demostrar la equivalencia del contenido OCI.
+- La identidad estricta de siete campos del comparador y el rechazo de un
+  nombre de imagen o un digest inesperados **antes** de comparar hallazgos.
+
+### AP.4 S-09 después de la aprobación
+
+**S-09 infraestructura queda satisfecho técnicamente** por el gate aprobado,
+con la evidencia de §AN. **Esto no significa «sin vulnerabilidades»:** el
+residual de MinIO **no se corrigió ni desapareció**. Son los mismos **100**
+hallazgos accionables, aceptados de forma explícita y temporal bajo
+**R-018-3**, que sigue **ABIERTO**; Portainer conserva **16** bajo **R-021-1**,
+también abierto. Ninguna imagen se actualizó.
+
+**S-09 global:** sus tres propietarios por repositorio están cubiertos —
+frontend en Task019, backend en Task020 e infraestructura en Task021, todas
+aprobadas—. El criterio canónico de S-09 se verifica en las ETAPAS 05, 07 y 12
+según [non-functional-requirements.md](../architecture/non-functional-requirements.md),
+así que su cierre definitivo no lo produce esta aprobación ni la aprobación de
+las tareas de una sola etapa. No se inventan requisitos nuevos para él.
+
+### AP.5 Límites que esta aprobación no amplía
+
+El **control negativo remoto deliberado** —publicar una mutación rota para ver
+fallar el workflow— **sigue sin autorizarse**. La expresión `approved:` no lo
+autoriza de forma implícita. Tampoco autoriza fusionar el pull request hacia
+`main`, que es responsabilidad exclusiva del usuario, ni iniciar `Task/022`, ni
+modificar backend o frontend.
