@@ -66,9 +66,79 @@ de exclusiones. Esto automatiza la comprobación de Task018 y cubre el mínimo d
 críticas/altas de STAGE-05. *Observado el 2026-09-08 (Guatemala) / 2026-09-09
 UTC:* la ejecución **34305529115** ejecutó el gate `npm audit` con resultado
 `found 0 vulnerabilities`. La evidencia completa está en el
-[reporte de Task019](../task-reports/TASK-019-report.md). S-09 **global** conserva
-como propietarios Task020 (backend) y Task021 (infra); el escaneo histórico de
-secretos es un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
+[reporte de Task019](../task-reports/TASK-019-report.md). *En esa fecha,* S-09
+**global** conservaba como propietarios pendientes Task020 (backend) y Task021
+(infra); ambas quedaron aprobadas después. El escaneo histórico de secretos es
+un criterio separado de STAGE-06, asignado a Task021 y al cierre global.
+
+**S-09 infraestructura — satisfecho técnicamente el 2026-09-12 con MinIO
+desde Quay; `Task/021` Aprobada el 2026-09-12.**
+El run `34663425054` sobre `94c5e67` terminó en failure en dos intentos
+(2026-09-12 UTC): el acceso **anónimo** a ese manifiesto de MinIO devolvió
+**HTTP 401 / `UNAUTHORIZED`**; el scan falló y S-09 quedó skipped. Ese hecho
+se conserva acotado a lo observado y no se reescribe. Con autorización
+explícita, la infraestructura pasa a tomar la misma imagen desde **Quay**:
+**mismo release**, **mismo digest** `sha256:14cea…`, contenido OCI verificado
+idéntico y las **mismas 100** identidades aceptadas, sin regenerar el
+baseline. El residual **no se resolvió** y **R-018-3** sigue **ABIERTO**.
+El comparador heredado incumplía la identidad aprobada al excluir severidad
+y `FixedVersion`. Se corrigió y se verificó en el nuevo run
+[34636624843](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34636624843),
+`push` sobre `43c1bf20f3a75bca7d4cde294bae771c4f92acf3`, `completed/success`: 19 pasos
+verdes, 13 regresiones y 116 coincidencias exactas sin findings fuera del baseline.
+
+*Observado el 2026-09-12 UTC:* la CI de ese cambio, run `34669960835` por
+`push` sobre `a6bd1ec`, concluyó **`completed/success`** en **44 s** con
+**19/19** pasos, y el HEAD que quedó aprobado, run `34670245277` sobre
+`a3434eb`, concluyó igualmente **`success`** en **42 s**. **S-09
+infraestructura queda satisfecho técnicamente** por el gate real: postgres
+**0**, traefik **0**, MinIO **100** exactas y **0** nuevas, Portainer **16**
+exactas y **0** nuevas, **116** identidades comparadas y residual visible.
+`Task/021` quedó **Aprobada** el 2026-09-12, así que esas decisiones están
+**vigentes**.
+
+**S-09 global — sus propietarios declarados quedan cubiertos el 2026-09-12.**
+La fila de S-09 asigna el requisito a `Task/019`–`Task/021`: frontend en
+`Task/019`, backend en `Task/020` e infraestructura en `Task/021`, las tres
+**aprobadas**, cada una con su escaneo de vulnerabilidades automatizado en CI y
+sus versiones fijadas. Con eso, los propietarios que el requisito nombra están
+satisfechos.
+
+Lo que **no** cambia con esa cobertura: el residual aceptado de MinIO y
+Portainer sigue vivo bajo **R-018-3** y **R-021-1**, ambos **abiertos**, así
+que S-09 no equivale a «sin vulnerabilidades»; y el cierre de la ETAPA 06 es un
+asunto distinto, con sus propios criterios de salida todavía pendientes. No se
+añaden a S-09 criterios ni propietarios que su definición no declare.
+
+*Versiones fijadas:* las cuatro
+imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna
+coincidencia de `:latest` ni `:nightly` en el árbol versionado. *Escaneo en CI:*
+el workflow `CI Infra` construye las dos imágenes que el proyecto arma sobre sus
+bases fijadas, escanea las cuatro con **Trivy 0.74.0** —versión y SHA256
+verificados—, publica el **inventario completo sin filtrar** y aplica un gate
+*fail-closed*.
+
+La política **separa dos clases y no oculta hallazgos**: las imágenes
+construidas por el proyecto mantienen **tolerancia cero** y su baseline está
+**vacío**; las de terceros fijadas por digest se comparan por **identidad
+exacta** contra
+[`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json),
+que enumera el residual aceptado. La CI falla ante un hallazgo accionable nuevo,
+un nombre/digest distinto del revisado o cualquier diferencia en
+`VulnerabilityID`, paquete, `Severity`, `InstalledVersion` o `FixedVersion`
+de un hallazgo accionable. Una identidad aprobada que desaparece genera
+un aviso `baseline_stale`; una identidad distinta no queda aceptada. **No se emplea** `.trivyignore`, umbral
+por cantidad, `|| true`, `continue-on-error` ni exclusión de ninguna imagen.
+
+**Esto no significa «sin vulnerabilidades».** MinIO y Portainer conservan
+residual real y aceptado de forma explícita, con propietarios **R-018-3** y
+**R-021-1**. *Observado el 2026-09-11 UTC:* la ejecución **34604423915**, por
+`push`, terminó en **`success`** en **51 s**, con **116** hallazgos accionables
+comparados según la regla heredada. Ese run **no acredita** la corrección
+del comparador; la evidencia conforme es el nuevo run citado arriba. Las
+tres reclasificaciones CRITICAL→HIGH de CVE-2026-56854 se aceptaron después
+de revisión humana explícita, cambiando solo esas tres severidades. El residual
+permanece aceptado temporalmente; cualquier nueva identidad requiere revisión.
 
 ---
 
