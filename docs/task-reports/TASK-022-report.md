@@ -5,7 +5,7 @@
 | **Identificador** | `Task/022-Validacion-Local-Production-Like` |
 | **Etapa** | ETAPA 07 — Validación Local |
 | **Estado** | **Aprobada** el 2026-09-12 por el usuario mediante `approved: Task/022-Validacion-Local-Production-Like` |
-| **Repositorios** | `personal-blog-backend`, `personal-blog-infra`. **`personal-blog-frontend`: sin rama y sin cambios** |
+| **Repositorios** | `personal-blog-backend`, `personal-blog-infra`. **`personal-blog-frontend`: validación en solo lectura** |
 | **Rama base** | `main` en los dos repositorios con rama |
 | **SHA base backend** | `4a36bb532ed33851142785859c97ed7302efb31c` |
 | **SHA base infra** | `184c833541bfd99a60df6a56c68b3dfa63e28a4d` |
@@ -267,13 +267,16 @@ observó ningún defecto de frontend** que justificara crear rama allí.
 | Scripts PowerShell | **6 archivos, 0 fallos de parseo** |
 | Scripts Python | **3 archivos compilan** |
 
-### 8.4 Suite del backend — y una intermitencia que no se oculta
+### 8.4 Suite del backend — evidencia histórica anterior a H-8
 
-**Resultado final: `1874 passed, 1 skipped` en 419 s, código de salida 0**, con
+**Resultado del 2026-09-12, antes de H-8: `1874 passed, 1 skipped` en 419 s, código de salida 0**, con
 `-W error` y contra **PostgreSQL y MinIO reales**. Las cuentas cuadran:
 **1874 + 1 = 1875 = 1855 del baseline + 20 nuevas** (17 de la semilla, 3 de la
 invocación). El *skip* es el estructural de Windows —`time.tzset` no existe—, ya
 documentado desde `Task/017`.
+
+La evidencia final posterior a H-8 se registra en §14.5; los resultados de esta
+sección se conservan como historia de la validación previa a la integración CI.
 
 **En una ejecución anterior falló una prueba, y se registra tal cual:**
 
@@ -346,19 +349,21 @@ destructiva sin necesidad.
 | 1 | `runtime_privileges.py` fija MinIO en `127.0.0.1:9000` y el archivo runtime en una ruta única. Impide validar la recuperación en un entorno Compose paralelo sin tocar el script | sin propietario asignado |
 | 2 | La recuperación de MinIO de §9.2 sigue siendo **manual objeto a objeto**. La lógica automatizada existe dentro de `Restore-LocalBackupTest.ps1`, pero solo para el entorno temporal | sin propietario asignado |
 | 3 | Intermitencia de la suite de integración bajo contención | riesgo ya abierto desde `Task/005.7` |
-| 4 | El `.gitignore` de `personal-blog-infra` **no cubre `__pycache__/`**, así que compilar los scripts Python —lo que hace el gate de `CI Infra`— ensucia `git status` en local. Observado y limpiado durante esta tarea; **no se corrige aquí** por estar fuera del alcance | sin propietario asignado |
+| 4 | El `.gitignore` de `personal-blog-infra` **no cubre `__pycache__/`**: una compilación local que escriba bytecode puede ensuciar `git status`. Observado y limpiado durante esta tarea; **no se corrige aquí** por estar fuera del alcance. El gate de `CI Infra` usa `compile()` y no escribe ese bytecode | sin propietario asignado |
 
 ---
 
 ## 12. Criterion 12 — estado duradero frente a transitorio
 
-Barrido dirigido sobre los ocho documentos tocados, más los de estado, buscando
-afirmaciones condenadas a volverse falsas.
+**Auditoría del cierre aprobado posterior a H-8, 2026-09-13 UTC.** Barrido dirigido
+sobre los documentos de Task022, distinguiendo historia fechada y estado vigente.
+La auditoría pre-aprobación del 2026-09-12 había registrado **21/41 ≈ 51 %** y
+`Task/022` como **Lista para validación**; esos eran los estados de aquella fase.
 
 | Clase | Resultado |
 | --- | --- |
-| **C** — estado transitorio escrito como vigente | **0**. Ninguna mención a un PR, a una rama remota o a una normalización como situación actual. Todo lo observado va **fechado**: *«Observado el 2026-09-12»* |
-| **D** — contradicciones en el estado vigente | **0**. Avance **21/41 ≈ 51 %** coherente en STATUS y ROADMAP; ETAPA 07 descrita igual en los tres sitios; `Task/022` como **Lista para validación** en STATUS, ROADMAP, STAGE-07 y la ficha |
+| **C** — estado transitorio escrito como vigente | **0**. Las menciones de Git y CI de este cierre son observaciones fechadas o reglas permanentes |
+| **D** — contradicciones en el estado vigente | **0**. Task022 **Aprobada**, ETAPA 07 **Completada** (1/1, 100 %), **T-07 Satisfecho y Vigente**, **22/41 ≈ 54 %** y Task023 **Pendiente, no iniciada**; H-1…H-7 y **H-8 Resueltos**. **D-21**, **R-018-3**, **R-021-1** y **R-018-4** siguen abiertos |
 
 Comprobado además que **no queda vigente** ninguna frase que la ejecución ya resolvió:
 
@@ -392,3 +397,108 @@ Lo que la aprobación **no** cambia: **D-21** sigue **Abierta** y **ADR-009** en
 **Propuesta**; **R-018-3**, **R-021-1** y **R-018-4** siguen **Abiertos**. Que la ETAPA 07
 esté completada **no autoriza acciones cloud**: la primera es de la ETAPA 09, y
 `Task/023-Compatibilidad-FastAPI-Lambda` queda **Pendiente, no iniciada**.
+
+---
+
+## 14. H-8 — defecto del entregable descubierto por la CI durante el cierre
+
+> **Familia distinta a H-1…H-7.** Aquellos **siete son defectos de los runbooks**,
+> descubiertos al reconstruir el entorno. **H-8 es un defecto del propio entregable**
+> —la semilla— y lo descubrió la **integración continua**, ya con la tarea aprobada.
+
+### 14.1 Cómo apareció
+
+*Observado el 2026-09-13 UTC:* el primer merge de `Task/022` a `dev` en
+`personal-blog-backend`, commit `0028dd2`, dejó la ejecución
+[34729289407](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34729289407)
+en **completed/failure**, paso **Tests**: **3 failed, 1872 passed**. Fallaron
+exclusivamente las tres pruebas de invocación que la propia tarea había añadido:
+
+```
+tests/test_seed_local_invocacion.py::test_se_ejecuta_por_ruta_de_archivo
+tests/test_seed_local_invocacion.py::test_se_ejecuta_como_modulo
+tests/test_seed_local_invocacion.py::test_no_intenta_conectarse_antes_de_validar_la_entrada
+```
+
+Los gates posteriores —S-09, construcción de la imagen, Trivy e inventario— quedaron
+**skipped**, así que aquella ejecución no probó nada de lo que venía después.
+
+### 14.2 Causa demostrada
+
+`main()` abría `session_scope()` —y por tanto construía `Settings`— **antes** de validar
+la entrada propia de la semilla. `Settings` exige la configuración de la **aplicación**:
+
+```
+Configuracion invalida o incompleta -> public_site_base_url: Field required;
+database_url: Field required; storage_bucket: Field required
+```
+
+**Por qué no se vio en local.** En aquella ejecución, `personal-blog-backend/.env` proveía esas tres variables, y
+`Settings` lee **el archivo además del entorno**. Las pruebas retiraban del subproceso las
+variables con prefijo `BLOG_`, lo que nunca podía bastar frente a un archivo. En CI no hay
+`.env`, y allí el orden equivocado quedó a la vista.
+
+**No es un *flake* ni un problema de GitHub Actions.** Es un defecto real del entregable, y
+las pruebas pasaban en local por una condición ambiental, no porque el código hiciera lo
+que ellas afirmaban. El docstring de esa suite decía literalmente *«el script valida la
+entrada y sale antes de abrir ninguna conexión»*, y **era falso**.
+
+### 14.3 Corrección — la implementación, no las expectativas
+
+Se aplicó **B-12**: ninguna expectativa se relajó. Se corrigió el código para que cumpla lo
+que las pruebas ya exigían.
+
+- `main()` llama `leer_entrada()` **primero** y sale con `CODIGO_DE_ERROR` si la entrada no
+  sirve, **sin construir `Settings`** y sin abrir conexión a PostgreSQL ni a MinIO.
+- Se extrajo `_sembrar_y_reportar()`, que recibe una entrada **ya validada**, para que
+  `main` no valide dos veces ni repita ninguna regla: **`leer_entrada` sigue siendo la
+  única fuente de validación**. `ejecutar()` conserva su firma, así que las pruebas de
+  integración no cambiaron.
+
+**Refuerzo permanente:** `test_valida_la_semilla_antes_que_la_configuracion_de_la_aplicacion`
+ejecuta el script con una configuración de aplicación **inservible** en variables de
+entorno —que tienen precedencia sobre el `.env`—. Si el orden vuelve a invertirse, falla,
+**exista o no un `.env`**. Es lo que faltaba: una prueba que no dependa de la máquina.
+
+*Observado el 2026-09-13 UTC:* la corrección quedó en el commit backend **`772bbfb`**
+(`fix(task-022): validar la semilla antes de cargar Settings`), posterior a **`8a5290b`**.
+El segundo merge de Task022 a `dev`, **`9ed7519`**, conservó el primero, **`0028dd2`**,
+y fue el commit evaluado por la CI GREEN de §14.5.
+
+### 14.4 Auditoría acotada de dependencias ambientales
+
+Revisados los tres archivos que aportó la tarea:
+
+| Archivo | Dependencia ambiental | Resultado |
+| --- | --- | --- |
+| `scripts/seed_local.py` | `session_scope()` en `main()` arrastraba `Settings` | **Era H-8. Corregido** |
+| `tests/test_seed_local_invocacion.py` | Restaba prefijos del entorno, pero no podía neutralizar el archivo `.env` | **Reforzado** con la prueba de orden |
+| `tests/integration/test_seed_local.py` | Ninguna: usa el harness oficial, que ya aísla el prefijo `BLOG_` y verifica su destino *fail-closed* | **Sin cambios** |
+
+No se amplió el barrido al resto del proyecto: no apareció evidencia de otro defecto de
+esta clase.
+
+### 14.5 Evidencia RED → GREEN
+
+| Momento | Evidencia |
+| --- | --- |
+| **RED en CI** | Ejecución `34729289407`, **failure**, 3 failed / 1872 passed |
+| **RED reproducido en local** | Con el código anterior, la prueba de orden falla mostrando `storage_bucket: String should have at least 3 characters` en lugar del nombre de la variable de la semilla |
+| **GREEN local Windows** | Invocación: **4 passed**; integración de la semilla: **17 passed**; suite completa con `-W error`: **1875 passed, 1 skipped** |
+| **Calidad local** | `ruff format --check`: **316 files already formatted**; `ruff check`: GREEN; `mypy`: GREEN sobre **314 source files** |
+| **Control dirigido** | Sin variables `BLOG_*` y desde un directorio **sin `.env`**: `ERROR: falta la variable obligatoria PERSONAL_BLOG_SEED_ADMIN_EMAIL`, exit **1** |
+| **GREEN en CI Linux** | *Observado el 2026-09-13 UTC:* [ejecución 34730284072](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34730284072) sobre `9ed7519`, evento `push` en `dev`, **completed/success**, **25 de 25 pasos**, **0 skipped**: migraciones **13 passed**, suite **1876 passed**, `pip-audit` sin vulnerabilidades conocidas, Docker build success, inventario Trivy ejecutado y gate bloqueante success |
+| **Inventario Trivy de esa CI** | **149 total**: **57 LOW**, **48 MEDIUM**, **44 HIGH**, **0 CRITICAL** |
+
+El único *skip* local corresponde a `tests/test_logging_utc.py`: **`time.tzset` no
+existe en Windows**. En Linux se ejecutó y pasó, de ahí **1875 + 1 = 1876**.
+La prueba de orden de H-8 eleva las pruebas nuevas de la tarea de **20 a 21**.
+
+**H-8 — RESUELTO.**
+
+### 14.6 Qué deja como aprendizaje
+
+La CI encontró en minutos algo que la verificación local no podía encontrar, porque la
+máquina de desarrollo tenía un archivo que el runner no tiene. Es la misma lección que ya
+había dado **H-4** —el entorno local y el de CI no son intercambiables—, y no se extrapoló
+a tiempo a las pruebas nuevas de la propia tarea.
