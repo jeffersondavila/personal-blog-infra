@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 08 |
-| **Estado** | Pendiente |
+| **Estado** | **En progreso** desde el 2026-09-13 (`Task/023`) |
 | **Dependencias** | [ETAPA 07](STAGE-07-local-validation.md) |
 | **Tareas** | 4 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | **1** |
+| **Avance** | **25 %** |
 | **Hito que completa** | Artefactos e infraestructura como código listos y **ejecutados en un laboratorio AWS local**, sin cuentas ni recursos reales. |
 
 > **Nota de alcance — 2026-08-15.** El nombre y el objetivo de la etapa se ampliaron en
@@ -42,13 +42,34 @@ el laboratorio es una hipótesis hasta que la ETAPA 10 lo confirme.
 
 ## Tareas
 
-### `Task/023-Compatibilidad-FastAPI-Lambda` — *Pendiente*
+### `Task/023-Compatibilidad-FastAPI-Lambda` — **Aprobada** el 2026-09-13
 
 Adaptador de FastAPI para API Gateway HTTP API y AWS Lambda, manteniendo la ejecución
 local sin cambios. Se prepara además la compatibilidad para **ejecutarse bajo la Lambda
 emulada** del laboratorio.
 
-**Depende de:** `Task/022`. **Repositorio:** `personal-blog-backend`.
+**Aprobada** el 2026-09-13 mediante `approved: Task/023-Compatibilidad-FastAPI-Lambda`.
+Entrega `app/lambda_handler.py` —**un archivo** más una línea de `pyproject.toml`— sobre
+`mangum==0.22.0` con `lifespan="off"`, decidido tras verificar la fuente de la versión
+fijada. `app/main.py`, el `Dockerfile` y el Compose **no cambian**, y `uvicorn app.main:app`
+sigue siendo el entrypoint local. **T-04 Satisfecho y Vigente**; **P-06 revalidado**.
+**42 pruebas nuevas** y el flujo administrativo real recorrido a través del *handler*.
+**Con ella la etapa queda 1 de 4 — 25 %; no está completada.**
+
+**Depende de:** `Task/022` ✔ (**Aprobada** el 2026-09-12).
+**Repositorios:** `personal-blog-backend` —propiedad funcional— e infra (documentación).
+`personal-blog-frontend` **no participa**.
+[Ficha](../tasks/TASK-023-fastapi-lambda-compatibility.md) ·
+[Reporte](../task-reports/TASK-023-report.md).
+
+> **Corrección del campo *Repositorio* — 2026-09-13 (`Task/023`).** Decía
+> `personal-blog-backend` en singular. El campo describe la **propiedad funcional**, que no
+> cambia, pero omitía el repositorio de documentación que
+> [`WORKFLOW.md`](../project-management/WORKFLOW.md) §6 y §7 hacen obligatorio en **toda**
+> tarea. STAGE-06 ya lo declaraba correctamente para la tarea backend comparable
+> (`Task/020`: «**Repositorios:** `personal-blog-backend` e infra (documentación)»).
+> `Task/024`, más abajo, arrastra la misma omisión y **no se corrige aquí**: queda anotada
+> para su propio preflight, sin que esta tarea audite su contenido.
 
 ### `Task/024-Artefacto-ZIP-Lambda` — *Pendiente*
 

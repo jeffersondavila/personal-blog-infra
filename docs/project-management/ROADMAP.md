@@ -2,7 +2,8 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-12 — `Task/022-Validacion-Local-Production-Like` **Aprobada** mediante `approved: Task/022-Validacion-Local-Production-Like`. Con ella la **ETAPA 07 queda Completada** (1/1, 100 %) y el avance pasa a **22/41 ≈ 54 %**. Los **ocho** criterios de salida cumplidos, **T-07 Satisfecho** y **siete** defectos de los runbooks corregidos y revalidados con una reconstrucción y una recuperación reales. Siguiente: **ETAPA 08 — Preparación Cloud + AWS Local Parity**, **sin cuentas cloud**. **D-21**, **R-018-3**, **R-021-1** y **R-018-4** siguen abiertos.
+- **Última actualización:** 2026-09-13 — `Task/023-Compatibilidad-FastAPI-Lambda` **Aprobada** mediante `approved: Task/023-Compatibilidad-FastAPI-Lambda`. El avance pasa a **23/41 ≈ 56 %** y la **ETAPA 08** queda **En progreso** con **1 de 4 — 25 %**: **no está completada**, `Task/024`, `Task/025` y `Task/026` siguen Pendientes. **T-04 Satisfecho y Vigente**; **P-06 revalidado/conservado**; **P-07 no tocado**. **H-023-3** sigue **abierto y no diagnosticado**. Ramas creadas desde `main` en **backend** e **infra**; **frontend en solo lectura, sin rama**. Corregida la columna *Repos* de la fila de `Task/023` (**D-023-1**).
+- **Actualización anterior:** 2026-09-12 — `Task/022-Validacion-Local-Production-Like` **Aprobada** mediante `approved: Task/022-Validacion-Local-Production-Like`. Con ella la **ETAPA 07 queda Completada** (1/1, 100 %) y el avance pasa a **22/41 ≈ 54 %**. Los **ocho** criterios de salida cumplidos, **T-07 Satisfecho** y **siete** defectos de los runbooks corregidos y revalidados con una reconstrucción y una recuperación reales. Siguiente: **ETAPA 08 — Preparación Cloud + AWS Local Parity**, **sin cuentas cloud**. **D-21**, **R-018-3**, **R-021-1** y **R-018-4** siguen abiertos.
 - **Anterior:** 2026-09-12 — Task020.3 **Aprobada** mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`; con ella la **ETAPA 06 queda Completada**. Task020 y Task021 siguen **Aprobadas**; el avance permanece en **21/41 ≈ 51 %** porque el mantenimiento **no cuenta** entre las 41. La descarga MinIO quedó reparada y **B-020.3-C resuelto**: el gate Trivy de la imagen backend pasó de 12 accionables a **0**, con la política S-09 intacta. Siguiente: **ETAPA 07 — Validación Local**, con `Task/022` **Pendiente, no iniciada**. S-09 conserva su definición y verificaciones canónicas en [NFR](../architecture/non-functional-requirements.md)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
@@ -97,12 +98,12 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 05 | Calidad y Seguridad | 3 | **3** | **100 %** | **Completada** | 04 ✔ |
 | 06 | Integración Continua | 3 | **3** | **100 %** | **Completada** | 05 ✔ |
 | 07 | Validación Local | 1 | **1** | **100 %** | **Completada** | 06 ✔ |
-| 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 ✔ |
+| 08 | Preparación Cloud sin Cuentas | 4 | **1** | **25 %** | **En progreso** | 07 ✔ |
 | 09 | Cuentas y Seguridad Cloud | 3 | 0 | 0 % | Pendiente | 08 |
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **22** | **54 %** | | |
+| | **Total** | **41** | **23** | **56 %** | | |
 
 ---
 
@@ -317,9 +318,19 @@ cero y con datos reales de prueba.
 > Estrategia: [aws-local-parity.md](../architecture/aws-local-parity.md) ·
 > [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) (**Aceptada**).
 
+> **Corrección de la columna *Repos* — 2026-09-13 (`Task/023`).** La fila de `Task/023`
+> declaraba solo `backend`, omitiendo el repositorio de documentación. No era una
+> excepción deliberada: [`WORKFLOW.md`](WORKFLOW.md) §6 obliga a actualizar `STATUS.md`,
+> `ROADMAP.md`, la ficha y el reporte en **cada** tarea, y §7 sitúa esos documentos
+> **solo** en `personal-blog-infra`. Las tareas comparables ya lo declaraban así
+> —`Task/019` «frontend, infra (documentación)», `Task/020` «backend, infra
+> (documentación)», `Task/022` «backend, infra»—. La **propiedad funcional de `Task/023`
+> sigue siendo `backend`**. La fila de `Task/024` arrastra la misma omisión y **no se
+> corrige aquí**: queda anotada para su propio preflight.
+
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/023-Compatibilidad-FastAPI-Lambda` | Adaptador de FastAPI para API Gateway HTTP API y Lambda. Compatible además con la Lambda emulada del laboratorio. | backend | 022 | Pendiente |
+| `Task/023-Compatibilidad-FastAPI-Lambda` | Adaptador de FastAPI para API Gateway HTTP API y Lambda. Compatible además con la Lambda emulada del laboratorio. | backend, infra (documentación) | 022 ✔ | **Aprobada** (2026-09-13) — `app/lambda_handler.py` sobre `mangum==0.22.0` con `lifespan="off"`; **T-04 Satisfecho y Vigente**; 42 pruebas nuevas y flujo administrativo real a través del *handler*. **H-023-3** sigue **abierto y no diagnosticado** |
 | `Task/024-Artefacto-ZIP-Lambda` | Paquete Linux reproducible. Validación de tamaño. Checksums. **Artefacto validable ejecutándolo** en el laboratorio. | backend | 023 | Pendiente |
 | `Task/025-Terraform-Cloud` | Terraform **portable**: módulos compartidos, provider AWS oficial, destino local y destino real. `plan`/`apply`/`destroy` **ejecutados en local**. Matriz de paridad. Guardas *fail-closed*. Resuelve **D-06**. **Amplía el CI de `Task/021` con `terraform fmt` y `validate`.** Sin recursos reales. | infra | 022, **024** | Pendiente |
 | `Task/026-Runbooks-de-Despliegue` | Creación. Validación del destino. Rollback. *Drift*. Destrucción. Recuperación. Transición a AWS. | infra | 024, 025 | Pendiente |
