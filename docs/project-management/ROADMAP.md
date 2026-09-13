@@ -2,7 +2,8 @@
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
-- **Última actualización:** 2026-09-12 — Task020.3 **Aprobada** mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`; con ella la **ETAPA 06 queda Completada**. Task020 y Task021 siguen **Aprobadas**; el avance permanece en **21/41 ≈ 51 %** porque el mantenimiento **no cuenta** entre las 41. La descarga MinIO quedó reparada y **B-020.3-C resuelto**: el gate Trivy de la imagen backend pasó de 12 accionables a **0**, con la política S-09 intacta. Siguiente: **ETAPA 07 — Validación Local**, con `Task/022` **Pendiente, no iniciada**. S-09 conserva su definición y verificaciones canónicas en [NFR](../architecture/non-functional-requirements.md)
+- **Última actualización:** 2026-09-12 — `Task/022-Validacion-Local-Production-Like` **Aprobada** mediante `approved: Task/022-Validacion-Local-Production-Like`. Con ella la **ETAPA 07 queda Completada** (1/1, 100 %) y el avance pasa a **22/41 ≈ 54 %**. Los **ocho** criterios de salida cumplidos, **T-07 Satisfecho** y **siete** defectos de los runbooks corregidos y revalidados con una reconstrucción y una recuperación reales. Siguiente: **ETAPA 08 — Preparación Cloud + AWS Local Parity**, **sin cuentas cloud**. **D-21**, **R-018-3**, **R-021-1** y **R-018-4** siguen abiertos.
+- **Anterior:** 2026-09-12 — Task020.3 **Aprobada** mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`; con ella la **ETAPA 06 queda Completada**. Task020 y Task021 siguen **Aprobadas**; el avance permanece en **21/41 ≈ 51 %** porque el mantenimiento **no cuenta** entre las 41. La descarga MinIO quedó reparada y **B-020.3-C resuelto**: el gate Trivy de la imagen backend pasó de 12 accionables a **0**, con la política S-09 intacta. Siguiente: **ETAPA 07 — Validación Local**, con `Task/022` **Pendiente, no iniciada**. S-09 conserva su definición y verificaciones canónicas en [NFR](../architecture/non-functional-requirements.md)
 - **Estrategia:** local-first (ver [ADR-001](../adr/ADR-001-local-first.md)), extendida a la
   infraestructura con **AWS Local Parity** — ver
   [aws-local-parity.md](../architecture/aws-local-parity.md) y
@@ -16,7 +17,7 @@ Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas
   Cloud** (Alloy en el VPS) — ver
   [target-production-architecture.md](../architecture/target-production-architecture.md) y
   [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) (**Aceptada**)
-- **Avance global:** **51 %** (21 de 41 tareas aprobadas)
+- **Avance global:** **54 %** (22 de 41 tareas aprobadas)
 
 Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `Aprobada` ·
 `Bloqueada` · `Descartada`.
@@ -95,13 +96,13 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 04 | Experiencia del Usuario | 3 | **3** | **100 %** | **Completada** | 03 ✔ |
 | 05 | Calidad y Seguridad | 3 | **3** | **100 %** | **Completada** | 04 ✔ |
 | 06 | Integración Continua | 3 | **3** | **100 %** | **Completada** | 05 ✔ |
-| 07 | Validación Local | 1 | 0 | 0 % | Pendiente | 06 |
-| 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 |
+| 07 | Validación Local | 1 | **1** | **100 %** | **Completada** | 06 ✔ |
+| 08 | Preparación Cloud sin Cuentas | 4 | 0 | 0 % | Pendiente | 07 ✔ |
 | 09 | Cuentas y Seguridad Cloud | 3 | 0 | 0 % | Pendiente | 08 |
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **21** | **51 %** | | |
+| | **Total** | **41** | **22** | **54 %** | | |
 
 ---
 
@@ -281,7 +282,8 @@ independiente del cambio de registro.
 actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile,
 sin tocar Python, distribución base, digest del `FROM`, locks ni la política
 S-09. Con su aprobación el mismo 2026-09-12, la **ETAPA 06 quedó Completada**.
-Task022 permanece **Pendiente, no iniciada**.
+Task022 quedó **iniciada y aprobada el 2026-09-12**, con los ocho criterios de salida de la
+ETAPA 07 cumplidos y **T-07 Satisfecho**. El avance pasó a **22/41 ≈ 54 %**.
 
 ## ETAPA 07 — Validación Local
 
@@ -294,7 +296,7 @@ cero y con datos reales de prueba.
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/022-Validacion-Local-Production-Like` | Reconstrucción completa. Migraciones. Seed. Flujo administrativo. Publicación. Persistencia. Backups. Revisión en Portainer. | infra, frontend, backend | 019, 020, 021 | Pendiente |
+| `Task/022-Validacion-Local-Production-Like` | Reconstrucción completa. Migraciones. Seed. Flujo administrativo. Publicación. Persistencia. Backups. Revisión en Portainer. | backend, infra (frontend en solo lectura) | 019, 020, 021 | **Aprobada** (2026-09-12) — los **8** criterios de salida cumplidos y **T-07 Satisfecho**; **7** defectos de los runbooks corregidos y revalidados. Semilla local con TDD completo; **1874** pruebas de backend y **704** de frontend en verde |
 
 ---
 
@@ -474,7 +476,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: `21 / 41 ≈ 51 %`.
+Actualmente: `22 / 41 ≈ 54 %`.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de

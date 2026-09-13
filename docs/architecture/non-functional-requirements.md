@@ -330,7 +330,34 @@ sentido estricto: **nada de esto afirma nada sobre la observabilidad en la nube.
 | T-04 | **Backend independiente de Lambda**: el adaptador es una capa fina y removible. | `Task/023` |
 | T-05 | **Frontend independiente de Cloudflare Pages**: build estático estándar. | `Task/006`, `Task/034` |
 | T-06 | **Infraestructura cloud mediante Terraform**, reproducible y destruible. | `Task/025`, `Task/039` |
-| T-07 | El entorno local **se reconstruye desde cero** siguiendo un runbook escrito. | `Task/004`, `Task/022` |
+| T-07 | El entorno local **se reconstruye desde cero** siguiendo un runbook escrito. | `Task/004`, `Task/022` — **Satisfecho y Vigente** desde el 2026-09-12 (ver §6.1) |
+
+### 6.1 Estado de T-07 tras `Task/022`
+
+> **Satisfecho y Vigente** desde el **2026-09-12**, con la aprobación de `Task/022`
+> (`approved: Task/022-Validacion-Local-Production-Like`). La reconstrucción y la
+> recuperación se ejecutaron de verdad, no se dieron por supuestas.
+
+Lo que hace verificable este requisito es la palabra **«siguiendo»**: no basta con que el
+entorno pueda reconstruirse, tiene que reconstruirse **con lo que el runbook dice**. La
+primera ejecución literal demostró que no era así, y por eso T-07 **no podía darse por
+cumplido antes**:
+
+| Hallazgo | Qué impedía |
+| --- | --- |
+| **H-1** y **H-6** | El procedimiento no construía las imágenes, y confundía cuáles son de terceros |
+| **H-2** | Sin el bucket de medios, la provisión de identidades terminaba en **exit 1** |
+| **H-4** | `down -v` destruye la base de pruebas, y sin ella la suite **se omite entera** |
+| **H-5** | La recuperación total devolvía los datos y dejaba la aplicación **sin permisos**, en silencio |
+| **H-7** | La recuperación manual copiaba a `/tmp`, imposible desde el endurecimiento de `Task/018` |
+
+Corregidos los siete, el procedimiento se ejecutó **dos veces de principio a fin**: una
+reconstrucción desde cero y una recuperación total desde respaldo, esta última verificada
+punto por punto —incluido que el backend arranca con el plano runtime y que `/ready`
+responde—. Detalle en [TASK-022-report](../task-reports/TASK-022-report.md) §5 y §6.
+
+**Lo que T-07 no afirma:** nada sobre la nube. La reconstrucción de un entorno local no
+dice nada de AWS, y esa validación sigue siendo de la ETAPA 10.
 
 ---
 

@@ -346,8 +346,9 @@ Copy-Item .env.example .env
 # 2. Validar la definición antes de levantar nada
 docker compose config --quiet
 
-# 3. Descargar las imágenes de terceros
-docker compose pull postgres minio portainer traefik
+# 3. Descargar las imagenes de TERCEROS. Son solo estas dos: `postgres` y
+#    `traefik` los construye el proyecto (Dockerfile propio en docker/).
+docker compose pull minio portainer
 
 # 4. Construir las imágenes de las aplicaciones
 #    Requiere que personal-blog-backend y personal-blog-frontend esten
@@ -360,17 +361,27 @@ docker compose up -d --wait postgres minio
 # 6. Aplicar el esquema con la identidad ADMINISTRATIVA (`Task/018`)
 docker compose --profile admin run --rm migrations
 
-# 7. Preparar las identidades runtime de PostgreSQL y MinIO (`Task/018`).
+# 7. Crear el bucket de medios (seccion 10). El paso siguiente lo VERIFICA:
+#    sin el, `--apply` termina en exit 1 con NoSuchBucket.
+docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && mc mb --ignore-existing local/personal-blog-media'
+
+# 8. Preparar las identidades runtime de PostgreSQL y MinIO (`Task/018`).
 #    Escribe secrets/backend-runtime.env, que esta ignorado por Git.
 #    Se ejecuta con el venv del backend, que ya tiene psycopg y boto3.
 ..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py --apply
 
-# 8. Levantar el resto del entorno
+# 9. Levantar el resto del entorno
 docker compose up -d
 
-# 9. Comprobar el estado
+# 10. Comprobar el estado
 docker compose ps
 ```
+
+> **El paso 7 se añadió en `Task/022` (2026-09-12).** La sección remitía a §10 para el
+> bucket, pero no lo creaba aquí, y el paso siguiente **lo exige**: `runtime_privileges.py`
+> comprueba los permisos del plano runtime *contra el bucket real*, así que sin él se
+> detiene con `NoSuchBucket` y código 1. Demostrado durante la reconstrucción de
+> `Task/022`.
 
 > **Los pasos 6 y 7 no son opcionales en una instalación nueva.** Desde `Task/018` el
 > servicio `backend` **no** recibe `BLOG_DATABASE_URL` ni las claves de MinIO por el
@@ -790,13 +801,33 @@ Los mismos logs, volúmenes y redes son visibles gráficamente en Portainer
 > estuviera aprobada, cosa que ya ocurrió.)*
 
 ```powershell
+# 1. Destruir el entorno y sus datos
 docker compose down -v
-docker compose pull
+
+# 2. Descargar SOLO las imagenes de terceros: minio y portainer
+docker compose pull minio portainer
+
+# 3. Construir las cuatro que produce el proyecto:
+#    backend, frontend, postgres y traefik
+docker compose build
+
+# 4. Levantar primero la capa de datos
 docker compose up -d --wait postgres minio
+
+# 5. Aplicar el esquema con la identidad ADMINISTRATIVA
 docker compose --profile admin run --rm migrations
+
+# 6. Recrear el bucket de medios (seccion 10): se fue con el volumen
+docker compose exec minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" && mc mb --ignore-existing local/personal-blog-media'
+
+# 7. Preparar las identidades runtime de PostgreSQL y MinIO
 Remove-Item .\secrets\backend-runtime.env -ErrorAction SilentlyContinue
 ..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py --apply
+
+# 8. Levantar el resto del entorno
 docker compose up -d
+
+# 9. Comprobar el estado
 docker compose ps
 ```
 
@@ -804,6 +835,33 @@ docker compose ps
 > viven dentro de esos volúmenes. El archivo `secrets/backend-runtime.env` **no** se
 > borra solo, y quedaría apuntando a credenciales que ya no existen: por eso se elimina
 > antes de volver a provisionar. Es la única situación en la que se borra ese archivo.
+
+> **Corregido en `Task/022` (2026-09-12), tras ejecutar esta sección de principio a fin.**
+> Tenía tres defectos que solo una reconstrucción real podía demostrar:
+>
+> - **El paso 2 era `docker compose pull` sin acotar**, que intenta descargar también las
+>   **cuatro** imágenes que construye el proyecto y responde `pull access denied` para cada
+>   una. El propio Compose lo advertía: *«Some service image(s) must be built from
+>   source»*. **Y faltaba `docker compose build`**, que §4 sí tiene: en una máquina limpia
+>   esta sección no reconstruía nada.
+> - **La lista de «imágenes de terceros» de §4 también estaba mal**, y por eso el primer
+>   intento de corregir esta sección heredó el error: incluía `postgres` y `traefik`, que
+>   el proyecto **construye** con Dockerfile propio en `docker/`. Los únicos de terceros
+>   son **`minio` y `portainer`**; las construidas son cuatro: `backend`, `frontend`,
+>   `postgres` y `traefik`. Comprobado con `docker compose config`, mirando qué servicios
+>   declaran `build`. Corregido en §4, en esta sección y en el runbook de recuperación.
+> - **Faltaba recrear el bucket de medios.** `down -v` lo destruye con el volumen, y sin
+>   él `runtime_privileges.py --apply` **termina en exit 1** con
+>   `Verificacion interrumpida (NoSuchBucket)`. Creado el bucket, el mismo comando da
+>   exit 0. El procedimiento no es nuevo: es el de §10.2, que esta sección no enlazaba.
+> - **No advertía sobre la base de pruebas** (ver el aviso siguiente).
+
+> **`down -v` destruye también `personal_blog_test`.** Vive dentro de
+> `postgres_data` como cualquier otra base. Sin ella, la suite de integración del backend
+> **se omite entera** en lugar de fallar, que es su comportamiento declarado (§9.5): un
+> `pytest` en verde con 124 pruebas omitidas puede confundirse con una regresión superada.
+> Antes de ejecutar la suite hay que **recrearla y marcarla** con §9.2 y §9.3.
+> *(Añadido en `Task/022`.)*
 
 ---
 
