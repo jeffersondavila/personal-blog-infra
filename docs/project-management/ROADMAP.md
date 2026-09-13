@@ -296,7 +296,7 @@ cero y con datos reales de prueba.
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/022-Validacion-Local-Production-Like` | Reconstrucción completa. Migraciones. Seed. Flujo administrativo. Publicación. Persistencia. Backups. Revisión en Portainer. | backend, infra (frontend en solo lectura) | 019, 020, 021 | **Aprobada** (2026-09-12) — los **8** criterios de salida cumplidos y **T-07 Satisfecho**; **7** defectos de los runbooks corregidos y revalidados. Semilla local con TDD completo; **1874** pruebas de backend y **704** de frontend en verde |
+| `Task/022-Validacion-Local-Production-Like` | Reconstrucción completa. Migraciones. Seed. Flujo administrativo. Publicación. Persistencia. Backups. Revisión en Portainer. | backend, infra (frontend en solo lectura) | 019, 020, 021 | **Aprobada** (2026-09-12) — los **8** criterios de salida cumplidos y **T-07 Satisfecho**; **7** defectos de los runbooks corregidos y revalidados. Semilla local con TDD completo. **H-8 Resuelto**: defecto adicional de invocación detectado por CI durante la integración aprobada y corregido sin relajar pruebas; ejecución posterior **34730284072 GREEN 25/25** (2026-09-13 UTC). Suite final backend **Windows: 1875 passed, 1 skipped; CI Linux: 1876 passed**; **704** pruebas de frontend en verde. [Detalle](../task-reports/TASK-022-report.md#14-h-8--defecto-del-entregable-descubierto-por-la-ci-durante-el-cierre) |
 
 ---
 

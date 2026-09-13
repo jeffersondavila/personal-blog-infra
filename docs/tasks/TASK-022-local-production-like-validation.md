@@ -19,6 +19,8 @@
 
 ## 0. Preparación Git
 
+**Registro de preparación del 2026-09-12**, conservado como evidencia histórica.
+
 **Rama base obligatoria: `main`.** `dev` **nunca** es base de una Task
 ([`WORKFLOW.md`](../project-management/WORKFLOW.md) §2.1).
 
@@ -30,10 +32,9 @@
 | 4 | `git rev-parse HEAD` == `git rev-parse main` justo tras crearla | ✔ `4a36bb532ed3…` | ✔ `184c833541bf…` |
 | 5 | `dev` **no** es ancestro de `HEAD` | ✔ verificado con `merge-base --is-ancestor` | ✔ ídem |
 
-**El frontend no tiene rama Task.** Permanece en `main` limpio y en solo lectura por
-decisión explícita del usuario del 2026-09-12. Si el recorrido real descubre un defecto de
-frontend que deba corregirse, la ejecución **se detiene y se reporta** antes de crear
-ninguna rama allí.
+**Observado el 2026-09-12:** el frontend estaba en `main` limpio y sin rama Task.
+La validación de frontend se realizó en solo lectura por decisión explícita del usuario;
+no produjo modificaciones.
 
 ---
 
@@ -319,6 +320,10 @@ docker compose ps
 
 ## 12.1 Hallazgos de la reconstrucción — registrados antes de corregir nada
 
+**Registro histórico del 2026-09-12.** Se conserva el estado de cada hallazgo al
+registrarlo. **H-1…H-7 quedaron Resueltos** antes de la aprobación; evidencia final
+en el [reporte §5](../task-reports/TASK-022-report.md#5-los-siete-hallazgos-de-la-reconstrucción).
+
 > La reconstrucción se ejecutó siguiendo **únicamente** el runbook escrito, que es lo que
 > exige el criterio 1. Cada paso que hizo falta y **no** estaba en el procedimiento se
 > registra aquí como hallazgo, con su evidencia, **antes** de tocar la documentación. Son
@@ -378,6 +383,11 @@ respaldo»*.
 
 ## 13. Documentación creada o actualizada
 
+**Registro de la fase inicial, 2026-09-12:** la lista siguiente conserva lo que estaba
+hecho o pendiente entonces. Al aprobarse la tarea, los ocho documentos de infra estaban
+completados: STATUS y ROADMAP reflejaban **Aprobada / ETAPA 07 Completada**, ambos
+runbooks estaban corregidos, **T-07 Satisfecho y Vigente** y el reporte entregado.
+
 - `docs/tasks/TASK-022-local-production-like-validation.md` — ficha (nueva).
 - `docs/project-management/STATUS.md` — etapa y tarea en curso.
 - `docs/project-management/ROADMAP.md` — ETAPA 07 En progreso.
@@ -390,6 +400,10 @@ respaldo»*.
 ---
 
 ## 14. Archivos modificados
+
+**Inventario de la fase inicial, 2026-09-12.** El cierre añadió además los dos runbooks,
+`docs/architecture/non-functional-requirements.md` y `docs/task-reports/TASK-022-report.md`
+en infra. H-8 modificó la semilla y su suite de invocación en backend (§21).
 
 | Repositorio | Archivo | Acción |
 | --- | --- | --- |
@@ -407,6 +421,9 @@ respaldo»*.
 ---
 
 ## 15. Resultado de pruebas
+
+**Evidencia histórica de la fase inicial, 2026-09-12.** Los recuentos se conservan;
+la regresión pre-H-8 posterior está en el reporte §8 y la evidencia final de H-8 en §21.
 
 | Prueba | Comando | Resultado |
 | --- | --- | --- |
@@ -498,7 +515,9 @@ Get-Content .\secrets\seed-admin.env | Select-String PASSWORD
 ## 19. Próxima tarea
 
 `Task/023-Compatibilidad-FastAPI-Lambda` — adaptador de FastAPI para API Gateway HTTP API y
-Lambda. **No se inicia** hasta que `Task/022` esté aprobada y normalizada.
+Lambda. **Pendiente, no iniciada.** Su inicio sigue la regla permanente del
+[WORKFLOW §2.1](../project-management/WORKFLOW.md#21-ciclo-oficial-de-ramas): partir de
+`main` actualizado y limpio tras el merge manual y la normalización correspondientes.
 
 ---
 
@@ -515,3 +534,28 @@ Con esta aprobación la tarea **cuenta en las 41**: el avance pasa a **22/41 ≈
 
 **No cambia:** **D-21** sigue Abierta y **ADR-009** en Propuesta; **R-018-3**, **R-021-1**
 y **R-018-4** siguen Abiertos. `Task/023` queda **Pendiente, no iniciada**.
+
+---
+
+## 21. H-8 — RESUELTO durante la integración CI aprobada
+
+**Familia:** defecto del entregable detectado durante integración CI, adicional a los
+**siete defectos de los runbooks H-1…H-7**. *Observado el 2026-09-13 UTC:* CI Backend
+`34729289407`, sobre el primer merge `0028dd2`, falló con **3 failed, 1872 passed**:
+`main()` construía `Settings` antes de validar `PERSONAL_BLOG_SEED_*`; el `.env` local
+ocultaba esa dependencia ambiental y CI no tenía ese archivo.
+
+El commit backend **`772bbfb`** adelantó `leer_entrada()` a `session_scope()` y dejó
+una regresión permanente independiente de la presencia de `.env`, sin relajar las
+expectativas. El segundo merge **`9ed7519`** conservó el primero y la ejecución posterior
+**`34730284072`** concluyó **completed/success, 25/25 pasos, 0 skipped**.
+
+**Evidencia final:** invocación **4 passed**, integración de semilla **17 passed**;
+suite local **Windows: 1875 passed, 1 skipped** (`time.tzset` no existe en Windows),
+suite **CI Linux: 1876 passed**. Las pruebas nuevas de Task022 pasan de **20 a 21**.
+Detalle de causa, RED/GREEN y gates en el
+[reporte §14](../task-reports/TASK-022-report.md#14-h-8--defecto-del-entregable-descubierto-por-la-ci-durante-el-cierre).
+
+Se mantienen **Task022 Aprobada**, **ETAPA 07 Completada** (1/1, 100 %),
+**T-07 Satisfecho y Vigente** y **22/41 ≈ 54 %**. **H-8 Resuelto** no cambia las
+decisiones y riesgos abiertos ni inicia Task023 (§20).
