@@ -320,19 +320,29 @@ configuración de Portainer.** No hay deshacer. Antes de ejecutarlo:
 ### 9.1 Recuperar PostgreSQL
 
 ```powershell
-# 1. Copiar el volcado al contenedor
-docker cp .\local-backups\<id>\postgres\postgres-<id>.dump personal-blog-local-postgres:/tmp/restore.dump
+# 1. Copiar el volcado al AREA DE PASO del contenedor, no a /tmp
+docker cp .\local-backups\<id>\postgres\postgres-<id>.dump personal-blog-local-postgres:/backup/restore.dump
 
 # 2. Restaurar. --clean elimina los objetos existentes antes de recrearlos
 docker exec personal-blog-local-postgres pg_restore -U blog_local -d personal_blog `
-    --clean --if-exists --no-owner --no-privileges /tmp/restore.dump
+    --clean --if-exists --no-owner --no-privileges /backup/restore.dump
 
-# 3. Limpiar
-docker exec personal-blog-local-postgres rm -f /tmp/restore.dump
+# 3. Limpiar el area de paso. El archivo lo escribe `docker cp` como root, y el
+#    usuario del contenedor puede no poder borrarlo: si `rm` falla, usar el
+#    contenedor auxiliar, igual que hace New-LocalBackup.ps1.
+docker exec personal-blog-local-postgres rm -f /backup/restore.dump
 
 # 4. Comprobar
 docker exec personal-blog-local-postgres psql -U blog_local -d personal_blog -c "\dt"
 ```
+
+> **Corregido en `Task/022` (2026-09-12): antes decía `/tmp/restore.dump` y no funcionaba.**
+> Desde el endurecimiento de `Task/018` los contenedores llevan `read_only: true`, y
+> `docker cp` hacia la raíz falla con
+> `Error response from daemon: container rootfs is marked read-only`. El destino correcto
+> es el **área de paso** `/backup`, que es un volumen y existe exactamente para esto —
+> `docker-compose.yml` lo documenta junto al montaje `postgres_backup:/backup`. Mismo
+> cambio en §9.2 para MinIO.
 
 `pg_restore` puede devolver un código distinto de cero por avisos no fatales. Lo que
 decide es si los datos están: compruébalo con `\dt` y consultando las tablas.
@@ -351,31 +361,39 @@ de MinIO.
 **Procedimiento manual**, si prefieres hacerlo paso a paso:
 
 ```powershell
-# 1. Expandir el archivo de objetos y copiarlo al contenedor
+# 1. Expandir el archivo de objetos y copiarlo al AREA DE PASO, no a /tmp
 Expand-Archive .\local-backups\<id>\minio\minio-<id>.zip -DestinationPath $env:TEMP\minio-restore
-docker cp $env:TEMP\minio-restore personal-blog-local-minio:/tmp/minio-restore
+docker cp $env:TEMP\minio-restore personal-blog-local-minio:/backup/minio-restore
 
 # 2. Configurar el cliente
 docker exec personal-blog-local-minio sh -c 'mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
 
 # 3. Recrear los buckets que declara el inventario
-docker exec personal-blog-local-minio sh -c 'for b in $(ls /tmp/minio-restore); do mc mb --ignore-existing local/$b; done'
+docker exec personal-blog-local-minio sh -c 'for b in $(ls /backup/minio-restore); do mc mb --ignore-existing local/$b; done'
 
 # 4. Subir cada objeto CON sus metadatos. Los valores salen de
-#    minio-objects-metadata-<id>.json, campos `headers` y `userMetadata`:
+#    minio-objects-metadata-<id>.json, campos `headers` y `userMetadata`.
+#    Enumera las claves DESDE EL HOST: la imagen de MinIO no trae `find`.
 docker exec personal-blog-local-minio mc cp `
     --attr "Content-Type=application/json;Cache-Control=max-age=3600;x-amz-meta-task=task-004" `
-    /tmp/minio-restore/<bucket>/<clave> local/<bucket>/<clave>
+    /backup/minio-restore/<bucket>/<clave> local/<bucket>/<clave>
 
 # 5. Reaplicar los tags. Los valores salen del campo `tags` del mismo archivo:
 docker exec personal-blog-local-minio mc tag set local/<bucket>/<clave> "entorno=local&tarea=task-004"
 
 # 6. Limpiar y comprobar
-docker exec personal-blog-local-minio sh -c 'rm -rf /tmp/minio-restore'
+docker exec personal-blog-local-minio sh -c 'rm -rf /backup/minio-restore'
 docker exec personal-blog-local-minio mc ls --recursive local
 docker exec personal-blog-local-minio mc stat --json local/<bucket>/<clave>
 Remove-Item $env:TEMP\minio-restore -Recurse -Force
 ```
+
+> **Dos correcciones de `Task/022` (2026-09-12), ambas demostradas al restaurar de verdad:**
+> el destino es `/backup` y no `/tmp` (misma causa que en §9.1: `read_only: true` desde
+> `Task/018`), y **la imagen de MinIO no incluye `find` ni `awk`** —es una UBI *micro*—,
+> así que un bucle `for f in $(find …)` dentro del contenedor falla con
+> `find: command not found`. Enumera las claves desde el host y llama a `mc cp` una vez
+> por objeto.
 
 En PowerShell, usa comillas **simples** para el argumento de `sh -c`: con comillas dobles,
 PowerShell expande `$MINIO_ROOT_USER` antes de enviarlo y el comando falla con
@@ -412,26 +430,76 @@ Cuando ya no existen ni contenedores ni volúmenes — por ejemplo tras un
 `docker compose down -v`:
 
 ```powershell
-# 1. Recrear el entorno vacío
+# 1. Recrear el entorno vacío, SOLO la capa de datos
 cd C:\Users\jeffe\Downloads\Blog_Personal\personal-blog-infra
 Copy-Item .env.example .env      # si tampoco existe .env; revisa los valores
-docker compose up -d
-docker compose ps                # esperar a que postgres y minio estén healthy
+docker compose pull minio portainer     # los unicos de terceros
+docker compose build                    # backend, frontend, postgres y traefik
+docker compose up -d --wait postgres minio
 
 # 2. Verificar el backup antes de usarlo
 cd scripts\backup
 .\Test-LocalBackup.ps1
 
 # 3. Restaurar los tres componentes: secciones 9.1, 9.2 y 9.3
+#    El restore de MinIO recrea los buckets que declara el inventario.
 
-# 4. Comprobar el resultado
+# 4. REPROVISIONAR LAS IDENTIDADES RUNTIME. Sin este paso los datos vuelven
+#    pero la aplicacion no puede usarlos: ver 9.5.
+cd ..\..
+..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py --reissue-runtime-credentials --apply
+
+# 5. Levantar el resto del entorno para que el backend tome las credenciales
+docker compose up -d
+
+# 6. Comprobar el resultado
 docker compose ps
 docker exec personal-blog-local-postgres psql -U blog_local -d personal_blog -c "\dt"
-docker exec personal-blog-local-minio mc ls --recursive local
+docker exec personal-blog-local-postgres psql -U blog_local -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='blog_runtime'"
+..\personal-blog-backend\.venv\Scripts\python.exe .\scripts\security\runtime_privileges.py   # sin flags: solo comprueba, debe dar 0
 ```
 
 **Qué no se recupera:** todo lo ocurrido **después** del último backup. Ese es el motivo
 de la política de retención de la sección 11.
+
+### 9.5 Por qué hay que reprovisionar las identidades runtime
+
+> **Añadido en `Task/022` (2026-09-12), tras demostrarlo restaurando de verdad.** Hasta
+> entonces esta sección pasaba de «recrear el entorno» a «restaurar los tres componentes»
+> y daba por recuperado el entorno. No lo estaba.
+
+**`pg_dump` de una base no exporta los roles**: los roles son objetos *globales* del
+clúster, y solo `pg_dumpall --roles-only` los incluye. El volcado sí exporta los `GRANT`
+que mencionan a `blog_runtime`, y al restaurarlo sobre un clúster nuevo esas sentencias no
+pueden aplicarse. **El síntoma depende de cómo se restaure, y el caso peor es el
+silencioso:**
+
+| Restauración | Qué se ve | Qué ocurre de verdad |
+| --- | --- | --- |
+| Con `--no-privileges`, que es **lo que manda §9.1** | **Nada.** Ni un aviso, código de salida **0** | Los `GRANT` ni se intentan. El rol no existe y **nada lo señala** |
+| Sin `--no-privileges` | `ERROR: role "blog_runtime" does not exist` ×17, y `warning: errors ignored on restore: 17`, con código de salida **0** | Los `GRANT` fallan uno a uno, pero `pg_restore` los cuenta como *ignorados* y termina bien |
+
+En los dos casos **las filas están todas** y el comando parece haber ido bien. La copia de
+MinIO tampoco incluye su IAM, así que la identidad `blog-runtime` tampoco vuelve. Y el
+archivo `secrets/backend-runtime.env` está **fuera del respaldo a propósito** (§3.1): un
+respaldo que llevara dentro sus propias credenciales no protegería nada.
+
+*(Los dos comportamientos se observaron en `Task/022`: los 17 errores al restaurar con
+privilegios en una base de comprobación, y el silencio absoluto al seguir §9.1 tal cual.)*
+
+El resultado, sin el paso 4, es un entorno con todos sus datos y **una aplicación que no
+puede leerlos**.
+
+**El mecanismo ya existía**: `--reissue-runtime-credentials` está en
+`scripts/security/runtime_privileges.py` desde `Task/018`, documentado en su propia ayuda
+como *«el camino de recuperación tras restaurar un respaldo»*. Lo que faltaba era que este
+runbook lo usara. Reemite ambos secretos **sin conocer los anteriores** —que aquí, por
+definición, se han perdido—, y `--apply` a continuación crea lo que falte y reaplica
+*grants* y políticas. No borra filas, ni objetos, ni el bucket, ni administradores.
+
+**No crear el rol a mano.** Un `CREATE ROLE` suelto deja el rol sin la política de MinIO,
+sin los `GRANT` tabla a tabla y sin el archivo runtime coherente, que es justo lo que el
+procedimiento garantiza y una comprobación posterior verifica.
 
 ---
 
@@ -486,6 +554,8 @@ nadie lo decida es más peligroso que acumular unos megabytes.
 | Cifrado de los artefactos | No contemplado. Los conjuntos se protegen manteniéndolos locales y sin versionar. |
 | **Historial de versiones de MinIO** | Solo se respalda la versión **actual** de cada objeto. Restaurar versiones anteriores exigiría recorrer `mc ls --versions` y reconstruir el orden de versiones, con su propio modelo de integridad. |
 | **Reaplicación de la configuración de los buckets** | Versionado, Object Lock, replicación, ciclo de vida, política anónima y cifrado se **registran** pero no se restauran. Reaplicarlos sin poder verificarlos sería dar una garantía falsa. |
+| **Roles de PostgreSQL e IAM de MinIO** | **No viajan en el conjunto**, y no es una laguna: `pg_dump` de una base no exporta roles globales y la copia de MinIO no exporta su IAM. Se **reprovisionan** con el paso 4 de §9.4, no se restauran. Documentado en `Task/022` tras demostrarlo. |
+| **Credenciales runtime (`secrets/backend-runtime.env`)** | Fuera del respaldo **a propósito** (§3.1). Se reemiten en la recuperación; ver §9.5. |
 | Backups del backend y del frontend | No existen todavía (`Task/005`, `Task/006`). |
 | Backup del esquema de la aplicación | No hay esquema hasta `Task/008`; el procedimiento ya lo cubrirá automáticamente. |
 | Restauración a un punto en el tiempo | Requeriría WAL archiving; desproporcionado para un entorno local. |
