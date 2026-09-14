@@ -810,7 +810,12 @@ Cambiar de destino es un cambio de configuración e infraestructura, no de códi
 - *Enable internet access for VPC-connected Lambda functions* —
   `https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc-internet.html`
 
-**Nota sobre el diagrama versionado:** `images/Infraestructura.png` representa la
-**arquitectura objetivo inicial, anterior a esta decisión**, cuando PostgreSQL administrado
-todavía era la vía prevista. **No se modifica, no se regenera y no se reemplaza.** La
-arquitectura vigente de la capa de datos es la de §3 de este documento.
+**Nota sobre el diagrama versionado:** `images/Infraestructura.png` es la **vista visual
+vigente** de la arquitectura objetivo, actualizada manualmente por el usuario. **No se
+modifica, no se regenera y no se reemplaza** desde este proyecto. La autoridad **textual**
+de la capa de datos sigue siendo §3 de este documento, y la de la arquitectura objetivo
+completa, [target-production-architecture.md](target-production-architecture.md).
+
+*Hasta `Task/006.2` (2026-08-23) esta nota decía que la PNG representaba «la arquitectura
+objetivo inicial, anterior a esta decisión». Fue cierto hasta que el usuario la actualizó
+en el commit `d08fe27`; dejó de serlo entonces. El residual se corrige en `Task/024`.*
