@@ -115,12 +115,18 @@ diagrama Mermaid de este apartado**, que incorpora
 [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada** el 2026-08-15).
 
 > **Sobre el diagrama versionado.**
-> [`images/Infraestructura.png`](../../images/Infraestructura.png) representa la
-> **arquitectura objetivo inicial, anterior a `Task/005.3`**, cuando PostgreSQL
-> administrado todavía era la vía prevista. Se conserva como **registro histórico** y
-> **no se modifica, no se regenera, no se mueve y no se reemplaza**. **Ya no es la
-> autoridad canónica de la capa de datos de producción**: para eso rigen el diagrama de
-> abajo y [production-postgresql-vps.md](production-postgresql-vps.md) §3.
+> [`images/Infraestructura.png`](../../images/Infraestructura.png) es la **vista visual
+> vigente** de la arquitectura objetivo, actualizada manualmente por el usuario. **No se
+> modifica, no se regenera, no se mueve y no se reemplaza** desde este proyecto. Su
+> contraparte **textual** —la que hay que leer para razonar sin analizar la imagen— es
+> [target-production-architecture.md](target-production-architecture.md); para la capa de
+> datos, [production-postgresql-vps.md](production-postgresql-vps.md) §3.
+>
+> *Hasta `Task/006.2` (2026-08-23) esta nota decía que la PNG representaba «la
+> arquitectura objetivo inicial, anterior a `Task/005.3`» y se conservaba como registro
+> histórico. Fue cierto hasta que el usuario la actualizó en el commit `d08fe27`; dejó de
+> serlo entonces. `Task/006.2` corrigió `overview.md` y el `README.md`, pero no esta nota
+> ni la de `production-postgresql-vps.md`: el residual se corrige en `Task/024`.*
 
 Floci **no sustituye** ninguna de las dos: añade la vista del Modo B, que es un
 *laboratorio*, no un destino.
@@ -816,8 +822,9 @@ argumento a favor de la regla de portabilidad de §4.
 - [ETAPA 08 — Preparación Cloud + AWS Local Parity](../stages/STAGE-08-cloud-ready.md)
 - [ETAPA 10 — Despliegue Cloud](../stages/STAGE-10-cloud-deployment.md)
 - [ETAPA 11 — Automatización de Despliegues](../stages/STAGE-11-deployment-automation.md)
-- `images/Infraestructura.png` — arquitectura objetivo **inicial**, anterior a ADR-007.
-  Registro histórico; **no es la autoridad canónica vigente** (§3.3)
+- `images/Infraestructura.png` — **vista visual vigente** de la arquitectura objetivo,
+  mantenida por el usuario. La autoridad **textual** es
+  [target-production-architecture.md](target-production-architecture.md) (§3.3)
 
 **Oficiales de Floci, consultadas el 2026-08-15:**
 
