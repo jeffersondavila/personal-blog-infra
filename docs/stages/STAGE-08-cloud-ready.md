@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 08 |
-| **Estado** | **En progreso** desde el 2026-09-13 (`Task/023`) |
+| **Estado** | **En progreso** desde el 2026-09-13 (`Task/023`); `Task/024` **Aprobada** el 2026-09-13 |
 | **Dependencias** | [ETAPA 07](STAGE-07-local-validation.md) |
 | **Tareas** | 4 |
-| **Aprobadas** | **1** |
-| **Avance** | **25 %** |
+| **Aprobadas** | **2** |
+| **Avance** | **50 %** |
 | **Hito que completa** | Artefactos e infraestructura como código listos y **ejecutados en un laboratorio AWS local**, sin cuentas ni recursos reales. |
 
 > **Nota de alcance — 2026-08-15.** El nombre y el objetivo de la etapa se ampliaron en
@@ -68,16 +68,39 @@ sigue siendo el entrypoint local. **T-04 Satisfecho y Vigente**; **P-06 revalida
 > [`WORKFLOW.md`](../project-management/WORKFLOW.md) §6 y §7 hacen obligatorio en **toda**
 > tarea. STAGE-06 ya lo declaraba correctamente para la tarea backend comparable
 > (`Task/020`: «**Repositorios:** `personal-blog-backend` e infra (documentación)»).
-> `Task/024`, más abajo, arrastra la misma omisión y **no se corrige aquí**: queda anotada
-> para su propio preflight, sin que esta tarea audite su contenido.
+> `Task/024`, más abajo, arrastraba la misma omisión y quedó anotada para su propio
+> preflight, sin que esta tarea auditara su contenido.
+>
+> **Cierre de esa anotación — 2026-09-13 (`Task/024`, D-024-1).** La entrada de `Task/024`
+> declara ya sus dos repositorios. Su **propiedad funcional sigue siendo
+> `personal-blog-backend`**.
 
-### `Task/024-Artefacto-ZIP-Lambda` — *Pendiente*
+### `Task/024-Artefacto-ZIP-Lambda` — **Aprobada** el 2026-09-13
 
 Paquete ZIP reproducible para Linux, validación de tamaño frente a los límites de
-Lambda y checksums. El artefacto pasa a ser **validable ejecutándolo** en el laboratorio
-local, no solo medido.
+Lambda y checksums. El artefacto pasa a ser **validable ejecutándolo**, no solo medido.
 
-**Depende de:** `Task/023`. **Repositorio:** `personal-blog-backend`.
+**Aprobada** el 2026-09-13 mediante `approved: Task/024-Artefacto-ZIP-Lambda`: el avance
+pasa a **24/41 ≈ 59 %** y la etapa a **2 de 4 — 50 %**. **La etapa no está completada.** Entrega `scripts/empaquetar_lambda.py` y su *harness* de arranque
+aislado. Las dependencias se instalan **dentro de la imagen oficial del runtime de Lambda
+para Python 3.12, `linux/amd64`, fijada por digest** —el backend se desarrolla en Windows y
+**13** de sus **41** distribuciones de ejecución traen binarios nativos—, con
+`--require-hashes`, `--only-binary=:all:` y `--no-compile`. Dos construcciones
+independientes produjeron **el mismo SHA-256 y los mismos bytes**:
+**43 288 578** comprimidos (41,28 MiB) y **114 086 988** descomprimidos (108,80 MiB),
+**3 975** entradas, **41/41** distribuciones de ejecución y **ninguna** de las **20** de
+desarrollo. El *handler* `app.lambda_handler.handler` respondió **200** a un evento
+**HTTP API v2** `GET /health` ejecutado **desde el ZIP extraído** en un proceso Linux con
+`-I -S -W error`, sin árbol de fuentes, sin `site-packages`, sin `.env` y sin credenciales;
+Argon2, Pillow y el driver binario de PostgreSQL se **ejercitaron**, y **tres controles
+negativos** demostraron que el aislamiento es real. `Task/025` y `Task/026` siguen
+**Pendientes**, y **D-12** sigue **ABIERTA**.
+
+**Depende de:** `Task/023` ✔ (**Aprobada** el 2026-09-13).
+**Repositorios:** `personal-blog-backend` —propiedad funcional— e infra (documentación).
+`personal-blog-frontend` **no participa**.
+[Ficha](../tasks/TASK-024-lambda-zip-artifact.md) ·
+[Reporte](../task-reports/TASK-024-report.md).
 
 ### `Task/025-Terraform-Cloud` — *Pendiente*
 
@@ -120,8 +143,8 @@ emulador no tenga paridad suficiente**.
 ## Criterios de salida de la etapa
 
 - [ ] El backend responde igual ejecutado localmente y a través del adaptador Lambda.
-- [ ] El ZIP se construye de forma reproducible y respeta los límites de tamaño.
-- [ ] Los checksums del artefacto se registran.
+- [x] El ZIP se construye de forma reproducible y respeta los límites de tamaño. *Cumplido por `Task/024`, **Aprobada** el 2026-09-13.*
+- [x] Los checksums del artefacto se registran. *Cumplido por `Task/024`, **Aprobada** el 2026-09-13.*
 - [ ] `terraform fmt -check` y `terraform validate` pasan en todos los módulos.
 - [ ] La definición de Terraform es **una sola**, con las diferencias local/AWS confinadas
       a la tabla de diferencias legítimas de [aws-local-parity.md](../architecture/aws-local-parity.md) §4.4.

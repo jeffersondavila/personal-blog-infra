@@ -8,11 +8,13 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 07 — Validación Local — Completada** el 2026-09-12: **1 de 1 tarea aprobada (100 %)**, los **ocho** criterios de salida cumplidos y **T-07 Satisfecho**. Hito alcanzado: *Blog validado íntegramente en local. Puerta de entrada a la nube.* ETAPAS 00 a 06 completadas. **ETAPA 08 — Preparación Cloud + AWS Local Parity: En progreso**, **1 de 4 tareas aprobadas (25 %)** tras la aprobación de `Task/023` el 2026-09-13. **La etapa NO está completada:** `Task/024`, `Task/025` y `Task/026` siguen **Pendientes**. Sigue siendo una etapa **sin cuentas ni recursos cloud**: que la ETAPA 07 esté completada **no autoriza ninguna acción en la nube**, la primera es de la ETAPA 09 (ADR-001) |
-| **Tarea actual** | **Ninguna en curso.** `Task/023-Compatibilidad-FastAPI-Lambda` quedó **Aprobada** el 2026-09-13. Abrió la ETAPA 08. Ramas creadas **desde `main`** en **backend** (`e0e3c08…`) e **infra** (`f8a64b4…`); **frontend en solo lectura, sin rama**. Entrega el adaptador FastAPI ↔ Lambda / API Gateway HTTP API v2 como **un solo archivo** (`app/lambda_handler.py`) más una línea de `pyproject.toml`: `app/main.py`, el `Dockerfile` y el Compose **no cambian**, y `uvicorn app.main:app` sigue siendo el entrypoint local. **T-04 Satisfecho técnicamente** —dos guardas recorren `app/` con `ast` y fallan si el adaptador se filtra—; **P-06 revalidado**, no reinventado. `lifespan="off"` decidido tras verificar la fuente de la versión **fijada** con su digest comprobado contra PyPI, y protegido por tres capas. **42 pruebas nuevas**; suite **1918 passed, 1 skipped** con PostgreSQL y MinIO reales, incluida la **sesión administrativa real** recorrida a través del handler. **1 dependencia nueva** autorizada, `mangum==0.22.0`, sin transitivas nuevas y sin mover `--exclude-newer`. **Avance sin cambios: 22/41 ≈ 54 %.** [Ficha](../tasks/TASK-023-fastapi-lambda-compatibility.md) · [Reporte](../task-reports/TASK-023-report.md) |
-| **Antecedente de la tarea actual** | `Task/022-Validacion-Local-Production-Like` quedó **Aprobada** el 2026-09-12. Ramas Task creadas desde `main` en **backend** (`4a36bb5…`) e **infra** (`184c833…`); **frontend validado en solo lectura, sin modificaciones**. Entrega la **semilla local** —el `Administrator` y el `Profile` que la base local nunca tuvo— con TDD completo, y **siete defectos de los runbooks** que solo una reconstrucción real podía destapar, todos corregidos y revalidados. Suite final backend: **Windows 1875 passed, 1 skipped; CI Linux 1876 passed**, tras resolver **H-8** durante la integración CI aprobada; **704** pruebas de frontend en verde; **0 dependencias nuevas**. [Ficha](../tasks/TASK-022-local-production-like-validation.md) · [Reporte](../task-reports/TASK-022-report.md) |
-| **Última tarea canónica aprobada** | **`Task/023-Compatibilidad-FastAPI-Lambda`** — **Aprobada** el 2026-09-13 por el usuario mediante `approved: Task/023-Compatibilidad-FastAPI-Lambda`. Con ella el avance pasa a **23 de 41 — 56 %** y la **ETAPA 08** queda **En progreso, 1 de 4 — 25 %**. **No completa la etapa.** **T-04 Satisfecho y Vigente**, **P-06 revalidado/conservado**, **P-07 no tocado**. **H-023-3** sigue **abierto y no diagnosticado** |
-| **Tarea canónica aprobada anterior** | **`Task/022-Validacion-Local-Production-Like`** — **Aprobada** el 2026-09-12 por el usuario. Con ella la **ETAPA 07 quedó Completada** y el avance pasó a **22 de 41 — 54 %** |
+| **Etapa actual** | **ETAPA 07 — Validación Local — Completada** el 2026-09-12: **1 de 1 tarea aprobada (100 %)**, los **ocho** criterios de salida cumplidos y **T-07 Satisfecho**. Hito alcanzado: *Blog validado íntegramente en local. Puerta de entrada a la nube.* ETAPAS 00 a 06 completadas. **ETAPA 08 — Preparación Cloud + AWS Local Parity: En progreso**, **2 de 4 tareas aprobadas (50 %)** tras la aprobación de `Task/024` el 2026-09-13. **La etapa NO está completada:** `Task/025` y `Task/026` siguen **Pendientes**. Sigue siendo una etapa **sin cuentas ni recursos cloud**: que la ETAPA 07 esté completada **no autoriza ninguna acción en la nube**, la primera es de la ETAPA 09 (ADR-001) |
+| **Tarea actual** | **Ninguna en curso.** `Task/024-Artefacto-ZIP-Lambda` quedó **Aprobada** el 2026-09-13. Ramas creadas **desde `main`** en **backend** (`8795ac7…`) e **infra** (`7397eca…`); **frontend en solo lectura, sin rama**. Entrega el **artefacto ZIP de despliegue**: `scripts/empaquetar_lambda.py` instala las dependencias **dentro de la imagen oficial del runtime de Lambda para Python 3.12, `linux/amd64`, fijada por digest** —el backend se desarrolla en Windows y **13** de sus **41** distribuciones de ejecución traen binarios nativos— con `--require-hashes`, `--only-binary=:all:` y `--no-compile`. **Reproducibilidad demostrada byte a byte:** dos construcciones independientes dieron el mismo SHA-256 `6580410109207f33…`, **43 288 578 bytes** comprimidos (41,28 MiB) y **114 086 988** descomprimidos (108,80 MiB), **3 975** entradas y **41/41** distribuciones de ejecución sin ninguna de las **20** de desarrollo. El *handler* respondió **200** a `GET /health` **ejecutado desde el ZIP** en un proceso Linux `-I -S -W error`, sin árbol de fuentes, sin `site-packages`, sin `.env` y sin credenciales; Argon2, Pillow y el driver binario de PostgreSQL **ejercitados**, y **tres controles negativos** de aislamiento. **49 pruebas nuevas** —48 pasan en Windows, 1 se omite—; suite **1965 passed, 3 skipped**. **0 dependencias nuevas.** **Con su aprobación el avance pasó de 23/41 ≈ 56 % a 24/41 ≈ 59 %.** [Ficha](../tasks/TASK-024-lambda-zip-artifact.md) · [Reporte](../task-reports/TASK-024-report.md) |
+| **Antecedente de la tarea actual** | `Task/023-Compatibilidad-FastAPI-Lambda` quedó **Aprobada** el 2026-09-13. Abrió la ETAPA 08. Ramas creadas **desde `main`** en **backend** (`e0e3c08…`) e **infra** (`f8a64b4…`); **frontend en solo lectura, sin rama**. Entrega el adaptador FastAPI ↔ Lambda / API Gateway HTTP API v2 como **un solo archivo** (`app/lambda_handler.py`) más una línea de `pyproject.toml`: `app/main.py`, el `Dockerfile` y el Compose **no cambian**, y `uvicorn app.main:app` sigue siendo el entrypoint local. **T-04 Satisfecho técnicamente** —dos guardas recorren `app/` con `ast` y fallan si el adaptador se filtra—; **P-06 revalidado**, no reinventado. `lifespan="off"` decidido tras verificar la fuente de la versión **fijada** con su digest comprobado contra PyPI, y protegido por tres capas. **42 pruebas nuevas**; suite **1918 passed, 1 skipped** con PostgreSQL y MinIO reales, incluida la **sesión administrativa real** recorrida a través del handler. **1 dependencia nueva** autorizada, `mangum==0.22.0`, sin transitivas nuevas y sin mover `--exclude-newer`. **Con su aprobación el avance pasó de 22/41 ≈ 54 % a 23/41 ≈ 56 %.** *(Hasta `Task/024` esta celda cerraba con «Avance sin cambios: 22/41 ≈ 54 %», cierto solo durante su fase previa a la aprobación: D-024-3.)* [Ficha](../tasks/TASK-023-fastapi-lambda-compatibility.md) · [Reporte](../task-reports/TASK-023-report.md) |
+| **Antecedente anterior** | `Task/022-Validacion-Local-Production-Like` quedó **Aprobada** el 2026-09-12. Ramas Task creadas desde `main` en **backend** (`4a36bb5…`) e **infra** (`184c833…`); **frontend validado en solo lectura, sin modificaciones**. Entrega la **semilla local** —el `Administrator` y el `Profile` que la base local nunca tuvo— con TDD completo, y **siete defectos de los runbooks** que solo una reconstrucción real podía destapar, todos corregidos y revalidados. Suite final backend: **Windows 1875 passed, 1 skipped; CI Linux 1876 passed**, tras resolver **H-8** durante la integración CI aprobada; **704** pruebas de frontend en verde; **0 dependencias nuevas**. [Ficha](../tasks/TASK-022-local-production-like-validation.md) · [Reporte](../task-reports/TASK-022-report.md) |
+| **Última tarea canónica aprobada** | **`Task/024-Artefacto-ZIP-Lambda`** — **Aprobada** el 2026-09-13 por el usuario mediante `approved: Task/024-Artefacto-ZIP-Lambda`. Con ella el avance pasa a **24 de 41 — 59 %** y la **ETAPA 08** queda **En progreso, 2 de 4 — 50 %**. **No completa la etapa.** **T-04 Satisfecho y Vigente**, **P-06 conservado**; **P-07** recibe la evidencia del tramo de artefacto y deja el arranque real para `Task/032`. **D-12** sigue **ABIERTA** y **H-023-3** sigue **abierto y no diagnosticado**. **D-024-A a D-024-K Aceptadas y Vigentes**, sin ADR nuevo |
+| **Tarea canónica aprobada anterior** | **`Task/023-Compatibilidad-FastAPI-Lambda`** — **Aprobada** el 2026-09-13 por el usuario mediante `approved: Task/023-Compatibilidad-FastAPI-Lambda`. Con ella el avance pasó a **23 de 41 — 56 %** y la **ETAPA 08** quedó **En progreso, 1 de 4 — 25 %** *en esa fecha*. **No completa la etapa.** **T-04 Satisfecho y Vigente**, **P-06 revalidado/conservado**, **P-07 no tocado**. **H-023-3** sigue **abierto y no diagnosticado** |
+| **Tarea canónica aprobada previa** | **`Task/022-Validacion-Local-Production-Like`** — **Aprobada** el 2026-09-12 por el usuario. Con ella la **ETAPA 07 quedó Completada** y el avance pasó a **22 de 41 — 54 %** |
 | **Resultado histórico de `Task/021`, aprobada el 2026-09-12** | **Aprobada** mediante `approved: Task/021-CI-Infraestructura`. Workflow `CI Infra` en cada `push` y `pull_request`, un job en `ubuntu-24.04` que valida Compose con sus **7** servicios y **26** variables, las dos familias de scripts, el historial completo de secretos con Gitleaks 8.30.1 y el gate **S-09** con **baseline exacto de riesgo aceptado** para las imágenes de terceros fijadas por digest. MinIO se toma de **Quay** con el mismo release y el **mismo digest** `sha256:14cea…`, tras demostrar byte a byte que el contenido OCI es idéntico. *Observado el 2026-09-12 UTC:* la ejecución **34670245277**, por `push` sobre `a3434eb`, concluyó **`success`** en **42 s** con **19 de 19** pasos, **116** identidades exactas, **0** hallazgos fuera del baseline y **0** secretos en los logs. **S-09 infraestructura** satisfecho técnicamente por ese gate; **el residual de MinIO no se resolvió**: son **100** hallazgos aceptados temporalmente bajo **R-018-3**, que sigue **ABIERTO**. Detalle en el [reporte](../task-reports/TASK-021-report.md). Cuenta en el avance: **21 de 41** |
 | **Tarea aprobada anterior a `Task/021`** | `Task/020-CI-Backend` — **Aprobada** el 2026-09-10 mediante `approved: Task/020-CI-Backend`. Workflow `CI Backend` en cada `push` y `pull_request`, un job secuencial en `ubuntu-24.04` con Python 3.12.14, PostgreSQL y MinIO efímeros del runner, migraciones sobre el motor real, suite completa con `-W error` y escaneo de imagen *fail-closed*. **R-14 cerrado**: dos *locks* transitivos con hashes, instalación `--require-hashes` y detección de desfase. *Observado el 2026-09-10:* cuatro ejecuciones `push` en **`success`**, la última **34488083060** en **295 s** con **1855** pruebas, **0** omitidas y **0** vulnerabilidades accionables. El baseline destapó y corrigió dos defectos reales preexistentes: la regresión de `anyio` y tres vulnerabilidades de `httpx2`. **S-09 backend** satisfecho; *en esa fecha* **S-09 global** seguía abierto a falta de `Task/021`, aprobada después. Detalle en el [reporte](../task-reports/TASK-020-report.md). Llevó el avance a **20 de 41** |
 | **Tarea aprobada anterior a `Task/020`** | `Task/019-CI-Frontend` — **Aprobada** el 2026-09-08 mediante `approved: Task/019-CI-Frontend`. Automatización de los gates canónicos del frontend —formato, lint, tipos, build, pruebas— y de su porción de **S-09** mediante `npm ci` con lockfile reproducible y `npm audit` del árbol completo. *Observado el 2026-09-08 (Guatemala) / 2026-09-09 UTC:* la ejecución de GitHub Actions **34305529115**, disparada por `push`, concluyó **`success`** en **79 s** con **704** pruebas en **75** archivos y **0** vulnerabilidades. Advertencia heredada del futuro cargador nativo de Vite corregida con regresión permanente. **0 dependencias nuevas**. Detalle en el [reporte](../task-reports/TASK-019-report.md). Cuenta en el avance: **19 de 41** |
@@ -35,9 +37,9 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna.** `Task/023` **Aprobada** el 2026-09-13; `Task/024` **Pendiente, no iniciada** |
-| **Próxima tarea prevista** | `Task/024-Artefacto-ZIP-Lambda` — **Pendiente, no iniciada**. Depende de que `Task/023` quede **Aprobada**; no se inicia antes. Sigue siendo una etapa **sin cuentas ni recursos cloud**: la primera acción en la nube es de la ETAPA 09 (ADR-001). Toda Task nace de `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
-| **Avance global** | **56 %** — 23 de 41 tareas aprobadas |
+| **Tarea en curso** | **Ninguna.** `Task/024` **Aprobada** el 2026-09-13; `Task/025` **Pendiente, no iniciada** |
+| **Próxima tarea prevista** | `Task/025-Terraform-Cloud` — **Pendiente, no iniciada**. Depende de `Task/022` y de `Task/024`, ambas **Aprobadas**. Sigue siendo una etapa **sin cuentas ni recursos cloud**: la primera acción en la nube es de la ETAPA 09 (ADR-001). Toda Task nace de `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
+| **Avance global** | **59 %** — 24 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
 | **Bloqueos activos** | **Ninguno abierto.** **No existe defecto bloqueante demostrado atribuible a `Task/023`.** **H-023-3** no es un bloqueo: es una **observación abierta no diagnosticada** —un fallo de `test_dos_publicaciones_simultaneas_solo_prosperan_una` en una ejecución completa, sin traza conservada y **no reproducido** en ocho intentos posteriores—. No se declara resuelto, no se declara descartado y **no se atribuye al adaptador Lambda**, que no participa en el camino de código de ese test. **Debe vigilarse en la CI**; si reaparece, el cierre **se detiene** y se analiza. **B-020.3-C — RESUELTO** el 2026-09-12: el gate Trivy de la imagen backend pasó de 12 hallazgos accionables (9 HIGH, 3 CRITICAL, exit 1) a **0 accionables, exit 0**, tras autorización explícita del usuario para aplicar las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile. La política S-09 no se relajó: sigue siendo `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, sin `.trivyignore` ni baseline de backend. **Historia preservada:** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`) — **RESUELTO** el 2026-09-12 con la aprobación de `Task/022`: la semilla local creó el administrador y el perfil, y el recorrido administrativo real generó contenido publicado con imágenes, de modo que la evidencia que faltaba ya existe. **B-015-1** sigue **resuelto** por `Task/012.1` |
@@ -61,7 +63,103 @@
 
 ---
 
-## Última tarea aprobada — `Task/023-Compatibilidad-FastAPI-Lambda`
+## Última tarea aprobada — `Task/024-Artefacto-ZIP-Lambda`
+
+**Estado: Aprobada** el **2026-09-13** mediante
+`approved: Task/024-Artefacto-ZIP-Lambda`. **Cuenta en las 41 tareas**: el avance pasa de
+**23/41 ≈ 56 %** a **24/41 ≈ 59 %**, y la **ETAPA 08** queda **En progreso con 2 de 4
+tareas aprobadas (50 %)**. **La etapa no está completada.**
+
+**Qué entrega.** El **artefacto ZIP de despliegue** del backend para AWS Lambda, y las
+herramientas que lo construyen y lo validan:
+
+| Archivo | Qué es |
+| --- | --- |
+| `personal-blog-backend/scripts/empaquetar_lambda.py` | Construcción y validación del artefacto |
+| `personal-blog-backend/scripts/arranque_aislado_lambda.py` | *Harness* de ejecución aislada dentro del runtime |
+| `personal-blog-backend/tests/unit/test_empaquetado_lambda.py` | **49** pruebas del empaquetador |
+| `personal-blog-backend/.github/workflows/ci-backend.yml` | **6** gates de artefacto añadidos; los **19** anteriores intactos |
+| `personal-blog-backend/README.md` | §11.2, procedimiento de construcción |
+
+**Por qué se construye dentro de Linux.** El backend se desarrolla en **Windows** y **13**
+de sus **41** distribuciones de ejecución traen binarios nativos. Un `.venv` de Windows
+copiado a un ZIP produce un paquete que **no arranca en Lambda**, y ese fallo no se ve
+hasta la nube. Las dependencias se instalan **siempre** dentro de la **imagen oficial del
+runtime de Lambda para Python 3.12, `linux/amd64`, fijada por digest**
+`sha256:a89893d9…` —AL2023, glibc 2.34, Python 3.12.14, pip 25.0.1, zlib 1.2.11—, con
+`--require-hashes`, `--only-binary=:all:` y `--no-compile`. Windows **orquesta** Docker;
+Windows **nunca** aporta bytes al artefacto.
+
+**Medición del 2026-09-13.**
+
+| Magnitud | Valor | Cuota | Margen |
+| --- | --- | --- | --- |
+| Comprimido | **43 288 578** B (41,28 MiB) | 52 428 800 B | 9 140 222 B |
+| Descomprimido | **114 086 988** B (108,80 MiB) | 262 144 000 B | 148 057 012 B |
+| Entradas | **3 975** | — | — |
+| Distribuciones | **41** de ejecución, **0** de desarrollo | — | — |
+
+Mayores contribuciones: `botocore` 17,79 %, `pillow` 17,24 %, `psycopg-binary` 16,67 %,
+`uvloop` 14,36 %, `sqlalchemy` 11,59 %. **`app/` pesa 725 838 B, el 0,64 %.**
+
+**Reproducibilidad demostrada byte a byte.** Dos construcciones independientes, en
+directorios distintos y en contenedores efímeros distintos, produjeron **los mismos
+bytes**, el mismo manifiesto y el mismo SHA-256:
+`6580410109207f330a329ee235e0424a6bb3f7d96d14f550c4605eb3d8a02841`. Una tercera
+construcción, con **una línea añadida** a `app/main.py`, dio
+`19907cafb8760bf8bafead2b6c1d09e65a3feff533408cb622300a88347aa306`; al revertir la línea,
+el SHA volvió al original. **La comparación es de bytes y de SHA-256, nunca de listas de
+archivos.**
+
+**Alcance de la garantía.** Vale con las mismas fuentes, los mismos *locks*, los mismos
+artefactos de dependencias, las mismas herramientas fijadas y el mismo entorno de
+construcción controlado. **No** se promete que PyPI conserve los archivos indefinidamente
+ni reproducibilidad universal en cualquier máquina o herramienta.
+
+**El artefacto se ejecuta, no solo se mide.** El *handler* `app.lambda_handler.handler`
+respondió **200** a un evento **HTTP API v2** `GET /health` ejecutado **desde el ZIP
+extraído**, en un proceso Linux con `-I -S -W error` cuyo `sys.path` era exactamente
+`['/extraido', <stdlib>, <lib-dynload>]`: sin árbol de fuentes, sin `site-packages`, sin
+`.env`, sin credenciales y sin contacto con AWS. `isBase64Encoded` **false**, cuerpo
+`{"status":"ok","service":"personal-blog-backend","version":"0.1.0"}`. Los **14** módulos
+críticos resolvieron desde el artefacto. **Argon2** cifró y verificó (`argon2id`),
+**Pillow** codificó y decodificó PNG y JPEG con `jpg`/`zlib`/`webp`, y el **driver binario
+de PostgreSQL** informó `libpq` 180000 **sin conectar**. De las **28** extensiones
+compiladas, **25** se importaron y **3** —`PIL._imagingtk` y las dos de `greenlet.tests`—
+se cargaron por el **enlazador dinámico**, porque les falta un módulo externo
+(`_tkinter`, `psutil`) que no es del artefacto.
+
+**Tres controles negativos** demostraron que el aislamiento es real y no declarado: con
+`mangum`, `boto3` o `app/` retirados del artefacto y una copia alcanzable fuera, la
+ejecución **permeable funcionó** —la fuga existe— y la **aislada falló** en los tres casos.
+
+**Qué NO entrega.** Terraform, despliegue en el laboratorio local, cuenta o credenciales
+AWS, API Gateway real, ECR, imagen de contenedor de Lambda, *layers*, IAM productivo, ni
+dimensionado de memoria, *timeout*, concurrencia o **arranque en frío real**.
+
+**Estados que no cambia.** **T-04 Satisfecho y Vigente** —el empaquetador vive en
+`scripts/`, nunca en `app/`—. **P-06 conservado.** **P-07:** evidencia del tramo de
+artefacto registrada —tamaño, composición, reproducibilidad y ejecución del artefacto—;
+**la validación del arranque real sigue pendiente de `Task/032`**. **D-12 ABIERTA**:
+respetar las cuotas de empaquetado no es dimensionar la función. **H-023-3 abierto y no
+diagnosticado**: no reapareció en la suite de esta tarea, y eso **no** es un diagnóstico.
+
+**Sobre las cuotas.** 50 MB comprimido es el límite de **carga directa** por la API, la
+SDK o la consola; un paquete mayor se despliega desde Amazon S3. **Este proyecto no
+afirma que Lambda prohíba todo ZIP mayor de 50 MB.** Verificado en la documentación
+oficial el 2026-09-13.
+
+**Sin dependencias nuevas y sin poda.** `uvicorn`, `uvloop`, `watchfiles`, `websockets`,
+`httptools` y `alembic` **siguen en el artefacto**: están declaradas en el lock de
+ejecución y el paquete cabe con margen. `Task/024` **mide** qué pesa cada una; no se
+convierte en una limpieza general de dependencias.
+
+[Ficha](../tasks/TASK-024-lambda-zip-artifact.md) ·
+[Reporte](../task-reports/TASK-024-report.md)
+
+---
+
+## Tarea aprobada anterior — `Task/023-Compatibilidad-FastAPI-Lambda`
 
 **Estado: Aprobada** el **2026-09-13** mediante
 `approved: Task/023-Compatibilidad-FastAPI-Lambda`. **Cuenta en las 41 tareas**: el avance
