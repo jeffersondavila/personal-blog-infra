@@ -1,0 +1,134 @@
+# ---------------------------------------------------------------------------
+# personal-blog-infra — AWS Local Parity Lab (Task/025)
+#
+# ARCHIVO SEPARADO A PROPOSITO. El Compose ordinario del blog
+# (../docker-compose.yml) NO se toca: son dos modos con propositos distintos
+# (aws-local-parity.md, seccion 3). El laboratorio monta el socket de Docker, que
+# es privilegio de nivel host, y eso no debe entrar en el entorno de desarrollo
+# diario de nadie.
+#
+#   Modo A - desarrollo : ../docker-compose.yml    (PostgreSQL, MinIO, Traefik...)
+#   Modo B - laboratorio: este archivo             (emulador AWS + Terraform)
+#
+# SEGURIDAD — el emulador es infraestructura local privilegiada (R-22)
+#
+#   Monta /var/run/docker.sock porque ejecuta las funciones Lambda en
+#   contenedores Docker reales. Quien controla ese socket controla el host. Se
+#   trata igual que Portainer (control S-08): solo local, nunca expuesto.
+#
+# TOPOLOGIA DE RED — y por que son dos redes y no una
+#
+#   Se comprobo empiricamente: una red con `internal: true` DESCARTA EN SILENCIO
+#   la publicacion de puertos. El contenedor queda inalcanzable desde el host y
+#   `docker compose ps` muestra `4566/tcp` en lugar del mapeo. Con una sola red
+#   interna, Terraform no podria hablar con el emulador.
+#
+#   De ahi las dos redes:
+#
+#     entrada   bridge normal. Existe solo para publicar 4566 en 127.0.0.1, que
+#               es por donde Terraform y el verificador entran desde el host.
+#
+#     ejecucion internal: true. Es la red donde el emulador lanza los
+#               contenedores de Lambda. Sin gateway: se comprobo que desde ella
+#               no hay DNS externo ni salida TCP ("Network is unreachable").
+#
+#   Resultado: los contenedores de la funcion alcanzan el emulador y NO tienen
+#   salida a internet ni al rango link-local de metadata. El emulador si tiene
+#   salida, por `entrada`; es una diferencia conocida y se documenta como tal en
+#   lugar de disimularse. Ya posee el socket de Docker, que es un privilegio
+#   mayor.
+#
+# IMAGENES — el demonio de Docker no respeta `internal`
+#
+#   `internal: true` aisla a los CONTENEDORES, no al demonio: Docker seguiria
+#   descargando una imagen que falte. Por eso el lanzador pre-descarga y verifica
+#   TODAS las imagenes antes de arrancar el ciclo, y el ciclo no depende de
+#   ninguna descarga.
+#
+# VERSION FIJADA POR DIGEST (control S-10, ADR-006 seccion 5.4)
+#
+#   Nunca `latest` ni `nightly`. El digest es el del INDICE OCI multiarquitectura
+#   de la etiqueta 2.0.1; su manifiesto linux/amd64 se registra en el reporte.
+#   `platform` es explicito para que la resolucion no dependa de la maquina.
+# ---------------------------------------------------------------------------
+
+name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}
+
+services:
+  emulador:
+    # floci/floci:2.0.1 — indice OCI, verificado el 2026-09-13.
+    image: floci/floci@${LAB_EMULADOR_DIGEST:?falta LAB_EMULADOR_DIGEST}
+    platform: linux/amd64
+    container_name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}-emulador
+
+    # El emulador necesita root para hablar con el socket de Docker y lanzar los
+    # contenedores de las funciones. Es la razon por la que se clasifica como
+    # infraestructura privilegiada y no como un servicio mas.
+    user: root
+
+    # SOLO loopback (controles S-01, S-02, S-03). Nunca 0.0.0.0: expondria el
+    # emulador a la red local. Y NADA de los rangos auxiliares del Compose
+    # oficial (6379-6399, 7001-7099, 9200-9299): son de ElastiCache, RDS y
+    # OpenSearch, que este proyecto no usa.
+    ports:
+      - "127.0.0.1:${LAB_PUERTO:-4566}:4566"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      FLOCI_PORT: "4566"
+      FLOCI_DEFAULT_REGION: ${LAB_REGION:-us-east-1}
+      FLOCI_DEFAULT_ACCOUNT_ID: "000000000000"
+
+      # `memory`: el laboratorio es efimero por diseno. El estado que importa es
+      # el de Terraform, que vive fuera del emulador precisamente para que
+      # destruirlo no lo arrastre (D-06).
+      FLOCI_STORAGE_MODE: memory
+
+      # Anfitrion con el que el emulador construye las URL que devuelve. Debe ser
+      # el nombre que se resuelve DENTRO de la red de ejecucion: un contenedor de
+      # Lambda que recibiera "localhost" apuntaria a si mismo.
+      FLOCI_HOSTNAME: emulador
+      FLOCI_BASE_URL: http://emulador:4566
+
+      # La clave: los contenedores de las funciones se unen a la red AISLADA.
+      # Sin esto irian a la red por omision del demonio, que tiene salida a
+      # internet, y el perimetro no significaria nada.
+      FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}_ejecucion
+
+      # Contenedor por invocacion: no se reutiliza estado entre pruebas.
+      FLOCI_SERVICES_LAMBDA_EPHEMERAL: "true"
+
+      # No se traducen variables LOCALSTACK_* del host. El laboratorio se
+      # configura solo con lo que declara este archivo.
+      LOCALSTACK_PARITY: "false"
+
+    networks:
+      entrada:
+      ejecucion:
+        aliases:
+          # El emulador direcciona las HTTP API por un dominio comodin. El alias
+          # permite resolverlo tambien desde dentro de la red aislada.
+          - localhost.floci.io
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 4s
+      retries: 24
+      start_period: 10s
+
+    restart: "no"
+
+networks:
+  # Bridge normal. Su unica funcion es publicar el puerto en loopback.
+  entrada:
+    name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}_entrada
+
+  # Sin gateway: ni salida a internet ni acceso al rango link-local de metadata.
+  # El nombre se fija explicitamente porque el emulador lo recibe por variable y
+  # los dos valores tienen que coincidir exactamente.
+  ejecucion:
+    name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}_ejecucion
+    internal: true

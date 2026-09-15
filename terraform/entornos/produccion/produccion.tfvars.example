@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------
+# Destino: AWS REAL — PLANTILLA, NO OPERATIVA (Task/025)
+#
+# ESTE ARCHIVO NO SE USA EN Task/025. No existe cuenta AWS, no existe
+# autorizacion para crear recursos reales y el lanzador RECHAZA el modo
+# `production` (scripts/laboratorio/destino.py). La ETAPA 08 opera con cero
+# recursos AWS reales (ADR-006, limite 10).
+#
+# Existe por una sola razon, y es demostrativa: ensenar que pasar del
+# laboratorio a AWS real NO cambia ningun recurso ni ningun modulo. Cambia este
+# archivo y la configuracion del backend de estado. Nada mas.
+#
+# Comparalo con entornos/local/local.tfvars: el mismo conjunto de variables, los
+# mismos modulos, el mismo grafo.
+#
+# Lo que queda por decidir antes de que esto sea operativo:
+#   - region y nombres reales      -> ETAPA 10
+#   - dominio                      -> D-07, Task/035
+#   - stage y base path            -> Task/033
+#   - memoria y timeout reales     -> D-12, Task/032
+#   - retencion de logs real       -> D-11, Task/031
+#   - politica de medios y CDN     -> D-08, Task/030
+#   - bucket de estado y su bootstrap -> D-06, tras la aprobacion de Task/025
+# ---------------------------------------------------------------------------
+
+region = "us-east-1"
+
+# La diferencia esencial: sin flags de emulador y sin endpoints. El provider
+# resuelve los de AWS y la identidad la aporta el rol correspondiente.
+laboratorio = false
+
+prefijo = "blog-prod"
+
+etiquetas = {
+  Proyecto = "personal-blog"
+  Entorno  = "produccion"
+  Gestion  = "terraform"
+}
+
+# Los nombres de bucket son globales en AWS: el definitivo se elige en ETAPA 10.
+bucket_de_medios = "CAMBIAR-nombre-global-unico"
+
+# Origen real del sitio. Nunca el comodin. El dominio concreto es D-07.
+origenes_cors = ["https://CAMBIAR-dominio-del-sitio"]
+
+dias_para_expirar_versiones = 30
+
+# Dimensionamiento REAL, medido en AWS. Los valores del laboratorio no sirven:
+# el arranque en frio local no es comparable (D-12).
+lambda_memoria_mb = 512
+lambda_timeout_s  = 30
+
+# Retencion real. Nunca infinita (D-11).
+dias_de_retencion_de_logs = 14
+
+# En produccion la configuracion no viaja como literal en un tfvars versionado.
+# El mecanismo concreto se decide en la tarea correspondiente; aqui se deja
+# vacio a proposito para que nadie copie un valor por inercia.
+variables_de_la_aplicacion = {}
+parametros                 = {}
+
+# El stage de produccion es de Task/033. El valor del laboratorio no lo decide.
+nombre_del_stage = "CAMBIAR-decision-de-Task-033"

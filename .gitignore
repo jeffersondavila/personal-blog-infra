@@ -16,13 +16,42 @@ secrets/
 credentials
 credentials.json
 
-# Terraform (uso futuro)
+# Terraform (Task/025)
+#
+# El LOCK SI SE VERSIONA. Hasta Task/025 esta seccion lo ignoraba, y era un
+# error: `.terraform.lock.hcl` es el archivo que fija que provider exacto se
+# instala. Ignorarlo significa que cada maquina y cada ejecucion de CI pueden
+# resolver un provider distinto dentro de la misma constraint, que es justo lo
+# que el proyecto evita fijando digests en todo lo demas. CI lo usa con
+# `init -lockfile=readonly` y falla ante cualquier discrepancia.
+!terraform/.terraform.lock.hcl
+
+# Providers descargados y metadatos de trabajo: se reconstruyen con `init`.
 .terraform/
-.terraform.lock.hcl
+
+# Estado: puede contener valores sensibles y NUNCA se versiona (S-10). En el
+# laboratorio vive ademas fuera del arbol de Git (decision D-06).
 *.tfstate
 *.tfstate.*
+.terraform.tfstate.lock.info
+
+# Valores de destino con datos propios de una maquina. Los .example si se
+# versionan: no contienen secretos.
 *.tfvars
 !*.tfvars.example
+!terraform/entornos/local/local.tfvars
+
+# Archivos que GENERA el lanzador: configuracion de una ejecucion concreta, no
+# fuente. El grafo de recursos es fuente versionada y no se genera.
+terraform/backend.generado.tf
+terraform/generado/
+
+# Planes: binarios y su volcado JSON efimero. Un plan guardado puede revelar
+# valores del destino.
+tfplan
+*.tfplan
+plan.json
+
 crash.log
 crash.*.log
 override.tf
@@ -31,8 +60,23 @@ override.tf.json
 *_override.tf.json
 .terraformrc
 terraform.rc
-tfplan
-*.tfplan
+
+# --- Laboratorio AWS local (Task/025) --------------------------------------
+#
+# Configuracion local del laboratorio: lleva los valores efectivos y NO se
+# versiona.
+laboratorio/.env.laboratorio
+
+# La plantilla SI se versiona: no contiene nada sensible y CI la lee para
+# conocer el digest fijado del emulador. La negacion es necesaria porque
+# `.env.*` (arriba) tambien la alcanza y `!.env.example` solo exime ese nombre
+# literal, no `.env.laboratorio.example`.
+!laboratorio/.env.laboratorio.example
+
+# Artefacto ZIP de Lambda: lo construye personal-blog-backend (Task/024) y NO se
+# versiona aqui. El laboratorio lo consume por ruta explicita.
+*.zip
+!docs/**/*.zip.example
 
 # Datos y volúmenes locales
 data/
@@ -65,6 +109,21 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# --- Python (Task/025) ------------------------------------------------------
+#
+# `scripts/laboratorio/` es el primer PAQUETE Python del repositorio, asi que
+# desde aqui existen `__pycache__`. Los gates del CI usan `compile()` y
+# `python3 -B` justamente para no dejarlos en el arbol, pero una ejecucion
+# manual si los crea.
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
 
 # Temporales
 tmp/

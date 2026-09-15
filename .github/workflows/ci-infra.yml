@@ -5,10 +5,18 @@
 # scripts PowerShell y Python, el historial completo de secretos y la porcion
 # de S-09 que corresponde a infraestructura.
 #
-# Dos guardas convierten "todavia no aplica" en una comprobacion con contenido
-# real, en lugar de un check que pasa por no tener nada que mirar: si aparece
-# el primer `.tf` o el primer script de shell, la ejecucion falla y pide que se
-# amplie este workflow. Terraform llega en `Task/025`.
+# `Task/025` anadio los gates de Terraform, que ya tienen algo real que mirar:
+# formato, lock de proveedores en modo solo lectura, validacion de la
+# configuracion, las pruebas de las guardas del laboratorio y la validacion de su
+# Compose.
+#
+# Lo que este workflow NO hace, por decision expresa: no ejecuta `plan`, `apply`
+# ni `destroy` contra el emulador. Ese ciclo se ejecuta en local durante
+# `Task/025`; automatizarlo en GitHub Actions con un emulador efimero es de
+# `Task/039`.
+#
+# La guarda de scripts de shell se conserva: sigue sin haber ninguno, y el dia
+# que aparezca el primero la ejecucion falla y pide un gate de sintaxis.
 # ---------------------------------------------------------------------------
 name: CI Infra
 
@@ -34,6 +42,12 @@ env:
   # Misma version que ya usa el CI del backend, con el mismo digest verificado.
   VERSION_DE_TRIVY: '0.74.0'
   SHA256_DE_TRIVY: '2ae6fe3ee734b7fdf11335663e18c75ea12dccc76062f09f164a3b0f8be4371a'
+  # Terraform: version exacta y digest del artefacto oficial para linux_amd64,
+  # verificados contra releases.hashicorp.com. El mismo par vive en
+  # scripts/laboratorio/herramientas.py y en terraform/versions.tf, y hay una
+  # prueba unitaria que exige que no discrepen.
+  VERSION_DE_TERRAFORM: '1.16.2'
+  SHA256_DE_TERRAFORM: '0d17011f0c4664539b164b044903d04e296c86c13cb9f28040076c65cfb3985a'
   IMAGEN_POSTGRES_CI: 'personal-blog-postgres:ci'
   IMAGEN_TRAEFIK_CI: 'personal-blog-traefik:ci'
   BASELINE: 'security/vulnerability-baseline.json'
@@ -63,21 +77,142 @@ jobs:
           pwsh --version
           git --version
 
-      # --- Guardas de alcance -------------------------------------------
-      # No son checks vacios: fallan en cuanto aparezca el artefacto que este
-      # workflow todavia no sabe validar.
-      - name: Terraform is not here yet (Task/025 adds its gates)
+      # --- Terraform (Task/025) -------------------------------------------
+      # Guarda inversa de la que habia antes: ahora que existen archivos `.tf`,
+      # la ejecucion falla si DESAPARECEN o si el lock deja de estar versionado,
+      # para que nadie retire la infraestructura dejando los gates pasando en
+      # vacio.
+      - name: Terraform sources exist and the lock is versioned
         run: |
           set -euo pipefail
-          archivos=$(git ls-files '*.tf' '*.tfvars' '*.hcl')
-          if [ -n "$archivos" ]; then
-            echo "Han aparecido archivos de Terraform:"
-            echo "$archivos"
-            echo "Task/025 debe ampliar este workflow con 'terraform fmt' y 'validate'."
-            echo "Hasta entonces no se integran sin verificacion."
+          archivos=$(git ls-files 'terraform/**/*.tf' 'terraform/*.tf' | wc -l)
+          echo "archivos .tf versionados: $archivos"
+          if [ "$archivos" -eq 0 ]; then
+            echo "No hay archivos Terraform: los gates de abajo no comprobarian nada."
             exit 1
           fi
-          echo "0 archivos Terraform. Sus verificaciones pertenecen a Task/025."
+          if ! git ls-files --error-unmatch terraform/.terraform.lock.hcl >/dev/null 2>&1; then
+            echo "terraform/.terraform.lock.hcl NO esta versionado, y debe estarlo:"
+            echo "es el archivo que fija que proveedor exacto se instala."
+            exit 1
+          fi
+          echo "Lock de proveedores presente y versionado."
+
+      # Version exacta Y digest, igual que Gitleaks y Trivy. Fijar solo la
+      # version confiaria en que el artefacto publicado no se reescriba.
+      #
+      # Alcance honesto (S-09): esto demuestra IDENTIDAD y PROCEDENCIA del
+      # binario. No dice nada sobre vulnerabilidades, y no se afirma que lo diga.
+      - name: Install Terraform (pinned version and verified digest)
+        run: |
+          set -euo pipefail
+          url="https://releases.hashicorp.com/terraform/${VERSION_DE_TERRAFORM}/terraform_${VERSION_DE_TERRAFORM}_linux_amd64.zip"
+          curl --fail --silent --show-error --location --output /tmp/terraform.zip "$url"
+          echo "${SHA256_DE_TERRAFORM}  /tmp/terraform.zip" | sha256sum --check --strict -
+          unzip -q -o /tmp/terraform.zip -d /tmp/terraform
+          sudo install -m 0755 /tmp/terraform/terraform /usr/local/bin/terraform
+          terraform version
+
+      - name: Terraform version agrees with versions.tf
+        run: |
+          set -euo pipefail
+          instalada=$(terraform version -json | python3 -c 'import json,sys; print(json.load(sys.stdin)["terraform_version"])')
+          echo "instalada: $instalada"
+          grep -F -q "= ${VERSION_DE_TERRAFORM}" terraform/versions.tf
+          echo "versions.tf exige exactamente ${VERSION_DE_TERRAFORM}"
+          test "$instalada" = "$VERSION_DE_TERRAFORM"
+
+      # El sha256 que este workflow verifica arriba debe ser EXACTAMENTE el que
+      # el baseline acepta y el que fija el lanzador del laboratorio. Un control
+      # negativo demostro que, sin esta comprobacion, se podia manipular el
+      # baseline y el gate seguia verde: un binario suelto no lleva su identidad
+      # dentro del informe de Trivy, a diferencia de una imagen con RepoDigests.
+      - name: Pinned artifact identity is coherent (S-09)
+        run: |
+          set -euo pipefail
+          python3 scripts/security/vulnerability_gate.py \
+            --baseline "$BASELINE" --comprobar-coherencia .
+
+      - name: Terraform is formatted
+        run: |
+          set -euo pipefail
+          terraform -chdir=terraform fmt -check -recursive
+          echo "Formato correcto en todos los modulos."
+
+      # `-backend=false`: no se configura ningun backend y no se toca ningun
+      # estado. `-lockfile=readonly`: el lock versionado NO se modifica, y la
+      # ejecucion falla si el proveedor resuelto no es exactamente el que fija.
+      - name: Terraform init (no backend, read-only lock)
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          terraform -chdir=terraform init -backend=false -input=false -lockfile=readonly
+          echo "Comprobando que el lock versionado no cambio:"
+          git diff --exit-code -- terraform/.terraform.lock.hcl
+
+      - name: Terraform validate
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          terraform -chdir=terraform validate
+
+      # Las guardas fail-closed del laboratorio. Ninguna de estas pruebas abre un
+      # socket: los controles negativos usan entradas sinteticas y destinos
+      # locales falsos.
+      #
+      # El ciclo plan/apply/destroy contra el emulador se ejecuta en LOCAL durante
+      # Task/025. Automatizarlo aqui con un emulador efimero es Task/039.
+      - name: Lab fail-closed guards
+        run: |
+          set -euo pipefail
+          python3 -B -m unittest discover -s tests/laboratorio -p 'test_*.py' -v
+
+      - name: Lab Compose is valid
+        run: |
+          set -euo pipefail
+          docker compose --file laboratorio/docker-compose.laboratorio.yml \
+            --env-file laboratorio/.env.laboratorio.example config --quiet
+          echo "Compose del laboratorio valido."
+
+      # El emulador es infraestructura local privilegiada: monta el socket de
+      # Docker. Su puerto NUNCA se publica fuera de loopback y su version NUNCA
+      # es una etiqueta movil (controles S-01 a S-03 y S-10).
+      - name: Lab emulator stays on loopback and pinned by digest
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import re
+
+          compose = open('laboratorio/docker-compose.laboratorio.yml', encoding='utf-8').read()
+          ejemplo = open('laboratorio/.env.laboratorio.example', encoding='utf-8').read()
+
+          publicados = re.findall(r'^\s*-\s*"([^"]*:\d+)"\s*$', compose, re.MULTILINE)
+          print('puertos publicados:', publicados)
+          if not publicados:
+              raise SystemExit('No se encontro ningun puerto publicado; el gate quedaria vacio.')
+          for puerto in publicados:
+              if not puerto.startswith('127.0.0.1:'):
+                  raise SystemExit('El laboratorio publica %r fuera de loopback.' % puerto)
+
+          for movil in (':latest', ':nightly', ':latest-compat', ':nightly-compat'):
+              if movil in compose:
+                  raise SystemExit('Etiqueta movil %r en el Compose del laboratorio.' % movil)
+
+          digest = re.search(r'^LAB_EMULADOR_DIGEST=(\S+)$', ejemplo, re.MULTILINE)
+          if not digest or not re.fullmatch(r'sha256:[0-9a-f]{64}', digest.group(1)):
+              raise SystemExit('LAB_EMULADOR_DIGEST no fija un digest sha256 completo.')
+          print('digest del emulador:', digest.group(1))
+
+          if '/var/run/docker.sock' not in compose:
+              raise SystemExit('El emulador ya no monta el socket de Docker: revisa la topologia.')
+          if 'internal: true' not in compose:
+              raise SystemExit('La red de ejecucion dejo de ser internal: el perimetro desaparecio.')
+          print('Loopback, digest fijado y red de ejecucion aislada.')
+          PY
 
       - name: No shell scripts yet (add a gate before introducing one)
         run: |
@@ -233,6 +368,9 @@ jobs:
           mkdir -p /tmp/trivy-reports
           minio="quay.io/minio/minio:$(grep -m1 '^MINIO_VERSION=' .env.example | cut -d= -f2-)"
           portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
+          # El emulador del laboratorio se escanea por su DIGEST exacto, que es
+          # tambien la identidad a la que esta ligada su aceptacion temporal.
+          floci="floci/floci:2.0.1@$(grep -m1 '^LAB_EMULADOR_DIGEST=' laboratorio/.env.laboratorio.example | cut -d= -f2-)"
           escanear() {
             echo "::group::Trivy $2"
             trivy image --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \
@@ -243,6 +381,78 @@ jobs:
           escanear traefik "$IMAGEN_TRAEFIK_CI"
           escanear minio "$minio"
           escanear portainer "$portainer"
+          escanear floci "$floci"
+
+      # El binario de Terraform tambien entra en S-09: la norma exige versiones
+      # fijadas Y escaneo, no solo lo primero. No es una imagen, asi que se
+      # escanea como sistema de archivos; su identidad ya quedo verificada por
+      # `sha256sum` en el paso de instalacion, y la coherencia de ese sha256 con
+      # el baseline la comprueba el gate de arriba.
+      - name: Scan the pinned Terraform binary
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/trivy-terraform
+          cp "$(command -v terraform)" /tmp/trivy-terraform/terraform
+          echo "::group::Trivy terraform"
+          trivy rootfs --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \
+            --format json --output /tmp/trivy-reports/terraform.json /tmp/trivy-terraform
+          echo "::endgroup::"
+          # El informe debe hablar del artefacto que se acepta, no de otro.
+          python3 - <<'PY'
+          import json
+          informe = json.load(open('/tmp/trivy-reports/terraform.json', encoding='utf-8'))
+          objetivos = [r.get('Target') for r in informe.get('Results') or []]
+          paquetes = sum(len(r.get('Packages') or []) for r in informe.get('Results') or [])
+          print('targets analizados :', objetivos)
+          print('paquetes inventariados:', paquetes)
+          if paquetes == 0:
+              raise SystemExit(
+                  'el escaneo no inventario ningun paquete del binario de Terraform. '
+                  'Un informe vacio NO es "cero vulnerabilidades": es ausencia de analisis, '
+                  'y el gate no puede comparar nada contra el baseline.'
+              )
+          PY
+
+      # El provider oficial se escanea tambien, y NO tiene entrada de baseline:
+      # su resultado es cero accionables y debe seguir siendolo. Si algun dia
+      # dejara de serlo, este paso lo hara visible en el inventario y el gate
+      # fallara por un accionable sin aprobar.
+      - name: Scan the pinned AWS provider (no baseline entry expected)
+        run: |
+          set -euo pipefail
+          plugin=$(find terraform/.terraform/providers -type f -name 'terraform-provider-aws*' | head -1)
+          if [ -z "$plugin" ]; then
+            echo "No se encontro el plugin del provider; se instala en el paso de init."
+            exit 1
+          fi
+          mkdir -p /tmp/trivy-provider
+          cp "$plugin" /tmp/trivy-provider/
+          echo "::group::Trivy provider"
+          trivy rootfs --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \
+            --format json --output /tmp/trivy-reports/provider-aws.json /tmp/trivy-provider
+          echo "::endgroup::"
+          python3 - <<'PY'
+          import json
+          informe = json.load(open('/tmp/trivy-reports/provider-aws.json', encoding='utf-8'))
+          paquetes = sum(len(r.get('Packages') or []) for r in informe.get('Results') or [])
+          altos = [
+              v for r in informe.get('Results') or []
+              for v in (r.get('Vulnerabilities') or [])
+              if v.get('Severity') in ('HIGH', 'CRITICAL') and v.get('FixedVersion')
+          ]
+          print('paquetes inventariados:', paquetes)
+          print('accionables:', len(altos))
+          if paquetes == 0:
+              raise SystemExit('informe vacio: ausencia de analisis, no ausencia de riesgo.')
+          if altos:
+              for v in altos:
+                  print(' -', v.get('VulnerabilityID'), v.get('PkgName'), v.get('Severity'))
+              raise SystemExit(
+                  'el provider tiene hallazgos accionables y NO tiene entrada de baseline. '
+                  'Requiere decision humana explicita antes de aceptar cualquier residual.'
+              )
+          print('El provider sigue limpio y no necesita baseline.')
+          PY
 
       # Inventario completo, sin filtrar por severidad y sin `--ignore-unfixed`:
       # incluye lo que hoy no tiene correccion publicada. No lleva `--exit-code`
