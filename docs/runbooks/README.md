@@ -34,9 +34,20 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 | --- | --- | --- |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |
 | [local-backup-and-recovery.md](local-backup-and-recovery.md) | Local (backup y recuperación) | **Vigente** — aprobado en `Task/004` (2026-07-31) |
+| [deployment-create.md](deployment-create.md) | Laboratorio AWS local; transición AWS preparada | **Vigente** — aprobado en `Task/026` (2026-09-15) |
+| [deployment-validate.md](deployment-validate.md) | Laboratorio AWS local; gates AWS-only identificados | **Vigente** — aprobado en `Task/026` (2026-09-15) |
+| [deployment-rollback.md](deployment-rollback.md) | Laboratorio AWS local | **Vigente** — aprobado en `Task/026` (2026-09-15) |
+| [deployment-destroy.md](deployment-destroy.md) | Laboratorio AWS local | **Vigente** — aprobado en `Task/026` (2026-09-15) |
+| [deployment-recovery.md](deployment-recovery.md) | Laboratorio AWS local; transición AWS preparada | **Vigente** — aprobado en `Task/026` (2026-09-15) |
 
-Pendientes según el roadmap:
+La operación contra AWS real sigue pendiente según el roadmap:
 
-| Runbook previsto | Tarea |
+| Alcance pendiente | Tarea |
 | --- | --- |
-| Despliegue, rollback y destrucción en la nube | `Task/026-Runbooks-de-Despliegue` |
+| Ejecutar y validar estos contratos contra AWS real | ETAPA 10 (`Task/030`–`Task/033`) |
+
+> Los cinco runbooks de `Task/026` son **Vigentes** desde el 2026-09-15 y están
+> ejercitados contra el laboratorio AWS local. **Vigente no significa validado en AWS
+> real:** el modo `production` permanece **bloqueado**, el bucket S3 del backend de
+> estado **no existe**, y privacidad de S3, *enforcement* de IAM y cifrado real siguen
+> siendo AWS-only hasta la ETAPA 10.

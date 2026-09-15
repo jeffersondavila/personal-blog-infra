@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lanzador del laboratorio AWS local (`Task/025`).
+"""Laboratorio AWS local y operaciones de runbook (`Task/025` y `Task/026`).
 
 Que hace
 --------
@@ -22,27 +22,33 @@ Tres razones concretas, y ninguna es comodidad:
 3. **El entorno del proceso hijo se construye desde una *allowlist*.** Invocar
    Terraform a mano heredaria el entorno del host, con sus perfiles y proxies.
 
-Lo que este lanzador NO es
---------------------------
-No es el runbook operativo de *drift*, *rollback* y recuperacion: eso es de
-`Task/026` y esta tarea no lo adelanta. Aqui hay idempotencia y reconstruccion
-desde cero, que son criterios de `Task/025`.
+Relacion con los runbooks
+-------------------------
+`Task/026` anade operaciones humanas atomicas para crear, validar, rollback,
+destruir y recuperar. Todas reutilizan este mismo grafo y estas mismas guardas;
+no hay un segundo IaC ni una ruta de fuerza. El ciclo automatico conserva la
+idempotencia y reconstruccion de `Task/025` y suma inspeccion SDK y drift local.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import importlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 import urllib.error
 import urllib.request
+import zipfile
 from collections.abc import Callable
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 # Permite ejecutar tanto `python scripts/laboratorio/laboratorio.py` como
@@ -77,6 +83,20 @@ TFVARS_LOCAL = DIRECTORIO_DE_TERRAFORM / "entornos" / "local" / "local.tfvars"
 #: Prefijo de los nombres de recurso del laboratorio. Debe coincidir con el
 #: `prefijo` de `entornos/local/local.tfvars`: es lo que permite buscar residuos.
 PREFIJO_DEL_LABORATORIO = "blog-lab"
+
+#: Unico recurso que el ensayo de drift puede retirar. Es configuracion
+#: ficticia, se reconstruye desde el grafo y no contiene datos del usuario.
+PARAMETRO_DE_DRIFT = "/blog-lab/local/storage_region"
+DIRECCION_TERRAFORM_DEL_DRIFT = (
+    'module.parametros.aws_ssm_parameter.configuracion["local/storage_region"]'
+)
+ACTUALIZACIONES_DEPENDIENTES_DEL_DRIFT = (
+    mod_inventario.ActualizacionDependienteDelDrift(
+        direccion="module.identidad.aws_iam_role_policy.permisos",
+        tipo="aws_iam_role_policy",
+        atributo="policy",
+    ),
+)
 
 #: Imagenes que el laboratorio necesita. Se pre-descargan y se verifican ANTES de
 #: aislar la red: `internal: true` aisla a los contenedores, no al demonio de
@@ -419,6 +439,101 @@ def esperar_emulador(env_lab: dict[str, str], *, intentos: int = 60) -> None:
     )
 
 
+def validar_publicacion_de_floci(
+    inspecciones: list[dict[str, Any]],
+    *,
+    proyecto_esperado: str,
+    puerto_esperado: str,
+) -> list[str]:
+    """Exige un unico contenedor y un unico *binding*, siempre en loopback.
+
+    Comprobar solamente que los endpoints configurados dicen ``127.0.0.1`` no
+    demuestra que Docker no haya publicado ademas el mismo puerto —u otro— en
+    LAN, Internet, IPv6 o un rango auxiliar. Por eso se juzga el estado efectivo
+    que devuelve ``docker inspect`` y cualquier ambiguedad aborta (R-23).
+    """
+    if len(inspecciones) != 1:
+        raise ErrorDelLaboratorio(
+            "no se puede demostrar la publicacion de Floci: se esperaba un "
+            f"contenedor y se observaron {len(inspecciones)}"
+        )
+
+    inspeccion = inspecciones[0]
+    etiquetas = (inspeccion.get("Config") or {}).get("Labels") or {}
+    if etiquetas.get("com.docker.compose.project") != proyecto_esperado:
+        raise ErrorDelLaboratorio(
+            "el contenedor inspeccionado no pertenece al proyecto Compose esperado"
+        )
+    if etiquetas.get("com.docker.compose.service") != "emulador":
+        raise ErrorDelLaboratorio(
+            "el contenedor inspeccionado no es el servicio 'emulador'"
+        )
+
+    puertos = (inspeccion.get("NetworkSettings") or {}).get("Ports") or {}
+    bindings: list[tuple[str, str, str]] = []
+    for puerto_del_contenedor, publicaciones in puertos.items():
+        for publicacion in publicaciones or []:
+            bindings.append(
+                (
+                    str(puerto_del_contenedor),
+                    str(publicacion.get("HostIp") or ""),
+                    str(publicacion.get("HostPort") or ""),
+                )
+            )
+
+    esperado = ("4566/tcp", "127.0.0.1", str(puerto_esperado))
+    if bindings != [esperado]:
+        observados = [f"{p} -> {h or '<vacio>'}:{hp or '<vacio>'}" for p, h, hp in bindings]
+        raise ErrorDelLaboratorio(
+            "publicacion insegura o ambigua de Floci: se exige exactamente "
+            f"'{esperado[0]} -> {esperado[1]}:{esperado[2]}' y se observo "
+            f"{observados or ['ningun binding']}"
+        )
+    return [f"{esperado[0]} -> {esperado[1]}:{esperado[2]}"]
+
+
+def comprobar_publicacion_de_floci(env_lab: dict[str, str]) -> list[str]:
+    """Consulta Docker y demuestra la publicacion efectiva de Floci (R-23)."""
+    proyecto = env_lab.get("LAB_COMPOSE_PROJECT_NAME", "personal-blog-lab")
+    puerto = env_lab.get("LAB_PUERTO", "4566")
+    resultado = ejecutar(
+        [
+            "docker",
+            "ps",
+            "--filter",
+            f"label=com.docker.compose.project={proyecto}",
+            "--filter",
+            "label=com.docker.compose.service=emulador",
+            "--format",
+            "{{.ID}}",
+        ],
+        silencioso=True,
+    )
+    identificadores = [linea.strip() for linea in resultado.stdout.splitlines() if linea.strip()]
+    if len(identificadores) != 1:
+        raise ErrorDelLaboratorio(
+            "no se puede demostrar la publicacion de Floci: se esperaba un "
+            f"contenedor activo y se observaron {len(identificadores)}"
+        )
+    crudo = ejecutar(
+        ["docker", "inspect", identificadores[0]],
+        silencioso=True,
+    )
+    try:
+        inspecciones = json.loads(crudo.stdout)
+    except (TypeError, ValueError) as error:
+        raise ErrorDelLaboratorio(
+            "docker inspect no devolvio JSON valido para demostrar el perimetro"
+        ) from error
+    observados = validar_publicacion_de_floci(
+        inspecciones,
+        proyecto_esperado=proyecto,
+        puerto_esperado=puerto,
+    )
+    print(f"publicacion de Floci demostrada: {observados[0]}")
+    return observados
+
+
 def comprobar_perimetro(env_lab: dict[str, str]) -> dict[str, str]:
     """Demuestra que la red de ejecucion no tiene salida ni alcanza la metadata.
 
@@ -484,6 +599,7 @@ def comando_levantar(argumentos: argparse.Namespace) -> int:
         + ["ps", "--format", "{{.Name}} | {{.Status}} | {{.Ports}}"]
     )
 
+    comprobar_publicacion_de_floci(env_lab)
     comprobar_perimetro(env_lab)
 
     titulo("IDENTIDAD — comprobacion contra el destino (guarda G-03)")
@@ -672,6 +788,31 @@ def terraform(
     codigos_aceptados: tuple[int, ...] = (0,),
     silencioso: bool = False,
 ) -> subprocess.CompletedProcess[str]:
+    operacion = argumentos[0] if argumentos else ""
+    if operacion in {"init", "plan", "apply", "destroy"}:
+        titulo(
+            "GUARDAS — destino y perimetro antes de "
+            f"terraform {operacion} (R-23/R-24)"
+        )
+        env_lab = leer_env_del_laboratorio()
+        destino_actual = resolver(env_lab, destino.modo)
+        if destino_actual != destino:
+            raise ErrorDelLaboratorio(
+                "el destino cambio desde la validacion inicial; la operacion Terraform aborta"
+            )
+        comprobar_publicacion_de_floci(env_lab)
+        mod_destino.confirmar_identidad(
+            destino_actual,
+            lambda d: mod_verificacion.cuenta_observada(
+                d,
+                clave=mod_destino.CLAVE_FICTICIA,
+                secreto=mod_destino.SECRETO_FICTICIO,
+            ),
+        )
+        print(
+            "guarda satisfecha: modo local explicito, loopback exclusivo e "
+            f"identidad {destino_actual.cuenta_esperada}"
+        )
     entorno = mod_destino.entorno_para_terraform(destino)
     return ejecutar(
         [str(binario), f"-chdir={DIRECTORIO_DE_TERRAFORM}"] + argumentos,
@@ -768,6 +909,176 @@ def inventario_del_destino(destino: mod_destino.Destino) -> dict[str, list[str]]
             destino, prefijo=f"/{PREFIJO_DEL_LABORATORIO}", **comun
         ),
     }
+
+
+def extraer_artefacto_para_sdk(ruta_del_artefacto: Path, destino: Path) -> None:
+    """Extrae el ZIP validando rutas para que botocore pueda leer ``data/``.
+
+    ``zipimport`` basta para importar Python, pero ``botocore`` abre catálogos
+    JSON como archivos ordinarios. Extraer a un temporal conserva la procedencia
+    del artefacto y evita instalar dependencias en el host.
+    """
+    raiz = destino.resolve()
+    raiz.mkdir(parents=True, exist_ok=True)
+    try:
+        with zipfile.ZipFile(ruta_del_artefacto) as paquete:
+            for entrada in paquete.infolist():
+                relativa = PurePosixPath(entrada.filename)
+                if relativa.is_absolute() or ".." in relativa.parts:
+                    raise ErrorDelLaboratorio(
+                        f"el artefacto contiene una ruta insegura: {entrada.filename!r}"
+                    )
+                modo = entrada.external_attr >> 16
+                if stat.S_ISLNK(modo):
+                    raise ErrorDelLaboratorio(
+                        f"el artefacto contiene un enlace simbolico: {entrada.filename!r}"
+                    )
+                salida = (raiz / Path(*relativa.parts)).resolve()
+                if not salida.is_relative_to(raiz):
+                    raise ErrorDelLaboratorio(
+                        f"el artefacto intenta salir del temporal: {entrada.filename!r}"
+                    )
+                if entrada.is_dir():
+                    salida.mkdir(parents=True, exist_ok=True)
+                    continue
+                salida.parent.mkdir(parents=True, exist_ok=True)
+                with paquete.open(entrada) as origen, salida.open("wb") as archivo:
+                    shutil.copyfileobj(origen, archivo)
+    except (OSError, zipfile.BadZipFile) as error:
+        raise ErrorDelLaboratorio(
+            f"no se pudo extraer el SDK del artefacto: {error}"
+        ) from error
+
+
+def inspeccionar_con_sdk(
+    destino: mod_destino.Destino,
+    valores: dict[str, Any],
+    *,
+    ruta_del_artefacto: Path,
+    boto3_modulo: Any | None = None,
+) -> dict[str, Any]:
+    """Inspecciona el despliegue con el AWS SDK incluido por Task/024.
+
+    El host no necesita instalar ``boto3``. Cuando no se inyecta un módulo para
+    pruebas, el ZIP canónico se extrae a un temporal: ``botocore`` necesita abrir
+    su directorio ``data/`` como archivos ordinarios y no funciona directamente
+    desde ``zipimport``. Credenciales, región y endpoints se pasan de forma
+    explícita; nunca se usa la cadena ambiental del SDK.
+    """
+    if boto3_modulo is None:
+        if "boto3" in sys.modules:
+            raise ErrorDelLaboratorio(
+                "boto3 ya estaba importado antes de abrir el artefacto; "
+                "no se puede demostrar la procedencia del SDK"
+            )
+        with tempfile.TemporaryDirectory(prefix="personal-blog-task026-sdk-") as temporal:
+            raiz_temporal = Path(temporal)
+            extraer_artefacto_para_sdk(ruta_del_artefacto, raiz_temporal)
+            ruta_en_sys_path = str(raiz_temporal)
+            sys.path.insert(0, ruta_en_sys_path)
+            try:
+                boto3_extraido = importlib.import_module("boto3")
+                origen = Path(str(getattr(boto3_extraido, "__file__", ""))).resolve()
+                if not origen.is_relative_to(raiz_temporal.resolve()):
+                    raise ErrorDelLaboratorio(
+                        "boto3 no se importo desde el artefacto extraido"
+                    )
+                return inspeccionar_con_sdk(
+                    destino,
+                    valores,
+                    ruta_del_artefacto=ruta_del_artefacto,
+                    boto3_modulo=boto3_extraido,
+                )
+            except ImportError as error:
+                raise ErrorDelLaboratorio(
+                    "el ZIP canonico no contiene un boto3 importable; no se "
+                    "sustituye silenciosamente por una dependencia del host"
+                ) from error
+            finally:
+                if ruta_en_sys_path in sys.path:
+                    sys.path.remove(ruta_en_sys_path)
+                for nombre, modulo in list(sys.modules.items()):
+                    archivo = getattr(modulo, "__file__", None)
+                    if not archivo:
+                        continue
+                    try:
+                        pertenece = Path(str(archivo)).resolve().is_relative_to(
+                            raiz_temporal.resolve()
+                        )
+                    except OSError:
+                        pertenece = False
+                    if pertenece:
+                        sys.modules.pop(nombre, None)
+
+    try:
+        sesion = boto3_modulo.Session(
+            aws_access_key_id=mod_destino.CLAVE_FICTICIA,
+            aws_secret_access_key=mod_destino.SECRETO_FICTICIO,
+            region_name=destino.region,
+        )
+        llamadas = {
+            "s3": ("list_buckets", {}, "Buckets", "Name"),
+            "ssm": (
+                "get_parameters_by_path",
+                {"Path": f"/{PREFIJO_DEL_LABORATORIO}", "Recursive": True},
+                "Parameters",
+                "Name",
+            ),
+            "iam": ("list_roles", {}, "Roles", "RoleName"),
+            "lambda": ("list_functions", {}, "Functions", "FunctionName"),
+            "apigatewayv2": ("get_apis", {}, "Items", "ApiId"),
+            "logs": (
+                "describe_log_groups",
+                {"logGroupNamePrefix": f"/aws/lambda/{PREFIJO_DEL_LABORATORIO}"},
+                "logGroups",
+                "logGroupName",
+            ),
+        }
+        inventario: dict[str, list[str]] = {}
+        for servicio, (metodo, parametros, clave_lista, clave_nombre) in llamadas.items():
+            cliente = sesion.client(
+                servicio,
+                endpoint_url=destino.endpoints[servicio],
+                region_name=destino.region,
+                aws_access_key_id=mod_destino.CLAVE_FICTICIA,
+                aws_secret_access_key=mod_destino.SECRETO_FICTICIO,
+                use_ssl=False,
+            )
+            respuesta = getattr(cliente, metodo)(**parametros)
+            inventario[servicio] = sorted(
+                str(elemento[clave_nombre])
+                for elemento in respuesta.get(clave_lista, [])
+                if clave_nombre in elemento
+            )
+    except Exception as error:
+        if isinstance(error, ErrorDelLaboratorio):
+            raise
+        raise ErrorDelLaboratorio(
+            f"la inspeccion con boto3 fallo: {type(error).__name__}: {error}"
+        ) from error
+    esperados = {
+        "s3": [valores["bucket_de_medios"]],
+        "ssm": list(valores.get("parametros") or []),
+        "iam": [valores["rol_de_ejecucion"]],
+        "lambda": [valores["nombre_de_la_funcion"]],
+        "apigatewayv2": [valores["id_del_api"]],
+        "logs": [valores["grupo_de_logs"]],
+    }
+    faltantes: list[str] = []
+    for servicio, nombres in esperados.items():
+        for nombre in nombres:
+            if nombre not in inventario[servicio]:
+                faltantes.append(f"{servicio}:{nombre}")
+    if faltantes:
+        raise ErrorDelLaboratorio(
+            "boto3 no encontro recursos esperados: " + ", ".join(sorted(faltantes))
+        )
+
+    version = str(getattr(boto3_modulo, "__version__", "desconocida"))
+    informe = {"sdk": f"boto3/{version}", "servicios": inventario}
+    print("inspeccion con AWS SDK oficial contra el destino local:")
+    print(json.dumps(informe, indent=2, sort_keys=True))
+    return informe
 
 
 def salidas(binario: Path, destino: mod_destino.Destino) -> dict[str, Any]:
@@ -1020,6 +1331,96 @@ def ejercitar_servicios(
     return evidencia
 
 
+def introducir_y_reconciliar_drift(
+    binario: Path,
+    destino: mod_destino.Destino,
+    valores: dict[str, Any],
+) -> dict[str, Any]:
+    """Elimina un parametro ficticio, observa el plan y lo reconstruye."""
+    titulo("DRIFT CONTROLADO — eliminar un SSM ficticio y reconciliar")
+    if not destino.es_local:
+        raise ErrorDelLaboratorio("el ensayo de drift solo esta autorizado en modo local")
+    if PARAMETRO_DE_DRIFT not in (valores.get("parametros") or []):
+        raise ErrorDelLaboratorio(
+            f"el objetivo de drift no figura en las salidas: {PARAMETRO_DE_DRIFT}"
+        )
+
+    env_lab = leer_env_del_laboratorio()
+    destino_actual = resolver(env_lab, destino.modo)
+    if destino_actual != destino:
+        raise ErrorDelLaboratorio(
+            "el destino cambio antes de introducir el drift; no se elimina nada"
+        )
+    comprobar_publicacion_de_floci(env_lab)
+    mod_destino.confirmar_identidad(
+        destino_actual,
+        lambda d: mod_verificacion.cuenta_observada(
+            d,
+            clave=mod_destino.CLAVE_FICTICIA,
+            secreto=mod_destino.SECRETO_FICTICIO,
+        ),
+    )
+    estado, _ = mod_verificacion.eliminar_parametro(
+        destino,
+        nombre=PARAMETRO_DE_DRIFT,
+        clave_aws=mod_destino.CLAVE_FICTICIA,
+        secreto=mod_destino.SECRETO_FICTICIO,
+    )
+    if estado != 200:
+        raise ErrorDelLaboratorio(
+            f"DeleteParameter devolvio {estado}; el drift no quedo demostrado"
+        )
+    presentes = mod_verificacion.parametros_presentes(
+        destino,
+        prefijo=f"/{PREFIJO_DEL_LABORATORIO}",
+        clave_aws=mod_destino.CLAVE_FICTICIA,
+        secreto=mod_destino.SECRETO_FICTICIO,
+    )
+    if PARAMETRO_DE_DRIFT in presentes:
+        raise ErrorDelLaboratorio("el parametro sigue presente despues de DeleteParameter")
+    print(f"drift observado por API: ausente {PARAMETRO_DE_DRIFT}")
+
+    terraform(
+        binario,
+        destino,
+        ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(),
+    )
+    crudo = terraform(
+        binario,
+        destino,
+        ["show", "-json", str(PLAN_GUARDADO)],
+        silencioso=True,
+    )
+    plan = json.loads(crudo.stdout)
+    informe = mod_inventario.revisar_reconciliacion_de_drift(
+        plan,
+        direccion_objetivo=DIRECCION_TERRAFORM_DEL_DRIFT,
+        diferencias_toleradas=DIFERENCIAS_DEL_DESTINO_LOCAL,
+        actualizaciones_dependientes=ACTUALIZACIONES_DEPENDIENTES_DEL_DRIFT,
+    )
+    print(f"plan de reconciliacion acotado: {informe}")
+    terraform(binario, destino, ["apply", "-input=false", str(PLAN_GUARDADO)])
+
+    estado, cuerpo = mod_verificacion.leer_parametro(
+        destino,
+        nombre=PARAMETRO_DE_DRIFT,
+        clave_aws=mod_destino.CLAVE_FICTICIA,
+        secreto=mod_destino.SECRETO_FICTICIO,
+    )
+    if estado != 200:
+        raise ErrorDelLaboratorio(
+            f"GetParameter devolvio {estado} tras reconciliar el drift"
+        )
+    print(f"reconciliacion demostrada por API: presente {PARAMETRO_DE_DRIFT}")
+    return {
+        "objetivo": PARAMETRO_DE_DRIFT,
+        "ausencia_observada": True,
+        "recreacion_planificada": informe["objetivo_recreado"],
+        "presencia_final": True,
+        "tipo_final": (cuerpo or {}).get("Parameter", {}).get("Type"),
+    }
+
+
 def comando_ciclo(argumentos: argparse.Namespace) -> int:
     """Ciclo completo, en el orden en que cada paso produce su evidencia."""
     env_lab = leer_env_del_laboratorio()
@@ -1083,6 +1484,11 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         evidencia = ejercitar_servicios(
             destino, valores, runtime_fijado=runtime_fijado, id_del_runtime=id_del_runtime
         )
+        evidencia_sdk = inspeccionar_con_sdk(
+            destino,
+            valores,
+            ruta_del_artefacto=zip_congelado.ruta,
+        )
 
         titulo("IDEMPOTENCIA — segundo plan, se exige exit 0")
         resultado = terraform(
@@ -1123,6 +1529,8 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
             mod_inventario.exigir_sin_cambios(resultado.returncode)
             print("sin cambios pendientes: la configuracion es idempotente")
 
+        drift = introducir_y_reconciliar_drift(binario, destino, valores)
+
         primer_destroy = destruir_y_verificar(binario, destino, valores, etapa="primer destroy")
 
         titulo("RECONSTRUCCION — desde cero, con las mismas fuentes")
@@ -1155,7 +1563,9 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
     resumen = {
         "artefacto_sha256": zip_congelado.sha256,
         "camino_critico": evidencia["camino_critico"]["estado"],
+        "inspeccion_sdk": evidencia_sdk["sdk"],
         "idempotencia": "exit 0" if not informe else f"exit 2 solo por {sorted(informe)}",
+        "drift_controlado": drift,
         "primer_destroy": primer_destroy,
         "segundo_destroy": segundo_destroy,
     }
@@ -1213,17 +1623,354 @@ def destruir_y_verificar(
     return "verificado"
 
 
+# --- operaciones humanas de Task/026 ---------------------------------------
+
+
+def sha256_de_archivo(ruta: Path) -> str:
+    """Resume un archivo sin cargarlo completo en memoria."""
+    resumen = hashlib.sha256()
+    try:
+        with ruta.open("rb") as archivo:
+            while bloque := archivo.read(1024 * 1024):
+                resumen.update(bloque)
+    except OSError as error:
+        raise ErrorDelLaboratorio(f"no se pudo resumir '{ruta}': {error}") from error
+    return resumen.hexdigest()
+
+
+def exigir_confirmacion_del_plan(
+    sha256: str,
+    *,
+    operacion: str,
+    leer: Callable[[str], str] = input,
+) -> str:
+    """Exige aprobación humana ligada a todos los bytes del plan revisado.
+
+    No existe bandera ``--force`` ni confirmación abreviada: si la entrada no es
+    interactiva, está incompleta o no coincide exactamente, no se aplica nada.
+    """
+    esperado = f"APLICAR {sha256}"
+    try:
+        respuesta = leer(
+            f"Para {operacion}, escriba exactamente '{esperado}': "
+        ).strip()
+    except EOFError as error:
+        raise ErrorDelLaboratorio(
+            "no hubo confirmacion interactiva; el plan no se aplica"
+        ) from error
+    if respuesta != esperado:
+        raise ErrorDelLaboratorio(
+            "la confirmacion no coincide con el SHA-256 completo del plan; "
+            "el plan no se aplica"
+        )
+    return sha256
+
+
+def preparar_contexto_de_runbook(
+    argumentos: argparse.Namespace,
+    *,
+    preparar_runtime: bool,
+) -> tuple[
+    dict[str, str],
+    mod_destino.Destino,
+    Path,
+    mod_artefacto.Artefacto,
+    mod_runtime.RuntimeFijado,
+    str | None,
+]:
+    """Prepara las autoridades comunes sin duplicar IaC ni fabricar artefactos."""
+    env_lab = leer_env_del_laboratorio()
+    destino = resolver(env_lab, argumentos.modo)
+    comprobar_publicacion_de_floci(env_lab)
+    mod_destino.confirmar_identidad(
+        destino,
+        lambda d: mod_verificacion.cuenta_observada(
+            d,
+            clave=mod_destino.CLAVE_FICTICIA,
+            secreto=mod_destino.SECRETO_FICTICIO,
+        ),
+    )
+    binario = asegurar_terraform()
+    artefacto = mod_artefacto.describir_artefacto(argumentos.lambda_zip)
+    runtime_fijado = mod_runtime.leer_runtime_fijado(artefacto.ruta)
+    id_del_runtime = None
+    if preparar_runtime:
+        informe = mod_runtime.preparar_runtime(
+            runtime_fijado, DockerDelLaboratorio()
+        )
+        id_del_runtime = informe["id"]
+    print(f"artefacto: {artefacto.ruta}")
+    print(f"  sha256: {artefacto.sha256}")
+    print(f"runtime: {runtime_fijado.referencia}")
+    return (
+        env_lab,
+        destino,
+        binario,
+        artefacto,
+        runtime_fijado,
+        id_del_runtime,
+    )
+
+
+def exigir_actualizacion_de_lambda() -> None:
+    """Un rollback sin cambio de Lambda no es un rollback demostrable."""
+    try:
+        plan = json.loads(PLAN_EN_JSON.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise ErrorDelLaboratorio(
+            "no se pudo leer el plan JSON para demostrar el rollback"
+        ) from error
+    actualizaciones = [
+        cambio.get("address", "?")
+        for cambio in plan.get("resource_changes", [])
+        if cambio.get("type") == "aws_lambda_function"
+        and "update" in ((cambio.get("change") or {}).get("actions") or [])
+    ]
+    if not actualizaciones:
+        raise ErrorDelLaboratorio(
+            "el plan no actualiza aws_lambda_function; no se declarara rollback"
+        )
+    print(f"rollback de Lambda demostrado en el plan: {actualizaciones}")
+
+
+def aplicar_version_desde_runbook(
+    argumentos: argparse.Namespace,
+    *,
+    operacion: str,
+    acciones_permitidas: tuple[str, ...],
+) -> int:
+    """Planifica, detiene para revisión humana y aplica una versión."""
+    titulo(f"{operacion.upper()} — preparacion y autoridades")
+    (
+        _,
+        destino,
+        binario,
+        artefacto,
+        runtime_fijado,
+        id_del_runtime,
+    ) = preparar_contexto_de_runbook(argumentos, preparar_runtime=True)
+    if id_del_runtime is None:  # Cobertura de tipos; preparar_runtime=True lo exige.
+        raise ErrorDelLaboratorio("no se observo la identidad local del runtime")
+
+    lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
+    with mod_destino.lock_de_escritura(lock_de_operacion):
+        if operacion == "crear":
+            inventario_inicial = inventario_del_destino(destino)
+            mod_inventario.exigir_inventario_vacio(inventario_inicial)
+            print("precondicion de creacion: inventario del destino vacio")
+
+        escribir_variables_del_destino(destino, artefacto.ruta)
+        inicializar(binario, destino, solo_lectura=True)
+        terraform(binario, destino, ["fmt", "-check", "-recursive"])
+        terraform(binario, destino, ["validate"])
+        terraform(
+            binario,
+            destino,
+            ["plan", "-input=false", f"-out={PLAN_GUARDADO}"]
+            + variables_comunes(),
+        )
+        revisar_plan_guardado(
+            binario,
+            destino,
+            acciones=acciones_permitidas,
+            minimo=1,
+        )
+        if operacion == "rollback":
+            exigir_actualizacion_de_lambda()
+
+        sha_del_plan = sha256_de_archivo(PLAN_GUARDADO)
+        print(f"SHA-256 del plan revisado: {sha_del_plan}")
+        exigir_confirmacion_del_plan(sha_del_plan, operacion=operacion)
+        mod_artefacto.confirmar_sin_cambios(artefacto)
+        terraform(
+            binario,
+            destino,
+            ["apply", "-input=false", str(PLAN_GUARDADO)],
+        )
+        valores = salidas(binario, destino)
+        evidencia = ejercitar_servicios(
+            destino,
+            valores,
+            runtime_fijado=runtime_fijado,
+            id_del_runtime=id_del_runtime,
+        )
+        evidencia_sdk = inspeccionar_con_sdk(
+            destino,
+            valores,
+            ruta_del_artefacto=artefacto.ruta,
+        )
+
+    titulo(f"{operacion.upper()} — completado")
+    print(
+        json.dumps(
+            {
+                "operacion": operacion,
+                "plan_sha256": sha_del_plan,
+                "artefacto_sha256": artefacto.sha256,
+                "camino_critico": evidencia["camino_critico"]["estado"],
+                "inspeccion_sdk": evidencia_sdk["sdk"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def comando_crear(argumentos: argparse.Namespace) -> int:
+    return aplicar_version_desde_runbook(
+        argumentos,
+        operacion="crear",
+        acciones_permitidas=("create",),
+    )
+
+
+def comando_rollback(argumentos: argparse.Namespace) -> int:
+    return aplicar_version_desde_runbook(
+        argumentos,
+        operacion="rollback",
+        acciones_permitidas=("update",),
+    )
+
+
+def comando_recuperar(argumentos: argparse.Namespace) -> int:
+    return aplicar_version_desde_runbook(
+        argumentos,
+        operacion="recuperar",
+        acciones_permitidas=("create", "update"),
+    )
+
+
+def comando_validar(argumentos: argparse.Namespace) -> int:
+    titulo("VALIDAR — inventario, APIs y camino critico")
+    (
+        _,
+        destino,
+        binario,
+        artefacto,
+        runtime_fijado,
+        id_del_runtime,
+    ) = preparar_contexto_de_runbook(argumentos, preparar_runtime=True)
+    if id_del_runtime is None:
+        raise ErrorDelLaboratorio("no se observo la identidad local del runtime")
+    lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
+    with mod_destino.lock_de_escritura(lock_de_operacion):
+        escribir_variables_del_destino(destino, artefacto.ruta)
+        inicializar(binario, destino, solo_lectura=True)
+        valores = salidas(binario, destino)
+        evidencia = ejercitar_servicios(
+            destino,
+            valores,
+            runtime_fijado=runtime_fijado,
+            id_del_runtime=id_del_runtime,
+        )
+        evidencia_sdk = inspeccionar_con_sdk(
+            destino,
+            valores,
+            ruta_del_artefacto=artefacto.ruta,
+        )
+    print(
+        json.dumps(
+            {
+                "artefacto_sha256": artefacto.sha256,
+                "camino_critico": evidencia["camino_critico"]["estado"],
+                "inspeccion_sdk": evidencia_sdk["sdk"],
+            },
+            indent=2,
+            sort_keys=True,
+        )
+    )
+    return 0
+
+
+def comando_destruir(argumentos: argparse.Namespace) -> int:
+    titulo("DESTRUIR — plan destructivo y revision humana")
+    _, destino, binario, artefacto, _, _ = preparar_contexto_de_runbook(
+        argumentos, preparar_runtime=False
+    )
+    lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
+    with mod_destino.lock_de_escritura(lock_de_operacion):
+        escribir_variables_del_destino(destino, artefacto.ruta)
+        inicializar(binario, destino, solo_lectura=True)
+        valores = salidas(binario, destino)
+        terraform(
+            binario,
+            destino,
+            ["plan", "-destroy", "-input=false", f"-out={PLAN_GUARDADO}"]
+            + variables_comunes(),
+        )
+        revisar_plan_guardado(
+            binario,
+            destino,
+            acciones=("delete",),
+            minimo=1,
+        )
+        sha_del_plan = sha256_de_archivo(PLAN_GUARDADO)
+        print(f"SHA-256 del plan destructivo revisado: {sha_del_plan}")
+        exigir_confirmacion_del_plan(sha_del_plan, operacion="destruir")
+
+        bucket = valores.get("bucket_de_medios")
+        if bucket:
+            borrados = mod_verificacion.vaciar_bucket(
+                destino,
+                bucket=bucket,
+                clave_aws=mod_destino.CLAVE_FICTICIA,
+                secreto=mod_destino.SECRETO_FICTICIO,
+            )
+            print(f"objetos y versiones retirados del bucket: {borrados}")
+        terraform(
+            binario,
+            destino,
+            ["apply", "-input=false", str(PLAN_GUARDADO)],
+        )
+
+        estado = terraform(
+            binario,
+            destino,
+            ["state", "list"],
+            silencioso=True,
+            codigos_aceptados=(0, 1),
+        )
+        restantes = [linea for linea in estado.stdout.splitlines() if linea.strip()]
+        if restantes:
+            raise ErrorDelLaboratorio(
+                f"el estado conserva {len(restantes)} recurso(s) tras el destroy"
+            )
+        inventario = inventario_del_destino(destino)
+        mod_inventario.exigir_inventario_vacio(inventario)
+    print("destroy aplicado y ausencia demostrada contra las APIs")
+    return 0
+
+
+def comando_inspeccionar_sdk(argumentos: argparse.Namespace) -> int:
+    titulo("INSPECCION — AWS SDK oficial contra el destino local")
+    _, destino, binario, artefacto, _, _ = preparar_contexto_de_runbook(
+        argumentos, preparar_runtime=False
+    )
+    lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
+    with mod_destino.lock_de_escritura(lock_de_operacion):
+        escribir_variables_del_destino(destino, artefacto.ruta)
+        inicializar(binario, destino, solo_lectura=True)
+        valores = salidas(binario, destino)
+        inspeccionar_con_sdk(
+            destino,
+            valores,
+            ruta_del_artefacto=artefacto.ruta,
+        )
+    return 0
+
+
 # --- CLI --------------------------------------------------------------------
 
 
 def construir_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="laboratorio",
-        description="Laboratorio AWS local del blog (Task/025).",
+        description="Laboratorio AWS local y operaciones de runbook (Task/025-026).",
     )
     parser.add_argument(
         "--modo",
-        default="local",
+        required=True,
         help=(
             "Destino de la operacion. Solo 'local' esta autorizado: el modo "
             "'production' se rechaza porque no existe autorizacion de AWS real."
@@ -1260,6 +2007,24 @@ def construir_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="regenera .terraform.lock.hcl para las dos plataformas antes del ciclo",
     )
+
+    for nombre, ayuda in (
+        ("crear", "crea desde inventario vacio tras aprobar el plan"),
+        ("validar", "valida inventario, APIs, runtime y camino critico"),
+        ("rollback", "aplica un artefacto anterior tras aprobar el plan"),
+        ("destruir", "destruye tras aprobar un plan -destroy y verifica ausencia"),
+        ("recuperar", "reconcilia ausencia o apply interrumpido y valida"),
+        ("inspeccionar-sdk", "inspecciona recursos con boto3 desde el ZIP canonico"),
+    ):
+        operacion = subcomandos.add_parser(nombre, help=ayuda)
+        operacion.add_argument(
+            "--lambda-zip",
+            required=True,
+            help=(
+                "Ruta explicita al ZIP canonico de Task/024; su manifiesto "
+                "adyacente gobierna el runtime"
+            ),
+        )
     return parser
 
 
@@ -1270,6 +2035,12 @@ def main(argv: list[str] | None = None) -> int:
         "levantar": comando_levantar,
         "bajar": comando_bajar,
         "ciclo": comando_ciclo,
+        "crear": comando_crear,
+        "validar": comando_validar,
+        "rollback": comando_rollback,
+        "destruir": comando_destruir,
+        "recuperar": comando_recuperar,
+        "inspeccionar-sdk": comando_inspeccionar_sdk,
     }
     try:
         return comandos[argumentos.comando](argumentos)

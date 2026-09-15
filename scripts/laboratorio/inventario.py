@@ -172,6 +172,20 @@ class DiferenciaDelDestino:
     motivo: str
 
 
+@dataclass(frozen=True)
+class ActualizacionDependienteDelDrift:
+    """Atributo exacto que Terraform recalcula por depender del objetivo.
+
+    Solo se acepta cuando el valor posterior figura como desconocido en el
+    plan. Esto no autoriza un cambio conocido de la misma politica ni una
+    tolerancia amplia por tipo de recurso.
+    """
+
+    direccion: str
+    tipo: str
+    atributo: str
+
+
 def _atributos_que_cambian(antes: Any, despues: Any) -> set[str]:
     """Atributos de primer nivel cuyo valor difiere entre `before` y `after`."""
     antes = antes if isinstance(antes, Mapping) else {}
@@ -256,6 +270,94 @@ def exigir_sin_cambios(
             "no se acepta sin poder nombrarlo"
         )
     return informe
+
+
+def revisar_reconciliacion_de_drift(
+    plan: Mapping[str, Any],
+    *,
+    direccion_objetivo: str,
+    diferencias_toleradas: Sequence[DiferenciaDelDestino] = (),
+    actualizaciones_dependientes: Sequence[ActualizacionDependienteDelDrift] = (),
+) -> dict[str, Any]:
+    """Exige que un plan repare un unico drift y nada mas.
+
+    El objetivo debe reaparecer mediante ``create``. Fuera de el solo se
+    toleran diferencias del destino declaradas por tipo y atributo, con la misma
+    estrechez que el gate de idempotencia, y dependencias declaradas por
+    direccion, tipo y atributo cuyo valor posterior sea desconocido. Una
+    actualizacion de Lambda, otra creacion o cualquier destruccion abortan el
+    ensayo.
+    """
+    cambios = plan.get("resource_changes")
+    if not isinstance(cambios, list):
+        raise ErrorDeInventario(
+            "el plan de reconciliacion no contiene resource_changes legible"
+        )
+    permitidos = {(d.tipo, d.atributo) for d in diferencias_toleradas}
+    dependencias_permitidas = {
+        (d.direccion, d.tipo, d.atributo) for d in actualizaciones_dependientes
+    }
+    objetivo_recreado = False
+    diferencias = 0
+    dependencias = 0
+    inesperados: set[str] = set()
+
+    for cambio in cambios:
+        if not isinstance(cambio, Mapping):
+            inesperados.add("entrada de plan ilegible")
+            continue
+        direccion = str(cambio.get("address") or "?")
+        tipo = str(cambio.get("type") or "?")
+        detalle = cambio.get("change") or {}
+        acciones = detalle.get("actions") or []
+        if acciones == ["no-op"]:
+            continue
+        if cambio.get("mode") == "data" and set(acciones) == {"read"}:
+            continue
+
+        if direccion == direccion_objetivo:
+            if tipo == "aws_ssm_parameter" and acciones == ["create"]:
+                objetivo_recreado = True
+            else:
+                inesperados.add(
+                    f"el objetivo usa {tipo} con acciones {acciones}"
+                )
+            continue
+
+        if acciones != ["update"]:
+            inesperados.add(f"{','.join(acciones) or '?'} en {direccion}")
+            continue
+        atributos = _atributos_que_cambian(
+            detalle.get("before"), detalle.get("after")
+        )
+        posteriores_desconocidos = detalle.get("after_unknown") or {}
+        if not atributos:
+            inesperados.add(f"actualizacion sin atributos demostrables en {direccion}")
+            continue
+        for atributo in atributos:
+            if (tipo, atributo) in permitidos:
+                diferencias += 1
+            elif (
+                (direccion, tipo, atributo) in dependencias_permitidas
+                and isinstance(posteriores_desconocidos, Mapping)
+                and posteriores_desconocidos.get(atributo) is True
+            ):
+                dependencias += 1
+            else:
+                inesperados.add(f"{tipo}.{atributo} en {direccion}")
+
+    if not objetivo_recreado:
+        inesperados.add(f"no se recrea el objetivo {direccion_objetivo}")
+    if inesperados:
+        raise ErrorDeInventario(
+            "el plan no es una reconciliacion de drift acotada: "
+            + ", ".join(sorted(inesperados))
+        )
+    return {
+        "objetivo_recreado": direccion_objetivo,
+        "diferencias_del_destino": diferencias,
+        "actualizaciones_dependientes": dependencias,
+    }
 
 
 def _describir_residuos(inventario: Mapping[str, Iterable[str]]) -> list[str]:

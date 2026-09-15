@@ -210,6 +210,16 @@ def leer_parametro(destino, *, nombre: str, clave_aws: str, secreto: str) -> tup
     )
 
 
+def eliminar_parametro(destino, *, nombre: str, clave_aws: str, secreto: str) -> tuple[int, Any]:
+    """Elimina un parametro exacto para el ensayo de drift controlado."""
+    ssm = cliente(destino, "ssm", clave=clave_aws, secreto=secreto)
+    return ssm.json_de_servicio(
+        servicio="ssm",
+        objetivo="AmazonSSM.DeleteParameter",
+        carga={"Name": nombre},
+    )
+
+
 def parametros_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
     ssm = cliente(destino, "ssm", clave=clave_aws, secreto=secreto)
     estado, cuerpo = ssm.json_de_servicio(

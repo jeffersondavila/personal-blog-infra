@@ -222,6 +222,101 @@ class DiferenciasDelDestinoTests(unittest.TestCase):
             modulo.exigir_sin_cambios(2, plan=plan_json)
 
 
+class DriftControladoTests(unittest.TestCase):
+    def setUp(self):
+        self.objetivo = (
+            'module.parametros.aws_ssm_parameter.configuracion["local/storage_region"]'
+        )
+        self.toleradas = (
+            modulo.DiferenciaDelDestino(
+                tipo="aws_ssm_parameter",
+                atributo="tags_all",
+                motivo="el emulador descarta las etiquetas en PutParameter",
+            ),
+        )
+
+    def revisar(self, entrada):
+        return modulo.revisar_reconciliacion_de_drift(
+            entrada,
+            direccion_objetivo=self.objetivo,
+            diferencias_toleradas=self.toleradas,
+            actualizaciones_dependientes=(
+                modulo.ActualizacionDependienteDelDrift(
+                    direccion="module.identidad.aws_iam_role_policy.permisos",
+                    tipo="aws_iam_role_policy",
+                    atributo="policy",
+                ),
+            ),
+        )
+
+    def test_acepta_recrear_solo_el_parametro_y_h025_1_en_los_otros(self):
+        entrada = plan(
+            cambio("aws_ssm_parameter", "create", direccion=self.objetivo),
+            cambio_de_atributos(
+                "aws_ssm_parameter",
+                {"tags_all": {}},
+                {"tags_all": {"Proyecto": "x"}},
+                direccion='module.parametros.aws_ssm_parameter.configuracion["local/database_url"]',
+            ),
+        )
+        informe = self.revisar(entrada)
+        self.assertEqual(informe["objetivo_recreado"], self.objetivo)
+        self.assertEqual(informe["diferencias_del_destino"], 1)
+
+    def test_acepta_solo_la_politica_iam_que_queda_desconocida_por_el_drift(self):
+        dependencia = cambio_de_atributos(
+            "aws_iam_role_policy",
+            {"policy": "politica anterior"},
+            {},
+            direccion="module.identidad.aws_iam_role_policy.permisos",
+        )
+        dependencia["change"]["after_unknown"] = {"policy": True}
+        entrada = plan(
+            cambio("aws_ssm_parameter", "create", direccion=self.objetivo),
+            dependencia,
+        )
+
+        informe = self.revisar(entrada)
+
+        self.assertEqual(informe["actualizaciones_dependientes"], 1)
+
+    def test_rechaza_la_politica_iam_si_no_queda_desconocida(self):
+        entrada = plan(
+            cambio("aws_ssm_parameter", "create", direccion=self.objetivo),
+            cambio_de_atributos(
+                "aws_iam_role_policy",
+                {"policy": "anterior"},
+                {"policy": "otra politica"},
+                direccion="module.identidad.aws_iam_role_policy.permisos",
+            ),
+        )
+        with self.assertRaises(modulo.ErrorDeInventario):
+            self.revisar(entrada)
+
+    def test_rechaza_un_cambio_adicional_de_lambda(self):
+        entrada = plan(
+            cambio("aws_ssm_parameter", "create", direccion=self.objetivo),
+            cambio_de_atributos(
+                "aws_lambda_function",
+                {"memory_size": 512},
+                {"memory_size": 1024},
+            ),
+        )
+        with self.assertRaises(modulo.ErrorDeInventario):
+            self.revisar(entrada)
+
+    def test_rechaza_recrear_otro_parametro_en_lugar_del_objetivo(self):
+        entrada = plan(
+            cambio(
+                "aws_ssm_parameter",
+                "create",
+                direccion='module.parametros.aws_ssm_parameter.configuracion["local/database_url"]',
+            )
+        )
+        with self.assertRaises(modulo.ErrorDeInventario):
+            self.revisar(entrada)
+
+
 class AusenciaTests(unittest.TestCase):
     def test_inventario_vacio_acepta(self):
         modulo.exigir_inventario_vacio({"s3": [], "lambda": [], "ssm": []})
