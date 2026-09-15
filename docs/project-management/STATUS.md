@@ -1,6 +1,6 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-14
+**Última actualización:** 2026-09-15
 
 ---
 
@@ -8,12 +8,13 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Etapa actual** | **ETAPA 07 — Validación Local — Completada** el 2026-09-12: **1 de 1 tarea aprobada (100 %)**, los **ocho** criterios de salida cumplidos y **T-07 Satisfecho**. Hito alcanzado: *Blog validado íntegramente en local. Puerta de entrada a la nube.* ETAPAS 00 a 06 completadas. **ETAPA 08 — Preparación Cloud + AWS Local Parity: En progreso**, **3 de 4 tareas aprobadas (75 %)** tras la aprobación de `Task/025` el 2026-09-14. **La etapa NO está completada:** `Task/026` sigue **Pendiente, no iniciada**. Sigue siendo una etapa **sin cuentas ni recursos cloud**: que la ETAPA 07 esté completada **no autoriza ninguna acción en la nube**, la primera es de la ETAPA 09 (ADR-001) |
-| **Tarea actual** | **Ninguna activa.** **`Task/025-Terraform-Cloud` — Aprobada** el 2026-09-14 mediante `approved: Task/025-Terraform-Cloud`; la siguiente, `Task/026`, está **Pendiente y NO iniciada**. Rama creada **desde `main`** (`c25642b8…`) **solo en infra**; **backend y frontend en solo lectura, sin rama**. Entrega Terraform **portable** —un solo grafo de 21 recursos, provider oficial `hashicorp/aws = 6.64.0`, CLI `= 1.16.2`— y lo **ejecuta de verdad** contra el laboratorio AWS local (emulador `2.0.1` fijado por digest): `init`, `fmt`, `validate`, `plan`, `apply`, pruebas funcionales, idempotencia, `destroy` con **ausencia verificada por API**, **reconstrucción**, *smoke* y segundo `destroy`. **Camino crítico demostrado:** `GET /health` por HTTP real atravesando API Gateway v2 → Lambda → *handler* del ZIP de `Task/024` devolvió **200** y **el mismo cuerpo byte a byte** que el entorno local. **143 pruebas** de las guardas *fail-closed* y **13 controles negativos** de CLI que abortan sin salir a la red. **Cero recursos AWS reales, cero credenciales reales.** **APROBADA:** sus decisiones —versiones, **D-06**, valores de laboratorio, *stage* local— pasan a **Aceptadas y Vigentes**, y **el avance pasa de 24/41 ≈ 59 % a 25/41 ≈ 61 %**. **D-06 queda RESUELTA**; el bucket de estado de AWS **no existe**. **S-09: excepción temporal autorizada por el usuario el 2026-09-14** — 79 identidades (70 del emulador, ligadas a su digest exacto; 9 de Terraform 1.16.2 `linux_amd64`), registradas en el baseline canónico y revalidadas con prueba positiva y ocho controles negativos. **H-025-6** y **H-025-7** dejan de ser bloqueantes; **no** se declaran resueltos ni libres de riesgo, y llevan condiciones de reevaluación escritas. El emulador quedaba **fuera del escaneo de vulnerabilidades** —S-09 exige versiones fijadas **y** escaneo en CI— y su medición con Trivy 0.74.0 dio **70 accionables, 4 CRITICAL** (56 de ellos, y los cuatro CRITICAL, en un solo binario `gosu` compilado con Go 1.18.2); no existe versión estable que lo remedie. El baseline pasa de **116 a 195** identidades aceptadas, **conservando intactas** las 100 de MinIO y las 16 de Portainer, y se añadió la política `pinned-artifact` **dentro del mismo** gate, sin política paralela. **Residual de cobertura vivo:** el binario nativo del emulador no lo inventaría ni Trivy ni el SBOM oficial de upstream (**H-025-6**). El criterio de aceptación **7** **no se cumple literalmente** —el segundo plan da **exit 2** por `aws_ssm_parameter.tags_all`, diferencia demostrada del emulador y **sin** `ignore_changes`—, y el usuario **aceptó esa divergencia el 2026-09-14 como excepción explícita del laboratorio** (**H-025-1**): **11 criterios en PASS literal y 1 en PASS con excepción humana**, ningún FAIL. **La revisión final del diff encontró y corrigió dos defectos propios** que habrían puesto **CI Infra en rojo** en el primer commit: **DEF-025-1** —la plantilla `laboratorio/.env.laboratorio.example` no estaba versionada, y de ella salen el paso de loopback y el digest con el que S-09 escanea el emulador— y **DEF-025-2** —el gate de secretos daba 3 hallazgos sobre la clave del ejemplo canónico de SigV4 publicado por AWS—. Los dos corregidos **sin silenciar ningún escáner** y reverificados con la invocación exacta del CI. [Ficha](../tasks/TASK-025-terraform-cloud.md) · [Reporte](../task-reports/TASK-025-report.md) |
+| **Etapa actual** | **ETAPA 08 — Preparación Cloud + AWS Local Parity — Completada** el 2026-09-15 con la aprobación de `Task/026`: **4 de 4 tareas aprobadas (100 %)** y sus **17 criterios de salida cumplidos**. ETAPAS 00 a 08 completadas. Hito alcanzado: *artefactos e infraestructura como código listos y ejecutados en un laboratorio AWS local, sin cuentas ni recursos reales.* **Completar la ETAPA 08 no autoriza ninguna acción en la nube:** la primera pertenece a la **ETAPA 09** (ADR-001), y todo lo observado en Floci sigue siendo **hipótesis** hasta la ETAPA 10 |
+| **Tarea actual** | **Ninguna activa.** **`Task/026-Runbooks-de-Despliegue` — Aprobada** el 2026-09-15 mediante `approved: Task/026-Runbooks-de-Despliegue`; la siguiente, `Task/027`, está **Pendiente y NO iniciada**. Rama creada sólo en infra desde `main` actualizado y limpio, SHA base `940a531827602ae04db37ddc5b15b5722500cc37`; backend y frontend en solo lectura, sin rama. Entrega cinco runbooks, destino explícito, binding de Floci fail-closed, planes humanos ligados a SHA-256, inspección `boto3` desde el ZIP y drift controlado. Ciclo real ejecutado contra el laboratorio: **21 recursos creados**, `GET /health` **200**, drift introducido y reconciliado, **dos `destroy`** con ausencia verificada por API y reconstrucción intermedia; **0 residuos Docker** al terminar. **202/202** pruebas y gates estáticos en verde, incluidos Compose, enlaces Markdown y **Gitleaks 8.30.1 en 0 hallazgos**. Dos defectos propios encontrados durante la ejecución real y corregidos con regresión: **DEF-026-1** (`botocore` no podía leer `endpoints.json` importando desde el ZIP) y **DEF-026-2** (la política IAM aparecía como actualización dependiente al recrear el SSM). **Rollback NO ejecutado: precondición ausente**, registrado sin fingir éxito y convertido en deuda con propietario. **Cero AWS real.** **APROBADA:** sus decisiones **D-026-A** a **D-026-J** pasan a **Aceptadas y Vigentes** sin ADR nuevo, los cinco runbooks pasan a **Vigentes**, y **el avance pasa de 25/41 ≈ 61 % a 26/41 ≈ 63 %**, completando la **ETAPA 08**. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
 | **Tarea anterior** | `Task/024-Artefacto-ZIP-Lambda` quedó **Aprobada** el 2026-09-13. Ramas creadas **desde `main`** en **backend** (`8795ac7…`) e **infra** (`7397eca…`); **frontend en solo lectura, sin rama**. Entrega el **artefacto ZIP de despliegue**: `scripts/empaquetar_lambda.py` instala las dependencias **dentro de la imagen oficial del runtime de Lambda para Python 3.12, `linux/amd64`, fijada por digest** —el backend se desarrolla en Windows y **13** de sus **41** distribuciones de ejecución traen binarios nativos— con `--require-hashes`, `--only-binary=:all:` y `--no-compile`. **Reproducibilidad demostrada byte a byte:** dos construcciones independientes dieron el mismo SHA-256 `6580410109207f33…`, **43 288 578 bytes** comprimidos (41,28 MiB) y **114 086 988** descomprimidos (108,80 MiB), **3 975** entradas y **41/41** distribuciones de ejecución sin ninguna de las **20** de desarrollo. El *handler* respondió **200** a `GET /health` **ejecutado desde el ZIP** en un proceso Linux `-I -S -W error`, sin árbol de fuentes, sin `site-packages`, sin `.env` y sin credenciales; Argon2, Pillow y el driver binario de PostgreSQL **ejercitados**, y **tres controles negativos** de aislamiento. **49 pruebas nuevas** —48 pasan en Windows, 1 se omite—; suite **1965 passed, 3 skipped**. **0 dependencias nuevas.** **Con su aprobación el avance pasó de 23/41 ≈ 56 % a 24/41 ≈ 59 %.** [Ficha](../tasks/TASK-024-lambda-zip-artifact.md) · [Reporte](../task-reports/TASK-024-report.md) |
 | **Antecedente de la tarea actual** | `Task/023-Compatibilidad-FastAPI-Lambda` quedó **Aprobada** el 2026-09-13. Abrió la ETAPA 08. Ramas creadas **desde `main`** en **backend** (`e0e3c08…`) e **infra** (`f8a64b4…`); **frontend en solo lectura, sin rama**. Entrega el adaptador FastAPI ↔ Lambda / API Gateway HTTP API v2 como **un solo archivo** (`app/lambda_handler.py`) más una línea de `pyproject.toml`: `app/main.py`, el `Dockerfile` y el Compose **no cambian**, y `uvicorn app.main:app` sigue siendo el entrypoint local. **T-04 Satisfecho técnicamente** —dos guardas recorren `app/` con `ast` y fallan si el adaptador se filtra—; **P-06 revalidado**, no reinventado. `lifespan="off"` decidido tras verificar la fuente de la versión **fijada** con su digest comprobado contra PyPI, y protegido por tres capas. **42 pruebas nuevas**; suite **1918 passed, 1 skipped** con PostgreSQL y MinIO reales, incluida la **sesión administrativa real** recorrida a través del handler. **1 dependencia nueva** autorizada, `mangum==0.22.0`, sin transitivas nuevas y sin mover `--exclude-newer`. **Con su aprobación el avance pasó de 22/41 ≈ 54 % a 23/41 ≈ 56 %.** *(Hasta `Task/024` esta celda cerraba con «Avance sin cambios: 22/41 ≈ 54 %», cierto solo durante su fase previa a la aprobación: D-024-3.)* [Ficha](../tasks/TASK-023-fastapi-lambda-compatibility.md) · [Reporte](../task-reports/TASK-023-report.md) |
 | **Antecedente anterior** | `Task/022-Validacion-Local-Production-Like` quedó **Aprobada** el 2026-09-12. Ramas Task creadas desde `main` en **backend** (`4a36bb5…`) e **infra** (`184c833…`); **frontend validado en solo lectura, sin modificaciones**. Entrega la **semilla local** —el `Administrator` y el `Profile` que la base local nunca tuvo— con TDD completo, y **siete defectos de los runbooks** que solo una reconstrucción real podía destapar, todos corregidos y revalidados. Suite final backend: **Windows 1875 passed, 1 skipped; CI Linux 1876 passed**, tras resolver **H-8** durante la integración CI aprobada; **704** pruebas de frontend en verde; **0 dependencias nuevas**. [Ficha](../tasks/TASK-022-local-production-like-validation.md) · [Reporte](../task-reports/TASK-022-report.md) |
-| **Última tarea canónica aprobada** | **`Task/025-Terraform-Cloud`** — **Aprobada** el 2026-09-14 por el usuario mediante `approved: Task/025-Terraform-Cloud`. Con ella el avance pasa a **25 de 41 — 61 %** y la **ETAPA 08** queda **En progreso, 3 de 4 — 75 %**. **No completa la etapa:** `Task/026` sigue **Pendiente, no iniciada**. **D-06 RESUELTA**; **D-11**, **D-12** y **D-13** siguen **abiertas**. Las decisiones de la tarea pasan a **Aceptadas y Vigentes**, sin ADR nuevo. **La aprobación incluye expresamente dos excepciones humanas:** **H-025-1** —el criterio **7** **no** es un PASS literal— y la **temporal de S-09** de 79 identidades (**H-025-6**, **H-025-7**), que **no** se declaran resueltas ni libres de riesgo y llevan condiciones de reevaluación. **Nada de lo observado en el emulador es hecho de AWS real:** sigue siendo hipótesis hasta la ETAPA 10 (ADR-006, límite 5) |
+| **Última tarea canónica aprobada** | **`Task/026-Runbooks-de-Despliegue`** — **Aprobada** el 2026-09-15 por el usuario mediante `approved: Task/026-Runbooks-de-Despliegue`. Con ella el avance pasa a **26 de 41 — 63 %** y la **ETAPA 08** queda **Completada, 4 de 4 — 100 %**. **D-026-A** a **D-026-J** pasan a **Aceptadas y Vigentes**, sin ADR nuevo; los cinco runbooks de despliegue pasan a **Vigentes**. **El rollback real sigue sin ejecutarse** —no existe versión desplegable anterior distinta— y queda como deuda **DT-026-1**, no como evidencia. **D-11**, **D-12** y **H-023-3** siguen **abiertos** |
+| **Tarea canónica aprobada anterior** | **`Task/025-Terraform-Cloud`** — **Aprobada** el 2026-09-14 mediante `approved: Task/025-Terraform-Cloud`. Llevó el avance a **25 de 41 — 61 %** y la **ETAPA 08** a **3 de 4 — 75 %**. **D-06 RESUELTA**; **D-11**, **D-12** y **D-13** siguen **abiertas**. Las decisiones de la tarea pasan a **Aceptadas y Vigentes**, sin ADR nuevo. **La aprobación incluye expresamente dos excepciones humanas:** **H-025-1** —el criterio **7** **no** es un PASS literal— y la **temporal de S-09** de 79 identidades (**H-025-6**, **H-025-7**), que **no** se declaran resueltas ni libres de riesgo y llevan condiciones de reevaluación. **Nada de lo observado en el emulador es hecho de AWS real:** sigue siendo hipótesis hasta la ETAPA 10 (ADR-006, límite 5) |
 | **Tarea canónica aprobada anterior** | **`Task/024-Artefacto-ZIP-Lambda`** — **Aprobada** el 2026-09-13 por el usuario mediante `approved: Task/024-Artefacto-ZIP-Lambda`. Con ella el avance pasa a **24 de 41 — 59 %** y la **ETAPA 08** queda **En progreso, 2 de 4 — 50 %**. **No completa la etapa.** **T-04 Satisfecho y Vigente**, **P-06 conservado**; **P-07** recibe la evidencia del tramo de artefacto y deja el arranque real para `Task/032`. **D-12** sigue **ABIERTA** y **H-023-3** sigue **abierto y no diagnosticado**. **D-024-A a D-024-K Aceptadas y Vigentes**, sin ADR nuevo |
 | **Tarea canónica aprobada previa** | **`Task/023-Compatibilidad-FastAPI-Lambda`** — **Aprobada** el 2026-09-13 por el usuario mediante `approved: Task/023-Compatibilidad-FastAPI-Lambda`. Con ella el avance pasó a **23 de 41 — 56 %** y la **ETAPA 08** quedó **En progreso, 1 de 4 — 25 %** *en esa fecha*. **No completa la etapa.** **T-04 Satisfecho y Vigente**, **P-06 revalidado/conservado**, **P-07 no tocado**. **H-023-3** sigue **abierto y no diagnosticado** |
 | **Tarea canónica aprobada precedente** | **`Task/022-Validacion-Local-Production-Like`** — **Aprobada** el 2026-09-12 por el usuario. Con ella la **ETAPA 07 quedó Completada** y el avance pasó a **22 de 41 — 54 %** |
@@ -39,9 +40,9 @@
 | **Mantenimiento previo** | `Task/009.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-27. Cierra el drift documental posterior a la fusión de `Task/009` y añade el **criterio 12** a la Definition of Done. No cuenta en las 41 tareas |
 | **Mantenimiento anterior a `Task/009`** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` — **Aprobada** el 2026-08-23. Formaliza la arquitectura objetivo de producción y acepta **ADR-008**. No cuenta en las 41 tareas |
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
-| **Tarea en curso** | **Ninguna.** `Task/024` **Aprobada** el 2026-09-13; `Task/025` **Pendiente, no iniciada** |
-| **Próxima tarea prevista** | `Task/025-Terraform-Cloud` — **Pendiente, no iniciada**. Depende de `Task/022` y de `Task/024`, ambas **Aprobadas**. Sigue siendo una etapa **sin cuentas ni recursos cloud**: la primera acción en la nube es de la ETAPA 09 (ADR-001). Toda Task nace de `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
-| **Avance global** | **59 %** — 24 de 41 tareas aprobadas |
+| **Tarea en curso** | **Ninguna.** `Task/026` **Aprobada** el 2026-09-15; `Task/027` **Pendiente, no iniciada** |
+| **Próxima tarea prevista** | `Task/027-Configurar-Cuentas-y-Presupuestos` — **Pendiente, no iniciada**. Abre la **ETAPA 09**, donde ocurre la **primera acción real en la nube** (ADR-001): requiere autorización explícita del usuario antes de crear cuenta o recurso alguno. Toda Task nace de `main` actualizado y limpio según [WORKFLOW §2.1](WORKFLOW.md) |
+| **Avance global** | **≈ 63 %** — 26 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
 | **Bloqueos activos** | **Ninguno abierto.** **No existe defecto bloqueante demostrado atribuible a `Task/023`.** **H-023-3** no es un bloqueo: es una **observación abierta no diagnosticada** —un fallo de `test_dos_publicaciones_simultaneas_solo_prosperan_una` en una ejecución completa, sin traza conservada y **no reproducido** en ocho intentos posteriores—. No se declara resuelto, no se declara descartado y **no se atribuye al adaptador Lambda**, que no participa en el camino de código de ese test. **Debe vigilarse en la CI**; si reaparece, el cierre **se detiene** y se analiza. **B-020.3-C — RESUELTO** el 2026-09-12: el gate Trivy de la imagen backend pasó de 12 hallazgos accionables (9 HIGH, 3 CRITICAL, exit 1) a **0 accionables, exit 0**, tras autorización explícita del usuario para aplicar las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile. La política S-09 no se relajó: sigue siendo `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, sin `.trivyignore` ni baseline de backend. **Historia preservada:** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`) — **RESUELTO** el 2026-09-12 con la aprobación de `Task/022`: la semilla local creó el administrador y el perfil, y el recorrido administrativo real generó contenido publicado con imágenes, de modo que la evidencia que faltaba ya existe. **B-015-1** sigue **resuelto** por `Task/012.1` |
@@ -65,7 +66,99 @@
 
 ---
 
-## Última tarea aprobada — `Task/024-Artefacto-ZIP-Lambda`
+## Última tarea aprobada — `Task/026-Runbooks-de-Despliegue`
+
+**Estado: Aprobada** el **2026-09-15** mediante
+`approved: Task/026-Runbooks-de-Despliegue`. **Cuenta en las 41 tareas**: el avance pasa
+de **25/41 ≈ 61 %** a **26/41 ≈ 63 %**, y la **ETAPA 08 queda Completada con 4 de 4
+tareas aprobadas (100 %)** y sus **17 criterios de salida cumplidos**.
+
+**Qué entrega.** Los procedimientos de operación del laboratorio AWS local, ejercitados
+de verdad contra él:
+
+- **Cinco runbooks**, ahora **Vigentes**:
+  [crear](../runbooks/deployment-create.md),
+  [validar](../runbooks/deployment-validate.md),
+  [revertir](../runbooks/deployment-rollback.md),
+  [destruir](../runbooks/deployment-destroy.md) y
+  [recuperar](../runbooks/deployment-recovery.md).
+- **Destino explícito y obligatorio.** `--modo` dejó de tener valor por omisión: omitirlo
+  termina en **exit 2** y `--modo production` en **exit 1**, antes de leer el artefacto,
+  de invocar Terraform y de cualquier salida a la red.
+- **Perímetro efectivo, no declarado.** El binding publicado de Floci se inspecciona
+  contra Docker y debe ser exactamente `4566/tcp -> 127.0.0.1:<puerto>`; `0.0.0.0`, `::`,
+  una dirección de LAN o un binding auxiliar abortan.
+- **Aprobación humana ligada al plan.** Una operación protegida solo aplica tras escribir
+  `APLICAR <sha256 completo del plan>`. No existe `--force`, no se acepta una respuesta
+  abreviada y una entrada no interactiva aborta.
+- **Revalidación antes de cada operación Terraform.** Destino, perímetro e identidad se
+  vuelven a comprobar antes de `init`, `plan`, `apply` y `destroy`; si el destino cambió
+  desde la validación inicial, la operación se detiene.
+- **Inspección por AWS SDK.** `boto3` se extrae temporalmente del ZIP canónico de
+  `Task/024` —validando rutas, escape y enlaces— en lugar de instalarse o heredarse del
+  host.
+- ***Drift* controlado y estrecho.** Un único parámetro SSM ficticio se elimina por API y
+  se reconcilia; el analizador rechaza cualquier cambio colateral.
+
+**Ciclo real ejecutado.** `21 added, 0 changed, 0 destroyed`; `GET /health` = **200** por
+API Gateway v2 → Lambda → *handler*; inventario con `boto3/1.43.82`; idempotencia con
+exit 2 **únicamente** por la diferencia **H-025-1** ya aceptada; *drift* introducido y
+reconciliado (`1 added, 3 changed`); **primer `destroy`** de 21 recursos con **ausencia
+verificada por API**; **reconstrucción** `21 added` con segundo `/health` = **200**;
+**segundo `destroy`** de 21; retirada con **0 contenedores, 0 redes y 0 volúmenes**.
+
+**Validaciones.** **202/202** pruebas —162 del laboratorio y 40 del gate de seguridad—,
+`terraform fmt -check -recursive` y `validate` correctos, Compose del laboratorio válido,
+compilación de los 12 scripts Python sin escribir caché, **293 destinos Markdown sin
+ningún enlace roto** y **Gitleaks 8.30.1 en 0 hallazgos**, tanto sobre el historial
+completo como sobre los 213 archivos del entregable.
+
+**Dos defectos propios, encontrados ejecutando de verdad y corregidos con regresión
+permanente:**
+
+- **DEF-026-1** — importar desde el ZIP cargaba el código de `boto3`, pero `botocore` no
+  podía abrir físicamente `botocore/data/endpoints.json` y lanzaba `DataNotFoundError`.
+  Se corrigió extrayendo el ZIP a un directorio temporal con validación de rutas y
+  purgándolo al terminar; las pruebas rechazan *ZIP Slip*.
+- **DEF-026-2** — al recrear el SSM eliminado, su ARN queda desconocido hasta el `apply` y
+  Terraform mostraba también la política IAM como actualización dependiente. El analizador
+  **abortó antes de aplicar**, que es la conducta correcta. Se admite exclusivamente esa
+  dirección, tipo y atributo, y **solo** como desconocido.
+
+**El rollback real NO se ejecutó, y no se fingió.** `Task/024` introdujo el primer
+artefacto desplegable canónico y no versionó un ZIP histórico: entre `Task/023` y
+`Task/024` solo se añadió el empaquetador, mientras `app/` y las dependencias
+desplegables no cambiaron. Reconstruir ese *ref* produciría el mismo código, no una
+versión operacional distinta, y el plan no actualizaría Lambda; el gate
+`exigir_actualizacion_de_lambda` lo rechaza. El mecanismo está implementado y sus
+controles negativos pasan: lo que falta es la **precondición**, no la capacidad. Queda
+como **DT-026-1**, cuyo propietario es la primera tarea posterior a `Task/024` que cambie
+`app/` o las dependencias desplegables.
+
+**Decisiones.** **D-026-A** a **D-026-J** pasan de *Propuesta* a **Aceptadas y Vigentes**,
+**sin ADR nuevo**: no hay decisión arquitectónica nueva, porque las dos correcciones de
+código hacen cumplir controles que ya estaban aprobados.
+
+**Lo que esta aprobación NO significa.** **Cero cuentas, credenciales y recursos AWS
+reales.** El modo `production` permanece **bloqueado**; el bucket S3 del backend de estado
+**no existe** y requiere un *bootstrap* posterior. Privacidad de S3, *enforcement* de IAM,
+cifrado real de `SecureString`, alarmas, cuotas, latencia y costos siguen siendo
+**AWS-only**: la lectura anónima del bucket devolvió 200 porque Floci no aplica esa
+autorización, lo que demuestra configuración aceptada, **no** privacidad. **Nada de lo
+observado en el emulador es hecho de AWS real**: sigue siendo hipótesis hasta la
+**ETAPA 10** (ADR-006, límite 5).
+
+**Deuda registrada:** **DT-026-1** (rollback sin precondición), **DT-026-2** (bucket de
+estado inexistente), **DT-026-3** (modo `production` bloqueado por diseño), **DT-026-4**
+(privacidad S3, IAM y cifrado sin validar), **DT-026-5** (**H-025-1** vigente) y
+**DT-026-6** (`tmp/` conserva el *venv* de auditoría de `Task/018`).
+
+[Ficha](../tasks/TASK-026-deployment-runbooks.md) ·
+[Reporte](../task-reports/TASK-026-report.md)
+
+---
+
+## Registro de aprobación previo — `Task/024-Artefacto-ZIP-Lambda`
 
 **Estado: Aprobada** el **2026-09-13** mediante
 `approved: Task/024-Artefacto-ZIP-Lambda`. **Cuenta en las 41 tareas**: el avance pasa de
@@ -2204,7 +2297,7 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 05 — Calidad y Seguridad | 3 | 3 | **100 %** — **completada** |
 | 06 — Integración Continua | 3 | **3** | **100 %** — **completada** el 2026-09-12 (`Task/020.3`) |
 | 07 — Validación Local | 1 | **1** | **100 %** — **completada** el 2026-09-12 (`Task/022`) |
-| 08 — Preparación Cloud + AWS Local Parity | 4 | **3** | **75 %** — **En progreso**; `Task/025` **Aprobada** el 2026-09-14, `Task/026` **Pendiente, no iniciada** |
+| 08 — Preparación Cloud + AWS Local Parity | 4 | **4** | **100 %** — **completada** el 2026-09-15 (`Task/026`) |
 | 09 — Cuentas y Seguridad Cloud | 3 | 0 | 0 % |
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
@@ -2215,10 +2308,10 @@ Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **16** — la siguiente es `Task/026`, **no iniciada** |
+| Pendiente | **15** — la siguiente es `Task/027`, **no iniciada** |
 | En progreso | 0 |
 | Lista para validación | 0 |
-| **Aprobada** | **25** |
+| **Aprobada** | **26** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |
@@ -2417,9 +2510,9 @@ Distribución por estado:
 | `Task/021-CI-Infraestructura` | 06 | infra | **Aprobada** (2026-09-12) |
 | `Task/022-Validacion-Local-Production-Like` | 07 | backend, infra (frontend en solo lectura) | **Aprobada** (2026-09-12) |
 | `Task/023-Compatibilidad-FastAPI-Lambda` | 08 | backend, infra (documentación) | **Aprobada** (2026-09-13) |
-| `Task/024-Artefacto-ZIP-Lambda` | 08 | backend | Pendiente |
-| `Task/025-Terraform-Cloud` | 08 | infra | Pendiente |
-| `Task/026-Runbooks-de-Despliegue` | 08 | infra | Pendiente |
+| `Task/024-Artefacto-ZIP-Lambda` | 08 | backend | **Aprobada** (2026-09-13) |
+| `Task/025-Terraform-Cloud` | 08 | infra | **Aprobada** (2026-09-14) |
+| `Task/026-Runbooks-de-Despliegue` | 08 | infra | **Aprobada** (2026-09-15) |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | 09 | infra | Pendiente |
 | `Task/028-GitHub-OIDC-AWS` | 09 | infra | Pendiente |
 | `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | 09 | infra | Pendiente |

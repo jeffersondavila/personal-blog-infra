@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 08 |
-| **Estado** | **En progreso** desde el 2026-09-13 (`Task/023`); `Task/024` **Aprobada** el 2026-09-13; `Task/025` **Aprobada** el 2026-09-14. Las **Aprobadas** pasan de **2** a **3**. **La etapa NO queda completada:** `Task/026` sigue **Pendiente, no iniciada** |
+| **Estado** | **Completada** el 2026-09-15. `Task/023` **Aprobada** el 2026-09-13; `Task/024` **Aprobada** el 2026-09-13; `Task/025` **Aprobada** el 2026-09-14; `Task/026` **Aprobada** el 2026-09-15 mediante `approved: Task/026-Runbooks-de-Despliegue`. **4 aprobadas de 4** |
 | **Dependencias** | [ETAPA 07](STAGE-07-local-validation.md) |
 | **Tareas** | 4 |
-| **Aprobadas** | **3** |
-| **Avance** | **75 %** |
+| **Aprobadas** | **4** |
+| **Avance** | **100 %** |
 | **Hito que completa** | Artefactos e infraestructura como código listos y **ejecutados en un laboratorio AWS local**, sin cuentas ni recursos reales. |
 
 > **Nota de alcance — 2026-08-15.** El nombre y el objetivo de la etapa se ampliaron en
@@ -93,8 +93,9 @@ desarrollo. El *handler* `app.lambda_handler.handler` respondió **200** a un ev
 **HTTP API v2** `GET /health` ejecutado **desde el ZIP extraído** en un proceso Linux con
 `-I -S -W error`, sin árbol de fuentes, sin `site-packages`, sin `.env` y sin credenciales;
 Argon2, Pillow y el driver binario de PostgreSQL se **ejercitaron**, y **tres controles
-negativos** demostraron que el aislamiento es real. `Task/025` y `Task/026` siguen
-**Pendientes**, y **D-12** sigue **ABIERTA**.
+negativos** demostraron que el aislamiento es real. Al cierre de `Task/024`, `Task/025`
+y `Task/026` seguían **Pendientes**; actualmente `Task/025` está **Aprobada** y
+`Task/026` quedó **Aprobada** el 2026-09-15. **D-12** sigue **ABIERTA**.
 
 **Depende de:** `Task/023` ✔ (**Aprobada** el 2026-09-13).
 **Repositorios:** `personal-blog-backend` —propiedad funcional— e infra (documentación).
@@ -175,7 +176,7 @@ Lo demostrado hasta ahora, ejecutando de verdad:
 > ejercitan. La [matriz de paridad](../architecture/aws-local-parity.md) §7 ya reflejaba
 > esta realidad: la fila **Lambda** se valida en `Task/024`, `Task/025` → `Task/032`.
 
-### `Task/026-Runbooks-de-Despliegue` — *Pendiente*
+### `Task/026-Runbooks-de-Despliegue` — **Aprobada** (2026-09-15)
 
 Procedimientos escritos de creación, validación, rollback, destrucción y recuperación,
 ampliados con: levantar el laboratorio, **validar el destino antes de actuar**,
@@ -184,36 +185,86 @@ reconstrucción, *troubleshooting*, transición futura a AWS real y **qué hacer
 emulador no tenga paridad suficiente**.
 
 **Depende de:** `Task/024`, `Task/025`. **Repositorio:** `personal-blog-infra`.
+[Ficha](../tasks/TASK-026-deployment-runbooks.md) ·
+[Reporte](../task-reports/TASK-026-report.md).
+
+La tarea se inició desde `main` actualizado y limpio, SHA base `940a5318…`, sólo en
+infra, y quedó **Aprobada** el 2026-09-15 mediante
+`approved: Task/026-Runbooks-de-Despliegue`. Sus cinco runbooks pasan a **Vigentes** y
+las decisiones **D-026-A** a **D-026-J** a **Aceptadas y Vigentes**, sin ADR nuevo. Con
+ella la etapa llega a **4 de 4 — 100 %** y el avance global a **26/41 ≈ 63 %**.
+
+Lo demostrado: ciclo real contra el laboratorio con **21 recursos**, `GET /health`
+**200**, inventario por SigV4 y por `boto3` extraído del ZIP canónico, *drift* controlado
+introducido y reconciliado, **dos `destroy`** con ausencia verificada por API y una
+reconstrucción intermedia, **0 residuos** Docker al retirar. **202/202** pruebas.
+**DEF-026-1** y **DEF-026-2**, descubiertos durante la ejecución real, corregidos con
+regresión permanente. El **rollback real no se ejecutó**: Task/024 no dejó una versión
+desplegable anterior distinta, y el gate rechaza declarar un rollback sin actualización
+efectiva de Lambda. Queda como deuda con propietario, **sin fingir evidencia**.
+
+**La aprobación no habilita AWS real:** el modo `production` sigue bloqueado y todo lo
+observado en Floci sigue siendo hipótesis hasta la ETAPA 10.
 
 ## Criterios de salida de la etapa
 
-- [ ] El backend responde igual ejecutado localmente y a través del adaptador Lambda.
-      *Evidencia acumulada, **pendiente de aprobación**: `Task/023` recorrió el flujo
+- [x] El backend responde igual ejecutado localmente y a través del adaptador Lambda.
+      *Evidencia acumulada y aprobada en `Task/023`–`Task/025`: `Task/023` recorrió el flujo
       administrativo real a través del adaptador **en proceso**, y `Task/025` obtuvo
       `{"status":"ok","service":"personal-blog-backend","version":"0.1.0"}` —**el mismo
       cuerpo byte a byte**— por dos caminos: `uvicorn` detrás de Traefik en el entorno local,
       y una **Lambda desplegada de verdad** detrás de API Gateway v2 en el laboratorio. La
       casilla **no se marca todavía**: marcar criterios de salida pertenece al cierre
-      aprobado ([`WORKFLOW.md`](../project-management/WORKFLOW.md) §8), y `Task/025` no está
-      aprobada. Queda además la porción que solo AWS real puede confirmar (`Task/032`).*
+      aprobado ([`WORKFLOW.md`](../project-management/WORKFLOW.md) §8), completado el
+      2026-09-15 con la aprobación de `Task/026`. Queda la porción que sólo AWS real puede
+      confirmar (`Task/032`).*
 - [x] El ZIP se construye de forma reproducible y respeta los límites de tamaño. *Cumplido por `Task/024`, **Aprobada** el 2026-09-13.*
 - [x] Los checksums del artefacto se registran. *Cumplido por `Task/024`, **Aprobada** el 2026-09-13.*
-- [ ] `terraform fmt -check` y `terraform validate` pasan en todos los módulos.
-- [ ] La definición de Terraform es **una sola**, con las diferencias local/AWS confinadas
+- [x] `terraform fmt -check` y `terraform validate` pasan en todos los módulos.
+      *Cumplido por `Task/025`, **Aprobada** el 2026-09-14, con CLI `1.16.2` y provider
+      `6.64.0`; revalidado en `Task/026`.*
+- [x] La definición de Terraform es **una sola**, con las diferencias local/AWS confinadas
       a la tabla de diferencias legítimas de [aws-local-parity.md](../architecture/aws-local-parity.md) §4.4.
-- [ ] `terraform init`, `plan` y `apply` **se ejecutan** contra el destino local.
-- [ ] Los recursos creados se **inspeccionan** con AWS CLI o SDK.
-- [ ] `terraform destroy` elimina el entorno y se **verifica la ausencia** de los recursos.
-- [ ] `terraform apply` **reconstruye** todo desde cero.
-- [ ] Se introduce al menos un ***drift* controlado** y se observa la reconciliación.
-- [ ] La **matriz de paridad** queda rellenada con evidencia real, sin ninguna celda de
-      «paridad completa».
-- [ ] Existen **guardas *fail-closed*** que impiden actuar sobre AWS real por accidente.
-- [ ] La versión del emulador está **fijada**, nunca `latest`.
-- [ ] **Ningún recurso cloud ha sido creado. Ninguna cuenta AWS ha sido creada.**
-- [ ] **No se han usado credenciales AWS reales** en ningún punto de la etapa.
-- [ ] Existe un runbook para cada operación: crear, validar, revertir, destruir, recuperar.
-- [ ] Los runbooks incluyen el criterio de decisión para hacer rollback.
+      *Cumplido por `Task/025`: un solo grafo de **21 recursos**, sin módulos duplicados ni
+      recursos específicos de Floci.*
+- [x] `terraform init`, `plan` y `apply` **se ejecutan** contra el destino local.
+      *Cumplido por `Task/025` y repetido en `Task/026`: `21 added, 0 changed, 0 destroyed`.*
+- [x] Los recursos creados se **inspeccionan** con AWS CLI o SDK.
+      *Cumplido por `Task/026`: inventario por cliente SigV4 propio y por `boto3/1.43.82`
+      extraído del ZIP canónico de `Task/024`, contra endpoints loopback.*
+- [x] `terraform destroy` elimina el entorno y se **verifica la ausencia** de los recursos.
+      *Cumplido por `Task/025` y `Task/026`: **dos** `destroy` de 21 recursos, con ausencia
+      consultada contra las APIs de S3, SSM, IAM, Lambda, API Gateway y Logs.*
+- [x] `terraform apply` **reconstruye** todo desde cero.
+      *Cumplido por `Task/025` y `Task/026`: reconstrucción `21 added` y segundo
+      `GET /health` = **200**.*
+- [x] Se introduce al menos un ***drift* controlado** y se observa la reconciliación.
+      *Cumplido por `Task/026`: eliminación por API de `/blog-lab/local/storage_region` y
+      reconciliación estrecha — `1 added, 3 changed, 0 destroyed`— con un analizador que
+      rechaza cualquier cambio colateral.*
+- [x] La **matriz de paridad** queda rellenada con evidencia real, sin ninguna celda de
+      «paridad completa». *Cumplido por `Task/025`; ninguna tarea de la etapa declaró
+      paridad completa, y `Task/026` mantiene la distinción entre hipótesis local y
+      evidencia AWS.*
+- [x] Existen **guardas *fail-closed*** que impiden actuar sobre AWS real por accidente.
+      *Cumplido por `Task/025` y endurecido en `Task/026`: `--modo` obligatorio,
+      `production` rechazado, endpoints cerrados, identidad `000000000000` comprobada
+      contra STS y revalidación completa antes de cada `init`, `plan`, `apply` y
+      `destroy`.*
+- [x] La versión del emulador está **fijada**, nunca `latest`.
+      *Fijada por digest desde `Task/023`; el Compose exige `LAB_EMULADOR_DIGEST` y falla
+      si falta.*
+- [x] **Ningún recurso cloud ha sido creado. Ninguna cuenta AWS ha sido creada.**
+      *Cierto en las cuatro tareas de la etapa.*
+- [x] **No se han usado credenciales AWS reales** en ningún punto de la etapa.
+      *Las guardas **exigen** las credenciales ficticias y abortan si el entorno trae
+      `AWS_PROFILE`, `AWS_SESSION_TOKEN` o un endpoint externo.*
+- [x] Existe un runbook para cada operación: crear, validar, revertir, destruir, recuperar.
+      *Cumplido por `Task/026`: los cinco `docs/runbooks/deployment-*.md`, **Vigentes**
+      desde el 2026-09-15.*
+- [x] Los runbooks incluyen el criterio de decisión para hacer rollback.
+      *[deployment-rollback.md](../runbooks/deployment-rollback.md) §1 dice cuándo hacer
+      rollback y, explícitamente, cuándo **no** hacerlo.*
 
 ## Fuera del alcance de la etapa
 
