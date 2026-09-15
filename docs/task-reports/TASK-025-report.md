@@ -768,10 +768,15 @@ medición **sí** se reverificó hoy, fila por fila, y es el que consta arriba.
 
 **No se ejecutó `push`.** No hay commits, ni rama publicada, ni pull request.
 
-**Tamaño del cambio.** `git status --porcelain` muestra **57 entradas** con todo en el índice,
-y `git diff --cached --stat HEAD` informa *57 files changed, 10491 insertions(+), 57
-deletions(-)*. Los dos archivos que faltaban respecto a la cifra anterior son los de §23:
+**Tamaño del cambio.** `git diff --shortstat main..HEAD` informa *57 files changed, 10512
+insertions(+), 62 deletions(-)* repartidos en los commits de esta rama: el grafo de Terraform,
+el laboratorio, los gates de CI y S-09, y el cierre documental. Los dos archivos que faltaban
+respecto a la cifra de la revisión —55 archivos— son los de §23:
 `laboratorio/.env.laboratorio.example` y `tests/laboratorio/ejemplo_canonico_de_aws.py`.
+
+> *La cifra que esta sección declaró durante la revisión previa —10491 inserciones con todo
+> en el índice y sin commits— era cierta en ese momento. Los commits del cierre aprobado la
+> movieron, y la corrección consta aquí en vez de quedar desfasada.*
 
 ---
 
