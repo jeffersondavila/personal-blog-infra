@@ -213,7 +213,7 @@ AWS real conserva la autoridad final en Stage 10.
 - Cero cuentas, credenciales y recursos AWS reales.
 - Cero cambios rastreados en backend/frontend.
 - Cero segundo IaC.
-- Cero commit, push, merge, PR o aprobación.
+- Durante la fase previa a la aprobación: cero commit, push, merge, PR o aprobación.
 - Task/027 no iniciada.
 
 ## 10. Pasos de validación para el usuario

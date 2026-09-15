@@ -172,4 +172,4 @@ negativa —no existe versión anterior apta, y el aborto quedó registrado sin 
 6. Construcción del artefacto Task/024 sin cambios rastreados.
 7. Ensayo local completo y controles negativos.
 8. Ausencia final, retirada del laboratorio y auditoría Git.
-9. Reporte final **en progreso**, sin commit, push, PR ni aprobación.
+9. Durante la ejecución previa a la aprobación, el reporte final permaneció **en progreso**, sin commit, push, PR ni aprobación.
