@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 08 |
-| **Estado** | **En progreso** desde el 2026-09-13 (`Task/023`); `Task/024` **Aprobada** el 2026-09-13 |
+| **Estado** | **En progreso** desde el 2026-09-13 (`Task/023`); `Task/024` **Aprobada** el 2026-09-13; `Task/025` **Aprobada** el 2026-09-14. Las **Aprobadas** pasan de **2** a **3**. **La etapa NO queda completada:** `Task/026` sigue **Pendiente, no iniciada** |
 | **Dependencias** | [ETAPA 07](STAGE-07-local-validation.md) |
 | **Tareas** | 4 |
-| **Aprobadas** | **2** |
-| **Avance** | **50 %** |
+| **Aprobadas** | **3** |
+| **Avance** | **75 %** |
 | **Hito que completa** | Artefactos e infraestructura como código listos y **ejecutados en un laboratorio AWS local**, sin cuentas ni recursos reales. |
 
 > **Nota de alcance — 2026-08-15.** El nombre y el objetivo de la etapa se ampliaron en
@@ -102,7 +102,7 @@ negativos** demostraron que el aislamiento es real. `Task/025` y `Task/026` sigu
 [Ficha](../tasks/TASK-024-lambda-zip-artifact.md) ·
 [Reporte](../task-reports/TASK-024-report.md).
 
-### `Task/025-Terraform-Cloud` — *Pendiente*
+### `Task/025-Terraform-Cloud` — **Aprobada** (2026-09-14)
 
 Terraform **portable** con el provider oficial de AWS: una sola definición, dos destinos
 —configuración local hacia el emulador, configuración real hacia AWS— con módulos
@@ -120,7 +120,52 @@ Además, **`Task/025` amplía el workflow de CI creado en `Task/021`** con `terr
 y `terraform validate`: son sus primeros archivos `.tf` y por tanto la primera vez que
 esas verificaciones tienen algo real que comprobar.
 
-**Depende de:** `Task/022` **y `Task/024`**. **Repositorio:** `personal-blog-infra`.
+**Aprobada el 2026-09-14** mediante `approved: Task/025-Terraform-Cloud`. Todas sus
+decisiones pasan de **Propuesta** a **Aceptadas y Vigentes**, y el avance de la etapa pasa
+a **3 de 4 — 75 %**. La aprobación **incluye expresamente** las dos excepciones
+humanas —**H-025-1** del laboratorio y la temporal de S-09— y **no** convierte en hecho de
+AWS real nada de lo observado en el emulador: eso sigue siendo hipótesis hasta la
+ETAPA 10 (ADR-006, límite 5).
+
+> **S-09 quedó decidido el 2026-09-14.** El usuario autorizó una excepción **temporal y
+> limitada** de **79 identidades** — 70 del emulador, ligadas a su digest exacto, y 9 de
+> Terraform 1.16.2 `linux_amd64` —, registrada en el baseline canónico y revalidada con prueba
+> positiva y ocho controles negativos. **H-025-6** y **H-025-7** dejan de ser bloqueantes.
+>
+> **No** se declaran resueltos ni libres de riesgo: el residual sigue enumerado, el del binario
+> nativo del emulador ni se inventaría, y cada entrada lleva sus condiciones de reevaluación.
+>
+> **H-025-1 también quedó decidido el 2026-09-14.** El criterio de aceptación **7** (segundo
+> plan `exit 0`) **no se cumple literalmente**: `exit 2` por `aws_ssm_parameter.tags_all`,
+> diferencia demostrada del emulador y **sin** `ignore_changes`. El usuario lo **aceptó como
+> excepción explícita del laboratorio local**: **11 criterios en PASS literal y 1 en PASS con
+> excepción humana**, ningún FAIL.
+>
+> **No** significa que Terraform sea idempotente en Floci sin excepciones, ni que el criterio 7
+> sea un PASS literal, ni que el emulador reproduzca AWS. **AWS real deberá confirmar la
+> idempotencia definitiva.**
+>
+> **La revisión final quedó superada y no hay bloqueos.**
+
+Lo demostrado hasta ahora, ejecutando de verdad:
+
+| Qué | Evidencia |
+| --- | --- |
+| Un solo grafo | **21 recursos** en `terraform/`, con módulos compartidos por los dos destinos. Sin `terraform/local/` ni `terraform/production/` |
+| Herramienta | CLI `= 1.16.2` y provider `= 6.64.0`, constraints **exactas**; `sha256` verificado contra las sumas oficiales, con **firma GPG** válida de HashiCorp |
+| Lock | `.terraform.lock.hcl` **versionado** con los hashes de `linux_amd64` **y** `windows_amd64`; `.gitignore` corregido, porque lo ignoraba |
+| Ciclo | `init`, `fmt -check -recursive`, `validate`, `plan` (21 altas), `apply`, pruebas funcionales, segundo `plan`, `destroy`, **ausencia verificada por API**, **reconstrucción**, *smoke* y segundo `destroy` |
+| **Camino crítico (R-25)** | `GET /health` por **HTTP real** atravesando API Gateway v2 → Lambda → *handler* del ZIP de `Task/024`: **HTTP 200** con `{"status":"ok",…}`. **La combinación que la suite oficial del emulador no cubre funciona** |
+| *Fail-closed* | **112 pruebas** de las guardas y **13 controles negativos** de CLI que abortan **sin abrir ningún socket**; el modo `production` se **rechaza** |
+| Perímetro | Red de ejecución `internal`, comprobada lanzando un contenedor en ella: **sin salida TCP externa y sin acceso al rango link-local** de metadata |
+| Limitaciones registradas | Tres, **sin disimular**: el emulador no aplica la autorización de S3 (la lectura anónima devolvió **200**, no 403); descarta las etiquetas en `PutParameter`, lo que impide converger en `tags_all`; y no aplica políticas IAM |
+| Cuentas y recursos | **Cero recursos AWS reales. Cero credenciales reales.** |
+| **S-09 del emulador y de Terraform** | **Medido y temporalmente aceptado** por decisión del usuario del 2026-09-14: 79 identidades en el baseline canónico, ligadas al digest y al `sha256` exactos, con condiciones de reevaluación (**H-025-6**, **H-025-7**) |
+
+**Depende de:** `Task/022` **y `Task/024`**. **Repositorio:** `personal-blog-infra`
+(**único modificado**; backend y frontend en **solo lectura**).
+[Ficha](../tasks/TASK-025-terraform-cloud.md) ·
+[Reporte](../task-reports/TASK-025-report.md).
 
 > **Por qué también de `Task/024`** (corregido en `Task/005.5`). Los criterios de esta
 > tarea exigen aplicar y ejercitar **Lambda + API Gateway v2** contra el destino local.
@@ -143,6 +188,14 @@ emulador no tenga paridad suficiente**.
 ## Criterios de salida de la etapa
 
 - [ ] El backend responde igual ejecutado localmente y a través del adaptador Lambda.
+      *Evidencia acumulada, **pendiente de aprobación**: `Task/023` recorrió el flujo
+      administrativo real a través del adaptador **en proceso**, y `Task/025` obtuvo
+      `{"status":"ok","service":"personal-blog-backend","version":"0.1.0"}` —**el mismo
+      cuerpo byte a byte**— por dos caminos: `uvicorn` detrás de Traefik en el entorno local,
+      y una **Lambda desplegada de verdad** detrás de API Gateway v2 en el laboratorio. La
+      casilla **no se marca todavía**: marcar criterios de salida pertenece al cierre
+      aprobado ([`WORKFLOW.md`](../project-management/WORKFLOW.md) §8), y `Task/025` no está
+      aprobada. Queda además la porción que solo AWS real puede confirmar (`Task/032`).*
 - [x] El ZIP se construye de forma reproducible y respeta los límites de tamaño. *Cumplido por `Task/024`, **Aprobada** el 2026-09-13.*
 - [x] Los checksums del artefacto se registran. *Cumplido por `Task/024`, **Aprobada** el 2026-09-13.*
 - [ ] `terraform fmt -check` y `terraform validate` pasan en todos los módulos.
