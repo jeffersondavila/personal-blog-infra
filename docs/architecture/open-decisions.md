@@ -32,7 +32,7 @@ ADR.
 | D-03 | Biblioteca de componentes visuales | `Task/013` | **Resuelta** (2026-09-04) — **ninguna biblioteca de terceros**: CSS Modules más CSS Custom Properties |
 | D-04 | Editor Markdown | `Task/015` | **Resuelta** (2026-09-05) — `<textarea>` nativo y vista previa con `MarkdownContent` |
 | D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
-| D-06 | Backend de estado de Terraform | `Task/025` | Abierta |
+| D-06 | Backend de estado de Terraform | `Task/025` | **Resuelta** (2026-09-14) — estado **`local` fuera del árbol de Git y fuera del emulador** en el laboratorio; para AWS real, backend **`s3` con `use_lockfile = true`**, **sin DynamoDB** y con *bootstrap* separado. **El bucket de estado no existe todavía** |
 | D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
 | D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | Abierta |
 | D-09 | Herramienta concreta de rate limiting | `Task/011` · reforzado en `Task/018` | **Resuelta** (2026-09-01) — **contador de ventana fija en PostgreSQL**, por IP |
@@ -288,12 +288,66 @@ No requiere ADR: es una decisión local y reversible.
   (`Task/039`).
 - **Consideración:** un backend remoto exige un recurso creado antes que el resto — un
   problema de arranque que hay que resolver explícitamente.
-- **Aclaración añadida el 2026-08-15 (`Task/005.2`):** **sigue abierta.** El backend de
-  estado es la diferencia local/nube que **no se resuelve con un `tfvars`**: se configura en
+- **Aclaración añadida el 2026-08-15 (`Task/005.2`):** El backend de estado es la
+  diferencia local/nube que **no se resuelve con un `tfvars`**: se configura en
   `terraform init -backend-config=...`. Que el laboratorio local permita un backend
   compatible con S3 demuestra que la vía es practicable, **no** decide cuál usará
-  producción. La decisión sigue perteneciendo íntegramente a `Task/025`. Detalle:
+  producción. La decisión pertenece íntegramente a `Task/025`. Detalle:
   [aws-local-parity.md](aws-local-parity.md) §4.5.
+
+### Propuesta de resolución — `Task/025`, 2026-09-14
+
+> **Estado documental: RESUELTA y VIGENTE** desde el 2026-09-14, con la aprobación
+> `approved: Task/025-Terraform-Cloud`. El encabezado de esta sección se conserva como
+> *«Propuesta de resolución»* porque así se redactó y porque el contenido no cambió al
+> aprobarse; lo que cambió es su **estado**.
+>
+> **Lo aprobado es el mecanismo, no el recurso.** El bucket de estado de AWS **no
+> existe**, y que el backend compatible con S3 funcione en el laboratorio sigue siendo
+> **hipótesis hasta la ETAPA 10** (ADR-006, límite 5).
+
+**La dificultad real, que conviene nombrar antes de la propuesta.** `-backend-config` puede
+cambiar los **ajustes** de un backend, pero **no su tipo**. Elegir entre estado local y
+estado remoto obliga a que el bloque `backend { … }` sea distinto, y ese bloque es
+configuración de `init`, no una variable. Cualquier propuesta tiene que resolver eso sin
+partir en dos el grafo de recursos.
+
+**Mecanismo propuesto.** El lanzador del laboratorio genera **únicamente el bloque
+`backend`** —`terraform/backend.generado.tf`, ignorado por Git— justo antes de `init`, y
+pasa la ubicación con `-backend-config=path=…`. Lo generado se limita a la inicialización:
+los recursos, los módulos y las variables son fuente versionada y **el grafo sigue siendo
+uno solo**. Es la parte de la propuesta que ya está **ejecutada y demostrada** en el
+laboratorio, no solo escrita.
+
+**Destino local — implementado y ejercitado en `Task/025`:**
+
+| Aspecto | Decisión propuesta |
+| --- | --- |
+| Tipo de backend | `local` |
+| Ubicación del estado | **Fuera del árbol de Git** y **fuera del emulador**: directorio de caché del usuario, derivado del entorno. Nunca una ruta absoluta escrita en un archivo versionado |
+| Por qué fuera del emulador | Su almacenamiento es `memory` y se destruye con el contenedor. Guardar ahí el estado significaría **perder el registro de lo que hay que destruir** |
+| Bloqueo | El del backend `local` de Terraform, más un **cerrojo propio del lanzador** (`O_EXCL`) que garantiza **una sola operación escritora**: el ciclo toca además Docker, el emulador y el artefacto, fuera del alcance del bloqueo de estado |
+| Versionado | **Nunca.** El estado puede contener valores sensibles (S-10) |
+
+**Destino AWS real — propuesto, NO creado:**
+
+| Aspecto | Decisión propuesta |
+| --- | --- |
+| Tipo de backend | `s3` |
+| Bucket | **Privado y dedicado exclusivamente al estado**, separado del bucket de medios |
+| Protección | Versionado, cifrado, bloqueo de acceso público, mínimo privilegio |
+| Bloqueo | **`use_lockfile = true`** — bloqueo nativo en S3. **Sin tabla DynamoDB nueva**: sería un recurso más que crear, pagar y vigilar para algo que S3 ya sabe hacer |
+| *Bootstrap* | **Separado del grafo de la aplicación.** Un backend remoto exige que su propio bucket exista **antes** que todo lo demás; ese arranque es una tarea aparte |
+| Acceso desde CI | Mediante la identidad autorizada que definan `Task/028` y `Task/039`. Aquí no se concede ningún permiso |
+
+**Lo que esta propuesta NO hace:**
+
+- **No crea el bucket de estado en AWS.** No hay cuenta y no hay autorización.
+- **No migra** el estado del laboratorio a AWS. Estado local y estado real son mundos
+  separados: el del laboratorio describe recursos de un emulador que no existen en la nube.
+- **No decide** región, nombre del bucket ni política de retención: son de la ETAPA 10.
+- **No convierte** al laboratorio en prueba de que el backend `s3` funcionará en AWS. Que la
+  vía sea practicable en local es una hipótesis hasta la ETAPA 10 (ADR-006, límite 5).
 
 ## D-07 — Dominio concreto y DNS
 
