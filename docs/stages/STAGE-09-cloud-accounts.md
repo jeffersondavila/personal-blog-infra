@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 09 |
-| **Estado** | Pendiente |
+| **Estado** | **En progreso** — `Task/027` Aprobada, 1/3 tareas aprobadas |
 | **Dependencias** | [ETAPA 08](STAGE-08-cloud-ready.md) |
 | **Tareas** | 3 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | 1 |
+| **Avance** | ≈ 33 % |
 | **Hito que completa** | Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a AWS sin credenciales permanentes** (OIDC, `Task/028`). El modelo de identidad del **VPS hacia AWS** se decide en `Task/029` (**D-16**, abierta) y **Cloudflare y el proveedor del VPS pueden exigir otro mecanismo** (`Task/039`). *(Acotado en `Task/005.6`: el hito afirmaba «acceso sin credenciales permanentes» sin restringir el sujeto, lo que prejuzgaba decisiones todavía abiertas.)* |
 
 ---
@@ -27,11 +27,54 @@ inesperada. Presupuestos, alarmas y MFA van **antes** que el primer recurso.
 
 ## Tareas
 
-### `Task/027-Configurar-Cuentas-y-Presupuestos` — *Pendiente*
+### `Task/027-Configurar-Cuentas-y-Presupuestos` — *Aprobada el 2026-09-17*
 
 Cuentas AWS y Cloudflare, MFA en todos los accesos, presupuestos y alertas de costo.
 
 **Depende de:** `Task/026`. **Repositorio:** `personal-blog-infra` (documentación).
+
+Iniciada el 2026-09-15 desde `main` limpio (`67c19049…`). Gates A/B completos con evidencia
+saneada. AWS está en Free Plan con créditos activos y Cloudflare en Free. Gate C conserva
+ese estado mediante un IAM user de entrada sin permisos directos que sólo puede asumir con
+MFA un rol administrativo de una hora. Organizations/Identity Center y access keys quedan
+excluidos. El usuario ejecutó y verificó manualmente C.1–C.13, incluida la identidad STS,
+las auditorías de configuración, la conservación del Free Plan y el cierre total de las
+sesiones. Gate D fijó D-13, resuelta con la aprobación de Task/027: USD 20/mes global y
+USD 5/mes AWS, con cuatro alertas y sin funciones pagas/automáticas. Gate E fue
+autorizado el 2026-09-16; E.1–E.4
+reconfirmaron login IAM/MFA, rol/STS y Free Plan. E.5 descartó el nombre duplicado en
+Budgets. E.6 abrió el asistente avanzado de Cost budget, sin crear. La vista previa mostró
+acceso denegado a Cost Explorer; no se habilitó manualmente. E.7 completó los detalles
+básicos sin enviar; E.8 se detuvo sin cambios: el selector de Credit/Refund devolvió
+`User not enabled for cost explorer access`, sin filtro aplicado. Un posible efecto
+automático de Cost Explorer/Anomaly Detection fue autorizado acotadamente por el usuario;
+tras crear se auditó read-only y se decidió por separado conservar el par 1/1. E.8a
+CloudShell confirmó el rol y la ausencia del budget; E.8b validó localmente el esquema
+con un destinatario ficticio. El usuario confirmó que E.8c pasó preflight y que la única
+llamada `CreateBudget` fue exitosa con destinatario introducido privadamente.
+No se repetirá la creación.
+En E.8d, `DescribeBudget` confirmó con booleanos saneados el nombre, tipo Cost, período
+mensual recurrente, límite fijo USD 5, métrica UnblendedCost y filtro exacto que excluye
+solo Credit/Refund. E.8e-R3 confirmó cuatro alertas base intactas, un destinatario EMAIL
+deseado por alerta, cero SNS y configuración del presupuesto sin cambios observables tras
+cuatro sustituciones autorizadas. El tipo porcentual no fue expuesto por la API, pero E.8f
+lo confirmó para las cuatro alertas mediante inspección visual read-only, sin cambios.
+E.9 observó read-only un monitor y una suscripción de Cost Anomaly Detection, sin cambios.
+E.9a confirmó monitor administrado por AWS para servicios AWS y suscripción vinculada de
+resumen diario solo por EMAIL, sin SNS. El par coincide con la configuración automática
+documentada por AWS, aunque su origen causal no está probado. En E.9b el usuario decidió
+conservarlo sin cambios como protección secundaria; no autorizó personalizaciones.
+E.10 confirmó read-only cero Budget Actions para el presupuesto exacto. E.11 reconfirmó
+visualmente Free Plan activo con días y créditos restantes positivos, sin upgrade ni
+cambios. E.12 reconfirmó cero access keys del IAM user de entrada. E.13 cerró CloudShell
+y todas las sesiones AWS; el usuario atestó cero recursos de aplicación creados por
+Task/027, sin pretender un inventario exhaustivo de la cuenta. La validación local de
+Git, enlaces y patrones de secretos pasó; el usuario aprobó Task/027 el 2026-09-17.
+**0 mutaciones ejecutadas por el agente;
+1 tarea aprobada en esta etapa.**
+
+[Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) ·
+[Reporte](../task-reports/TASK-027-report.md)
 
 ### `Task/028-GitHub-OIDC-AWS` — *Pendiente*
 
@@ -93,9 +136,12 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 
 ## Criterios de salida de la etapa
 
-- [ ] MFA activo en la cuenta raíz de AWS y en Cloudflare.
-- [ ] La cuenta raíz de AWS no se usa para operar; existe un usuario/rol administrativo.
-- [ ] Presupuesto mensual definido con alertas por umbral.
+- [x] MFA activo en la cuenta raíz de AWS y en Cloudflare — evidencia humana saneada de
+      login con TOTP; Task/027 aprobada.
+- [x] La cuenta raíz de AWS no se usa para operar; existe un usuario/rol administrativo —
+      verificado en Gate C; Task/027 aprobada.
+- [x] Presupuesto mensual definido con alertas por umbral — configuración y cuatro
+      destinatarios verificados en Gate E; Task/027 aprobada.
 - [ ] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
       **en GitHub**. Esta afirmación se limita a GitHub Actions: **no** describe todavía
       cómo el VPS accederá a AWS (**D-16**).
