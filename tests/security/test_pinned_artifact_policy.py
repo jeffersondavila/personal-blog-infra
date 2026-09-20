@@ -376,7 +376,7 @@ class CoexistenciaTests(unittest.TestCase):
             (ROOT / "security/vulnerability-baseline.json").read_text(encoding="utf-8")
         )
         por_clave = {i["key"]: i for i in datos["images"]}
-        self.assertEqual(len(por_clave["minio"]["accepted_findings"]), 100)
+        self.assertEqual(len(por_clave["minio"]["accepted_findings"]), 99)
         self.assertEqual(len(por_clave["portainer"]["accepted_findings"]), 16)
         for clave in ("postgres", "traefik"):
             self.assertEqual(por_clave[clave]["policy"], "zero-tolerance")

@@ -362,11 +362,24 @@ jobs:
           docker build --build-arg "POSTGRES_IMAGE=${postgres_base}" -t "$IMAGEN_POSTGRES_CI" ./docker/postgres
           docker build --build-arg "TRAEFIK_IMAGE=${traefik_base}" -t "$IMAGEN_TRAEFIK_CI" ./docker/traefik
 
+          # MinIO es un derivado reproducible de upstream, no una imagen propia
+          # sujeta a tolerancia cero. Se construye sin cache, como OCI local y
+          # sin publicar; el verificador exige que solo cambie /usr/bin/minio.
+          mkdir -p /tmp/minio-oci
+          docker buildx build --platform linux/amd64 --no-cache --pull \
+            --provenance=false --sbom=false \
+            --build-arg SOURCE_DATE_EPOCH=1757261589 \
+            --output type=oci,dest=/tmp/minio.oci.tar,rewrite-timestamp=true \
+            ./docker/minio
+          python3 scripts/minio/artifact.py \
+            --manifest docker/minio/build-manifest.json --root . \
+            verify --oci /tmp/minio.oci.tar
+          tar -xf /tmp/minio.oci.tar -C /tmp/minio-oci
+
       - name: Scan every infrastructure image
         run: |
           set -euo pipefail
           mkdir -p /tmp/trivy-reports
-          minio="quay.io/minio/minio:$(grep -m1 '^MINIO_VERSION=' .env.example | cut -d= -f2-)"
           portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
           # El emulador del laboratorio se escanea por su DIGEST exacto, que es
           # tambien la identidad a la que esta ligada su aceptacion temporal.
@@ -379,9 +392,31 @@ jobs:
           }
           escanear postgres "$IMAGEN_POSTGRES_CI"
           escanear traefik "$IMAGEN_TRAEFIK_CI"
-          escanear minio "$minio"
+          echo "::group::Trivy derivado MinIO"
+          trivy image --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \
+            --format json --output /tmp/trivy-reports/minio.json \
+            --input /tmp/minio-oci
+          python3 scripts/minio/artifact.py \
+            --manifest docker/minio/build-manifest.json --root . \
+            attest --oci /tmp/minio.oci.tar --report /tmp/trivy-reports/minio.json
+          echo "::endgroup::"
           escanear portainer "$portainer"
           escanear floci "$floci"
+
+      - name: MinIO SBOM and deterministic provenance
+        run: |
+          set -euo pipefail
+          trivy image --format cyclonedx --output /tmp/minio-sbom.raw.json \
+            --input /tmp/minio-oci
+          python3 scripts/minio/artifact.py \
+            --manifest docker/minio/build-manifest.json --root . \
+            canonicalize-sbom --input /tmp/minio-sbom.raw.json \
+            --output /tmp/minio-sbom.cyclonedx.json
+          python3 scripts/minio/artifact.py \
+            --manifest docker/minio/build-manifest.json --root . \
+            provenance --oci /tmp/minio.oci.tar \
+            --sbom /tmp/minio-sbom.cyclonedx.json \
+            --output /tmp/minio-provenance.intoto.json
 
       # El binario de Terraform tambien entra en S-09: la norma exige versiones
       # fijadas Y escaneo, no solo lo primero. No es una imagen, asi que se
