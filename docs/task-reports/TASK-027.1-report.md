@@ -565,6 +565,91 @@ La tarea quedó **Aprobada** el 2026-09-20.
 
 ---
 
+## 12b. Addendum — 2026-09-20: portabilidad del CI (post-aprobación, pre-merge)
+
+**No reescribe nada de lo anterior.** Es un hecho posterior a la aprobación y anterior a la
+fusión del pull request.
+
+### Qué falló
+
+Tras integrar la tarea en `dev`, `CI Infra` quedó **rojo** en el paso «Build the project
+images» (run `35543639572`, sobre `853ff90`):
+
+```
+#0 building with "default" instance using docker driver
+ERROR: failed to build: OCI exporter is not supported for the docker driver.
+Switch to a different driver, or turn on the containerd image store, and try again.
+```
+
+`personal-blog-postgres:ci` y `personal-blog-traefik:ci` **construyeron correctamente**; el
+log muestra `#7 DONE 1.0s` para traefik justo antes del error. Falla el comando siguiente,
+el `docker buildx build --output type=oci` del derivado.
+
+### Causa
+
+El workflow no creaba ni seleccionaba ningún builder, así que buildx usaba la instancia
+`default`, cuyo **driver `docker`** no implementa exportadores. El exportador OCI exige un
+driver `docker-container`.
+
+**Por qué no se detectó localmente:** la validación usó builders `docker-container`
+explícitos y, además, Docker Desktop tenía el *image store* de containerd. Dos motivos
+independientes para funcionar que el runner no tiene. El gate de YAML era estructural
+—parseo y presencia de `name`/`run`—, no semántico, y `actionlint` no forma parte del flujo
+ni conoce los drivers de buildx.
+
+### Corrección aplicada
+
+Un builder **aislado** solo para este paso, con la imagen de BuildKit **fijada por digest**:
+
+- `IMAGEN_DE_BUILDKIT: moby/buildkit@sha256:28a898…41d8` — **índice multi-arquitectura**
+  verificado contra el registro, que contiene `linux/amd64`
+  (`sha256:040d3412…`) y corresponde a **BuildKit v0.32.2**, commit `991535e0…`: la **misma**
+  versión que produjo la identidad OCI verificada de esta tarea. No se usa la etiqueta
+  `buildx-stable-1`, que es móvil.
+- **No** se pasa `--use`: el builder por defecto sigue siendo el `docker`, de modo que
+  `docker build` de Postgres y Traefik **no cambia** y sus imágenes siguen quedando en el
+  daemon, que es donde Trivy las busca.
+- El builder se retira con un `trap` que **conserva y reemite** el código de salida real, sin
+  enmascarar un fallo del build.
+- **No** se habilita containerd globalmente en el runner.
+
+### Lo que NO cambia — verificado, no supuesto
+
+Se reconstruyó el OCI con el builder dedicado, **sin caché y con `--pull`**, igual que el CI.
+Es la **cuarta** construcción independiente de esta tarea:
+
+| Comprobación | Resultado |
+| --- | --- |
+| `manifest_digest` | `sha256:84c67632…059129` — **idéntico** |
+| `config_digest` | `sha256:25c832aa…882a2` — **idéntico** |
+| `binary_sha256` / tamaño | `9437671a…` / 111 145 144 — **idénticos** |
+| Número y **orden** de layers | 10, mismos digests y mismos tamaños |
+| `mediaType` | `application/vnd.oci.image.manifest.v1+json` |
+| `artifact.py verify` | **exit 0** |
+| `artifact.py compare` (OCI previo vs nuevo) | `"reproducible": true` |
+| `docker/minio/build-manifest.json` | **sin cambios** (`4e47cebc…`) |
+| `security/vulnerability-baseline.json` | **sin cambios** (`69ee2b6d…`) |
+| Dockerfile, parche, fuente, `amqp091-go` | **sin cambios** |
+| Imagen publicada en GHCR | **sin tocar**; el paquete sigue **privado** |
+
+Si el digest hubiera cambiado aunque fuera un byte, `artifact.py verify` lo habría rechazado
+en el propio CI: el control es *fail-closed*.
+
+### Regresión añadida
+
+`tests/security/test_workflow_build_drivers.py` — **14 pruebas** que comprueban el
+**contrato del workflow**, no el entorno. Un `docker buildx build` con exportador
+incompatible con el driver `docker` (`oci`, `tar`, `local`) queda en rojo si: no declara
+`--builder`; usa un builder no creado antes en el workflow; ese builder no es
+`docker-container`; su imagen de BuildKit no va por digest; o se crea con `--use`.
+
+Incluye **cinco controles negativos demostrados**: cada uno manipula el workflow y exige que
+la verificación **falle**, empezando por quitar el `--builder`, que es exactamente el defecto
+que rompió el CI. Una prueba explícita garantiza que el contrato **no** se impone a los
+builds de Postgres y Traefik.
+
+---
+
 ## 13. Qué falta para cerrar
 
 | Paso | Estado | Responsable |

@@ -12,7 +12,7 @@
 | **Rama base** | **`main`** — única base permitida |
 | **SHA base** | **`67c1904`** (`= main = origin/main` al crearla y al cerrar esta fase) |
 | **Fecha de inicio** | 2026-09-17 (Guatemala) |
-| **Última actualización** | 2026-09-20 |
+| **Última actualización** | 2026-09-20 (incluye el addendum de portabilidad del CI, §16b) |
 | **Fecha de aprobación** | **2026-09-20** |
 | **Expresión de aprobación** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
 | **Reporte** | [TASK-027.1-report.md](../task-reports/TASK-027.1-report.md) |
@@ -99,6 +99,7 @@ dejó de ser irremediable.
 | Nota de gobernanza y licencia | infra | `docker/minio/README.md` |
 | Verificador, atestador, SBOM canónico, procedencia y comparador | infra | `scripts/minio/artifact.py` |
 | Gobernanza fail-closed del derivado | infra | `tests/security/test_minio_derivative.py` |
+| Contrato del builder OCI del workflow | infra | `tests/security/test_workflow_build_drivers.py` |
 | Atestado nominal en el comparador S-09 | infra | `scripts/security/vulnerability_gate.py` |
 | Baseline con 99 identidades y atestado | infra | `security/vulnerability-baseline.json` |
 | Gates de construcción, escaneo, SBOM y procedencia | infra | `.github/workflows/ci-infra.yml` |
@@ -266,6 +267,34 @@ aplicables en verde**, sin ninguno parcial presentado como completo.
    su registro. Cuando el usuario decida el orden de integración, `STATUS.md` y `ROADMAP.md`
    exigirán resolución manual de conflictos. Queda descrito, no resuelto por iniciativa
    propia.
+
+## 16b. Addendum — 2026-09-20: portabilidad del CI
+
+Posterior a la aprobación y anterior a la fusión del PR. **No reescribe la evidencia
+anterior.**
+
+`CI Infra` quedó rojo al integrar la tarea en `dev`: `docker buildx build --output type=oci`
+cayó en el builder `default` del runner, cuyo **driver `docker` no implementa exportadores**
+(«OCI exporter is not supported for the docker driver»). Postgres y Traefik construyeron
+bien; falla solo el paso del derivado.
+
+Localmente no se detectó porque allí se usaron builders `docker-container` explícitos y el
+*image store* de containerd: dos motivos para funcionar que el runner no tiene.
+
+**Corrección mínima:** un builder aislado `minio-oci`, driver `docker-container`, con la
+imagen de BuildKit fijada por **digest del índice multi-arquitectura**
+(`moby/buildkit@sha256:28a898…41d8`, **v0.32.2**, la misma que produjo la identidad
+verificada), **sin `--use`**, retirado con un `trap` que conserva el código de salida real.
+Los `docker build` de Postgres y Traefik **no se tocan**.
+
+**No cambia nada de la identidad:** una cuarta construcción sin caché y con `--pull` devolvió
+el mismo `manifest_digest`, `config_digest`, binario, y el mismo número y orden de layers;
+`artifact.py compare` da `"reproducible": true`. `build-manifest.json`, el baseline, el
+Dockerfile, el parche y la imagen publicada en GHCR quedan **intactos**.
+
+**Regresión añadida:** `tests/security/test_workflow_build_drivers.py`, 14 pruebas con cinco
+controles negativos demostrados. Detalle en el
+[reporte §12b](../task-reports/TASK-027.1-report.md).
 
 ## 17. Pasos de validación para el usuario
 
