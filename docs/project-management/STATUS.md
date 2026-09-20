@@ -1,6 +1,14 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-17
+**Última actualización:** 2026-09-20 — mantenimiento `Task/027.1-Corregir-Regresion-S09-MinIO`
+**APROBADO** mediante `approved: Task/027.1-Corregir-Regresion-S09-MinIO`. **No cuenta entre las
+41 tareas y no altera el avance**, que lo fija la última tarea canónica aprobada. Su imagen
+derivada quedó **publicada y verificada** en GHCR el 2026-09-19, en paquete **privado** cuya
+visibilidad no se modificó.
+
+**Actualización anterior:** 2026-09-17 — `Task/027-Configurar-Cuentas-y-Presupuestos`
+**Aprobada**; su detalle está en la tabla de abajo y en su propia sección, y su pull request
+`#47` sigue **abierto y sin fusionar**.
 
 ---
 
@@ -31,7 +39,8 @@
 | **Tarea aprobada de la ETAPA 03** | `Task/011-Autenticacion-Administrativa` — **Aprobada** el 2026-09-01. Los **tres** endpoints de autenticación, **Argon2id**, sesión opaca *server-side*, bloqueo de cuenta seguro ante concurrencia, límite de tasa en PostgreSQL y auditoría sin secretos. Cierra **D-15**, **D-02** y **D-09** |
 | **Tarea aprobada anterior de la ETAPA 03** | `Task/010-Almacenamiento-Compatible-S3` — **Aprobada** el 2026-08-28. Interfaz `ObjectStorage` con **dos implementaciones reales** que superan la misma suite de contrato, gestión de imágenes y miniaturas, y cierre de **D-009-O** |
 | **Mantenimiento aprobado anterior** | `Task/004.2-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-06 por jeffersondavila. Aplica el **criterio 12** al contenido durable que dejó `Task/004.1`: cuatro afirmaciones sobre el pull request estaban escritas **en presente** y dejaron de ser ciertas al fusionarse. Se convierten en hechos históricos fechados, sin eliminar evidencia, y se añade la observación fechada de la fusión y la normalización. **No cuenta en las 41 tareas** ni altera el avance |
-| **Último mantenimiento aprobado** | `Task/020.3-Corregir-Registro-MinIO-CI-Backend` — **Aprobada** el 2026-09-12 por el usuario mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`. Restauró la reproducibilidad de **CI Backend**: MinIO pasa a **Quay** con el mismo release y digest, y la etapa `runtime` del Dockerfile aplica las actualizaciones de seguridad de Debian que resuelven **B-020.3-C** —12 hallazgos accionables (9 HIGH, 3 CRITICAL) que el repositorio no introdujo—. Evidencia: [CI Backend 34719123905](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34719123905), **completed/success**, 25/25 pasos, **1855** pruebas, gate Trivy accionable **0**; y [CI Infra 34722681706](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34722681706), **completed/success**, 19/19 pasos. **D-020.3-A/B/C resueltas.** Con ella la **ETAPA 06 queda Completada**. **No cuenta en las 41 tareas** ni alteró el avance, que *en esa fecha* era **21/41 — 51 %**. [Reporte](../task-reports/TASK-020.3-report.md) |
+| **Último mantenimiento aprobado** | **`Task/027.1-Corregir-Regresion-S09-MinIO` — Aprobada** el 2026-09-20 por el usuario mediante `approved: Task/027.1-Corregir-Regresion-S09-MinIO`. Rama creada **desde `main`** (`67c1904`), **sin commits propios**, **sin push, sin PR y sin publicación**. Corrige la única identidad **accionable y corregible** que quedaba del residual de MinIO: `CVE-2026-79921` en `github.com/rabbitmq/amqp091-go v1.10.0`. La imagen pasa a ser un **derivado reproducible de upstream** —mismo release `RELEASE.2025-09-07T16-13-09Z`, mismo runtime oficial y **un solo archivo distinto**, `/usr/bin/minio`, recompilado desde el commit `07c3a429…` con `amqp091-go v1.13.0`—, verificado *layer* a *layer* por `scripts/minio/artifact.py`. **El residual de MinIO baja de 100 a 99 identidades, con 0 nuevas**; `amqp091-go` queda en **0** hallazgos. **La tolerancia cero de `postgres` y `traefik` NO se toca** y el atestado de identidad es **nominal**: solo la clave `minio`, con control negativo que demuestra que cualquier otra es rechazada. **Publicación en GHCR: HECHA y verificada** el 2026-09-19, bajo autorización acotada que **no** aprueba la tarea. `sha256:84c67632…059129` es a la vez el manifiesto OCI local **y el RepoDigest remoto**: se publicó exactamente el OCI validado **sin reconstruir**, el manifiesto crudo descargado de GHCR reproduce ese `sha256`, el registro conservó `mediaType` OCI, config y los 10 layers, Trivy escaneó la **referencia remota** y registró el RepoDigest de forma **nativa**, y la referencia de `.env.example` **resuelve** (comprobado con un *pull* aislado, luego eliminado). **El paquete permanece PRIVADO y su visibilidad NO se modificó**; el material correspondiente de AGPL sigue sin versionar, así que **no debe hacerse público todavía**. El stack principal **nunca se recreó** y sigue con la imagen MinIO original. **No cuenta en las 41 tareas ni altera el avance**, que lo fija la última tarea canónica aprobada. **`Task/027` sigue Aprobada con su PR `#47` sin fusionar y `Task/028` sigue no iniciada.** [Ficha](../tasks/TASK-027.1-fix-s09-minio-regression.md) · [Reporte](../task-reports/TASK-027.1-report.md) |
+| **Mantenimiento aprobado anterior a `Task/027.1`** | `Task/020.3-Corregir-Registro-MinIO-CI-Backend` — **Aprobada** el 2026-09-12 por el usuario mediante `approved: Task/020.3-Corregir-Registro-MinIO-CI-Backend`. Restauró la reproducibilidad de **CI Backend**: MinIO pasa a **Quay** con el mismo release y digest, y la etapa `runtime` del Dockerfile aplica las actualizaciones de seguridad de Debian que resuelven **B-020.3-C** —12 hallazgos accionables (9 HIGH, 3 CRITICAL) que el repositorio no introdujo—. Evidencia: [CI Backend 34719123905](https://github.com/jeffersondavila/personal-blog-backend/actions/runs/34719123905), **completed/success**, 25/25 pasos, **1855** pruebas, gate Trivy accionable **0**; y [CI Infra 34722681706](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/34722681706), **completed/success**, 19/19 pasos. **D-020.3-A/B/C resueltas.** Con ella la **ETAPA 06 queda Completada**. **No cuenta en las 41 tareas** ni alteró el avance, que *en esa fecha* era **21/41 — 51 %**. [Reporte](../task-reports/TASK-020.3-report.md) |
 | **Mantenimiento aprobado anterior a `Task/020.3`** | `Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1` — **Aprobada** el 2026-09-10 por el usuario mediante `approved: Task/020.2-Corregir-Autodescripcion-Obsoleta-de-Task020.1`. Corrige el único residual **D** que dejó `Task/020.1`: una celda de su propio reporte describía el registro de STATUS solo en su fase pre-aprobación, cuando STATUS ya lo había promovido a mantenimiento aprobado. La celda conserva ahora ambos momentos. **C = 0 · D = 0** tras el barrido del criterio 12. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
 | **Mantenimiento aprobado anterior a `Task/020.2`** | `Task/020.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-10 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/020`: **nueve** afirmaciones de clase **C** convertidas en hechos fechados y **ocho** contradicciones de clase **D** corregidas, entre ellas **B-020-4** —un contador vivo dentro del registro histórico de `Task/002.1`, restaurado a su valor probado de **2 de 41 ≈ 5 %**— y **B-020-5** —cinco encabezados «Última tarea aprobada» simultáneos, reducidos a uno—. **No cuenta en las 41 tareas** ni altera el avance: **20/41 — 49 %** y ETAPA 06 **2/3 — 67 %** intactos |
 | **Mantenimiento aprobado previo** | `Task/019.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-09-09 por el usuario. Aplica el **criterio 12** al contenido durable que dejó `Task/019`: **ocho** afirmaciones de clase **C** convertidas en hechos fechados y **una** contradicción de clase **D** corregida —las decisiones de `Task/019` seguían descritas como *Propuesta* pese a estar ya vigentes—. La causa fue que `Task/019` era la primera tarea cuya evidencia dependía de su propio cierre. **No cuenta en las 41 tareas** ni altera el avance |
@@ -64,6 +73,130 @@
 > **E-06 se cierra con la aprobación de `Task/018` del 2026-09-08**. Lo que se
 > aprobó respecto del *rendering* es **haber abierto** la reconsideración: **D-21** sigue
 > **Abierta** y **ADR-009** en **Propuesta**.
+
+---
+
+## Último mantenimiento aprobado — `Task/027.1-Corregir-Regresion-S09-MinIO`
+
+**Estado: Aprobada** ✔ el **2026-09-20** mediante
+`approved: Task/027.1-Corregir-Regresion-S09-MinIO`. **No cuenta en las 41 tareas** y **no
+altera el avance**, que lo fija la última tarea canónica aprobada. Sus decisiones **D-027.1-A** a
+**D-027.1-F** pasan a **Aceptadas y Vigentes**, **sin ADR nuevo**.
+
+### Qué corrige
+
+El baseline de S-09 aceptaba **100** hallazgos accionables de MinIO bajo **R-018-3**. Uno de
+ellos —`CVE-2026-79921`, HIGH, en `github.com/rabbitmq/amqp091-go v1.10.0`, corregido en
+`1.13.0`— **sí tenía remedio**: no en una imagen más reciente, que no existe, sino
+recompilando el binario del **mismo release** con la dependencia actualizada. Mantenerlo
+aceptado equivalía a tratar como irremediable algo corregible.
+
+El resultado es un **derivado reproducible de upstream**: mismo release
+`RELEASE.2025-09-07T16-13-09Z`, mismo runtime oficial, **un solo archivo distinto**.
+
+| Antes | Después |
+| --- | --- |
+| 100 identidades aceptadas | **99** identidades aceptadas, **0 nuevas** |
+| `amqp091-go v1.10.0`, 1 accionable | `amqp091-go v1.13.0`, **0** accionables |
+| Imagen de tercero sin modificar | Derivado con manifiesto, SBOM canónico y procedencia |
+
+El verificador exige que los **9 *layers* heredados**, sus *diff IDs*, el *entrypoint*, el
+`cmd`, las variables y las etiquetas sean **los de la base oficial**, que haya exactamente
+**10 *layers***, y que el último contenga **solo** `usr/bin/minio` con modo `0755` y
+propietario `0:0`. El parche son **26 líneas** que tocan `go.mod` y `go.sum`, y nada más.
+
+### Qué NO cambia
+
+- **`postgres` y `traefik` siguen en tolerancia cero**, con `accepted_findings` vacío.
+- **`accepted-baseline` NO se generaliza a las imágenes propias.** El atestado de identidad
+  es **nominal**: `validar_baseline` lo **rechaza** en cualquier clave que no sea `minio`, y
+  hay un control negativo que lo demuestra.
+- **`R-018-3` sigue ABIERTO** con 99 identidades. Esta tarea lo reduce y lo ata a un
+  manifiesto verificado; **no lo cierra**.
+- **El stack `personal-blog-local` no se tocó, ni antes ni después de publicar.** Nunca se
+  recreó ni se ejecutó `docker compose up`; sigue *healthy* y su MinIO sigue corriendo la
+  imagen original, `quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493…`.
+- **`Task/027` sigue Aprobada** con su pull request `#47` **abierto y sin fusionar**, y
+  **`Task/028` sigue no iniciada**: aprobar este mantenimiento **no autoriza** avanzar.
+- **La visibilidad del paquete de GHCR no cambia**: sigue **privado**.
+
+### Publicación — HECHA y verificada el 2026-09-19
+
+`sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129` es a la vez el
+digest del **manifiesto OCI producido localmente** y el **RepoDigest real** de
+`ghcr.io/jeffersondavila/personal-blog-minio`.
+
+Se publicó **exactamente el OCI ya validado, sin reconstruir**, bajo una autorización humana
+**acotada** que el usuario declaró **no equivalente** a aprobar la tarea. Lo verificado:
+
+- el RepoDigest remoto, resuelto con `imagetools inspect` y `manifest inspect`, **coincide
+  exactamente** con el manifiesto esperado;
+- el manifiesto se descargó **en crudo** —2289 bytes— y su `sha256` **reproduce** ese digest;
+- GHCR conservó `mediaType: application/vnd.oci.image.manifest.v1+json`, el `config`
+  `sha256:25c832aa…` y los **10 layers** esperados;
+- Trivy escaneó la **referencia remota exacta** (`--image-src remote`, tras borrar la copia
+  local) y registró el `RepoDigests` **de forma nativa desde el registro**;
+- aplicar el atestado **no modifica** `ArtifactName` ni `RepoDigests`;
+- **S-09 remoto: `RESULTADO: CORRECTO`**, MinIO **99/99 exactas, 0 nuevas, 0 desaparecidas**,
+  `amqp091-go v1.13.0` y **`CVE-2026-79921` ausente**;
+- `.env.example` y el Compose resuelven **la misma** referencia publicada, comprobado con un
+  *pull* aislado que devolvió el mismo digest y que después **se eliminó**.
+
+**El stack principal nunca se recreó**: no se ejecutó `docker compose up` y
+`personal-blog-local-minio` sigue sirviendo con la imagen original
+`quay.io/minio/minio@sha256:14cea493…`, *healthy*.
+
+*(Hasta el 2026-09-18 esta sección decía que la publicación estaba pendiente, que el digest
+no era un RepoDigest remoto y que la referencia no era resoluble. Era cierto en esa fecha.)*
+
+### Visibilidad y licencia — el paquete sigue PRIVADO
+
+**La visibilidad NO se modificó y su cambio no está autorizado.** Mientras el paquete sea
+privado no hay distribución pública, y eso es lo que acota hoy el alcance del requisito de
+**AGPL-3.0**.
+
+**Ese requisito NO se declara cumplido:** `docker/minio/Dockerfile`, el parche,
+`build-manifest.json`, `docker/minio/README.md` y `scripts/minio/artifact.py` siguen
+**únicamente en local, sin *commit* ni *push***. Antes de hacer público el paquete, ese
+material debe estar **versionado y publicado**.
+
+### Sobre la reproducibilidad, sin exagerar
+
+La construcción **no es hermética ni offline**: descarga por red el árbol de fuentes y los
+módulos Go. Lo demostrado es que **cada identidad está fijada y verificada** —imagen
+constructora por digest, tag y commit del release comprobados, `sha256` del árbol de
+fuentes, `sha256` del parche, `go mod verify`, base del runtime por digest y
+`SOURCE_DATE_EPOCH` fijo—, y que tres construcciones dieron la misma identidad OCI.
+
+### Estado de validación
+
+Gates locales de `CI Infra` sobre el estado final: **todos en verde**, ninguno parcial
+presentado como completo. Terraform `1.16.2` preparado con el **lanzador fijado del
+proyecto**, sin instalación global: `fmt -check`, `init -lockfile=readonly` y `validate` en
+**exit 0**, con el lock **sin cambios**. **45** pruebas de `tests/security` y **162** de
+`tests/laboratorio` en OK. Gate **S-09**: `RESULTADO: CORRECTO`, **194** accionables
+comparados, **0 nuevos** en las seis imágenes. **Gitleaks 8.30.1**: **0 hallazgos** en el
+historial completo y en el entregable sin *commit*. Recursos temporales `task0271-*`:
+**0 residuos** en contenedores, volúmenes, imágenes y *builders*.
+
+El gate **S-09 se repitió contra la referencia remota** tras publicar, con idéntico
+resultado: `CORRECTO`, **194** comparados, MinIO **99/99**, **0 nuevas**.
+
+Durante toda la fase previa a la aprobación hubo **cero commit, push de Git, merge y pull
+request**. La **publicación de la imagen sí ocurrió** antes, el 2026-09-19, bajo autorización
+humana acotada y separada, que el usuario declaró **no equivalente** a `approved:`.
+
+**Con la aprobación del 2026-09-20** el cierre ejecutó el flujo completo: *commit*,
+integración en `dev` con merge `--no-ff`, publicación de `dev` y de la rama Task, y creación
+del pull request **`Task/027.1 → main`**, que **no se fusionó** —eso es responsabilidad
+exclusiva del usuario—. Las decisiones **D-027.1-A** a **D-027.1-F** pasan a **Aceptadas y
+Vigentes**, sin ADR nuevo.
+
+**Efecto sobre la licencia:** el *push* deja el código correspondiente de AGPL
+—`Dockerfile`, parche, `build-manifest.json`, `README.md` y `artifact.py`— **versionado y
+publicado** en este repositorio, que es **público**. **SBOM y procedencia todavía no se
+publican junto a la imagen**, y esa es la condición que queda antes de hacer público el
+paquete.
 
 ---
 
@@ -2406,7 +2539,7 @@ Distribución por estado:
 | --- | --- | --- | --- | --- |
 | **R-018-1** | **Una migración que añada tablas deja al runtime sin permiso sobre ellas.** Los `GRANT` se conceden tabla a tabla: una tabla nueva nace sin conceder | Medio | Es el comportamiento **seguro** —nada se concede solo—. Documentado en el runbook §2.2: tras migrar, repetir `runtime_privileges.py --apply` | **Abierto**, mitigado por procedimiento |
 | **R-018-2** | **Las identidades runtime no viajan en el respaldo.** `pg_dump` de una base no exporta `CREATE ROLE` y la copia de MinIO no incluye su IAM | Medio | Deliberado: un respaldo con sus propias credenciales dentro no protegería nada. Se añadió `--reissue-runtime-credentials`, que reemite sin conocer el secreto anterior y sin destruir contenido. **Probado de extremo a extremo** | **Abierto**, mitigado por procedimiento reproducible |
-| **R-018-3** | **La imagen de MinIO es el mayor residuo de vulnerabilidades del conjunto**, y es la única que **no** se actualizó | Medio | Servicio **solo local**, publicado en loopback y **fuera de la arquitectura de producción**, donde el destino es Amazon S3 vía `ObjectStorage`. Subir un año de *releases* de un servicio de datos exige compatibilidad de IAM y consola comprobadas, y no se hace persiguiendo un recuento. **Desde `Task/021` (2026-09-11) el residuo está bajo control automático:** `CI Infra` compara cada ejecución contra un **baseline exacto** de los **100** hallazgos accionables aceptados, ligado al digest, y falla ante cualquiera nuevo. **`Task/021` midió además que no existe actualización posible:** la imagen fijada **ya es la última publicada en Docker Hub**, y el release posterior de GitHub no existe como imagen | **Abierto.** Recuento inicial en el reporte de `Task/018` §F; baseline vivo en [`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json) |
+| **R-018-3** | **La imagen de MinIO es el mayor residuo de vulnerabilidades del conjunto.** *(Hasta `Task/027.1` esta celda añadía «y es la única que **no** se actualizó», cierto mientras la imagen fue un tercero sin modificar.)* | Medio | Servicio **solo local**, publicado en loopback y **fuera de la arquitectura de producción**, donde el destino es Amazon S3 vía `ObjectStorage`. Subir un año de *releases* de un servicio de datos exige compatibilidad de IAM y consola comprobadas, y no se hace persiguiendo un recuento. **Desde `Task/021` (2026-09-11) el residuo está bajo control automático:** `CI Infra` compara cada ejecución contra un **baseline exacto** ligado al digest y falla ante cualquiera nuevo; entonces eran **100** identidades. **`Task/021` midió además que no existía actualización posible** como imagen: la fijada ya era la última publicada del release. **Desde `Task/027.1` (Aprobada el 2026-09-20) el conjunto baja a 99:** una de las cien sí era corregible aguas arriba del **binario**, no de la imagen, y se corrigió reconstruyendo `/usr/bin/minio` desde el commit exacto del mismo release con `amqp091-go v1.10.0 → v1.13.0`. La imagen pasa a ser un **derivado reproducible de upstream**, con el resto del runtime oficial intacto y la identidad atada a `docker/minio/build-manifest.json`, verificada *layer* a *layer*. El derivado quedó **publicado en GHCR el 2026-09-19** —paquete **privado**— y el gate se repitió contra la **referencia remota**: **99/99 exactas, 0 nuevas**. **Esto NO generaliza `accepted-baseline` a las imágenes propias:** el atestado es **nominal** para la clave `minio` y cualquier otra es rechazada | **Abierto.** No lo cierra `Task/027.1`: quedan **99** identidades aceptadas —52 en `usr/bin/minio`, 45 en `usr/bin/mc`, 2 de paquetes del sistema; 95 HIGH y 4 CRITICAL—. Recuento inicial en el reporte de `Task/018` §F; baseline vivo en [`security/vulnerability-baseline.json`](../../security/vulnerability-baseline.json); gobernanza del derivado en [`docker/minio/README.md`](../../docker/minio/README.md) |
 | **R-018-4** | **Quedan dos *buckets* residuales de pruebas** (`personal-blog-test-*`) de ejecuciones interrumpidas, y entran en cada respaldo | Bajo | Límite ya conocido y documentado del *harness* (la limpieza no sobrevive a un `SIGKILL`). Procedimiento de borrado en el runbook §10.4. **No se borran aquí**: es una operación destructiva sobre datos que el usuario no autorizó | **Abierto** |
 
 ### Riesgo introducido por `Task/021` — residual de la imagen de Portainer
@@ -2538,6 +2671,22 @@ Distribución por estado:
 > `Task/005.6`). Lo de abajo es una **observación fechada**, no una afirmación permanente.
 > El estado vivo de ramas y PR se consulta en Git y GitHub —`git fetch --prune`,
 > `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca leyendo este documento.
+
+**Observado el 2026-09-20**, durante la fase previa a la aprobación de
+`Task/027.1-Corregir-Regresion-S09-MinIO`:
+
+- `personal-blog-infra` está en la rama **`Task/027.1-Corregir-Regresion-S09-MinIO`**,
+  nacida **desde `main`**, con `HEAD == main == origin/main` (`67c1904`) y
+  `git rev-list --count main..HEAD` en **0**: la rama **no tiene commits propios**.
+- Los cambios de la tarea permanecen **sin *commit*** y el *staging* está **vacío**, según
+  la sección 6 de las instrucciones del proyecto.
+- `personal-blog-backend` y `personal-blog-frontend` están en `main`, **limpios y sin rama
+  Task**: la tarea no los modifica.
+- **Ni push de Git, ni merge, ni pull request.** La **imagen sí se publicó** en `ghcr.io` el
+  2026-09-19, bajo autorización acotada e independiente de la aprobación de la tarea; el
+  paquete quedó **privado** y su visibilidad **no se modificó**.
+- **Regla permanente:** el estado vivo de `Task/027`, de su pull request y de cualquier otra
+  rama se consulta en Git y GitHub, nunca leyendo este documento.
 
 **Observado el 2026-09-10**, al ejecutar el cierre aprobado de `Task/020`:
 

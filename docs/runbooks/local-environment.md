@@ -310,7 +310,7 @@ ficticios.
 | `POSTGRES_USER` | Usuario de la base de datos. |
 | `POSTGRES_PASSWORD` | Contraseña local. **Cámbiala en tu `.env`.** |
 | `POSTGRES_HOST_PORT` | Puerto publicado en el host. |
-| `MINIO_VERSION` | Etiqueta de la imagen de MinIO. |
+| `MINIO_VERSION` | **Referencia completa** de la imagen de MinIO —registro, repositorio, etiqueta y digest—, no solo la etiqueta. *(Hasta `Task/027.1` era solo la etiqueta y el Compose anteponía `quay.io/minio/minio:`. Desde entonces el Compose usa `image: ${MINIO_VERSION}` tal cual, porque la imagen es un **derivado reproducible** construido por el proyecto: ver [`docker/minio/README.md`](../../docker/minio/README.md).)* **Estado, 2026-09-19:** la imagen **ya está publicada** en GHCR y esa referencia **resuelve**, comprobado con `docker manifest inspect` y un *pull* aislado. El paquete es **privado**: hace falta `docker login ghcr.io` con permiso de lectura para descargarla. *(Hasta el 2026-09-18 no era resoluble, porque la imagen aún no se había publicado.)* |
 | `MINIO_ROOT_USER` | Usuario administrador de MinIO. |
 | `MINIO_ROOT_PASSWORD` | Contraseña local, mínimo 8 caracteres. **Cámbiala en tu `.env`.** |
 | `MINIO_API_HOST_PORT` | Puerto de la API S3. |
