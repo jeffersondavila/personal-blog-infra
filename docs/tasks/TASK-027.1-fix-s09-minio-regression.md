@@ -313,8 +313,8 @@ fusionar**, y `Task/028` sigue **no iniciada**. Esta tarea no autoriza avanzar.
 Con esta aprobación:
 
 - las decisiones **D-027.1-A** a **D-027.1-F** pasan a **Aceptadas y Vigentes**, sin ADR nuevo;
-- **el avance NO cambia**: sigue en **26 de 41 ≈ 63 %**, porque el mantenimiento no cuenta
-  entre las 41 tareas;
+- **el avance NO cambia**, porque el mantenimiento no cuenta entre las 41 tareas; la cifra
+  vigente la fija la última tarea canónica aprobada;
 - **`R-018-3` sigue ABIERTO** con 99 identidades;
 - **`Task/027` sigue Aprobada** con su pull request `#47` **abierto y sin fusionar**;
 - **`Task/028` sigue no iniciada**;

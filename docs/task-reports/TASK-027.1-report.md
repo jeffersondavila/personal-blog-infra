@@ -518,8 +518,14 @@ del pull request **`Task/027.1 → main`**, que **no se fusionó**: aceptar un P
 es responsabilidad exclusiva del usuario.
 
 Con la aprobación, **D-027.1-A** a **D-027.1-F** pasan a **Aceptadas y Vigentes**, sin ADR
-nuevo. **El avance no cambia**: sigue en **26 de 41 ≈ 63 %**, porque el mantenimiento no
-cuenta entre las 41 tareas.
+nuevo. **El avance no cambia**, porque el mantenimiento no cuenta entre las 41 tareas; la
+cifra vigente la fija la última tarea canónica aprobada.
+
+> **Por qué no se fija aquí un número.** Esta rama nació de `main`, que todavía **no**
+> contiene `Task/027`; la rama de integración `dev` **sí** la contiene. El avance vigente
+> difiere entre ambas según esté fusionado o no el pull request `#47`, así que una cifra
+> escrita aquí sería falsa en una de las dos. Lo que **no** depende de la rama es que este
+> mantenimiento **no suma ni resta** avance.
 
 **Matiz sobre `D-027.1-F`.** Esa decisión decía «no publicar en GHCR dentro de esta tarea».
 El usuario autorizó después una **fase controlada de publicación**, explícitamente **no
