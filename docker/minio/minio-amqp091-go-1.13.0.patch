@@ -1,0 +1,26 @@
+diff --git a/go.mod b/go.mod
+index 2cb5689..340f394 100644
+--- a/go.mod
++++ b/go.mod
+@@ -83,7 +83,7 @@ require (
+ 	github.com/prometheus/common v0.63.0
+ 	github.com/prometheus/procfs v0.16.1
+ 	github.com/puzpuzpuz/xsync/v3 v3.5.1
+-	github.com/rabbitmq/amqp091-go v1.10.0
++	github.com/rabbitmq/amqp091-go v1.13.0
+ 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9
+ 	github.com/rs/cors v1.11.1
+ 	github.com/secure-io/sio-go v0.3.1
+diff --git a/go.sum b/go.sum
+index fae13cf..c8948f9 100644
+--- a/go.sum
++++ b/go.sum
+@@ -562,6 +562,8 @@ github.com/puzpuzpuz/xsync/v3 v3.5.1 h1:GJYJZwO6IdxN/IKbneznS6yPkVC+c3zyY/j19c++
+ github.com/puzpuzpuz/xsync/v3 v3.5.1/go.mod h1:VjzYrABPabuM4KyBh1Ftq6u8nhwY5tBPKP9jpmh0nnA=
+ github.com/rabbitmq/amqp091-go v1.10.0 h1:STpn5XsHlHGcecLmMFCtg7mqq0RnD+zFr4uzukfVhBw=
+ github.com/rabbitmq/amqp091-go v1.10.0/go.mod h1:Hy4jKW5kQART1u+JkDTF9YYOQUHXqMuhrgxOEeS7G4o=
++github.com/rabbitmq/amqp091-go v1.13.0 h1:L8NA1WtF76C6KA3LAoufjfLgbist/If1UQYcsOjtxXA=
++github.com/rabbitmq/amqp091-go v1.13.0/go.mod h1:Hy4jKW5kQART1u+JkDTF9YYOQUHXqMuhrgxOEeS7G4o=
+ github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 h1:bsUq1dX0N8AOIL7EB/X911+m4EHsnWEHeJ0c+3TTBrg=
+ github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
+ github.com/redis/go-redis/v9 v9.7.3 h1:YpPyAayJV+XErNsatSElgRZZVCwXX9QzkKYNvO7x0wM=

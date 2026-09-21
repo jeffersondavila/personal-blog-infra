@@ -29,8 +29,9 @@
 #               es por donde Terraform y el verificador entran desde el host.
 #
 #     ejecucion internal: true. Es la red donde el emulador lanza los
-#               contenedores de Lambda. Sin gateway: se comprobo que desde ella
-#               no hay DNS externo ni salida TCP ("Network is unreachable").
+#               contenedores de Lambda. Sin gateway: no hay salida TCP.
+#               El DNS requiere ademas confinar el reenvio del emulador, como
+#               declara `dns` y FLOCI_DNS_* abajo (addendum Task/027.1).
 #
 #   Resultado: los contenedores de la funcion alcanzan el emulador y NO tienen
 #   salida a internet ni al rango link-local de metadata. El emulador si tiene
@@ -48,7 +49,7 @@
 # VERSION FIJADA POR DIGEST (control S-10, ADR-006 seccion 5.4)
 #
 #   Nunca `latest` ni `nightly`. El digest es el del INDICE OCI multiarquitectura
-#   de la etiqueta 2.0.1; su manifiesto linux/amd64 se registra en el reporte.
+#   de la etiqueta 2.1.0; su manifiesto linux/amd64 se registra en el reporte.
 #   `platform` es explicito para que la resolucion no dependa de la maquina.
 # ---------------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}
 
 services:
   emulador:
-    # floci/floci:2.0.1 — indice OCI, verificado el 2026-09-13.
+    # floci/floci:2.1.0 — indice OCI, verificado el 2026-09-20.
     image: floci/floci@${LAB_EMULADOR_DIGEST:?falta LAB_EMULADOR_DIGEST}
     platform: linux/amd64
     container_name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}-emulador
@@ -65,6 +66,14 @@ services:
     # contenedores de las funciones. Es la razon por la que se clasifica como
     # infraestructura privilegiada y no como un servicio mas.
     user: root
+
+    # El DNS embebido de Floci reenvia consultas externas por la red entrada:
+    # internal:true por si solo NO bloquea esa ruta desde Lambda. Se confinan
+    # sus resolutores a loopback IPv6 (sin DNS escuchando en esta imagen; el
+    # servidor de Floci escucha solo IPv4). Docker conserva los nombres de las
+    # redes locales, incluido emulador. S-11 exige repetir la prueba en runtime.
+    dns:
+      - "::1"
 
     # SOLO loopback (controles S-01, S-02, S-03). Nunca 0.0.0.0: expondria el
     # emulador a la red local. Y NADA de los rangos auxiliares del Compose
@@ -85,6 +94,8 @@ services:
       # el de Terraform, que vive fuera del emulador precisamente para que
       # destruirlo no lo arrastre (D-06).
       FLOCI_STORAGE_MODE: memory
+      FLOCI_DNS_CONTAINER_FALLBACK_ENABLED: "false"
+      FLOCI_DNS_CONTAINER_FALLBACK_SERVERS: "::1"
 
       # Anfitrion con el que el emulador construye las URL que devuelve. Debe ser
       # el nombre que se resuelve DENTRO de la red de ejecucion: un contenedor de
@@ -113,7 +124,31 @@ services:
           - localhost.floci.io
 
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4566/_localstack/health || exit 1"]
+      # UBI micro no incluye curl. Solo builtins de Bash, presente en la imagen.
+      # Exige respuesta HTTP correcta Y los seis servicios del grafo activos.
+      # Cada lectura tiene limite; Docker acota tambien la conexion y el total.
+      test:
+        - CMD
+        - /bin/bash
+        - -ec
+        - |
+          exec 3<>/dev/tcp/127.0.0.1/4566
+          printf 'GET /_localstack/health HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3
+          IFS= read -r -t 2 estado <&3
+          [[ "$$estado" == HTTP/1.[01]' 200 '* ]] || exit 1
+          while IFS= read -r -t 2 cabecera <&3; do
+            [[ "$$cabecera" == $$'\r' ]] && break
+          done
+          [[ "$$cabecera" == $$'\r' ]] || exit 1
+          cuerpo=''
+          IFS= read -r -d '' -t 2 cuerpo <&3 || [[ $$? == 1 ]]
+          patron='"services"[[:space:]]*:[[:space:]]*\{([^}]*)\}'
+          [[ "$$cuerpo" =~ $$patron ]] || exit 1
+          servicios="$${BASH_REMATCH[1]}"
+          for servicio in s3 ssm lambda logs iam apigateway; do
+            patron="\"$$servicio\"[[:space:]]*:[[:space:]]*\"running\""
+            [[ "$$servicios" =~ $$patron ]] || exit 1
+          done
       interval: 5s
       timeout: 4s
       retries: 24
