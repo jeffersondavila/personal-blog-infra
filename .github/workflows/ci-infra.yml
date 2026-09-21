@@ -168,9 +168,8 @@ jobs:
           set -euo pipefail
           terraform -chdir=terraform validate
 
-      # Las guardas fail-closed del laboratorio. Ninguna de estas pruebas abre un
-      # socket: los controles negativos usan entradas sinteticas y destinos
-      # locales falsos.
+      # Las guardas fail-closed usan entradas sinteticas. La sonda HTTP se prueba
+      # contra un servidor efimero de loopback, sin AWS ni emulador en CI.
       #
       # El ciclo plan/apply/destroy contra el emulador se ejecuta en LOCAL durante
       # Task/025. Automatizarlo aqui con un emulador efimero es Task/039.
@@ -193,17 +192,26 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import json
+          from pathlib import Path
           import re
+          import subprocess
 
-          compose = open('laboratorio/docker-compose.laboratorio.yml', encoding='utf-8').read()
-          ejemplo = open('laboratorio/.env.laboratorio.example', encoding='utf-8').read()
+          compose = Path('laboratorio/docker-compose.laboratorio.yml').read_text(encoding='utf-8')
+          ejemplo = Path('laboratorio/.env.laboratorio.example').read_text(encoding='utf-8')
 
-          publicados = re.findall(r'^\s*-\s*"([^"]*:\d+)"\s*$', compose, re.MULTILINE)
+          # Usar el modelo de Compose: una direccion DNS como ::1 no es un puerto.
+          modelo = json.loads(subprocess.check_output([
+              'docker', 'compose', '--file', 'laboratorio/docker-compose.laboratorio.yml',
+              '--env-file', 'laboratorio/.env.laboratorio.example',
+              'config', '--format', 'json',
+          ], text=True))
+          publicados = [p for s in modelo['services'].values() for p in s.get('ports', [])]
           print('puertos publicados:', publicados)
           if not publicados:
               raise SystemExit('No se encontro ningun puerto publicado; el gate quedaria vacio.')
           for puerto in publicados:
-              if not puerto.startswith('127.0.0.1:'):
+              if puerto.get('host_ip') != '127.0.0.1':
                   raise SystemExit('El laboratorio publica %r fuera de loopback.' % puerto)
 
           for movil in (':latest', ':nightly', ':latest-compat', ':nightly-compat'):
@@ -412,7 +420,7 @@ jobs:
           portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
           # El emulador del laboratorio se escanea por su DIGEST exacto, que es
           # tambien la identidad a la que esta ligada su aceptacion temporal.
-          floci="floci/floci:2.0.1@$(grep -m1 '^LAB_EMULADOR_DIGEST=' laboratorio/.env.laboratorio.example | cut -d= -f2-)"
+          floci="floci/floci:2.1.0@$(grep -m1 '^LAB_EMULADOR_DIGEST=' laboratorio/.env.laboratorio.example | cut -d= -f2-)"
           escanear() {
             echo "::group::Trivy $2"
             trivy image --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \

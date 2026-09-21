@@ -295,20 +295,40 @@ def funciones_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) 
 # --- API Gateway v2 ---------------------------------------------------------
 
 
+def extraer_nombres_de_apis(cuerpo: Any, *, prefijo: str) -> list[str]:
+    """Lee el JSON REST camelCase de Floci y la representacion PascalCase.
+
+    Una respuesta desconocida no demuestra ausencia. Hacerla pasar por una
+    lista vacia ocultaria recursos al comprobar el destroy (Task/027.1).
+    """
+    if not isinstance(cuerpo, dict):
+        raise ErrorDeVerificacion("GetApis no devolvio un objeto JSON")
+    elementos = cuerpo.get("Items", cuerpo.get("items"))
+    if not isinstance(elementos, list):
+        raise ErrorDeVerificacion("GetApis no contiene una lista Items/items")
+    nombres = []
+    for elemento in elementos:
+        if not isinstance(elemento, dict):
+            raise ErrorDeVerificacion("GetApis contiene una entrada invalida")
+        nombre = elemento.get("Name", elemento.get("name"))
+        if not isinstance(nombre, str) or not nombre:
+            identificador = elemento.get("ApiId", elemento.get("apiId", "?"))
+            raise ErrorDeVerificacion(f"GetApis: API {identificador!r} sin Name/name")
+        if nombre.startswith(prefijo):
+            nombres.append(nombre)
+    return nombres
+
+
 def apis_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
     api = cliente(destino, "apigatewayv2", clave=clave_aws, secreto=secreto)
     estado, datos = api.llamar(servicio="apigateway", metodo="GET", ruta="/v2/apis")
     if estado != 200:
-        return []
+        raise ErrorDeVerificacion(f"GetApis devolvio {estado}")
     try:
-        cuerpo = json.loads(datos or b"{}")
-    except ValueError:
-        return []
-    return [
-        i.get("Name", i.get("ApiId", ""))
-        for i in cuerpo.get("Items", [])
-        if str(i.get("Name", "")).startswith(prefijo)
-    ]
+        cuerpo = json.loads(datos)
+    except ValueError as error:
+        raise ErrorDeVerificacion("GetApis no devolvio JSON valido") from error
+    return extraer_nombres_de_apis(cuerpo, prefijo=prefijo)
 
 
 # --- CloudWatch Logs --------------------------------------------------------

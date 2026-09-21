@@ -179,12 +179,24 @@ class ResiduosTests(unittest.TestCase):
 
 class DiferenciasDeclaradasTests(unittest.TestCase):
     def test_cada_diferencia_del_destino_declara_su_motivo(self):
-        self.assertTrue(lanzador.DIFERENCIAS_DEL_DESTINO_LOCAL)
+        # H-025-1 se resolvio en Floci 2.1.0; una lista vacia es valida.
         for diferencia in lanzador.DIFERENCIAS_DEL_DESTINO_LOCAL:
             with self.subTest(tipo=diferencia.tipo):
                 self.assertTrue(diferencia.tipo)
                 self.assertTrue(diferencia.atributo)
                 self.assertGreater(len(diferencia.motivo), 40)
+
+    def test_regresion_de_tags_ssm_ya_no_se_tolera(self):
+        from laboratorio.inventario import ErrorDeInventario, exigir_sin_cambios
+
+        plan = {"resource_changes": [{
+            "address": "aws_ssm_parameter.ejemplo", "type": "aws_ssm_parameter",
+            "change": {"actions": ["update"],
+                       "before": {"tags_all": {}},
+                       "after": {"tags_all": {"Proyecto": "personal-blog"}}},
+        }]}
+        with self.assertRaises(ErrorDeInventario):
+            exigir_sin_cambios(2, plan=plan, diferencias_toleradas=lanzador.DIFERENCIAS_DEL_DESTINO_LOCAL)
 
     def test_el_lanzador_NO_declara_su_propio_digest_del_runtime(self):
         """Una sola autoridad sobre el runtime: el manifiesto de Task/024.
