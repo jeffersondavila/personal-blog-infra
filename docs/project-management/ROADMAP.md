@@ -14,13 +14,15 @@
 > La aprobación humana determina el avance, independientemente de la rama y del PR.
 >
 > Observado el **2026-09-21**: el usuario cerró sin merge #47 y #48 el
-> `2026-09-21T02:38:32Z` y `2026-09-21T02:38:38Z`. GitHub es la fuente viva. Por
-> instrucción del usuario, esta aprobación autoriza **solo** registrar la aprobación,
-> crear los commits del addendum y **publicar la rama 027.1**; ahí se detiene, **sin PR
-> ni integración en `dev`**. Otra autorización permitirá consolidarla íntegra mediante
-> `merge --no-ff` en 027 y preparar un único PR nuevo `Task/027 → main`. No reabrir
-> #47/#48 ni crear otro PR de 027.1.
-> [Evidencia y cierre por fases](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21).
+> `2026-09-21T02:38:32Z` y `2026-09-21T02:38:38Z`. GitHub es la fuente viva. Ese mismo
+> día, con una autorización posterior y separada, `Task/027.1` quedó **consolidada íntegra
+> dentro de `Task/027` mediante `merge --no-ff`**, con su historial completo y sin
+> *squash*, *rebase* ni *cherry-pick* selectivo. **`Task/027` es la única rama de entrega**
+> y el destino del **único PR nuevo** `Task/027 → main`, cuyo número y estado se consultan
+> en GitHub. **#47 y #48 no se reabren y no representan la entrega final.** `dev` no se
+> modifica en esta fase y **solo el usuario fusiona hacia `main`**.
+> [Evidencia y cierre por fases](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21)
+> · [Consolidación](../task-reports/TASK-027.1-report.md#17-consolidación-en-task027--2026-09-21).
 
 Vista resumida y ordenada de todo el proyecto: 13 etapas (00 → 12) y 41 tareas.
 
