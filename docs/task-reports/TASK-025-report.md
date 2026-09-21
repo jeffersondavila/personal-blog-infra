@@ -4,13 +4,13 @@
 | --- | --- |
 | **Tarea** | `Task/025-Terraform-Cloud` |
 | **Etapa** | ETAPA 08 — Preparación Cloud + AWS Local Parity |
-| **Estado** | **Lista para aprobación** — **AÚN NO APROBADA** |
-| **Revisión previa a la aprobación** | **Superada. Sin bloqueos.** El 2026-09-14 el usuario autorizó la excepción temporal de S-09 —79 identidades, §15 quater— y la **excepción del laboratorio para H-025-1** —criterio 7, §20—. **H-025-3** corregido (§15 ter). Falta únicamente la expresión `approved: Task/025-Terraform-Cloud` |
+| **Estado** | **Aprobada** el 2026-09-14 — la aprobación de Task/025 no se reabre |
+| **Revisión histórica previa a la aprobación (2026-09-14)** | **Superada. Sin bloqueos.** El 2026-09-14 el usuario autorizó la excepción temporal de S-09 —79 identidades, §15 quater— y la **excepción del laboratorio para H-025-1** —criterio 7, §20—. **H-025-3** corregido (§15 ter). La expresión `approved: Task/025-Terraform-Cloud` se recibió posteriormente ese mismo día |
 | **Rama** | `Task/025-Terraform-Cloud` (**solo** `personal-blog-infra`) |
 | **Rama base** | `main` — `c25642b8e4a7a06375a080a3f3cdf2512f5514d8` |
 | **Fecha** | 2026-09-13 / 2026-09-14 |
-| **Avance del proyecto** | **24/41 ≈ 59 % → 25/41 ≈ 61 %** con la aprobación del 2026-09-14 |
-| **ETAPA 08** | **En progreso, 2 de 4 — 50 % → 3 de 4 — 75 %.** **No** queda completada: `Task/026` sigue **Pendiente** |
+| **Avance histórico al aprobar Task/025 (2026-09-14)** | **24/41 ≈ 59 % → 25/41 ≈ 61 %** con la aprobación del 2026-09-14 |
+| **ETAPA 08 al aprobar Task/025 (2026-09-14)** | **En progreso, 2 de 4 — 50 % → 3 de 4 — 75 %.** **No** queda completada: `Task/026` sigue **Pendiente** |
 
 > **Las decisiones de este reporte quedaron APROBADAS el 2026-09-14** mediante
 > `approved: Task/025-Terraform-Cloud`. Versiones, **D-06**, valores de laboratorio y
@@ -24,8 +24,17 @@
 > 2. **H-025-6** y **H-025-7** — **aceptación temporal autorizada** de 79 identidades,
 >    registrada en el baseline canónico y revalidada (§15 quater).
 >
-> Ninguna de las dos declara el riesgo resuelto: siguen enumerados, con condiciones de
-> reevaluación, y AWS real sigue siendo la autoridad final.
+> Ninguna de aquellas aceptaciones declaró el riesgo resuelto. La actualización al final
+> de este reporte registra el resultado posterior de Floci 2.1.0: H-025-1 cerrada
+> técnicamente y H-025-6 reducida a dos identidades, dentro del addendum 027.1 pendiente
+> de nueva aprobación. AWS real sigue siendo la autoridad final.
+
+**Lectura histórica:** §1–§23 conservan la ejecución y las revisiones del 2026-09-13/14,
+incluidas fases previas a la aprobación. Sus versiones, cifras de pruebas, tablas Git y
+mediciones no son el estado actual del proyecto. La aprobación final figura en §21;
+el seguimiento posterior aparece al final. Avance vigente en
+[STATUS](../project-management/STATUS.md): **27/41 ≈ 66 %**, Task/027 **Aprobada**,
+ETAPA 09 **1/3 ≈ 33 %**; Task/028 no iniciada. Task/027.1 no cuenta entre las 41.
 
 ---
 
@@ -41,7 +50,7 @@ duplicar módulos ni mantener dos infraestructuras. Y **ejecutado de verdad**: `
 
 ---
 
-## 2. Estado de Git verificado al iniciar
+## 2. Estado de Git verificado al iniciar — observación del 2026-09-13
 
 No se confió en la transcripción del *preflight*: se volvió a comprobar.
 
@@ -278,7 +287,8 @@ De ahí dos redes:
 | `entrada` | bridge | **Solo** para publicar `4566` en `127.0.0.1`. Por aquí entran Terraform y el verificador |
 | `ejecucion` | **`internal: true`** | Donde el emulador lanza los contenedores de Lambda (`FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK`) |
 
-Aislamiento **demostrado**, lanzando un contenedor en esa red y pidiéndole salir:
+Aislamiento **observado en una sonda genérica**, lanzando un contenedor en esa red y
+pidiéndole salir (2026-09-13/14; no acreditaba por sí solo los resolutores de Lambda):
 
 | Prueba | Resultado |
 | --- | --- |
@@ -287,8 +297,10 @@ Aislamiento **demostrado**, lanzando un contenedor en esa red y pidiéndole sali
 | DNS externo (`registry-1.docker.io`) | sin resolución |
 | Alcanza el emulador | `172.21.0.2  emulador` — **sí** |
 
-Los contenedores de la función alcanzan el emulador y **no** tienen salida a internet ni al
-rango *link-local*.
+La sonda alcanzó el emulador y no tuvo salida TCP a Internet ni al rango *link-local*.
+**Límite de aquella inferencia:** no comprobó el reenvío DNS de Floci desde el runtime
+Lambda. El addendum de Task/027.1 lo descubrió y corrigió, con evidencia desde la función
+real; véase la actualización al final. No se reescribe la medición de la sonda.
 
 **Diferencia registrada, no disimulada:** el **emulador** sí tiene salida, por `entrada`. Ya
 posee el socket de Docker, que es un privilegio mayor. Lo que el perímetro protege es el
@@ -485,6 +497,9 @@ Entre el `plan` y el `apply` se volvió a exigir que el ZIP fuera **byte a byte*
 
 ### 8.3 Idempotencia — un `exit 2` investigado, no ocultado
 
+**Historia de Floci 2.0.1 (2026-09-14).** La tolerancia aquí descrita se retiró en el
+addendum Floci 2.1.0 de Task/027.1 tras demostrar segundo plan exit 0; seguimiento al final.
+
 El segundo `plan -detailed-exitcode` devolvió **2**: `0 to add, 4 to change, 0 to destroy`,
 los cuatro parámetros SSM, y **solo** en `tags_all`.
 
@@ -575,6 +590,11 @@ ante sintaxis no soportada, así que un resultado vacío no distinguiría «no h
 entregan.
 
 ### 8.6 `destroy`, ausencia, reconstrucción
+
+**Límite descubierto en Task/027.1:** las filas API Gateway de esta tabla son la salida
+histórica del verificador, cuyo parser no reconocía camelCase. Por sí solas no acreditaban
+ausencia de APIs. El addendum conserva esa historia, corrige el parser y prueba presencia
+antes y ausencia después de destroy con control negativo. Las demás mediciones se conservan.
 
 | Etapa | Resultado |
 | --- | --- |
@@ -766,7 +786,9 @@ motivo por el que se conservan.
 Trivy** de los componentes (§15 bis y §15 quater). El estado del baseline frente a esa
 medición **sí** se reverificó hoy, fila por fila, y es el que consta arriba.
 
-**No se ejecutó `push`.** No hay commits, ni rama publicada, ni pull request.
+**Observación de la revisión previa a la aprobación del 2026-09-14:** aún no se habían
+creado commits ni publicado rama o PR. El párrafo siguiente corresponde al cierre aprobado
+posterior de ese día, que sí creó commits; no son observaciones simultáneas.
 
 **Tamaño del cambio.** `git diff --shortstat main..HEAD` informa *57 files changed, 10512
 insertions(+), 62 deletions(-)* repartidos en los commits de esta rama: el grafo de Terraform,
@@ -798,9 +820,9 @@ respecto a la cifra de la revisión —55 archivos— son los de §23:
 
 ## 15 bis. S-09 — escaneo de vulnerabilidades
 
-> **Esta sección es el motivo por el que la revisión previa a la aprobación queda
-> BLOQUEADA.** No se ha aceptado ningún residual nuevo, no se ha tocado el baseline y no se
-> ha cambiado la política. La decisión es del usuario.
+> **Historia del 2026-09-14 por la mañana:** esta medición bloqueó la revisión previa.
+> En ese momento no se había aceptado residual nuevo ni tocado el baseline. El usuario
+> decidió después la aceptación temporal de §15 quater; este bloque no es un bloqueo actual.
 
 ### 15 bis.1 Qué exige S-09 y qué faltaba
 
@@ -1412,7 +1434,11 @@ propio script y **leer** su código para derivar los permisos IAM.
 
 ---
 
-## 18. Deuda y hallazgos abiertos
+## 18. Deuda y hallazgos — registro histórico del 2026-09-14
+
+La tabla conserva el resultado de Floci 2.0.1. El seguimiento al final de este reporte
+registra H-025-1 cerrada técnicamente y H-025-6 reducida a dos identidades en el addendum
+de Task/027.1, **aprobado el 2026-09-21**.
 
 | # | Hallazgo | Dónde se resuelve |
 | --- | --- | --- |
@@ -1430,7 +1456,12 @@ Automatización en CI: **`Task/039`**.
 
 ---
 
-## 19. Reproducción
+## 19. Reproducción — comandos históricos de Task/025
+
+Esta secuencia pertenece a la ejecución del 2026-09-13/14. El lanzador evolucionó en
+Task/026; para ejecutarlo ahora, usar el [runbook vigente](../runbooks/deployment-create.md)
+y las instrucciones de la ficha de Task/027.1 §21. No ejecutar esta transcripción como
+procedimiento actual.
 
 ```powershell
 cd personal-blog-infra
@@ -1625,7 +1656,10 @@ workflow.
 | Finales de línea | Los 57 archivos en LF; `git diff --check` sin avisos |
 | Autoridad duplicada | Ninguna: el digest del runtime vive solo en el manifiesto de `Task/024`, el `sha256` de Terraform se verifica en tres sitios **contra una sola fuente** por el gate de coherencia, y la credencial de ejemplo pasó de tres copias a una |
 
-## 21. Estado final
+## 21. Primera revisión y aprobación final — historia del 2026-09-14
+
+La siguiente instantánea precede a la aprobación; su avance y estado Git son los de
+aquel momento. La tabla de aprobación posterior cierra esta cronología.
 
 ```
 Task/025-Terraform-Cloud ....... LISTA PARA APROBACION  (AUN NO APROBADA)
@@ -1656,10 +1690,40 @@ Commits ........................ 0        Push: no        PR: no
 para **H-025-1** (criterio 7) y la aceptación temporal del residual S-09 (**H-025-6**,
 **H-025-7**). Ambas quedaron registradas, revalidadas y con condiciones de reevaluación.
 
-**Lo único que falta es la expresión `approved: Task/025-Terraform-Cloud`.**
+**En aquella revisión faltaba la expresión de aprobación. Se recibió después el
+2026-09-14**, como registra la tabla siguiente; Task/025 quedó **Aprobada**.
 
 | Campo | Valor |
 | --- | --- |
 | **Fecha de aprobación** | **2026-09-14** |
 | **Aprobado por** | **El usuario** (`jeffersondavila`) |
 | **Expresión de aprobación** | `approved: Task/025-Terraform-Cloud` |
+
+## Actualización de hallazgos — addendum de Task/027.1 (2026-09-20; reconciliado 2026-09-21)
+
+La evidencia anterior corresponde a **Floci 2.0.1** y se conserva íntegra. El
+[addendum Floci de Task/027.1](TASK-027.1-report.md#14-addendum-floci--regresión-s-09-descubierta-durante-el-cierre-de-task0271),
+**aprobado el 2026-09-21**, actualiza el emulador local a **2.1.0** por digest y
+revalida S-11:
+
+- **H-025-1 cerrada técnicamente:** `PutParameter` persiste Tags; segundo plan
+  **exit 0, No changes**. Se retira la tolerancia a `tags_all` del launcher.
+  El `exit 2` y la excepción humana de esta tarea siguen siendo historia verdadera.
+- **H-025-6 reducida, no cerrada:** baseline **70 → 2**, **68 retiradas, 0 añadidas**;
+  solo permanecen las identidades exactas de `libcap` y `libacl` ya aceptadas.
+  Se conserva el límite de cobertura del binario nativo.
+- El inventario API Gateway tenía un falso negativo preexistente en 2.0.1 por camelCase;
+  se corrige y se demuestra presencia antes y ausencia después del destroy.
+- El aislamiento DNS se verifica en el **runtime Lambda real** y se cierra el reenvío
+  externo del DNS de Floci. No se confunde la sonda genérica de red con esa evidencia.
+
+H-025-7 y las validaciones AWS-only siguen pendientes. No se reabre la aprobación de
+Task/025 ni se crea Task/025.1; estas correcciones pertenecen al addendum explícito.
+
+La primera aprobación de Task/027.1 (2026-09-20) cubrió MinIO, ya publicado y verificado;
+hubo commits publicados anteriores. Floci se autorizó después y necesita **nueva
+aprobación humana**. Observado el **2026-09-21**: addendum local sin commit y staging
+vacío; el usuario había cerrado #47/#48 sin merge para consolidar posteriormente en 027.
+Ese hecho fechado y los puntos de detención se documentan en
+[Task/027.1 §15](TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21).
+GitHub conserva la autoridad viva; no se reabrirán esos PR ni se creará otro de 027.1.

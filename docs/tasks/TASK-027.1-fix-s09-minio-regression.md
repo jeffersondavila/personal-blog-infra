@@ -6,21 +6,21 @@
 | **Nombre** | Corregir la regresión S-09 de MinIO |
 | **Tipo** | **Mantenimiento correctivo de seguridad (S-09)** |
 | **Cuenta en el roadmap** | **No.** No forma parte de las 41 tareas y no altera el avance global |
-| **Estado** | **Aprobada** ✔ el 2026-09-20 por el usuario |
+| **Estado** | **Aprobada** — addendum Floci aprobado el **2026-09-21**; aprobación del alcance MinIO del 2026-09-20 conservada como historia |
 | **Repositorios involucrados** | `personal-blog-infra` (**únicamente**) |
 | **Rama** | `Task/027.1-Corregir-Regresion-S09-MinIO` |
 | **Rama base** | **`main`** — única base permitida |
-| **SHA base** | **`67c1904`** (`= main = origin/main` al crearla y al cerrar esta fase) |
+| **SHA base** | **`67c1904`** (`= main = origin/main` al crearla el 2026-09-17) |
 | **Fecha de inicio** | 2026-09-17 (Guatemala) |
-| **Última actualización** | 2026-09-20 (incluye el addendum de portabilidad del CI, §16b) |
-| **Fecha de aprobación** | **2026-09-20** |
-| **Expresión de aprobación** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
+| **Última actualización** | 2026-09-21: segunda aprobación y publicación del addendum, §22 |
+| **Fecha de aprobación del alcance original** | **2026-09-20**; no autoriza publicar el addendum |
+| **Expresión de la primera aprobación (2026-09-20)** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
 | **Reporte** | [TASK-027.1-report.md](../task-reports/TASK-027.1-report.md) |
 | **Publicación de la imagen** | **Publicada** en GHCR el 2026-09-19, bajo autorización humana acotada que **no** equivale a aprobar la tarea. RepoDigest remoto verificado: `sha256:84c67632…059129`. Paquete **PRIVADO**; visibilidad **no modificada** |
 
 ---
 
-## 0. Preparación Git
+## 0. Preparación Git — historia del 2026-09-17 a la primera aprobación
 
 **Rama base obligatoria: `main`.** `dev` **nunca** es base de una Task
 ([`WORKFLOW.md`](../project-management/WORKFLOW.md) §2.1).
@@ -34,8 +34,9 @@
 | 5 | Commits de esta tarea | **ninguno.** Los cambios permanecen sin *commit*, según las instrucciones del proyecto §6 |
 | 6 | `personal-blog-backend` / `personal-blog-frontend` | en `main`, limpios, **sin rama Task** |
 
-El `main` del que nace esta rama **todavía no contiene `Task/027`**: su pull request `#47`
-sigue abierto y sin fusionar. Esa interacción está descrita en §16.
+En la preparación del 2026-09-17, `main` no contenía el entregable de Task/027.
+Esta tabla es histórica: después se publicaron `7e7d56e`, `6890ded` y `df3ba33`.
+La observación Git del addendum y la estrategia posterior están en §21.
 
 ---
 
@@ -79,7 +80,8 @@ dejó de ser irremediable.
 
 - **Hacer público el paquete de GHCR.** La imagen **ya está publicada** —el 2026-09-19, con
   autorización acotada— pero el paquete sigue **PRIVADO** y su visibilidad no se toca.
-  Hacerlo público exige antes versionar el material correspondiente de AGPL (§16).
+  El cierre del 2026-09-20 publicó el código correspondiente esencial; SBOM y
+  procedencia junto a la imagen siguen pendientes (DT-027.1-1).
   *(Hasta el 2026-09-18 esta línea decía que publicar era lo único pendiente para que la
   referencia del Compose fuera resoluble: cierto entonces, resuelto ya.)*
 - Cambiar el release de MinIO, su configuración, sus credenciales o su topología.
@@ -262,16 +264,17 @@ aplicables en verde**, sin ninguno parcial presentado como completo.
    credencial de registro en este perfil, el `push` devolvió `denied`. No publicó nada; la
    imagen cargada para intentarlo se eliminó. Se resolvió cuando el usuario registró la
    credencial, y entonces el `push` se completó.
-6. **`Task/027` y esta tarea tocan los mismos documentos de gestión.** El `main` del que
-   nace esta rama todavía no contiene `Task/027` (PR `#47` abierto), así que esta rama no ve
-   su registro. Cuando el usuario decida el orden de integración, `STATUS.md` y `ROADMAP.md`
-   exigirán resolución manual de conflictos. Queda descrito, no resuelto por iniciativa
-   propia.
+6. **`Task/027` y esta tarea tocan los mismos documentos de gestión.** La instrucción
+   del usuario del 2026-09-21 fija el cierre por fases de §21: después de aprobar y publicar
+   027.1, otra autorización permitirá integrarla completa en 027 mediante `merge --no-ff`.
+   Los conflictos se resolverán semánticamente, conservando ambos alcances, sin `ours`
+   o `theirs` global. Reconocer la aprobación de Task/027 no adelanta esa integración.
 
 ## 16b. Addendum — 2026-09-20: portabilidad del CI
 
-Posterior a la aprobación y anterior a la fusión del PR. **No reescribe la evidencia
-anterior.**
+Hecho histórico del **2026-09-20**, posterior a la primera aprobación, publicado en
+`df3ba33`. El PR #48 fue cerrado después sin merge; su cierre se fecha en §21.
+**No reescribe la evidencia anterior.**
 
 `CI Infra` quedó rojo al integrar la tarea en `dev`: `docker buildx build --output type=oci`
 cayó en el builder `default` del runner, cuyo **driver `docker` no implementa exportadores**
@@ -296,7 +299,10 @@ Dockerfile, el parche y la imagen publicada en GHCR quedan **intactos**.
 controles negativos demostrados. Detalle en el
 [reporte §12b](../task-reports/TASK-027.1-report.md).
 
-## 17. Pasos de validación para el usuario
+## 17. Pasos históricos de validación — antes de la primera aprobación
+
+Estos comandos y expectativas son historia del 2026-09-18/20. Para validar el addendum
+sobre los commits ya publicados, usar §21; no se espera `main..HEAD == 0`.
 
 ```powershell
 # 1. La rama es la correcta y no tiene commits propios
@@ -328,23 +334,159 @@ python scripts/security/vulnerability_gate.py --baseline security/vulnerability-
 
 ## 19. Próxima tarea
 
-**Ninguna se inicia.** `Task/027` permanece **Aprobada** con su pull request `#47` **sin
-fusionar**, y `Task/028` sigue **no iniciada**. Esta tarea no autoriza avanzar.
+**Ninguna se inicia.** `Task/027` permanece **Aprobada**; avance **27/41 ≈ 66 %**,
+ETAPA 09 **1/3 ≈ 33 %**. `Task/028` permanece **Pendiente, no iniciada**. Esta tarea
+no suma avance ni autoriza avanzar.
 
-## 20. Aprobación
+## 20. Primera aprobación — historia del alcance MinIO (2026-09-20)
 
 | Campo | Valor |
 | --- | --- |
 | **Fecha de aprobación** | **2026-09-20** |
 | **Aprobado por** | **el usuario** (`jeffersondavila`) |
-| **Expresión de aprobación** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
+| **Expresión de la primera aprobación (2026-09-20)** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
 
-Con esta aprobación:
+Con aquella primera aprobación (no cubre el addendum posterior):
 
 - las decisiones **D-027.1-A** a **D-027.1-F** pasan a **Aceptadas y Vigentes**, sin ADR nuevo;
 - **el avance NO cambia**, porque el mantenimiento no cuenta entre las 41 tareas; la cifra
   vigente la fija la última tarea canónica aprobada;
 - **`R-018-3` sigue ABIERTO** con 99 identidades;
-- **`Task/027` sigue Aprobada** con su pull request `#47` **abierto y sin fusionar**;
+- **`Task/027` conserva su aprobación** del 2026-09-17;
 - **`Task/028` sigue no iniciada**;
 - **la visibilidad del paquete de GHCR NO cambia**: sigue **privado**.
+
+## 21. Addendum Floci / regresión S-09 descubierta durante el cierre de Task/027.1
+
+**Implementado el 2026-09-20 (Guatemala); reconciliado y APROBADO el 2026-09-21.**
+El usuario amplió expresamente este mantenimiento, siguiendo el precedente de
+`Task/020.3`: un gate de cierre reveló un defecto independiente. No se crea `Task/025.1`,
+otra maintenance ni una tarea canónica nueva. La aprobación de §20 pertenece al alcance
+original y **no autorizaba** commit/push del addendum; la segunda aprobación, registrada
+en §22, sí lo autoriza —y solo eso—.
+
+### Alcance entregado
+
+- [x] Floci **2.0.1 → 2.1.0**, digest del índice OCI verificado remotamente y
+      plataforma `linux/amd64` explícita.
+- [x] Healthcheck sin curl ni paquetes nuevos: Bash `/dev/tcp`, HTTP 200 y seis
+      servicios `running`; controles negativos por estado HTTP, servicio ausente,
+      servicio detenido y servicio inexistente.
+- [x] Baseline **70 → 2** por intersección exacta con las identidades históricas:
+      **68 retiradas, 0 añadidas**. Las siete regresiones de 2.0.1 desaparecen.
+- [x] H-025-1 cerrada técnicamente: `PutParameter` conserva Tags; segundo plan **exit 0**.
+      Se retira del lanzador la tolerancia a `tags_all`; una regresión vuelve a fallar.
+- [x] Parser API Gateway aislado y compatible con camelCase/PascalCase. JSON/HTTP
+      inválidos abortan; un API existente hace fallar la prueba de ausencia.
+- [x] S-11: plan/apply de 21 recursos, readback, Lambda cold real y segunda invocación,
+      API → Lambda, Logs, aislamiento, destroy y ausencia incluyendo API Gateway.
+- [x] Hallazgo adicional de S-11: el DNS de Floci reenviaba consultas externas desde
+      Lambda. Compose confina los resolutores a loopback IPv6 y desactiva fallback
+      público. Se comprueba **desde el contenedor Lambda real**, no solo con una sonda
+      genérica de la red. El gate CI de puertos usa el modelo JSON de Compose para no
+      confundir la dirección DNS `::1` con un puerto publicado.
+- [x] S-09 completo y gates locales aplicables. MinIO **99/99**, misma identidad GHCR,
+      sin reconstrucción, modificación de receta/parche/manifiesto ni publicación.
+- [x] Documentación y limpieza de recursos temporales; stack principal intacto.
+
+### Decisiones del addendum — Aceptadas y Vigentes desde el 2026-09-21
+
+Consumir el release estable 2.1.0 por digest; reducir exclusivamente el riesgo histórico;
+exigir convergencia literal de SSM; usar Bash disponible en la imagen; cerrar el reenvío
+DNS del laboratorio; interpretar el inventario API sin falsos negativos. Ninguna cambia
+la arquitectura: **Floci solo se ejecuta en local, nunca se despliega a AWS; producción
+usa AWS real**. No se declara paridad completa.
+
+Con la aprobación del **2026-09-21** pasan de **Propuesta** a **Aceptadas y Vigentes**,
+**sin ADR nuevo**: ninguna altera una decisión arquitectónica aceptada (§22).
+
+El [reporte §14](../task-reports/TASK-027.1-report.md#14-addendum-floci--regresión-s-09-descubierta-durante-el-cierre-de-task0271)
+contiene digests, mediciones, fallos intermedios, gates, limpieza y límites.
+
+### Validación y punto de detención
+
+```powershell
+git branch --show-current  # Task/027.1-Corregir-Regresion-S09-MinIO
+git rev-parse HEAD         # df3ba33777058f6cbad1747e3d695c09e7a74fee
+git diff --cached --stat   # vacío
+git diff --check
+python -B -m unittest discover -s tests/security -p "test_*.py"
+python -B -m unittest discover -s tests/laboratorio -p "test_*.py"
+python scripts/security/vulnerability_gate.py --baseline security/vulnerability-baseline.json --comprobar-coherencia .
+docker compose -f laboratorio/docker-compose.laboratorio.yml --env-file laboratorio/.env.laboratorio.example config --quiet
+```
+
+Los comandos históricos de §17 describen la fase original anterior a sus commits.
+**Observado el 2026-09-21:** HEAD `df3ba33`, tres commits anteriores publicados;
+addendum local sin commit y staging vacío. La comprobación de HEAD anterior es una
+observación de esta fase, no una constante para cierres futuros.
+
+**Observado el 2026-09-21:** el usuario cerró sin merge los
+[PR #47](https://github.com/jeffersondavila/personal-blog-infra/pull/47) y
+[PR #48](https://github.com/jeffersondavila/personal-blog-infra/pull/48), con `closedAt`
+`2026-09-21T02:38:32Z` y `2026-09-21T02:38:38Z`, respectivamente, y `mergedAt=null`
+en ambos. El cierre ocurrió el 2026-09-20 en Guatemala. Es un hecho histórico;
+Git/GitHub son la fuente viva de ramas, PR y checks.
+
+**Punto de detención 1 — cumplido y superado.** Aquella fase terminó sin commit, push,
+merge, cambio a Task/027 ni PR, con la tarea **Lista para validación**. La aprobación del
+**2026-09-21** (§22) la cierra y habilita el **punto de detención 2**. Task/027 conserva su
+aprobación: **27/41 ≈ 66 %**, ETAPA 09 **1/3 ≈ 33 %**. Task/028 no se inicia. Los gates
+locales **no** equivalen a una ejecución remota del addendum.
+
+Por instrucción expresa del usuario, la [estrategia de cierre por fases](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21)
+prevalece para este cierre: tras `approved: Task/027.1-Corregir-Regresion-S09-MinIO`,
+commit y push de 027.1, verificar remoto y **detenerse sin PR ni integración en dev**.
+Solo otra autorización permitirá consolidar todo su historial en 027 mediante
+`merge --no-ff`, conservar todo el alcance cloud aprobado y validar el árbol combinado.
+La entrega final será un único PR nuevo `Task/027 → main`; no reabrir #47/#48 ni crear
+otro PR de 027.1. Solo el usuario fusiona hacia main.
+
+---
+
+## 22. Segunda aprobación — addendum Floci (2026-09-21)
+
+| Campo | Valor |
+| --- | --- |
+| **Fecha de aprobación** | **2026-09-21** (Guatemala) |
+| **Aprobado por** | **el usuario** (`jeffersondavila`) |
+| **Expresión de la aprobación** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
+| **Alcance que cubre** | El **addendum Floci** de §21. La aprobación del 2026-09-20 cubre el alcance MinIO de §20 y se conserva como historia |
+
+Con esta aprobación:
+
+- Las **decisiones del addendum** pasan de **Propuesta** a **Aceptadas y Vigentes**,
+  **sin ADR nuevo**: ninguna altera una decisión arquitectónica aceptada.
+- **El avance NO cambia.** `Task/027.1` es mantenimiento y **no cuenta entre las 41**:
+  sigue **27/41 ≈ 66 %** y **ETAPA 09 1/3 ≈ 33 %**, cifras que fija `Task/027`.
+- **H-025-1** queda **cerrada técnicamente**; **H-025-6** sigue **ABIERTA** con dos
+  identidades exactas; **H-025-7** conserva sus nueve; **R-018-3** sigue **ABIERTO** con
+  99 identidades.
+- `Task/027` conserva su aprobación del 2026-09-17 y `Task/028` **no se inicia**.
+- **La visibilidad del paquete de GHCR NO cambia:** sigue **privado**, sin reconstruir ni
+  republicar la imagen.
+- **Floci sigue siendo laboratorio local** y lo observado en él sigue siendo **hipótesis**
+  hasta la ETAPA 10 (ADR-006). **No se declara paridad completa.**
+
+### Punto de detención 2 — lo único autorizado por esta aprobación
+
+Por instrucción expresa del usuario, esta aprobación **sustituye el cierre ordinario de
+[`WORKFLOW.md`](../project-management/WORKFLOW.md) para esta entrega** y autoriza
+**únicamente**:
+
+1. Registrar documentalmente la aprobación y promover las decisiones del addendum.
+2. Ejecutar las validaciones finales.
+3. Crear los commits del addendum sobre `Task/027.1-Corregir-Regresion-S09-MinIO`.
+4. Publicar esa rama en `origin` y **verificar su SHA remoto**.
+
+**No autoriza:** crear un pull request, reabrir #47/#48, integrar en `dev`, cambiar a
+`Task/027`, consolidar mediante `merge --no-ff`, tocar `main` ni iniciar `Task/028`.
+Esa consolidación exige **otra autorización**, descrita en el
+[reporte §15](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21).
+**Solo el usuario fusiona hacia `main`.**
+
+Esta excepción **no** cambia cómo nacen las ramas Task: toda Task sigue naciendo de `main`
+actualizado y limpio ([WORKFLOW §2.1](../project-management/WORKFLOW.md)).
+
+La evidencia de ejecución de esta fase está en el
+[reporte §16](../task-reports/TASK-027.1-report.md#16-segunda-aprobación-y-publicación-del-addendum--2026-09-21).
