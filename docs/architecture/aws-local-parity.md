@@ -8,7 +8,7 @@
 | **Repositorio** | `personal-blog-infra` |
 | **ADR asociado** | [ADR-006 — Paridad AWS local con Floci](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada** ✔ |
 | **Se implementa en** | ETAPA 08 (`Task/023`–`Task/026`), se valida contra AWS real en ETAPA 10 |
-| **Verificación de Floci** | 2026-08-15, sobre fuentes oficiales del proyecto (§5) |
+| **Verificación de Floci** | Investigación histórica 2026-08-15 (§5–§6); ejecución 2.0.1 en Task/025; revalidación 2.1.0 en el addendum Task/027.1 (§7), **aprobado el 2026-09-21** |
 
 > Este documento es la **fuente única** de la estrategia de paridad AWS local. Los demás
 > documentos —roadmap, fichas de etapa, correspondencia local → nube, límites de
@@ -23,6 +23,21 @@ Relacionados: [overview.md](overview.md) ·
 
 ---
 
+**Alcance de la actualización del 2026-09-21:** la estrategia ADR-006 permanece Vigente.
+La primera aprobación de Task/027.1 del 2026-09-20 cubrió MinIO, publicado y verificado,
+con commits publicados anteriores. El addendum Floci posterior quedó **Aprobado el
+2026-09-21**; su evidencia actualiza §7 como resultado vigente del laboratorio local.
+**Sigue siendo local:** nada de esto es hecho de AWS real ni declara paridad completa.
+Observado el 2026-09-21: cierres sin merge de #47/#48 decididos por el usuario para
+consolidar en Task/027, consolidación que ese mismo día quedó autorizada y ejecutada
+mediante `merge --no-ff`, con el historial de Task/027.1 íntegro.
+[Historia fechada y estrategia por fases](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21).
+GitHub es la fuente viva. No reabrir esos PR ni crear otro de 027.1.
+
+Task/027 **Aprobada**; avance vigente **27/41 ≈ 66 %**, ETAPA 09 **1/3 ≈ 33 %**.
+Task/027.1 no cuenta entre las 41; Task/028 no iniciada. Esta revisión no ejecuta
+acciones AWS/Cloudflare ni altera la arquitectura o el grafo Terraform.
+
 ## 1. Objetivo
 
 > **La infraestructura AWS del proyecto debe poder desarrollarse, aprenderse,
@@ -34,24 +49,26 @@ Esa frase es la meta completa. Se descompone en cuatro propósitos concretos:
 | # | Propósito | Por qué importa en este proyecto |
 | --- | --- | --- |
 | 1 | **Aprender** AWS y Terraform de verdad, no en abstracto. | El proyecto es también un ejercicio de formación. Aprender sobre recursos reales cuesta dinero y castiga los errores. |
-| 2 | **Validar** la IaC antes del primer `apply` real. | Hoy la ETAPA 08 solo se compromete a `terraform fmt` y `terraform validate`: eso comprueba sintaxis, no comportamiento. |
+| 2 | **Validar** la IaC antes del primer `apply` real. | Al formular la estrategia el 2026-08-15, la ETAPA 08 solo exigía `fmt`/`validate`. Task/025 y Task/026 ejecutaron después el ciclo local; §7 conserva la evidencia. |
 | 3 | **Ejercitar el ciclo completo** `apply` → inspección → *drift* → `destroy` → `apply`. | Es la única forma de saber que la infraestructura es realmente reproducible y destruible. |
 | 4 | **Proteger el costo**, que es la restricción principal del proyecto ([ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md)). | Cada error descubierto en local es un error que no se paga en la factura. |
 
 ## 2. Qué NO es este documento
 
 - **No** implementa Floci, ni Terraform, ni ningún recurso.
-- **No** fija una versión de Floci (§5.4).
+- La estrategia fija la **regla de selección** (§5.4); §7 registra las versiones
+  concretas que se ejecutaron y su estado de aprobación.
 - **No** resuelve **D-01** (modelo y proveedor de PostgreSQL de producción). El **modelo** lo
   **resolvió** `Task/005.3`, **aprobada** el 2026-08-15 — **VPS externo autogestionado**, ver
   §8 —; el **proveedor** sigue en `Task/029`.
-- **No** resuelve **D-06** (backend de estado de Terraform, `Task/025`).
+- La estrategia original no decidió **D-06**; la resolvió Task/025, aprobada el
+  2026-09-14. Su decisión vigente se resume en §4.5.
 - **No** sustituye la arquitectura objetivo de producción, que es la de
   [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) **modificada en su capa de datos
   por** [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), y cuya representación
   canónica vigente es el diagrama de §3.3 de este documento.
-- **No** promete paridad completa con AWS. Ninguna afirmación de paridad de este documento
-  está probada todavía: la matriz de §7 nace entera en estado *No evaluada*.
+- **No** promete paridad completa con AWS. La matriz nació *No evaluada* el 2026-08-15;
+  §7 distingue la evidencia local obtenida después de la validación pendiente en AWS.
 
 ---
 
@@ -85,7 +102,7 @@ Lambda.
 
 ### 3.2 Modo B — AWS Local Parity Lab
 
-Es lo que este documento propone añadir. Se levanta cuando hace falta trabajar
+Es el laboratorio implementado en Task/025, originalmente propuesto por este documento. Se levanta cuando hace falta trabajar
 infraestructura; **no** es el entorno de trabajo diario.
 
 ```mermaid
@@ -231,7 +248,7 @@ La meta correcta, y la que este documento adopta, es:
 | 1 | Endpoints del provider (bloque `endpoints`) | `providers.tf` + variable de entorno | Legítima |
 | 2 | Flags locales del provider (`skip_credentials_validation`, `skip_metadata_api_check`, `skip_requesting_account_id`, `s3_use_path_style`) | `providers.tf`, condicionadas por entorno | Legítima |
 | 3 | Credenciales: ficticias en local · OIDC/SSO real en AWS | Fuera de Git, siempre | Legítima |
-| 4 | **Backend de estado de Terraform** | `terraform init -backend-config=...` | Legítima — decisión **D-06**, abierta |
+| 4 | **Backend de estado de Terraform** | `terraform init -backend-config=...` | Legítima — **D-06 resuelta** por Task/025 (2026-09-14) |
 | 5 | Región | `tfvars` | Legítima |
 | 6 | Nombres y prefijos por ambiente | `tfvars` | Legítima |
 | 7 | Dominios y DNS | Solo existen en AWS real (`Task/035`) | Legítima |
@@ -242,25 +259,21 @@ La meta correcta, y la que este documento adopta, es:
 Cualquier diferencia que **no** encaje en esta tabla es una señal de que se están creando
 dos infraestructuras. Se trata como defecto de diseño, no como configuración.
 
-### 4.5 Backend de estado — **D-06 sigue abierta**
+### 4.5 Backend de estado — D-06 resuelta
 
-El backend de Terraform es la diferencia estructuralmente más incómoda, porque no se
-resuelve con un `tfvars`. La experiencia futura será **conceptualmente**:
+**Aceptada con Task/025 el 2026-09-14.** El tipo de backend no cambia con un `tfvars`
+ni con `-backend-config`: el lanzador genera únicamente `backend.generado.tf`, ignorado
+por Git, antes de `init`. El grafo de recursos sigue siendo fuente versionada común.
 
-```bash
-# LOCAL
-terraform init  -backend-config=environments/local/backend.hcl
-terraform apply -var-file=environments/local/local.tfvars
+En local se usa backend `local`, fuera de Git y del emulador, con cerrojo de una sola
+escritora. Para AWS, la decisión es S3 privado dedicado con `use_lockfile=true`, sin
+DynamoDB nueva y con bootstrap separado; esa decisión no crea el bucket ni autoriza
+operaciones cloud. Detalle en [D-06](open-decisions.md) y
+[reporte Task/025 §4.3](../task-reports/TASK-025-report.md#43-d-06--el-backend-de-estado).
 
-# AWS REAL
-terraform init  -backend-config=environments/production/backend.hcl
-terraform apply -var-file=environments/production/production.tfvars
-```
-
-Esto es **ilustrativo**. Ninguno de esos archivos se crea en `Task/005.2`, y la elección
-del backend definitivo —local, S3 con bloqueo, u otra— **sigue perteneciendo a `Task/025`
-como decisión D-06**, sin resolver. Que Floci soporte un backend `s3` local no decide qué
-backend usará producción; solo demuestra que la vía es practicable en el laboratorio.
+La propuesta conceptual de Task/005.2 (2026-08-15) dejaba D-06 abierta y mostraba rutas
+ilustrativas `environments/local/backend.hcl`; esas rutas no son comandos vigentes del
+lanzador implementado.
 
 ---
 
@@ -313,7 +326,8 @@ recursos, distinto destino.**
 ### 5.4 Regla de versión — nunca `latest`
 
 Floci evoluciona muy rápido: la cadencia observada es de una *release* cada pocos días.
-Por eso **este documento no fija ninguna versión de Floci**, y establece la regla:
+Por eso la estrategia estableció el 2026-08-15 la siguiente regla de selección
+—aplicada después en Task/025 y en el addendum de Task/027.1, con evidencia en §7—:
 
 > Cuando llegue la tarea de implementación (`Task/025`), se seleccionará una **release
 > estable concreta**, se verificará su compatibilidad con los servicios que el proyecto
@@ -328,7 +342,9 @@ envejecen y hacen irreproducible el entorno.
 ## 6. Capacidades que interesan a este proyecto
 
 Todo lo siguiente procede de la documentación oficial consultada el **2026-08-15**.
-**Nada de esto se ha probado en este proyecto.** El vocabulario es deliberadamente
+**En aquella fecha aún no se había probado en este proyecto.** Estas capacidades son
+la investigación histórica de la 1.6.0; la evidencia ejecutada posterior está en §7.
+El vocabulario es deliberadamente
 prudente: *soporte declarado*, *emulado*, *paridad parcial*, *requiere validación en AWS
 real*. En ningún punto se afirma que algo sea «idéntico a AWS».
 
@@ -456,14 +472,15 @@ paridad tiene cada servicio.
 | `AWS-only` | No se puede validar localmente con fidelidad suficiente. |
 | `Validada en AWS` | Confirmada contra AWS real, con evidencia. |
 
-> **Actualizada el 2026-09-14 por `Task/025`** — **Propuesta, pendiente de aprobación**
-> hasta que el usuario escriba `approved: Task/025-Terraform-Cloud`.
+> **Revalidada el 2026-09-20 por el addendum Floci de `Task/027.1`**, **aprobado el
+> 2026-09-21**. Sigue siendo evidencia **local**: hipótesis hasta la ETAPA 10.
 >
-> Versión del emulador observada: **Floci `2.0.1`**, fijada por el digest del índice OCI
-> `sha256:4e451c39…86e8eb`. Terraform **1.16.2**, provider **hashicorp/aws 6.64.0**.
-> Cada celda de abajo procede de una ejecución real registrada en
-> [`TASK-025-report`](../task-reports/TASK-025-report.md); **ninguna** procede de la
-> documentación del emulador.
+> Floci **2.1.0**, índice OCI `sha256:f5aa8c18302cedb4f2385f5c4e455b3efc77fee6bf7b6e5d1712b2817ba102db`,
+> plataforma `linux/amd64`. Terraform **1.16.2**, provider **hashicorp/aws 6.64.0**.
+> Evidencia nueva: [Task/027.1 §14](../task-reports/TASK-027.1-report.md#14-addendum-floci--regresión-s-09-descubierta-durante-el-cierre-de-task0271).
+> Historia de 2.0.1 conservada en [Task/025](../task-reports/TASK-025-report.md), aprobada
+> el 2026-09-14. La actualización revalida servicios y no convierte observaciones locales
+> en validación AWS. Floci es solo laboratorio local y no se despliega a producción.
 >
 > **Advertencia de versión.** ADR-006 verificó el emulador en la **1.6.0** el 2026-08-15.
 > `2.0.1` es un salto de **major**, así que las capacidades declaradas allí se re-observaron
@@ -472,6 +489,17 @@ paridad tiene cada servicio.
 > CloudWatch, que contradiría lo observado en la 1.6.0. **No se ha comprobado**, y por eso
 > esa fila **no** cambia de estado.
 
+**S-11 del addendum:** 21 recursos, plan/apply/readback/destroy y ausencia por API
+revalidados. H-025-1 cerrada técnicamente, baseline H-025-6 **70 → 2, −68/+0**.
+Lambda cold **16,063 s**, segunda invocación **3,750 s**; ambas HTTP/payload 200.
+No son mediciones comparables con AWS. El runtime recibe credenciales temporales
+sintéticas ASIA… de la cuenta ficticia; el launcher usa `test/test`.
+Solo red `ejecucion`, emulador alcanzable; Internet TCP, DNS externo y metadata bloqueados
+**desde el contenedor Lambda real**. Fue necesario confinar el reenvío DNS del emulador
+a loopback IPv6 y desactivar resolutores públicos: `internal: true` por sí sola no bastaba.
+El parser API Gateway corrige un falso negativo **preexistente en 2.0.1**, no causado
+por la actualización. Un API existente ya no puede producir una falsa prueba de ausencia.
+
 **Estado inicial — 2026-08-15.** Todo estaba en `No evaluada` porque no se había ejecutado
 nada. Las columnas *Local Floci*, *Terraform local* y *AWS real* se rellenan con evidencia
 real, nunca con expectativas.
@@ -479,17 +507,17 @@ real, nunca con expectativas.
 | Servicio | Local Floci | Terraform local | AWS real | Paridad | Diferencias conocidas a vigilar | Se evalúa en |
 | --- | --- | --- | --- | --- | --- | --- |
 | **S3** | **Sí** — `PUT`/`GET`/`DELETE`, `ListObjectsV2` por prefijo y **URL prefirmada** correctos; el objeto recuperado coincide **byte a byte** | **Sí** — 8 recursos creados y destruidos | Pendiente | `Paridad parcial` | **La lectura ANÓNIMA del objeto devolvió 200, no 403**: el emulador no aplica la autorización de S3 por omisión (`FLOCI_SERVICES_S3_ENFORCE_AUTH=false`). El laboratorio demuestra que la **configuración** de privacidad se acepta, **no** que el bucket sea privado. Direccionamiento *path-style*. El *lifecycle* se acepta, pero **ninguna versión expiró**: un vencimiento tarda días y no se puede observar en un ciclo | `Task/025` ✔ → **`Task/030`** (privacidad efectiva y *lifecycle* reales) |
-| **SSM Parameter Store** | **Sí** — 4 parámetros creados y leídos con `GetParameter`; el tipo `SecureString` se conserva | **Sí**, con una diferencia que **impide converger** | Pendiente | `Paridad parcial` | **`SecureString` no cifra en reposo**: ningún secreto real entra aquí (S-07). **Hallazgo nuevo de `Task/025`: el emulador DESCARTA las etiquetas enviadas en `PutParameter`.** Comprobado con llamadas directas: tras crear el parámetro, `ListTagsForResource` devuelve lista vacía; `AddTagsToResource` por separado **sí** las persiste, y el grupo de logs **sí** conserva las cuatro etiquetas por omisión. Consecuencia: el segundo `plan` nunca converge en `tags_all`. **No se ocultó con `ignore_changes`**, que viajaría a producción y silenciaría un *drift* real | `Task/025` ✔ → **`Task/031`** (cifrado y etiquetas reales) |
+| **SSM Parameter Store** | **Sí** — 4 parámetros leídos; `PutParameter` persiste Tags y `ListTagsForResource` los devuelve en 2.1.0 | **Sí**, segundo plan **exit 0** | Pendiente | `Paridad parcial` | **H-025-1 cerrada técnicamente por Task/027.1.** En 2.0.1 se descartaban Tags y el plan daba exit 2 por `tags_all`; evidencia histórica conservada en Task/025. Se retira la tolerancia del launcher, sin `ignore_changes` de etiquetas ni cambios productivos. **SecureString sigue sin cifrar**: solo valores ficticios (S-07) | `Task/025` ✔, addendum `Task/027.1` (aprobado 2026-09-21) → **Task/031** (AWS real) |
 | **IAM** | **Solo creación** — `GetRole` devuelve 200 y la política de confianza nombra exclusivamente a `lambda.amazonaws.com` | **Sí** — rol y política en línea creados, adjuntados y destruidos | Pendiente | `Paridad parcial` | ***Enforcement* desactivado por omisión.** El laboratorio demuestra que el rol **se crea** y la política **se adjunta**; **no** demuestra que autorice. Un rol insuficiente —o excesivo— pasaría igual. La política se escribió con mínimo privilegio real (objeto acotado a `medios/*`, `ListBucket` condicionado a `s3:prefix`, logs al grupo propio, SSM a parámetros nombrados) porque es la que irá a AWS, **no** porque esté probada. **Mínimo privilegio = AWS-only** | `Task/025` ✔ (creación) → **`Task/028`, `Task/032`** (autorización) |
-| **Lambda** | **Sí** — el ZIP de `Task/024` (`sha256 6580410109…a02841`) se despliega e **invoca**; `package_type=Zip`, `runtime=python3.12`, `handler=app.lambda_handler.handler`, `x86_64` | **Sí** — creada y destruida dos veces | Pendiente | `Compatible local` | Ejecuta en contenedor Docker real. **El emulador resuelve el runtime por ETIQUETA MÓVIL** (`public.ecr.aws/lambda/python:3.12`): se pre-descargó y se verificó que resuelve **al mismo digest que fijó `Task/024`** (`sha256:a89893d9…05daa`), y sus propios logs confirman *«Image already present locally, skipping pull»*. **El arranque en frío local NO es comparable** con el de AWS: **no sirve para dimensionar** | `Task/024` ✔, `Task/025` ✔ → **`Task/032`** (arranque real y **D-12**) |
+| **Lambda** | **Sí** — el ZIP de `Task/024` (`sha256 6580410109…a02841`) se despliega e **invoca**; `package_type=Zip`, `runtime=python3.12`, `handler=app.lambda_handler.handler`, `x86_64` | **Sí** — dos ciclos históricos en Task/025 y ciclo revalidado en Task/027.1 | Pendiente | `Compatible local` | Ejecuta en contenedor Docker real. El emulador solicita `public.ecr.aws/lambda/python:3.12`; el lanzador **descarga por el digest del manifiesto Task/024**, asocia localmente esa etiqueta al contenido fijado y comprueba la imagen efectiva del contenedor real. No exige que la etiqueta remota conserve el digest histórico ni usa solo los logs como evidencia (H-025-3, Task/025 §15 ter). En el addendum se observó `sha256:a89893d9…05daa`. **El arranque en frío local NO es comparable** con el de AWS: **no sirve para dimensionar** | `Task/024` ✔, `Task/025` ✔ → **`Task/032`** (arranque real y **D-12**) |
 | **API Gateway v2 (HTTP API)** | **Sí** — `GET /health` por **HTTP real** devolvió **200** y el cuerpo del *handler* atravesando API → Lambda → FastAPI | **Sí** — api, integración `AWS_PROXY` *payload* 2.0, ruta y *stage* creados y destruidos | Pendiente | `Requiere adaptación` | **El atributo `api_endpoint` NO sirve contra el destino local**: lo sintetiza el **provider** como `https://{id}.execute-api.{region}.amazonaws.com`, que en local no resuelve. La API se direcciona por el dominio del emulador (`{id}.execute-api.localhost.floci.io:4566`) o por cabecera `Host` contra `127.0.0.1` —esta segunda **no depende de DNS externo**—. La diferencia queda confinada al **cliente**: el grafo, los módulos y las salidas son idénticos. Sin dominios propios ni TLS gestionado | `Task/025` ✔ → **`Task/033`** (*stage*, *base path*, dominio, TLS) |
-| **CloudWatch Logs** | **Sí** — grupo con retención de 7 días creado, y **`FilterLogEvents` recuperó 2 eventos reales** de la invocación, incluido el JSON de la aplicación y `GET /health 200` | **Sí** — creado y destruido; conserva las etiquetas por omisión | Pendiente | `Compatible local` | Se usó `FilterLogEvents` **a propósito** y no Logs Insights: Insights **degrada en silencio** ante sintaxis no soportada, así que un resultado vacío no distinguiría «no hay eventos» de «la consulta no se entendió». **No se crearon filtros de suscripción**, que se almacenan pero no entregan. El grupo lo crea Terraform y no el servicio, para que nazca con retención declarada y no infinita | `Task/017` ✔, `Task/025` ✔ → **`Task/031`** (retención real, **D-11**) |
+| **CloudWatch Logs** | **Sí** — grupo con retención de 7 días creado, y **`FilterLogEvents` recuperó eventos reales** de las invocaciones (2 en Task/025, 6 en el ciclo final del addendum), incluido el JSON de la aplicación y `GET /health 200` | **Sí** — creado y destruido; conserva las etiquetas por omisión | Pendiente | `Compatible local` | Se usó `FilterLogEvents` **a propósito** y no Logs Insights: Insights **degrada en silencio** ante sintaxis no soportada, así que un resultado vacío no distinguiría «no hay eventos» de «la consulta no se entendió». **No se crearon filtros de suscripción**, que se almacenan pero no entregan. El grupo lo crea Terraform y no el servicio, para que nazca con retención declarada y no infinita | `Task/017` ✔, `Task/025` ✔ → **`Task/031`** (retención real, **D-11**) |
 | **CloudWatch Metrics / alarmas** | **No evaluada** | **No evaluada** | Pendiente | `No evaluada` | **`Task/025` no creó ninguna alarma ni métrica, a propósito.** ADR-006 §6.7 observó en la 1.6.0 que el estado se fija a mano con `SetAlarmState` y que no hay motor de evaluación documentado; crear una alarma solo habría demostrado que la definición se acepta. **Observación sin comprobar:** el CHANGELOG de `2.0.0` menciona *«evaluate alarms over CloudWatch's wider evaluation range»*, que contradiría aquello. **No se ha verificado**, así que esta fila **no** cambia de estado: `SetAlarmState` nunca demuestra evaluación automática | **`Task/031`, `Task/041`** |
-| **Terraform (`plan`/`apply`/`destroy`)** | **Sí** | **Ciclo completo ejecutado**: `init`, `fmt`, `validate`, `plan` (21 recursos), `apply`, pruebas, segundo `plan`, `destroy` con **ausencia verificada por API**, **reconstrucción**, *smoke* y segundo `destroy` | Pendiente | `Paridad parcial` | **La combinación del camino crítico —APIGWv2 + Lambda + Logs con Terraform, no cubierta por la suite oficial del emulador (§6.8, R-25)— FUNCIONA.** Única diferencia que impide `exit 0` limpio: `tags_all` de `aws_ssm_parameter` (fila SSM). Todo lo demás converge. **D-06** resuelta como propuesta: estado local fuera de Git y fuera del emulador; el **tipo** de backend no se puede cambiar con `-backend-config`, así que el lanzador genera **solo** ese bloque antes de `init` | `Task/025` ✔ → **ETAPA 10** |
-| **AWS CLI / boto3** | **No evaluada** | — | Pendiente | `No evaluada` | **Ni el AWS CLI ni boto3 se usaron, y no se afirma que funcionen.** Este repositorio no declara ninguna dependencia de terceros para Python, así que la inspección se hizo con un cliente **propio** que firma **SigV4 con la biblioteca estándar**, validado contra el ejemplo canónico publicado por AWS. Lo demostrado es que **el protocolo AWS** funciona contra el destino local; que el CLI y el SDK oficiales lo hagan es una expectativa razonable, **no** una observación | **ETAPA 10** |
+| **Terraform (`plan`/`apply`/`destroy`)** | **Sí** | **Ciclo completo revalidado en 2.1.0**: 21 recursos, apply, segundo plan **exit 0**, destroy y ausencia por API | Pendiente | `Paridad parcial` | Camino crítico APIGWv2 → Lambda → Logs correcto. La divergencia histórica `tags_all` de 2.0.1 está resuelta, sin excepciones activas de idempotencia. API Gateway presente y ausente comprobado con parser corregido. Estado local fuera de Git y del emulador (D-06); se conserva el único grafo Terraform | `Task/025` ✔, addendum `Task/027.1` (aprobado 2026-09-21) → **ETAPA 10** |
+| **AWS CLI / boto3** | **boto3: sí**, inspección desde el ZIP canónico en Task/026; **AWS CLI: no evaluada** | Inventario de recursos del ciclo local | Pendiente | `Paridad parcial` | Task/025 y el addendum 027.1 usaron el cliente SigV4 de biblioteca estándar; no acreditan por sí solos CLI/SDK. Task/026 sí ejecutó la inspección con boto3 desde el ZIP, corrigió DEF-026-1 y verificó ausencia; [evidencia](../task-reports/TASK-026-report.md). No implica validación AWS | `Task/026` ✔ → **ETAPA 10** |
 | **PostgreSQL** | **No aplica** | — | **No aplica** | `AWS-only` (fuera de AWS) | La base de datos de producción vive en un **VPS externo** ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md)): no pertenece al grafo AWS y el laboratorio **no debe reproducirla** | **`Task/029`** — proveedor y dimensionamiento |
 | **Cloudflare Pages / DNS** | **No aplica** | — | Pendiente | `AWS-only` (fuera de AWS) | Floci no emula Cloudflare | `Task/034`, `Task/035` |
-| **Presupuestos y alarmas de costo** | **No aplica** | — | Pendiente | `AWS-only` | No tiene sentido emular facturación | `Task/027`, `Task/041` |
+| **Presupuestos y alarmas de costo** | **No aplica** | — | Configuración verificada en Task/027, aprobada el 2026-09-17; operación continua pendiente | `AWS-only` | No se emula facturación. El alcance aprobado de Task/027 incluye presupuesto y cuatro alertas; no demuestra un disparo futuro ni autoriza nuevas acciones cloud. Evidencia original identificada en [Task/027.1 §15](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21) | `Task/027` ✔, `Task/041` |
 
 **Reglas de mantenimiento de la matriz:**
 
@@ -545,7 +573,7 @@ Consecuencia directa para el laboratorio de paridad:
 ### 8.3 Qué queda para `Task/029`
 
 `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` sigue decidiendo **el proveedor, la
-región y el dimensionamiento**, con precios actuales — no el modelo, que ya está propuesto.
+región y el dimensionamiento**, con precios actuales — no el modelo, que ya está aceptado.
 Detalle en [open-decisions.md](open-decisions.md), **D-01**.
 
 ---
@@ -591,7 +619,9 @@ con capacidad administrativa sobre el mismo demonio de Docker.
 Ese es el fallo más caro posible del laboratorio: un `terraform apply` —o peor, un
 `terraform destroy`— que, al faltar el endpoint, resuelve contra AWS de verdad.
 
-La implementación futura **debe** incluir guardas *fail-closed*. Conceptualmente:
+La implementación **debe** incluir guardas *fail-closed*. Task/025 las implementó y
+Task/026 endureció su ejecución; el addendum de Task/027.1 conserva y revalida su contrato.
+Estas son las exigencias de la estrategia:
 
 | # | Guarda | Idea |
 | --- | --- | --- |
@@ -670,7 +700,8 @@ dominio: **aprender Floci no es aprender AWS**.
 ## 11. Encaje en el roadmap
 
 Este documento **no añade tareas**. El roadmap sigue teniendo exactamente **41 tareas** y
-ninguna se renumera. Lo que cambia es el **alcance futuro** de tareas ya existentes.
+ninguna se renumera. La estrategia del 2026-08-15 amplió el alcance de tareas ya existentes; Task/023–026
+quedaron aprobadas después. El estado vigente está en STATUS y ROADMAP.
 
 ### 11.1 ETAPA 08 — Preparación Cloud + AWS Local Parity
 
@@ -678,7 +709,7 @@ El objetivo de la etapa se reformula de *«listos y validados en seco»* a **«p
 cloud y paridad AWS local, sin cuentas ni recursos reales»**. Sigue sin crearse ninguna
 cuenta AWS y sin gastarse nada.
 
-| Tarea | Alcance futuro ampliado (los IDs y nombres **no cambian**) |
+| Tarea | Alcance ampliado por la estrategia (los IDs y nombres **no cambian**) |
 | --- | --- |
 | **`Task/023-Compatibilidad-FastAPI-Lambda`** | Adaptador FastAPI → Lambda, ejecutable localmente; se prepara además para ejecutarse **bajo Lambda emulada en el laboratorio**. |
 | **`Task/024-Artefacto-ZIP-Lambda`** | ZIP reproducible; el artefacto pasa a ser **validable en el laboratorio local**, no solo medido. |
@@ -726,10 +757,11 @@ entero al terminar el *job*.
 
 ---
 
-## 12. Criterios de éxito futuros de la ETAPA 08
+## 12. Criterios de éxito de la ETAPA 08
 
-Objetivo a demostrar **sin cuenta AWS y sin gastar nada**. **Nada de esto se ejecuta en
-`Task/005.2`.**
+Definidos el 2026-08-15 para demostrarse **sin cuenta AWS y sin gasto cloud**. No se
+ejecutaron en Task/005.2; la ETAPA 08 quedó completada con Task/026, aprobada el
+2026-09-15. Se conserva la especificación y su [evidencia](../task-reports/TASK-026-report.md).
 
 | # | Criterio |
 | --- | --- |
@@ -831,7 +863,7 @@ argumento a favor de la regla de portabilidad de §4.
 - [Arquitectura — visión general](overview.md)
 - [Correspondencia local → nube](local-to-cloud-mapping.md)
 - [Límites de seguridad](security-boundaries.md)
-- [Decisiones diferidas](open-decisions.md) — **D-06** abierta; **D-14 Resuelta**;
+- [Decisiones diferidas](open-decisions.md) — **D-06 Resuelta** por Task/025; **D-14 Resuelta**;
   **D-01 Resuelta** (modelo) por `Task/005.3`
 - [PostgreSQL de producción en VPS](production-postgresql-vps.md) ·
   [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**

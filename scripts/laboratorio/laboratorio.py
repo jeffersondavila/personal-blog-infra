@@ -124,20 +124,10 @@ ACTUALIZACIONES_DEPENDIENTES_DEL_DRIFT = (
 #: Viven aqui, en el verificador, y NO como `ignore_changes` en los modulos:
 #: un `ignore_changes` viajaria a produccion y silenciaria un drift REAL de un
 #: atributo que AWS si sabe representar (ADR-006 limite 2, riesgo R-26).
-DIFERENCIAS_DEL_DESTINO_LOCAL = (
-    mod_inventario.DiferenciaDelDestino(
-        tipo="aws_ssm_parameter",
-        atributo="tags_all",
-        motivo=(
-            "el emulador DESCARTA las etiquetas enviadas en PutParameter. "
-            "Comprobado el 2026-09-13 con llamadas directas: tras crear el "
-            "parametro, ListTagsForResource devuelve TagList vacia; "
-            "AddTagsToResource por separado SI las persiste, y el grupo de "
-            "CloudWatch Logs SI conserva las cuatro etiquetas por omision. "
-            "Contra AWS real PutParameter honra Tags y el plan converge."
-        ),
-    ),
-)
+# H-025-1: Floci 2.0.1 descartaba Tags en PutParameter (2026-09-13).
+# Resuelto con 2.1.0 en el addendum de Task/027.1. Se conserva la historia
+# en TASK-025-report.md; tags_all vuelve a exigir convergencia literal.
+DIFERENCIAS_DEL_DESTINO_LOCAL: tuple[mod_inventario.DiferenciaDelDestino, ...] = ()
 
 
 class ErrorDelLaboratorio(RuntimeError):

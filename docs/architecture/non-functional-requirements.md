@@ -151,7 +151,15 @@ etapa queda **Completada**. S-09 queda satisfecho **técnicamente por capas**:
 esta especificación asigna a las ETAPAS 07 y 12 siguen pendientes y no quedan
 sustituidas por los gates de CI. **R-018-3** y **R-021-1** siguen **ABIERTOS**:
 **100** hallazgos de MinIO y **16** de Portainer permanecen aceptados
-temporalmente, enumerados y ligados a su digest. **No se afirma que MinIO ni
+temporalmente, enumerados y ligados a su digest. *(Cifra de MinIO vigente hasta
+`Task/027.1`. Esa tarea —**Aprobada** el 2026-09-20—
+reconstruye `/usr/bin/minio` desde el commit exacto del mismo release con
+`amqp091-go v1.13.0` y deja el conjunto en **99**: el baseline de su rama ya lo
+declara así. La imagen derivada quedó **publicada y verificada** en GHCR el
+2026-09-19, en paquete **privado**, y el gate S-09 se repitió contra la
+**referencia remota** con el mismo resultado. **R-018-3 no se cierra:** quedan **99**
+identidades aceptadas. Las decisiones de la tarea están **Aceptadas y
+Vigentes** desde su aprobación.)* **No se afirma que MinIO ni
 Portainer hayan quedado libres de vulnerabilidades**; se afirma únicamente que no
 hay hallazgos accionables nuevos fuera del baseline declarado.
 
@@ -162,7 +170,8 @@ por ese digest. Queda aceptado para esa imagen local/CI —cuyo destino producti
 es un artefacto ZIP de Lambda— y **no se generaliza al resto de imágenes**, que
 siguen fijadas por tag y digest sin capa de actualización. Completar STAGE-06 no cierra las verificaciones
 futuras del NFR en ETAPAS 07 y 12; R-018-3 y R-021-1 siguen abiertos, con
-100 hallazgos de MinIO y 16 de Portainer aceptados temporalmente.
+100 hallazgos de MinIO y 16 de Portainer aceptados temporalmente. *(Los de MinIO
+pasan a **99** con `Task/027.1`, **Aprobada** el 2026-09-20.)*
 
 *Versiones fijadas:* las cuatro
 imágenes del Compose llevan **tag y digest `sha256`**, y no hay ninguna

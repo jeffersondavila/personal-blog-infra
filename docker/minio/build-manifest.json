@@ -1,0 +1,72 @@
+{
+  "schema": "personal-blog-infra/minio-reproducible-build",
+  "version": 1,
+  "platform": "linux/amd64",
+  "source_date_epoch": 1757261589,
+  "source": {
+    "repository": "https://github.com/minio/minio.git",
+    "release": "RELEASE.2025-09-07T16-13-09Z",
+    "tag_object": "01ce918d8279a20e4706b96a64396146894adee4",
+    "commit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+    "git_archive_sha256_in_builder": "3fd74f9e3123e8d112141b9764e583b263c711b9ce87661bfa3afda586f92091"
+  },
+  "change": {
+    "module": "github.com/rabbitmq/amqp091-go",
+    "from": "v1.10.0",
+    "to": "v1.13.0",
+    "only_changed_source_files": [
+      "go.mod",
+      "go.sum"
+    ],
+    "patch": "docker/minio/minio-amqp091-go-1.13.0.patch",
+    "patch_sha256": "16b199bbdf3565d0a8455dad5cc6762d81e4f58be5210daf4221d8852f7a902c"
+  },
+  "recipe": {
+    "dockerfile": "docker/minio/Dockerfile",
+    "dockerfile_sha256": "72683e763d193412096e271664d003a7faa946046ffd7773b9c3be03230f6bb7",
+    "frontend": "docker/dockerfile:1.19@sha256:b6afd42430b15f2d2a4c5a02b919e98a525b785b1aaff16747d2f623364e39b6",
+    "builder_index": "docker.io/library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
+    "builder_platform_manifest": "docker.io/library/golang:1.24.6-bookworm@sha256:4f8589362626cfa081fdab2b474cda87c3b51d74b1e227c110d2ffde56daad5c"
+  },
+  "runtime_base": {
+    "upstream_index": "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+    "platform_manifest": "quay.io/minio/minio@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2",
+    "config_digest": "sha256:69b2ec208575b69597784255eec6fa6a2985ee9e1a47f4411a51f7f5fdd193a9",
+    "runtime_config_sha256": "b6e997f1b66b15567d7929dc94f45b406adb6a4bba3b36c8880a0534906db244",
+    "layer_digests": [
+      "sha256:b83ce1c86227e7eb8f809d5634df70202a43b5a2a42ad5881de019c6e7bb77ab",
+      "sha256:f94d28849fa387176d83fed06c02b5814597103420f929f8f74ad5c212e62a7a",
+      "sha256:81260b1730768c85f8ebdba7d561c7189971d84eef7dc0ff2b03d83957dcdd4a",
+      "sha256:f9c0805c25ee5c0d375a9c16810eafb57cf658d7b6814c179d52496272bec8a4",
+      "sha256:1008deaf6ec413772a3de8828d030bd6472ec80c59a8595f3f9fee2524576692",
+      "sha256:71e9fc939447059a2e6b8db211155a6d0217582e6a93d13e53c111df359b05cf",
+      "sha256:c1bc68842c41cb716734641f75dc37d629f05df5f812a8cc2e7e0370d4e833ec",
+      "sha256:0288b5a0d7e71a2cdbdf114cb9869ce2bc4b05adfd6aa5e3ee9fa4b3847e7b80",
+      "sha256:34013573f2786dfd3f6a542374c2bb7821fa6924de6ed320dc808582d50879d3"
+    ],
+    "diff_ids": [
+      "sha256:702bea3dc94887d2fcf1aa0d56565c57d5ca6d24659c8d0b6cbde5c58d6c182f",
+      "sha256:88e53e46c4d2bed466a6b02167ef9d8cef2c9392c4ee9fb64f7a0e7c38c31858",
+      "sha256:d37092179ddccad1ee0b97d96b129b58f41d5acc765698bf3b972896347f3d84",
+      "sha256:65df1de0fc5d5ed3b009724450521360e9cac82bb7a18c2565705224e5d966be",
+      "sha256:d9e4fbf4fcf5a2a873b09a4f801d1576be6ef9acfc4d712e4bb010fe323a98bc",
+      "sha256:6e4622138e7123a662eb8da39c3da85d1605d7a9a0749b8939b3b22b3d14a1d5",
+      "sha256:c4f9743e910169563769da2e07bf10a78fb4c9b0c489a2ee2c1f8bb25dc5bac6",
+      "sha256:469babe0725a8ef9ea8ee85eed6e55dc33682ff9ba4fc4b61e4434e0ac1e447b",
+      "sha256:48a0959ec57746c5b54d3f0ee68ba154defefab5c979c49d4afa78e2a183303f"
+    ]
+  },
+  "output": {
+    "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0",
+    "manifest_digest": "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129",
+    "config_digest": "sha256:25c832aa396d4de7eb2d202529ee8055280633f0ef270687e565bd376d1882a2",
+    "binary_sha256": "9437671add14972349f023a780c1d873f4d8993d3a6cd7448b1b8a962e89983f",
+    "binary_size": 111145144,
+    "replacement_layer_digest": "sha256:e93c72cb27643b783e540a685000349814e734f4a7f217a12db734485d7d1df0",
+    "replacement_diff_id": "sha256:c16127ace11f7861973325cda721e99ac83758c7b913b2528750215db336088a"
+  },
+  "license": {
+    "upstream": "GNU AGPL-3.0",
+    "corresponding_source": "source commit + patch + Dockerfile + manifest must accompany distribution"
+  }
+}

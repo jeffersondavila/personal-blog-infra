@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-06 (`Task/016` **aprobada** — **D-21 abierta**; la respuesta a `og:image` dentro de D-08 queda **Vigente** y **D-08 sigue Abierta**) |
-| **Decisiones abiertas** | **13** — D-05, D-14, D-01, D-15, D-02, D-09, D-03 y **D-04** resueltas. **D-21** añadida por `Task/016` |
-| **Decisiones resueltas** | **8** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), **D-04 (2026-09-05)** |
+| **Última actualización** | 2026-09-17 (`Task/027` **Aprobada** — Gates A–E completados; D-13 resuelta) |
+| **Decisiones abiertas** | **12** — D-13 resuelta por aprobación de `Task/027`; D-21 permanece abierta |
+| **Decisiones resueltas** | **9** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-13 (2026-09-17)** |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
@@ -39,7 +39,7 @@ ADR.
 | D-10 | Estrategia de backups cloud | `Task/029` | Abierta |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
 | D-12 | Límites exactos de Lambda | `Task/032` | Abierta |
-| D-13 | Presupuesto mensual objetivo | `Task/027` | Abierta |
+| D-13 | Presupuesto mensual objetivo | `Task/027` | **Resuelta** (2026-09-17) — techo USD 20/mes global y sublímite USD 5/mes AWS |
 | D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
 | D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | **Resuelta** (2026-09-01) — **mismo *site***: sitio y panel en el dominio raíz, API en subdominio |
 | D-16 | **Mecanismo de identidad del VPS hacia AWS** para los backups | `Task/029` (decide) · `Task/030` (materializa) | Abierta |
@@ -532,8 +532,23 @@ cierra D-08 para desbloquearse**. Detalle en la
 ## D-13 — Presupuesto mensual objetivo
 
 - **Se resuelve en:** `Task/027-Configurar-Cuentas-y-Presupuestos`
-- **Información necesaria:** cuánto está dispuesto a gastar el usuario al mes; costo
-  estimado de cada componente; umbrales de alerta deseados.
+- **Estado al 2026-09-17:** **Resuelta** mediante
+  `approved: Task/027-Configurar-Cuentas-y-Presupuestos`. Gates A–E están completos. El usuario fijó **USD 20/mes** como techo de
+  todo el proyecto y **USD 5/mes** como sublímite AWS, con alertas al 50 % actual, 80 %
+  forecasted, 80 % actual y 100 % actual; sin actions, SNS ni reportes pagos. El
+  presupuesto fue creado y verificado manualmente: mensual fijo USD 5, UnblendedCost,
+  Credit/Refund excluidos, cuatro alertas porcentuales con un destinatario EMAIL cada
+  una, cero SNS y cero Budget Actions. Billing Home mostró Free Plan y créditos activos tras
+  la creación. Un monitor y una suscripción diaria de Cost Anomaly Detection fueron
+  auditados y conservados por decisión humana como protección secundaria sin cambios;
+  su atribución causal a la creación del Budget es inferida, no demostrada.
+- **Información ya decidida:** voluntad máxima de gasto, sublímite AWS y umbrales. El costo
+  estimado de VPS/Grafana/dominio seguirá refinándose en sus tareas propietarias sin elevar
+  el techo global salvo nueva decisión explícita.
+- **Descomposición obligatoria:** distinguir el techo mensual de **todo el proyecto** del
+  sublímite observado por AWS Budgets. El total debe contemplar AWS, VPS, Cloudflare,
+  Grafana Cloud, dominio/costos futuros y reserva. El VPS permanece sin cifra hasta
+  `Task/029`; D-19 permanece abierta hasta `Task/041`.
 - **Afecta a:** selección de PostgreSQL (D-01), retención de logs (D-11), límites de
   Lambda (D-12), decisión de continuar o no con la nube.
 - **Por qué es crítica:** es la restricción que gobierna toda la Etapa 09 en adelante. Se
