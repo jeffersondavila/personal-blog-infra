@@ -5,16 +5,23 @@
 | **Tarea** | `Task/027.1-Corregir-Regresion-S09-MinIO` |
 | **Tipo** | Mantenimiento correctivo de seguridad (S-09) |
 | **Cuenta en el roadmap** | **No.** Fuera de las 41 tareas; no altera el avance |
-| **Estado** | **Aprobada** ✔ el 2026-09-20 por el usuario mediante `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
+| **Estado** | **Aprobada** — addendum Floci aprobado el **2026-09-21**; aprobación del alcance MinIO del 2026-09-20 conservada como historia |
 | **Repositorio** | `personal-blog-infra` (**únicamente**) |
 | **Rama** | `Task/027.1-Corregir-Regresion-S09-MinIO`, nacida de `main` |
-| **SHA base** | `67c1904` (`= main = origin/main`) |
-| **Commits propios** | **0.** Sin *commit*, *push* de Git, *merge* ni PR |
+| **SHA base histórico (2026-09-17)** | `67c1904` (`= main = origin/main` al crear la rama) |
+| **Commits del addendum Floci** | **0 hasta la aprobación** del 2026-09-21: hasta entonces los cambios permanecieron locales, sin staging, commit ni push, partiendo del publicado `df3ba33`. La aprobación autorizó crearlos y publicarlos; el resultado consta en §16 |
 | **Imagen en GHCR** | **Publicada** el 2026-09-19 y verificada contra el registro. Paquete **PRIVADO**; visibilidad **no modificada** |
-| **Fecha del cierre de esta fase** | 2026-09-20 (Guatemala); implementación y gates, 2026-09-18; publicación, 2026-09-19 |
+| **Fechas de las fases** | MinIO: implementación 2026-09-18, publicación 2026-09-19, primera aprobación 2026-09-20. Floci: 2026-09-20 (Guatemala). Reconciliación documental y **segunda aprobación**: 2026-09-21. |
 | **Ficha** | [TASK-027.1-fix-s09-minio-regression.md](../tasks/TASK-027.1-fix-s09-minio-regression.md) |
 
 ---
+
+> **Cómo leer este reporte:** §1–§13 registran la historia MinIO/BuildKit del
+> 2026-09-18 al 2026-09-20, con la aprobación y los commits publicados del alcance original.
+> Los recuentos, tablas Git y resultados de esas secciones pertenecen a las fechas
+> indicadas. §14 documenta el addendum Floci y §15 su reconciliación y la estrategia de
+> cierre por fases, escrita mientras seguía pendiente de aprobación; **§16 registra la
+> aprobación del 2026-09-21 y fija el estado vigente**.
 
 ## 1. Qué se corrigió
 
@@ -47,7 +54,8 @@ en `os-pkgs:redhat`; **95 HIGH** y **4 CRITICAL**. Ninguna nueva.
   `accepted_findings` vacío.
 - **No se creó una política nueva** ni una capacidad genérica de baseline.
 - **No se tocó el stack `personal-blog-local`** ni sus volúmenes.
-- **No se hizo *commit*, *push*, *merge*, pull request ni aprobación.**
+- **Antes de la primera aprobación (2026-09-18/19)** no se hizo commit, push de Git,
+  merge ni PR. El cierre aprobado del 2026-09-20 sí publicó commits y creó #48 (§11).
 - **No se inició `Task/028`** ni se modificó `Task/027`.
 
 ---
@@ -456,7 +464,7 @@ acotada. Cada condición de continuación se cumplió.
 | **b** | Resolver el RepoDigest real de GHCR | Debe devolver un digest, no un error | **Cumplido.** `imagetools inspect` y `manifest inspect` devuelven `sha256:84c67632…059129` |
 | **c** | Exigir correspondencia con la identidad esperada | Si difiere, **detenerse** | **Cumplido.** Coincide con `build-manifest.json` y con el baseline; además el `sha256` del manifiesto crudo remoto lo confirma |
 | **d** | Reescanear por la referencia remota exacta y repasar S-09 | **99 exactas, 0 nuevas** | **Cumplido.** Trivy con `--image-src remote`; S-09 `CORRECTO` (§5b) |
-| **e** | Abortar el cierre Git ante cualquier discrepancia | No hay *commit* mientras haya diferencias | **No hubo ninguna discrepancia.** Aun así **no se hizo *commit*, *push*, *merge* ni PR**: no por discrepancia, sino porque la tarea sigue **no aprobada** |
+| **e** | Abortar el cierre Git ante cualquier discrepancia | No hay *commit* mientras haya diferencias | **No hubo ninguna discrepancia.** Aun así **no se hizo *commit*, *push*, *merge* ni PR**: no por discrepancia, sino porque el alcance original **aún no estaba aprobado el 2026-09-19** |
 
 ### Preflight ejecutado antes de publicar
 
@@ -489,7 +497,7 @@ pública de la imagen mientras siga así.
 
 ---
 
-## 11. Estado de Git en la fase previa a la aprobación
+## 11. Estado de Git histórico — antes de la primera aprobación del 2026-09-20
 
 | Comprobación | Resultado |
 | --- | --- |
@@ -505,7 +513,7 @@ pública de la imagen mientras siga así.
 | Publicación GHCR | **HECHA** el 2026-09-19 y verificada: RepoDigest remoto `sha256:84c67632…059129`, idéntico al esperado |
 | Visibilidad del paquete GHCR | **PRIVADO**, sin modificar |
 
-Esta tarea **no** hizo *commit*, *push* de Git, *merge* ni pull request, y **no** promovió
+En aquella fase previa **no** se hizo commit, push de Git, merge ni pull request, ni se promovió
 ninguna decisión a Aceptada. Las decisiones `D-027.1-A` a `D-027.1-F` siguen como
 **Propuesta — pendiente de aprobación**.
 
@@ -521,11 +529,10 @@ Con la aprobación, **D-027.1-A** a **D-027.1-F** pasan a **Aceptadas y Vigentes
 nuevo. **El avance no cambia**, porque el mantenimiento no cuenta entre las 41 tareas; la
 cifra vigente la fija la última tarea canónica aprobada.
 
-> **Por qué no se fija aquí un número.** Esta rama nació de `main`, que todavía **no**
-> contiene `Task/027`; la rama de integración `dev` **sí** la contiene. El avance vigente
-> difiere entre ambas según esté fusionado o no el pull request `#47`, así que una cifra
-> escrita aquí sería falsa en una de las dos. Lo que **no** depende de la rama es que este
-> mantenimiento **no suma ni resta** avance.
+> **Corrección documental del 2026-09-21:** el avance no depende de la rama ni de
+> fusionar un PR. Task/027 fue aprobada el 2026-09-17: el avance vigente es **27/41 ≈ 66 %**,
+> ETAPA 09 **1/3 ≈ 33 %**. El `main` histórico tras Task/026 reflejaba **26/41**;
+> no corresponde al estado duradero posterior a la aprobación de Task/027.
 
 **Matiz sobre `D-027.1-F`.** Esa decisión decía «no publicar en GHCR dentro de esta tarea».
 El usuario autorizó después una **fase controlada de publicación**, explícitamente **no
@@ -534,7 +541,10 @@ conserva tal cual como registro de lo decidido en la fase de implementación; lo
 es que **existió una autorización posterior y acotada**, no el criterio de que publicar
 requiere permiso humano explícito.
 
-La tarea quedó **Aprobada** el 2026-09-20.
+El **alcance original MinIO** recibió su primera aprobación el 2026-09-20.
+Observados el 2026-09-21, los commits publicados anteriores eran `7e7d56e`, `6890ded`
+y `df3ba33`; este último contiene la corrección BuildKit de §12b. El addendum posterior
+requiere **nueva aprobación** (§14–§15).
 
 ---
 
@@ -556,26 +566,627 @@ La tarea quedó **Aprobada** el 2026-09-20.
    los dos *builders* originales ya se eliminaron.
 5. **La evidencia funcional de §7 no se reejecutó** en esta sesión y su contenedor ya no
    existe.
-6. **`STATUS.md` y `ROADMAP.md` entrarán en conflicto con `Task/027`.** Ambas ramas nacen
-   del mismo `main` y tocan las mismas secciones de cabecera. El `main` de esta rama aún no
-   contiene `Task/027`. El orden de integración lo decide el usuario; la resolución será
-   manual y **no se anticipó por iniciativa propia**.
+6. **Posibles conflictos al consolidar en Task/027.** El usuario fijó el orden el
+   2026-09-21 (§15). Se resolverán semánticamente y se conservarán ambos alcances;
+   la consolidación requiere autorización posterior y no se ejecuta en esta fase.
 7. **El escaneo local de Terraform y del provider no usó exactamente los mismos binarios que
    el CI.** Está detallado en §3, con el motivo y la equivalencia demostrada.
 
 ---
 
-## 13. Qué falta para cerrar
+## 12b. Addendum histórico — 2026-09-20: portabilidad del CI
 
-| Paso | Estado | Responsable |
+**Publicado en `df3ba33`, después de la primera aprobación.** El cierre posterior sin
+merge del PR #48 se fecha en §15. No se implica una fusión que nunca ocurrió.
+
+### Qué falló
+
+Tras integrar la tarea en `dev`, `CI Infra` quedó **rojo** en el paso «Build the project
+images» (run `35543639572`, sobre `853ff90`):
+
+```
+#0 building with "default" instance using docker driver
+ERROR: failed to build: OCI exporter is not supported for the docker driver.
+Switch to a different driver, or turn on the containerd image store, and try again.
+```
+
+`personal-blog-postgres:ci` y `personal-blog-traefik:ci` **construyeron correctamente**; el
+log muestra `#7 DONE 1.0s` para traefik justo antes del error. Falla el comando siguiente,
+el `docker buildx build --output type=oci` del derivado.
+
+### Causa
+
+El workflow no creaba ni seleccionaba ningún builder, así que buildx usaba la instancia
+`default`, cuyo **driver `docker`** no implementa exportadores. El exportador OCI exige un
+driver `docker-container`.
+
+**Por qué no se detectó localmente:** la validación usó builders `docker-container`
+explícitos y, además, Docker Desktop tenía el *image store* de containerd. Dos motivos
+independientes para funcionar que el runner no tiene. El gate de YAML era estructural
+—parseo y presencia de `name`/`run`—, no semántico, y `actionlint` no forma parte del flujo
+ni conoce los drivers de buildx.
+
+### Corrección aplicada
+
+Un builder **aislado** solo para este paso, con la imagen de BuildKit **fijada por digest**:
+
+- `IMAGEN_DE_BUILDKIT: moby/buildkit@sha256:28a898…41d8` — **índice multi-arquitectura**
+  verificado contra el registro, que contiene `linux/amd64`
+  (`sha256:040d3412…`) y corresponde a **BuildKit v0.32.2**, commit `991535e0…`: la **misma**
+  versión que produjo la identidad OCI verificada de esta tarea. No se usa la etiqueta
+  `buildx-stable-1`, que es móvil.
+- **No** se pasa `--use`: el builder por defecto sigue siendo el `docker`, de modo que
+  `docker build` de Postgres y Traefik **no cambia** y sus imágenes siguen quedando en el
+  daemon, que es donde Trivy las busca.
+- El builder se retira con un `trap` que **conserva y reemite** el código de salida real, sin
+  enmascarar un fallo del build.
+- **No** se habilita containerd globalmente en el runner.
+
+### Lo que NO cambia — verificado, no supuesto
+
+Se reconstruyó el OCI con el builder dedicado, **sin caché y con `--pull`**, igual que el CI.
+Es la **cuarta** construcción independiente de esta tarea:
+
+| Comprobación | Resultado |
+| --- | --- |
+| `manifest_digest` | `sha256:84c67632…059129` — **idéntico** |
+| `config_digest` | `sha256:25c832aa…882a2` — **idéntico** |
+| `binary_sha256` / tamaño | `9437671a…` / 111 145 144 — **idénticos** |
+| Número y **orden** de layers | 10, mismos digests y mismos tamaños |
+| `mediaType` | `application/vnd.oci.image.manifest.v1+json` |
+| `artifact.py verify` | **exit 0** |
+| `artifact.py compare` (OCI previo vs nuevo) | `"reproducible": true` |
+| `docker/minio/build-manifest.json` | **sin cambios** (`4e47cebc…`) |
+| `security/vulnerability-baseline.json` | **sin cambios** (`69ee2b6d…`) |
+| Dockerfile, parche, fuente, `amqp091-go` | **sin cambios** |
+| Imagen publicada en GHCR | **sin tocar**; el paquete sigue **privado** |
+
+Si el digest hubiera cambiado aunque fuera un byte, `artifact.py verify` lo habría rechazado
+en el propio CI: el control es *fail-closed*.
+
+### Regresión añadida
+
+`tests/security/test_workflow_build_drivers.py` — **14 pruebas** que comprueban el
+**contrato del workflow**, no el entorno. Un `docker buildx build` con exportador
+incompatible con el driver `docker` (`oci`, `tar`, `local`) queda en rojo si: no declara
+`--builder`; usa un builder no creado antes en el workflow; ese builder no es
+`docker-container`; su imagen de BuildKit no va por digest; o se crea con `--use`.
+
+Incluye **cinco controles negativos demostrados**: cada uno manipula el workflow y exige que
+la verificación **falle**, empezando por quitar el `--builder`, que es exactamente el defecto
+que rompió el CI. Una prueba explícita garantiza que el contrato **no** se impone a los
+builds de Postgres y Traefik.
+
+---
+
+## 13. Cierre original — historia y estrategia sustituida
+
+| Hecho histórico | Fecha / evidencia |
+| --- | --- |
+| Publicación MinIO autorizada, ejecutada y verificada | 2026-09-19, §9–§10 |
+| Primera aprobación humana del alcance MinIO | 2026-09-20, §11 |
+| Código correspondiente esencial versionado y publicado | Cierre original, §10–§11 |
+| PR #48 creado para Task/027.1 → main | Cierre original del 2026-09-20; cierre sin merge observado el 2026-09-21, §15 |
+| BuildKit corregido y publicado | `df3ba33`, 2026-09-20, §12b |
+
+El plan anterior contemplaba fusionar #48 y decidir después el orden frente a #47.
+**Fue sustituido por instrucción del usuario del 2026-09-21**: no reabrir ninguno,
+no crear otro PR de 027.1; consolidar íntegramente en 027 solo tras las autorizaciones
+separadas de §15. SBOM/procedencia junto a la imagen siguen pendientes (DT-027.1-1).
+
+## 14. Addendum Floci — regresión S-09 descubierta durante el cierre de Task/027.1
+
+**Addendum Floci / regresión S-09 descubierta durante el cierre de Task/027.1.**
+Ejecutado el **2026-09-20 (Guatemala; 2026-09-21 UTC)**. Estado: **Aprobado** el
+**2026-09-21** (§16). Las secciones anteriores son historia del alcance MinIO y su cierre
+aprobado; **aquella aprobación no autorizaba publicar este addendum**, la del 2026-09-21 sí.
+
+### 14.1 Alcance, Git y CI publicados
+
+El usuario amplió expresamente `Task/027.1`, siguiendo el precedente de `Task/020.3`.
+No se crea otra maintenance ni `Task/025.1`; no cuenta entre las 41 ni altera el avance.
+Floci continúa siendo **solo laboratorio local**; **no se despliega Floci a AWS** y
+producción usa **AWS real**. Nada de esta evidencia declara paridad completa.
+
+Se ejecutó `git fetch --all --prune` antes de editar. Observación del **2026-09-20
+(Guatemala; 2026-09-21 UTC)** al iniciar y terminar la implementación del addendum: ramas y heads publicados conservados; cambios del addendum exclusivamente locales.
+
+| Referencia | SHA completo observado |
+| --- | --- |
+| `main = origin/main` | `67c1904944fc624b15c15e466f575f055c5c312d` |
+| `dev = origin/dev` | `853ff905078cbe35e864ec9af2c5add4690e7491` |
+| `HEAD = origin/Task/027.1-Corregir-Regresion-S09-MinIO` | `df3ba33777058f6cbad1747e3d695c09e7a74fee` |
+| Head publicado de Task/027 | `e158e60543c159066c592e310c0526ebb1dea498` |
+
+Árbol y staging iniciales vacíos. Final: cambios sin commit y staging vacío. No se crea
+rama, no se toma `dev` como base, no se reescribe historial y no se modifica Task/027.
+
+Observados el **2026-09-20**: [PR #48](https://github.com/jeffersondavila/personal-blog-infra/pull/48)
+y [PR #47](https://github.com/jeffersondavila/personal-blog-infra/pull/47) **OPEN**, hacia
+`main`, ambos con checks publicados **FAILURE**. El run de #48
+[35545696830](https://github.com/jeffersondavila/personal-blog-infra/actions/runs/35545696830)
+superó construcción de imágenes y verificación/SBOM de MinIO, y falló únicamente en el
+gate S-09. No se reabre BuildKit: el bloque corregido en `df3ba33` permanece intacto.
+
+**Esta evidencia de CI es histórica.** El usuario cerró después ambos PR sin merge
+y sustituyó la estrategia de entrega (§15). Los gates del addendum son locales; no se
+afirma una ejecución remota de cambios sin publicar. Task/027 conserva su aprobación,
+Task/028 no se inicia y solo el usuario fusiona hacia main.
+
+### 14.2 Identidad y revisión de upstream
+
+`docker buildx imagetools inspect floci/floci:2.1.0` resolvió nuevamente:
+
+| Identidad | Digest |
+| --- | --- |
+| Índice OCI 2.1.0 | `sha256:f5aa8c18302cedb4f2385f5c4e455b3efc77fee6bf7b6e5d1712b2817ba102db` |
+| Manifiesto `linux/amd64` | `sha256:2e2343974a15137a6bda6de5a9e0b16207f97a786cc57ee9c2bf25d14a67b84c` |
+
+Se revisaron el [release estable 2.1.0](https://github.com/floci-io/floci/releases/tag/2.1.0)
+y el código de esa etiqueta. Incluye persistencia de Tags en `PutParameter`, cambio a
+UBI micro y retirada de gosu. El inventario confirma que **openssl y libevent desaparecen**;
+las siete regresiones no se remedian actualizando esos paquetes, sino retirándolos.
+No se usa `latest`, nightly, una imagen derivada ni paquetes añadidos.
+
+### 14.3 Healthcheck y hallazgo DNS durante S-11
+
+La sonda ejecuta `/bin/bash -ec` con builtins exclusivamente, conexión `/dev/tcp`, lectura
+con plazo y límite global de Docker de 4 s. Exige **HTTP 200** y `s3`, `ssm`, `lambda`,
+`logs`, `iam`, `apigateway` en `running` dentro de `services`. Se escapan los dólares para
+Compose. El contenedor final quedó **healthy** y exigir `inexistente` devolvió **exit 1**.
+Pruebas con `PATH` vacío, respuestas HTTP controladas y servicio ausente/detenido impiden
+reintroducir curl, wget, Python, jq, grep, sed, awk u otros ejecutables en la sonda.
+
+La imagen conserva `timeout` y `getent`: se comprobó, por lo que no se alteró la sonda
+preexistente de red del lanzador. **Esa sonda no basta por sí sola** para acreditar el DNS
+del runtime Lambda: usa los resolutores ordinarios de Docker.
+
+La primera observación del **contenedor Lambda real** descubrió una ruta adicional:
+Floci inyectaba su IP y `8.8.8.8/8.8.4.4` como DNS; su servidor reenviaba consultas a
+través de la red `entrada`. `example.com`, `github.com` y `registry-1.docker.io` resolvían,
+aunque Internet TCP y metadata estaban bloqueados. La afirmación heredada del preflight
+«DNS externo bloqueado» **no se tomó como evidencia del runtime**.
+
+Se verificó la causa en
+[EmbeddedDnsServer.java](https://github.com/floci-io/floci/blob/2.1.0/src/main/java/io/github/hectorvent/floci/core/common/dns/EmbeddedDnsServer.java)
+y [ContainerBuilder.java](https://github.com/floci-io/floci/blob/2.1.0/src/main/java/io/github/hectorvent/floci/core/common/docker/ContainerBuilder.java).
+Desactivar solo `container-fallback-enabled` no cierra el reenvío del servidor.
+
+Corrección acotada al Compose: `dns: ["::1"]`,
+`FLOCI_DNS_CONTAINER_FALLBACK_ENABLED=false` y
+`FLOCI_DNS_CONTAINER_FALLBACK_SERVERS=::1`. Los resolutores quedan en loopback IPv6,
+donde la imagen fijada no tiene servidor DNS; Floci escucha DNS solo en IPv4.
+Docker sigue resolviendo nombres locales. El daemon descarga imágenes separadamente;
+se fijaron y precargaron antes del ciclo. No se necesita DNS externo en el emulador.
+Esta condición depende del runtime fijado y se debe revalidar al actualizarlo (S-11).
+
+El gate CI de loopback interpretaba cualquier línea YAML acabada en `:número` como puerto
+y confundió `::1` con una publicación. Ahora usa **`docker compose config --format json`**
+y examina exclusivamente `services[*].ports[*].host_ip`. Controles negativos rechazan LAN,
+`0.0.0.0`, `::`, binding omitido y lista vacía. El bloque BuildKit permanece idéntico.
+
+### 14.4 Baseline: reducción exacta, no regeneración
+
+Trivy **0.74.0**, misma BD para todas las comparaciones, `UpdatedAt`
+`2026-09-20T19:19:55.870896177Z`. Se observaron **112 → 22 entradas de paquetes** en los
+informes completos (el preflight había estimado 111 → 21); no se sustituye la medida
+actual por aquella aproximación. El escaneo de 2.0.1 dio
+**77 accionables**, **70 exactos históricos**, **7 nuevos** conocidos. 2.1.0 dio
+**2 exactos históricos**, **68 retirados**, **0 nuevos**.
+
+| CVE residual | Paquete | Instalada | Corregida | Severidad / scope |
+| --- | --- | --- | --- | --- |
+| CVE-2026-4878 | libcap | 2.48-10.el9_7.1 | 2.48-10.el9_8.1 | HIGH / os-pkgs:redhat |
+| CVE-2026-54369 | libacl | 2.3.1-4.el9 | 2.4.0-1.el9_8 | HIGH / os-pkgs:redhat |
+
+`package_path` vacío en ambas. Los dos objetos se conservan exactamente del baseline
+histórico; se eliminan solo los 68 ausentes. Todas las demás entradas del baseline,
+**incluida MinIO**, son estructuralmente idénticas a `HEAD`. Las siete CVE de la regresión
+(`14456`, `63382`, `63383`, `63384`, `63385`, `63387`, `63388`, todas de 2026) no se aceptan.
+Se actualiza la justificación de H-025-6 sin heredar a 2.1.0 el análisis de símbolos de
+gosu/usermod de 2.0.1. La falta de cobertura Maven/Java del binario nativo sigue declarada.
+
+### 14.5 S-11 y pruebas funcionales reales
+
+Laboratorio efímero `task0271-floci-addendum`, binding exclusivo `127.0.0.1:14566`,
+cuenta ficticia `000000000000`, recursos `blog-lab-add0271-*`. Estado y harness fuera
+del repositorio. Mismos módulos y grafo Terraform; solo valores locales temporales.
+Herramienta **1.16.2**, provider **6.64.0** y runtime del manifiesto Task/024 verificados.
+
+| Comprobación | Resultado observado |
+| --- | --- |
+| Destino/credenciales | `production` rechazado; credencial no ficticia rechazada; STS de cuenta ficticia confirmado antes de escribir |
+| Plan/apply | 21 recursos creados; sin cambios ni destrucciones imprevistas |
+| S3 | PUT/GET/DELETE, contenido idéntico, ListObjectsV2 y URL prefirmada correctos |
+| SSM / H-025-1 | 4 parámetros leídos; cuatro tags persistidos por parámetro; `PutParameter` directo con Tags y readback correcto |
+| IAM | GetRole 200 y confianza a Lambda; no acredita enforcement |
+| Inventario API antes de destroy | El parser corregido devuelve `blog-lab-add0271-api`; el control negativo rechaza declararlo ausente |
+| Segundo plan | **No changes, detailed-exitcode 0**, sin tolerancia a `tags_all` |
+| API Gateway → Lambda | GET /health **HTTP 200**, cuerpo del backend correcto |
+| CloudWatch Logs | Eventos reales de invocación y `/health 200` recuperados |
+| Destroy | 21 recursos destruidos; estado vacío y ausencia contrastada por APIs, incluido API Gateway; IAM 404 y cuatro SSM exactos ausentes |
+
+**Cold start correcto:** se retiró exclusivamente
+`floci-code-blog-lab-add0271-backend-ZYBBAQkgfzMKMp7iNeBC` y se comprobó la ausencia de
+contenedores de esa función antes de invocar. `ClienteAws(..., tiempo_limite=300)` real,
+sin monkey-patching; duración mediante `time.monotonic()`.
+
+| Invocación final | Duración | Transporte | Payload | Contenido |
+| --- | --- | --- | --- | --- |
+| Cold, volumen de código ausente | **16,063 s** | HTTP 200 | statusCode 200 | status=ok, service=personal-blog-backend, version=0.1.0 |
+| Segunda invocación, código ya preparado | **3,750 s** | HTTP 200 | statusCode 200 | mismo contenido |
+
+El Compose usa ejecución efímera: «warm» aquí significa segunda invocación con el volumen
+de código preparado; **no prueba reutilización de un mismo proceso Lambda**, ni mide
+rendimiento comparable con AWS. El intento inicial respondió en 16,641 s, pero su harness
+filtraba por etiqueta literal y no capturó el runtime solicitado por ID; se corrigió el
+observador temporal para comparar el ID efectivo y se repitió desde frío. La siguiente
+observación descubrió el DNS expuesto; esa ejecución tampoco se presentó como validación
+final. Se conserva el diagnóstico y la repetición final anterior.
+
+**Aislamiento del runtime real:** imagen
+`sha256:a89893d9c93a9ffbf9e35ca32d7cadc635cbf3a9aec94480c75ed07150a05daa`, solo en
+`task0271-floci-addendum_ejecucion`; emulador HTTP **200**; TCP `1.1.1.1:443`, DNS externo
+y metadata `169.254.169.254:80` **bloqueados**. DNS del contenedor: solo la IP del emulador,
+sin resolutores públicos. La sonda Python se ejecutó por `docker exec` dentro de ese
+contenedor; el límite de resolución del harness fue acotado sin modificar producción.
+
+El launcher usa `test/test`. Floci entrega al runtime **credenciales temporales sintéticas
+ASIA…**, correspondientes al rol de la cuenta ficticia; no se afirma que el runtime use
+literalmente `test/test`. `AWS_ENDPOINT_URL=http://emulador:4566` y
+`AWS_EC2_METADATA_DISABLED=true` comprobados. Valores completos de credenciales omitidos.
+La antigua asignación a `ClienteAws.__init__.__defaults__` no ajustaba el parámetro
+keyword-only; **no se reutiliza ni se presenta como cold de 180 s**.
+
+### 14.6 S-09 completo y MinIO intacto
+
+| Artefacto | Accionables / exactos | Nuevos |
 | --- | --- | --- |
-| Autorizar la publicación en GHCR | **Hecho** el 2026-09-19, de forma acotada | Usuario |
-| Aprobar la tarea | **Hecho** el 2026-09-20 | Usuario |
-| Versionar el código correspondiente de AGPL | **Hecho** por este cierre: repositorio público | — |
-| **Fusionar el pull request `Task/027.1 → main`** | **Pendiente** | **Usuario, en exclusiva** |
-| Decidir el orden de integración frente al PR `#47` | **Pendiente** | **Usuario** |
-| Publicar SBOM y procedencia junto a la imagen antes de hacerla pública | **Pendiente** | **Usuario** |
+| PostgreSQL construido | 0 / 0 | 0 |
+| Traefik construido | 0 / 0 | 0 |
+| MinIO remoto GHCR | **99 / 99** | **0** |
+| Portainer | 16 / 16 | 0 |
+| Floci 2.1.0 | **2 / 2** | **0** |
+| Terraform linux_amd64 | 9 / 9 | 0 |
+| Provider AWS windows_amd64, sin baseline | 0; 377 paquetes inventariados | 0 |
 
-Tras el cierre: `Task/027.1` **Aprobada**, con su pull request hacia `main` **abierto y sin
-fusionar**; `Task/027` **Aprobada** con el PR `#47` **abierto y sin fusionar**; `Task/028`
-**no iniciada**; el paquete de GHCR **privado**; y **R-018-3 ABIERTO** con 99 identidades.
+Gate canónico: **RESULTADO: CORRECTO, 126 accionables comparados**. Terraform Linux:
+253 paquetes; ZIP verificado por SHA-256 fijado, escaneo dentro de Linux. El provider
+escaneado localmente es Windows; el CI escanea Linux. No se confunden ambos artefactos.
+
+MinIO se escaneó con `--image-src remote`. RepoDigest nativo del informe:
+`ghcr.io/jeffersondavila/personal-blog-minio@sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129`.
+Se verificó el OCI **ya existente**, sin reconstruir: config, binario y diez layers idénticos;
+`artifact.py verify` y atestado correctos, `amqp091-go v1.13.0`. Dockerfile, parche,
+build-manifest, scripts MinIO, referencia principal y baseline MinIO intactos. No se hizo
+push de imagen ni cambio de visibilidad. La consulta REST de visibilidad no pudo repetirse:
+el token de `gh` carece de `read:packages` (403); no se presenta como una nueva lectura
+exitosa del atributo. La condición privada documentada previamente no se modifica.
+
+### 14.7 Gates y regresiones
+
+- **64/64** pruebas de `tests/security`; **176/176** de `tests/laboratorio`: **240**.
+- RED demostrado antes de corregir API Gateway, sonda sin curl, tolerancia SSM, DNS y
+  gate de puertos; GREEN final de ambas suites completas. Las pruebas genéricas históricas
+  de tolerancias permanecen; se retira solo la tolerancia activa ya resuelta.
+- Coherencia del baseline, Terraform fijado `fmt/init -backend=false -lockfile=readonly/validate`,
+  lock intacto y presencia de fuentes/lock versionados: correctos.
+- Compose principal con perfil admin (**7 servicios**) y Compose de laboratorio válidos;
+  variables principales **26/26**, guardas de loopback/digest/socket/red correctas.
+- **6** scripts PowerShell versionados parseados, **13** scripts Python compilados,
+  **0** scripts shell versionados. YAML de Compose parseado por Docker y workflow por
+  **actionlint 1.7.12**; sin ShellCheck/Pyflakes adicionales, que no son gates vigentes.
+- PostgreSQL/Traefik construidos con las bases fijadas y reescaneados. MinIO: verificación
+  del OCI existente, SBOM y procedencia regenerados con los mismos hashes de §6,
+  **sin reconstruir** por instrucción expresa. El intento de leer el OCI por ruta Windows
+  no fue soportado por Trivy; se completó dentro de Linux sobre el mismo OCI montado en
+  lectura. La evidencia de build es la CI publicada; esta es la excepción local al paso
+  de build completo.
+- S-09 completo y siete inventarios generados. `git diff --check` y staging: correctos.
+  **Gitleaks 8.30.1: 0 hallazgos**, tanto en todo el historial alcanzable (`--all`) como
+  en los **227 archivos** del entregable sin commit. **1535 enlaces relativos, 0 rotos**;
+  anchor nuevo del addendum comprobado. Suites finales sin ResourceWarning.
+
+### 14.8 Archivos y límites
+
+Cambios funcionales: plantilla/Compose del laboratorio; baseline; parser de API Gateway;
+tolerancia SSM del launcher; referencia Floci y lectura de puertos en CI. Regresiones:
+`test_verificacion.py`, `test_lanzador.py`, `test_healthcheck.py`,
+`test_floci_addendum.py`, `test_workflow_lab_ports.py`. Documentación: esta ficha/reporte,
+STATUS/ROADMAP, matriz de paridad y seguimiento de los hallazgos históricos de Task/025.
+
+**H-025-1 cerrada técnicamente** en este addendum, cuya aprobación sigue pendiente;
+la evidencia de 2.0.1 permanece histórica. **H-025-6 abierta con dos identidades exactas**.
+Siguen abiertos R-018-3 (99), Portainer (16), H-025-7 (9), cobertura del binario nativo de
+Floci y las limitaciones AWS-only: privacidad efectiva de S3, IAM, cifrado SSM, alarmas,
+cuotas y rendimiento. La lectura anónima S3 devolvió 200: no se oculta ni se llama seguridad
+validada en AWS. DT-027.1-1 (SBOM/procedencia junto al paquete) permanece pendiente.
+
+Las pruebas usaron recursos temporales del addendum; se retiraron sus contenedores,
+volúmenes de código/datos, redes y etiquetas de imagen propias, y se eliminó el estado
+Terraform temporal después de verificar ausencia. Se conservaron informes e inventarios
+de evidencia fuera de Git. El stack `personal-blog-local-*` conserva IDs, imágenes,
+montajes y tiempos de arranque; cinco servicios con healthcheck **healthy** y Portainer
+**running** (sin healthcheck declarado). No se recreó ni reinició.
+
+**Detención:** cambios locales revisables, sin staging, commit, push, merge ni PR nuevo.
+Nueva aprobación `approved: Task/027.1-Corregir-Regresion-S09-MinIO` necesaria para publicar.
+La estrategia de §15 sustituye cualquier referencia anterior a continuar mediante #47/#48.
+
+## 15. Reconciliación documental y estrategia de cierre — 2026-09-21
+
+**Estado en el momento de escribir esta sección: Lista para validación, pendiente de nueva
+aprobación humana.** La aprobación MinIO del **2026-09-20** es un hecho histórico; el
+usuario autorizó después el addendum Floci, cuyas decisiones eran entonces
+**Propuesta — pendiente de aprobación**. **Esa espera terminó el 2026-09-21:** el usuario
+aprobó el addendum y sus decisiones pasaron a **Aceptadas y Vigentes** (§16). Lo que sigue
+en esta sección es la instantánea de aquella fase y la estrategia de cierre que sigue
+gobernando las fases posteriores.
+
+**Estado duradero del proyecto:** Task/027 **Aprobada** el 2026-09-17; avance
+**27/41 ≈ 66 %**; **Stage09 / ETAPA 09: 1/3 ≈ 33 %, En progreso**. Task/027.1 es
+mantenimiento, fuera de las 41. Task/028 **Pendiente, no iniciada**. **26/41** solo
+describe el cierre histórico de Task/026/main previo a aprobar Task/027.
+
+**Observado el 2026-09-21:** el usuario cerró sin merge los
+[PR #47](https://github.com/jeffersondavila/personal-blog-infra/pull/47) y
+[PR #48](https://github.com/jeffersondavila/personal-blog-infra/pull/48), con `closedAt`
+`2026-09-21T02:38:32Z` y `2026-09-21T02:38:38Z`, respectivamente, y `mergedAt=null`
+en ambos. El cierre ocurrió el 2026-09-20 en Guatemala. Es un hecho histórico;
+Git/GitHub son la fuente viva de ramas, PR y checks.
+
+**Observado el 2026-09-21, tras `git fetch --prune origin`:** rama activa 027.1,
+`HEAD = origin/Task/027.1-Corregir-Regresion-S09-MinIO =
+df3ba33777058f6cbad1747e3d695c09e7a74fee`. Tres commits publicados sobre el main de origen:
+`7e7d56e`, `6890ded`, `df3ba33`. Addendum local sin commit; staging vacío. La referencia
+publicada de Task/027 conservaba `e158e60543c159066c592e310c0526ebb1dea498`.
+
+Se reconciliaron completos STATUS, ROADMAP, ficha y reporte 027.1, reporte 025 y matriz de
+paridad: cabeceras actuales, tablas de avance, primera aprobación, evidencia histórica,
+H-025-1/H-025-6 y reglas de cierre. Se conservan las mediciones originales, identificando
+sus límites: parser API histórico y prueba DNS genérica no sustituyen la evidencia nueva.
+En esta fase solo se modifica documentación; código, Compose, baseline, MinIO y BuildKit
+se conservan respecto del addendum ya validado. El laboratorio real de §14 no se repite.
+
+### Puntos de detención y autorizaciones separadas
+
+Esta instrucción expresa del usuario **sustituye el cierre ordinario de WORKFLOW para
+esta entrega**; no cambia cómo nacen las ramas Task ni autoriza actuar anticipadamente.
+
+1. **Fase actual:** reconciliar documentación y revalidar los gates locales. Detenerse
+   con 027.1 Lista para validación. **Sin commit, push, merge, cambio a Task/027 ni PR.**
+2. **Solo al recibir de nuevo exactamente**
+   `approved: Task/027.1-Corregir-Regresion-S09-MinIO`: registrar aprobación, crear los
+   commits del addendum en 027.1, publicar esa rama y verificar su SHA remoto final.
+   **Detenerse y presentar el SHA.** No crear PR, no reabrir #48, no integrar en dev.
+3. **Solo con otra autorización de consolidación:** cambiar a
+   `Task/027-Configurar-Cuentas-y-Presupuestos`, verificar el commit original `e158e60`
+   y todo su alcance, e integrar mediante
+   `git merge --no-ff origin/Task/027.1-Corregir-Regresion-S09-MinIO`.
+   Conservar todo el historial: sin squash, rebase, cherry-pick selectivo ni force push.
+   Resolver conflictos semánticamente, sin `ours` o `theirs` global.
+4. Validar todos los gates aplicables sobre **el árbol combinado**, preservando ambas
+   entregas. No realizar nuevas acciones AWS/Cloudflare. Solo con el combinado verde,
+   publicar Task/027 y crear **un único PR nuevo `Task/027 → main`**. No reabrir #47/#48
+   ni crear otro PR de 027.1. **Detenerse; solo el usuario fusiona hacia main.**
+   Task/028 no se inicia. La normalización `main → dev` corresponde al flujo posterior
+   al merge manual, no a esta fase.
+
+### Alcance que debe conservar la consolidación
+
+- **Task/027:** cuentas AWS/Cloudflare, IAM administrativo separado, MFA, cero access keys,
+  Free Plan, presupuestos, alertas, D-13 y toda la evidencia/documentación aprobada.
+  Fuentes originales inmutables en `e158e60`:
+  [ficha](https://github.com/jeffersondavila/personal-blog-infra/blob/e158e60543c159066c592e310c0526ebb1dea498/docs/tasks/TASK-027-cloud-accounts-and-budgets.md)
+  y [reporte](https://github.com/jeffersondavila/personal-blog-infra/blob/e158e60543c159066c592e310c0526ebb1dea498/docs/task-reports/TASK-027-report.md).
+  La reconciliación actual reconoce su aprobación; no sustituye ni importa selectivamente
+  ese entregable cloud. Se conservará entero en su rama de entrega.
+- **Task/027.1:** MinIO derivado, amqp091-go 1.13.0, OCI reproducible, GHCR privado,
+  99/99, BuildKit `df3ba33`; Floci 2.1.0, baseline 70 → 2, H-025-1 resuelta,
+  healthcheck sin curl, parser API fail-closed, aislamiento DNS, S-11, cold/warm,
+  pruebas y toda su documentación. H-025-6 permanece abierta con dos identidades.
+
+### Validación de esta reconciliación
+
+Se reejecutan diff-check, enlaces relativos, Gitleaks worktree, barrido del criterio 12,
+tests/security y tests/laboratorio, gate S-09 completo y coherencia, ambos Compose,
+actionlint y parsers/compile aplicables. S-09 usa los siete informes completos ya
+obtenidos con la misma BD de Trivy de §14.4; no se presenta como un escaneo con BD nueva.
+Terraform y el ciclo real S-11 conservan la evidencia de §14: no se modificaron sus
+entradas técnicas en esta reconciliación documental.
+
+**Resultados del 2026-09-21, tras la reconciliación:**
+
+| Gate | Resultado |
+| --- | --- |
+| Diff-check | Correcto; staging vacío |
+| Enlaces relativos | **1547 comprobados, 0 rotos**; anclas nuevas verificadas |
+| Gitleaks 8.30.1 worktree | **0 hallazgos**, sobre los **227 archivos** del entregable, incluidos los tres nuevos |
+| Criterio 12 | Barrido de los seis documentos completos; referencias Git/PR como observaciones fechadas o reglas de cierre, sin estado transitorio como estado duradero |
+| Coherencia del avance | STATUS y ROADMAP: **41 filas, 27 aprobadas, 14 pendientes**; Task/027 aprobada, Task/028 pendiente, Stage09 **1/3** |
+| tests/security + tests/laboratorio | **64 + 176 = 240 PASS**, con `-W error::ResourceWarning` |
+| S-09 completo y coherencia | **CORRECTO**, **126 exactas, 0 nuevas**; MinIO **99**, Floci **2**; provider **377 paquetes, 0 accionables** |
+| Compose principal y laboratorio | Válidos |
+| actionlint 1.7.12 | Correcto, sin ShellCheck/Pyflakes adicionales |
+| Parsers / compile | **6 PowerShell** y **13 Python**, 0 fallos |
+| Conservación técnica | **221 archivos ajenos a los seis documentos idénticos por SHA-256** respecto al comienzo de esta fase |
+
+**Observación del stack, 2026-09-21:** los seis contenedores conservaban los IDs, imágenes
+y montajes de la evidencia anterior; cinco estaban `healthy` y Portainer `running` sin
+healthcheck. Sus `StartedAt` mostraban **2026-09-21T21:45:12Z**, frente a
+`2026-09-21T01:16:14Z` en la instantánea de §14. No se afirma que los arranques siguieran
+iguales entre sesiones. En esta fase no se ejecutó reinicio, recreación ni `compose up`;
+la causa de ese arranque no se investigó ni se atribuye. La comprobación comparó los
+montajes por destino: el orden de la lista de `docker inspect` no es una identidad.
+
+---
+
+## 16. Segunda aprobación y publicación del addendum — 2026-09-21
+
+**Estado vigente: Aprobada.** Esta sección sustituye, como estado, a §15: aquella se
+escribió mientras el addendum seguía pendiente y describe la fase anterior.
+
+### 16.1 Registro de la aprobación
+
+| Campo | Valor |
+| --- | --- |
+| **Fecha** | **2026-09-21** (Guatemala) |
+| **Aprobado por** | **el usuario** (`jeffersondavila`) |
+| **Expresión exacta recibida** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
+| **Alcance cubierto** | El **addendum Floci** (§14) y su reconciliación documental (§15) |
+| **Aprobación anterior** | 2026-09-20, alcance MinIO (§11). Se conserva íntegra como historia |
+| **Efecto en el avance** | **Ninguno.** Es mantenimiento fuera de las 41: sigue **27/41 ≈ 66 %**, ETAPA 09 **1/3 ≈ 33 %** |
+
+Las **decisiones del addendum** —Floci 2.1.0 por digest, reducción del baseline por
+intersección exacta con el riesgo histórico, convergencia literal de SSM, healthcheck con
+el Bash ya presente en la imagen, cierre del reenvío DNS del laboratorio e interpretación
+*fail-closed* del inventario de API Gateway— pasan de **Propuesta** a **Aceptadas y
+Vigentes**, **sin ADR nuevo**: ninguna altera una decisión arquitectónica aceptada.
+**ADR-006 sigue Aceptada y Vigente**, Floci sigue siendo **laboratorio local**, nunca se
+despliega a AWS y **no se declara paridad completa**.
+
+### 16.2 Qué autorizó esta aprobación, y qué no
+
+Por instrucción expresa del usuario —registrada en §15 antes de recibirla— esta aprobación
+**sustituye el cierre ordinario de
+[`WORKFLOW.md`](../project-management/WORKFLOW.md) y de la sección 8 de las instrucciones
+del proyecto para esta entrega**. Autoriza **solo** el punto de detención 2: registrar la
+aprobación, validar, *commitear* el addendum, publicar la rama y verificar su SHA remoto.
+
+| Acción | Resultado |
+| --- | --- |
+| Registrar la aprobación y promover las decisiones | **Hecho** (§16.1) |
+| Validaciones finales sobre el estado documentado | **Hechas** (§16.3) |
+| Commit del addendum sobre `Task/027.1` | **Hecho** (§16.4) |
+| Publicar **únicamente** la rama `Task/027.1` en `origin` | **Hecho** (§16.4) |
+| Crear pull request | **NO.** Prohibido por la estrategia de cierre |
+| Reabrir #47 o #48 | **NO** |
+| Integrar en `dev` | **NO** |
+| Cambiar a `Task/027` o consolidar con `merge --no-ff` | **NO.** Requiere otra autorización |
+| Tocar `main` | **NO** |
+| Iniciar `Task/028` | **NO.** Sigue **Pendiente, no iniciada** |
+| Reconstruir, republicar o cambiar la visibilidad de la imagen de GHCR | **NO.** Paquete **privado**, sin modificar |
+| Ejecutar acciones nuevas en AWS o Cloudflare | **NO** |
+
+La excepción vale para **esta entrega** y no cambia cómo nacen las ramas Task: toda Task
+sigue naciendo de `main` actualizado y limpio ([WORKFLOW §2.1](../project-management/WORKFLOW.md)).
+
+### 16.3 Validaciones ejecutadas antes de publicar
+
+Ejecutadas el **2026-09-21** sobre el árbol final, ya con la documentación de la
+aprobación incluida. Se reejecutó la herramienta real, no se reutilizó el resultado de §15.
+
+| Gate | Invocación | Resultado |
+| --- | --- | --- |
+| Diff-check | `git diff --check` | **Correcto**; sin conflictos ni espacios en blanco erróneos |
+| `tests/security` | `python -B -W error::ResourceWarning -m unittest discover -s tests/security` | **64 PASS**, exit 0 |
+| `tests/laboratorio` | `python -B -W error::ResourceWarning -m unittest discover -s tests/laboratorio` | **176 PASS**, exit 0 |
+| Coherencia de artefactos fijados (S-09) | `vulnerability_gate.py --comprobar-coherencia .` | **CORRECTO**: `terraform` y `minio` coinciden con baseline, workflow y lanzador |
+| Gate S-09 completo | `vulnerability_gate.py --reports <7 informes>` | **CORRECTO**: **126 accionables comparados, 0 nuevos**. MinIO **99**, Floci **2**, Terraform **9**, provider **0** |
+| Compose principal | `docker compose --env-file .env.example --profile admin config --quiet` | **Válido** |
+| Compose del laboratorio | `docker compose -f laboratorio/... --env-file laboratorio/... config --quiet` | **Válido** |
+| Variables del Compose | Gate del workflow replicado | **26 usadas, 26 declaradas**, ninguna sin declarar |
+| Compilación Python | Gate del workflow replicado | **13 archivos, 0 fallos** |
+| Parseo PowerShell | Gate del workflow replicado | **6 archivos del entregable, 0 fallos** |
+| Enlaces relativos Markdown | Verificador propio, excluyendo *fences* y código inline | **149 documentos, 1557 enlaces, 0 destinos rotos, 0 anclas sin resolver** |
+| Gitleaks **8.30.1** | Versión y `sha256` fijados por `ci-infra.yml`, sobre el entregable de `git ls-files` | **0 hallazgos** |
+
+**Límites declarados, sin adornos.** Estos son **gates locales**: no equivalen a una
+ejecución de `CI Infra` en el runner. **Terraform y el ciclo real S-11 conservan la
+evidencia de §14**: esta fase no volvió a levantar el laboratorio ni a ejecutar
+`apply`/`destroy`, porque no modificó sus entradas técnicas. El gate S-09 reutiliza los
+**siete informes completos** obtenidos en §14.4 con la misma base de datos de Trivy; **no
+se presenta como un escaneo con base de datos nueva**. `actionlint` **no se ejecutó en
+esta fase**: no hay binario disponible en este perfil y el workflow **no cambió** respecto
+del estado que §15 validó con `actionlint 1.7.12`.
+
+### 16.4 Operaciones Git del cierre
+
+Ejecutadas **solo** en `personal-blog-infra`. `personal-blog-backend` y
+`personal-blog-frontend` permanecieron en `main`, limpios y **sin rama Task**: esta tarea
+no los modifica.
+
+1. Rama activa verificada: `Task/027.1-Corregir-Regresion-S09-MinIO`, partiendo del
+   publicado `df3ba33`.
+2. Barrido de secretos sobre el entregable completo antes de *commitear*.
+3. *Commit* del addendum sobre esa rama.
+4. `git push origin Task/027.1-Corregir-Regresion-S09-MinIO`.
+5. Verificación de que `HEAD` local y la referencia remota coinciden, contrastando contra
+   `git ls-remote origin` —no contra la referencia local de seguimiento—.
+
+**El SHA remoto resultante se presentó al usuario en el reporte de cierre.** No se escribe
+aquí como constante: el estado vivo de ramas, commits y PR se consulta en Git y GitHub
+—`git fetch --prune`, `git ls-remote --heads origin "Task/*"`, `gh pr list`—, nunca
+leyendo este documento ([WORKFLOW §6.1](../project-management/WORKFLOW.md)).
+
+### 16.5 Lo que sigue abierto tras esta aprobación
+
+| # | Asunto | Estado |
+| --- | --- | --- |
+| **R-018-3** | Residual de MinIO | **ABIERTO**, 99 identidades. El derivado no lo cierra |
+| **H-025-6** | Residual del emulador | **ABIERTA**, reducida a **dos** identidades exactas (`CVE-2026-4878` en `libcap`, `CVE-2026-54369` en `libacl`) |
+| **H-025-7** | Residual de Terraform | **ABIERTA**, nueve riesgos, con sus condiciones de revisión |
+| **H-025-1** | Idempotencia de SSM | **Cerrada técnicamente** en el laboratorio. La confirmación definitiva es **AWS real** (`Task/031`) |
+| **DT-027.1-1** | SBOM y procedencia junto a la imagen | **Pendiente.** Se generan en CI pero no se publican como artefactos junto al paquete |
+| **DT-027.1-3** | La construcción obtiene fuente y módulos por red | **Pendiente**, sin tarea asignada |
+| **D-06** | Backend de estado de Terraform | Resuelta por `Task/025`; el bucket **no existe** |
+| **Consolidación en `Task/027`** | `merge --no-ff` y PR único `Task/027 → main` | **Autorizada y ejecutada** el 2026-09-21, después de escribir esta tabla (§17) |
+| **`Task/028`** | GitHub OIDC ↔ AWS | **Pendiente, no iniciada** |
+
+**Nada de lo observado en Floci es hecho de AWS real.** Sigue siendo hipótesis hasta la
+ETAPA 10 (ADR-006, límite 5).
+
+---
+
+## 17. Consolidación en Task/027 — 2026-09-21
+
+**Hecho posterior a §16.** El usuario concedió la autorización de consolidación que §15 y
+§16 declaraban pendiente. Las secciones anteriores **no se reescriben**: describen con
+exactitud qué autorizaba cada aprobación por sí sola.
+
+### 17.1 Qué se integró y cómo
+
+`Task/027.1-Corregir-Regresion-S09-MinIO`, publicada en `39b6d59`, quedó integrada dentro
+de `Task/027-Configurar-Cuentas-y-Presupuestos` mediante **`git merge --no-ff`** sobre el
+commit original `e158e60`.
+
+- **Historial completo conservado.** Sin *squash*, sin *rebase*, sin *cherry-pick*
+  selectivo y sin *force push*. Los cinco commits de 027.1 —`7e7d56e`, `6890ded`,
+  `df3ba33` y los dos del addendum, `5915299` y `39b6d59`— quedan como ancestros de
+  `Task/027`.
+- **Alcance cloud de `Task/027` intacto.** Sus dos entregables propios —la
+  [ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) y el
+  [reporte](TASK-027-report.md)— no se tocaron en la resolución: cuentas AWS y Cloudflare,
+  IAM administrativo separado, MFA, cero access keys, Free Plan, presupuestos, alertas y
+  **D-13 resuelta** siguen íntegros, byte a byte.
+- **Conflictos:** solo dos documentos de gestión, `STATUS.md` y `ROADMAP.md`, resueltos
+  **archivo por archivo y bloque por bloque**, nunca con `ours` o `theirs` global.
+
+### 17.2 Qué NO cambia esta consolidación
+
+- `Task/027` sigue siendo la **tarea canónica aprobada** el 2026-09-17 y **cuenta entre
+  las 41**.
+- `Task/027.1` sigue siendo **mantenimiento fuera de las 41** y **conserva su historia
+  propia**. Lo único que cambia es la rama por la que se entrega.
+- **El avance no se mueve:** **27/41 ≈ 66 %**, ETAPA 09 **1/3 ≈ 33 %**.
+- `Task/028` sigue **Pendiente, no iniciada**.
+- **H-025-1** resuelta; **H-025-6** abierta con dos identidades; **H-025-7** con sus nueve;
+  **R-018-3** abierto con 99.
+- MinIO **99/99** y Floci **2/2**, sin reconstruir, republicar ni cambiar la visibilidad
+  del paquete de GHCR, que sigue **privado**.
+- **Floci sigue siendo laboratorio local**: no se despliega a producción. **AWS real es el
+  destino definitivo** y lo observado en el emulador es hipótesis hasta la ETAPA 10.
+- Cero acciones nuevas en AWS o Cloudflare.
+
+### 17.3 Entrega
+
+`Task/027` pasa a ser la **única rama de entrega** hacia `main`, con **un único PR nuevo**
+`Task/027 → main`. Los [PR #47](https://github.com/jeffersondavila/personal-blog-infra/pull/47)
+y [PR #48](https://github.com/jeffersondavila/personal-blog-infra/pull/48) son **hechos
+históricos**, cerrados sin merge el `2026-09-21T02:38:32Z` y el `2026-09-21T02:38:38Z`:
+**no se reabren y no representan la entrega final**.
+
+`dev` **no se modifica** en esta fase; su normalización pertenece al flujo posterior al
+merge manual. **Solo el usuario fusiona hacia `main`.** El número, la URL y el estado vivo
+del PR se consultan en GitHub, nunca leyendo este documento
+([WORKFLOW §6.1](../project-management/WORKFLOW.md)).
