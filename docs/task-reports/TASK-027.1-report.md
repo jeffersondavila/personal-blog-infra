@@ -1151,7 +1151,7 @@ de `Task/027-Configurar-Cuentas-y-Presupuestos` mediante **`git merge --no-ff`**
 commit original `e158e60`.
 
 - **Historial completo conservado.** Sin *squash*, sin *rebase*, sin *cherry-pick*
-  selectivo y sin *force push*. Los cuatro commits de 027.1 —`7e7d56e`, `6890ded`,
+  selectivo y sin *force push*. Los cinco commits de 027.1 —`7e7d56e`, `6890ded`,
   `df3ba33` y los dos del addendum, `5915299` y `39b6d59`— quedan como ancestros de
   `Task/027`.
 - **Alcance cloud de `Task/027` intacto.** Sus dos entregables propios —la
