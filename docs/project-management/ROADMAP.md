@@ -1,5 +1,28 @@
 # ROADMAP — Blog Personal
 
+**2026-09-21 — Task/028 En progreso: implementación local autorizada.** Base main
+`65fbf860a7ba47460eecad70431f0ba8f5bcfab1`; solo infra. Diseño de trabajo aceptado;
+AWS/GitHub y publicaciones requieren autorización posterior. Avance **27/41 ≈ 66 %**,
+ETAPA 09 **1/3 ≈ 33 %**. [Ficha](../tasks/TASK-028-github-oidc-aws.md).
+
+**2026-09-22 — Ejecución de Task/028:** creación de la rama, implementación local,
+reconciliación documental y checkpoint local completo.
+
+**2026-09-24 — Checkpoint AWS real de solo lectura y plan de Task/028.** Caso
+realmente observado **A** con ownership **A**; Terraform **1.16.2** y provider AWS
+**6.64.0**. La guarda oficial devolvió `PLAN_OK` con
+`json_sha256=d2cb84f13c4a83e105bcf4804796572361f7332f336f942ab716f972d108d2cf` y el
+plan binario revisado quedó en
+`f36914411a3dea4d479ffc6bb8aa035de743fa29c509508c7a2d519d4784b008`, con **dos**
+creaciones administradas: proveedor OIDC y rol de validación. La custodia cifrada y
+su recuperación real se verificaron antes del plan. **Cero mutaciones AWS; apply no
+autorizado ni ejecutado**, y ninguna publicación preparada. Task/028 sigue **En
+progreso**: el avance permanece en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
+[Reporte §12](../task-reports/TASK-028-report.md).
+
+Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
+el estado vivo de Git/GitHub.
+
 > **2026-09-21 — Addendum Floci de Task/027.1: APROBADO** por el usuario mediante
 > `approved: Task/027.1-Corregir-Regresion-S09-MinIO`. Sus decisiones pasan a **Aceptadas
 > y Vigentes**, sin ADR nuevo. La primera aprobación MinIO del 2026-09-20 se conserva
@@ -377,7 +400,7 @@ cero y con datos reales de prueba.
 
 ## ETAPA 09 — Cuentas y Seguridad Cloud
 
-**Estado: En progreso, 1/3 ≈ 33 %.** Task/027 aprobada el 2026-09-17; Task/028 no iniciada.
+**Estado: En progreso, 1/3 ≈ 33 %.** Task/027 aprobada el 2026-09-17; Task/028 En progreso, checkpoint local.
 
 **Objetivo:** crear las cuentas cloud con controles de costo y acceso **antes** de
 desplegar nada.
@@ -414,8 +437,8 @@ otro modelo (`Task/039`). Acotado en `Task/005.6`.
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/027-Configurar-Cuentas-y-Presupuestos` | AWS. Cloudflare. MFA. Presupuestos. Alertas. | infra | 026 | **Aprobada** (2026-09-17) — Gates A–E y DoD completos; D-13 resuelta: USD 20 global/USD 5 AWS. Free Plan/créditos preservados; cero access keys, Organizations, Identity Center, SNS y Budget Actions; CAD 1/1 conservado sin cambios. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) **Su rama es la entrega consolidada:** integra además el mantenimiento `Task/027.1-Corregir-Regresion-S09-MinIO` mediante `merge --no-ff`, que **no cuenta entre las 41** y **no altera el avance**. [Ficha 027.1](../tasks/TASK-027.1-fix-s09-minio-regression.md) · [Reporte 027.1](../task-reports/TASK-027.1-report.md) |
-| `Task/028-GitHub-OIDC-AWS` | Roles temporales de **GitHub Actions → AWS**. Sin credenciales AWS permanentes. **No cubre la identidad del VPS** (**D-16**, `Task/029`). | infra | 027 | Pendiente |
+| `Task/027-Configurar-Cuentas-y-Presupuestos` | AWS. Cloudflare. MFA. Presupuestos. Alertas. | infra | 026 | **Aprobada** (2026-09-17) — Gates A–E y DoD completos; D-13 resuelta: USD 20 global/USD 5 AWS. Free Plan/créditos preservados; cero access keys, Organizations, Identity Center, SNS y Budget Actions; CAD 1/1 conservado sin cambios. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) **Historia del 2026-09-21: su rama fue la entrega consolidada:** integra además el mantenimiento `Task/027.1-Corregir-Regresion-S09-MinIO` mediante `merge --no-ff`, que **no cuenta entre las 41** y **no altera el avance**. [Ficha 027.1](../tasks/TASK-027.1-fix-s09-minio-regression.md) · [Reporte 027.1](../task-reports/TASK-027.1-report.md) |
+| `Task/028-GitHub-OIDC-AWS` | Federación **GitHub Actions → AWS**, rol de validación sin políticas; no despliegue ni identidad VPS (D-16). EX-028-C7 y transición Task → main. | infra | 027 | **En progreso** — [ficha](../tasks/TASK-028-github-oidc-aws.md) |
 | `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | Selección del VPS por costo, región y RTT **medido**. PgBouncer. TLS, **ciclo de vida del certificado** y SCRAM. Firewall y SSH. Usuarios, roles y límites de conexión. Backup **fuera del host** y **restore demostrado** contra un destino disponible entonces. **Baseline de observabilidad del VPS con Grafana Alloy.** **Mecanismo de secretos cifrados del host** (**D-17**) y **mecanismo de configuración del sistema operativo** (**D-18**). Decide **D-16** (identidad del VPS hacia AWS). | infra | 027 | Pendiente |
 
 ---
@@ -429,7 +452,12 @@ otro modelo (`Task/039`). Acotado en `Task/005.6`.
 **Ficha:** [STAGE-10-cloud-deployment.md](../stages/STAGE-10-cloud-deployment.md)
 
 > **Reutiliza, no reinventa.** `Task/030`–`Task/033` materializan contra AWS real los
-> **módulos ya construidos y validados en `Task/025`**. Aquí se documenta qué funcionó sin
+> **módulos de aplicación ya construidos y validados en Task/025**. Excepción
+> explícita: Task/030 crea el bootstrap independiente de D-06 (S3 solo para estado,
+> privado/versionado/cifrado/public access block, lock nativo sin DynamoDB), migra
+> el estado OIDC y gestiona el estado del bootstrap del propio bucket antes de
+> aplicar aplicación. El backend debe preexistir al grafo que lo utiliza.
+> Aquí se documenta qué funcionó sin
 > cambios, qué exigió otra configuración, qué exigió adaptación y qué no era simulable en
 > local, y se actualiza la
 > [matriz de paridad](../architecture/aws-local-parity.md) con evidencia real. **AWS real es
@@ -443,7 +471,7 @@ otro modelo (`Task/039`). Acotado en `Task/005.6`.
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. **Destino, política, retención y *lifecycle* de los backups del VPS** —**owner único de ese tramo**; el mecanismo de backup es de `Task/029`— y **materialización de la identidad decidida en D-16**. Valida `S3Storage` contra S3 real. Resuelve **D-08**. | infra | 029 | Pendiente |
+| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. **Destino, política, retención y *lifecycle* de los backups del VPS** —**owner único de ese tramo**; el mecanismo de backup es de `Task/029`— y **materialización de la identidad decidida en D-16**. Valida `S3Storage` contra S3 real. Resuelve **D-08**. **Excepción D-06:** bootstrap independiente del bucket de estado y protecciones, migración OIDC y custodia/migración del estado del propio bootstrap; extinguir EX-028-C7 antes de aplicar aplicación. | infra | 029 | Pendiente |
 | `Task/031-Desplegar-SSM-y-CloudWatch` | **SSM `SecureString`** para los secretos de la Lambda, con permisos IAM mínimos. **CloudWatch mínimo**: logs y métricas nativas, retención corta y explícita (**D-11**), alarmas mínimas. **Base de la integración AWS → Grafana Cloud**: decide **D-20** y su modelo IAM de solo lectura. **Solo AWS: no observa el VPS.** | infra | 029 | Pendiente |
 | `Task/032-Desplegar-AWS-Lambda` | Función FastAPI en Lambda por **artefacto ZIP**. IAM. **Configuración no secreta por variables de entorno y secretos desde SSM.** `DATABASE_URL` apuntando a **PgBouncer**, con **TLS** hacia el VPS. Límites (**D-12**). **Reserved Concurrency** coherente con el pool de PgBouncer. *Wiring* de `S3Storage`. **Logging compatible con la observabilidad elegida.** | infra | 030, 031 | Pendiente |
 | `Task/033-Desplegar-API-Gateway` | **HTTP API**. Rutas hacia la Lambda. CORS. Throttling. Dominio del API si corresponde. | infra | 032 | Pendiente |
@@ -501,6 +529,7 @@ identificadores.**
 | **Migraciones en producción** | `Task/036` — **primera** ejecución | `Task/038` — canal repetible, credencial, orden, *rollback* y protección | `Task/040` |
 | **Medios públicos y URLs** (**D-08**) | `Task/010` — persiste **claves de objeto** · `Task/016` — `og:image` estable | `Task/030` — resuelve **D-08** | `Task/040` |
 | **Credenciales CI multi-provider** | `Task/028` — **solo** GitHub → AWS | `Task/039` — AWS, Cloudflare y VPS: rotación, *scopes*, entornos protegidos y guardas de destino | `Task/040` |
+| **Backend de estado D-06** | Task/025 — mecanismo resuelto; Task/028 — EX-028-C7 solo bootstrap OIDC | Task/030 — excepción bootstrap S3 dedicado, protecciones, migración OIDC y custodia/migración del estado del propio bucket | Task/030 antes de aplicar aplicación; Task/039 acceso mínimo desde CI |
 | **Topología lógica de dominios** (**D-15**) | `Task/011` — mismo *site*, subdominios o dominios separados; cookies y CORS | `Task/018` — CORS efectivo | `Task/035` — dominio concreto y DNS (**D-07**) |
 | **Observabilidad de producción** (`Task/006.2`) | `Task/029` — **Grafana Alloy** y el *baseline* del VPS · `Task/031` — **CloudWatch mínimo** y la base de **D-20** | `Task/029`, `Task/031` | `Task/040` — que **opera de verdad**, no que está configurada |
 | **Telemetría portable de la aplicación** (`Task/006.2`) | `Task/017` — logs JSON y correlation ID, **sin acoplar el dominio a ningún destino** | `Task/018` — redacción y endurecimiento | `Task/040` |

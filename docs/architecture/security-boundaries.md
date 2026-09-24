@@ -176,7 +176,9 @@ de **nivel host**, no de nivel aplicación.
 | Cabeceras de seguridad concretas y sus valores | `Task/018` |
 | ~~Lista de tipos MIME y tamaños permitidos~~ | **Base fijada en `Task/010`** (2026-08-28): `image/jpeg`, `image/png` y `image/webp`; 5 MiB y 40 millones de píxeles. **SVG excluido por seguridad** (XML con capacidad de script). La lista **definitiva** y su endurecimiento siguen siendo de `Task/018`, que restringe, no amplía |
 | ~~Proveedores de video permitidos~~ | **Cerrados en `Task/014`** (2026-09-05, **Vigente**): `youtube` y `vimeo`, *fail-closed* en el render. Detalle en [`api-contracts.md`](api-contracts.md) §14.9 |
-| Política IAM de la Lambda y del rol OIDC | `Task/028`, `Task/032` |
+| Trust del rol OIDC de validación, sin políticas de recursos | Task/028 — solo federación y pruebas negativas acotadas |
+| Política IAM de la Lambda | Task/032 |
+| Permisos mínimos de despliegue por OIDC | Task/038 backend; Task/039 Terraform; Task/040 validación integral |
 | Política del bucket y expiración de URLs prefirmadas | `Task/030` |
 | ~~Campos a redactar en los logs~~ | **Fijados en `Task/017`** (§3, fila «Logs»): la lista de fragmentos sensibles y los patrones de valor. **Ampliarla** —más cabeceras, más superficies— sigue siendo endurecimiento de `Task/018`, que restringe, no relaja |
 | Guardas *fail-closed* del laboratorio local y su verificación | `Task/025`, `Task/026` |
@@ -605,3 +607,20 @@ incorrecto. El borde con TLS real es `Task/033`–`Task/035`.
   diferidos, con su recuento y su motivo en el reporte de la tarea.
 - **No sustituye a `Task/019`–`Task/021`.** Las auditorías fueron **puntuales y
   fechadas**; caducan. S-09 exige escaneo en CI, y eso sigue pendiente.
+
+## Bootstrap OIDC Task/028 — límite de identidad
+
+Diseño de trabajo aceptado el 2026-09-21; implementación local En progreso, sin
+evidencia AWS real. El rol humano PersonalBlogAdministrator no es el rol de CI.
+PersonalBlogGitHubOidcValidation no lleva managed ni inline policies; trust exacta
+Task caducable y posteriormente main exclusiva. Provider compartido: solo data;
+discrepante/indeterminado: detener sin modificar/importar. EX-028-C7 acota el estado
+local privado del root bootstrap hasta Task/030.
+
+La evidencia obligatoria es trust exacta, cero políticas de identidad,
+GetCallerIdentity y AccessDenied de operaciones elegidas. No demuestra que ninguna
+resource-based policy de la cuenta otorgue capacidades: cualquier inspección queda
+limitada al inventario efectivamente revisado. Task/038 define permisos backend,
+Task/039 permisos Terraform, Task/040 valida integralmente. Protección de main antes
+de habilitar esos roles efectivos; no ampliar el rol de validación.
+[Runbook y custodia](../runbooks/github-oidc-bootstrap.md).

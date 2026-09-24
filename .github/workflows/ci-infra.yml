@@ -168,6 +168,17 @@ jobs:
           set -euo pipefail
           terraform -chdir=terraform validate
 
+      # Offline only: mocked providers, no id-token or AWS credential access.
+      - name: OIDC bootstrap static validation and mocked plans
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch bootstrap/github-oidc/.terraform.lock.hcl >/dev/null
+          terraform -chdir=bootstrap/github-oidc fmt -check -recursive
+          terraform -chdir=bootstrap/github-oidc init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=bootstrap/github-oidc validate
+          terraform -chdir=bootstrap/github-oidc test
+          python3 -B -m unittest discover -s tests/oidc -v
+
       # Las guardas fail-closed usan entradas sinteticas. La sonda HTTP se prueba
       # contra un servidor efimero de loopback, sin AWS ni emulador en CI.
       #

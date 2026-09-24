@@ -287,12 +287,12 @@ observado en Floci sigue siendo hipótesis hasta la ETAPA 10.
 | Dependencias nativas de Python incompatibles con el runtime de Lambda. | Construcción del paquete en entorno Linux equivalente al runtime destino. |
 | Arranque en frío lento por artefacto pesado. | Medición de tamaño y poda de dependencias en `Task/024`. **Medido en AWS real**, nunca en el laboratorio. |
 | Terraform validado en seco que falla en el primer `apply` real. | **Mitigación principal de la etapa:** `apply` real contra el destino local, más runbooks con verificación paso a paso y rollback definido. |
-| Estado de Terraform sin backend remoto definido. | Decisión **D-06** explícita en `Task/025`. |
+| Backend remoto acordado pero aún no materializado; custodia temporal. | **D-06 Resuelta desde Task/025**; Task/030 materializa/migra. EX-028-C7 solo para bootstrap OIDC. |
 | **Falsa sensación de paridad** (R-20). | La matriz nace en `No evaluada`; prohibido el estado «paridad completa»; AWS real es la autoridad final. |
 | **El camino crítico —Terraform + API Gateway v2 + Lambda + Logs— no está cubierto por la suite oficial de compatibilidad del emulador** (R-25). | Es el objetivo explícito de `Task/025`. Si no se logra, esos recursos pasan a `AWS-only` y se documenta, sin fabricar sustitutos locales. |
 | **Actuar sobre AWS real por accidente** al faltar un endpoint (R-24). | Guardas *fail-closed* obligatorias antes del primer `apply` ([aws-local-parity.md](../architecture/aws-local-parity.md) §9.3). |
 | **Privilegio de nivel host**: el emulador necesita el socket de Docker (R-22). | Mismo tratamiento que Portainer: solo local, nunca expuesto, compromiso = incidente de nivel host. |
-| **IAM sin aplicación de políticas** en local (R-28). | El laboratorio valida creación y adjunción, nunca autorización. Mínimo privilegio queda para `Task/028` y `Task/032`. |
+| **IAM sin aplicación de políticas** en local (R-28). | El laboratorio valida creación y adjunción, nunca autorización. Task/028 valida federación; Task/032 el rol de aplicación; Task/038 y Task/039 permisos de despliegue. |
 
 ## Siguiente etapa
 

@@ -1,0 +1,56 @@
+name: Verify AWS OIDC
+
+on:
+  push:
+    branches: [Task/028-GitHub-OIDC-AWS]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: oidc-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  no-id-token:
+    if: >-
+      github.repository == 'jeffersondavila/personal-blog-infra' &&
+      github.repository_id == '1313255836' &&
+      github.repository_owner_id == '60154716' &&
+      github.ref_type == 'branch' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/Task/028-GitHub-OIDC-AWS') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check GitHub token capability is absent
+        run: python3 -B -m scripts.oidc.verify --no-id-token
+
+  federation:
+    if: >-
+      github.repository == 'jeffersondavila/personal-blog-infra' &&
+      github.repository_id == '1313255836' &&
+      github.repository_owner_id == '60154716' &&
+      github.ref_type == 'branch' &&
+      ((github.event_name == 'push' && github.ref == 'refs/heads/Task/028-GitHub-OIDC-AWS') ||
+       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_OIDC_ROLE_ARN: ${{ vars.AWS_OIDC_ROLE_ARN }}
+      AWS_EXPECTED_ACCOUNT_ID: ${{ vars.AWS_EXPECTED_ACCOUNT_ID }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify exact federation outcome without logging credentials
+        run: python3 -B -m scripts.oidc.verify --config security/oidc-validation.json

@@ -1,6 +1,29 @@
 # STATUS — Estado del proyecto Blog Personal
 
-**Última actualización:** 2026-09-21 — **entrega consolidada en `Task/027`**; **addendum Floci de
+**2026-09-21 — Task/028 En progreso: implementación local autorizada.** Base main
+`65fbf860a7ba47460eecad70431f0ba8f5bcfab1`; solo infra. Diseño de trabajo aceptado;
+AWS/GitHub y publicaciones requieren autorización posterior. Avance **27/41 ≈ 66 %**,
+ETAPA 09 **1/3 ≈ 33 %**. [Ficha](../tasks/TASK-028-github-oidc-aws.md).
+
+**2026-09-22 — Ejecución de Task/028:** creación de la rama, implementación local,
+reconciliación documental y checkpoint local completo.
+
+**2026-09-24 — Checkpoint AWS real de solo lectura y plan de Task/028.** Caso
+realmente observado **A** con ownership **A**; Terraform **1.16.2** y provider AWS
+**6.64.0**. La guarda oficial devolvió `PLAN_OK` con
+`json_sha256=d2cb84f13c4a83e105bcf4804796572361f7332f336f942ab716f972d108d2cf` y el
+plan binario revisado quedó en
+`f36914411a3dea4d479ffc6bb8aa035de743fa29c509508c7a2d519d4784b008`, con **dos**
+creaciones administradas: proveedor OIDC y rol de validación. La custodia cifrada y
+su recuperación real se verificaron antes del plan. **Cero mutaciones AWS; apply no
+autorizado ni ejecutado**, y ninguna publicación preparada. Task/028 sigue **En
+progreso**: el avance permanece en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
+[Reporte §12](../task-reports/TASK-028-report.md).
+
+Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
+el estado vivo de Git/GitHub.
+
+**Registro histórico del 2026-09-21:** **entrega consolidada en `Task/027`**; **addendum Floci de
 `Task/027.1-Corregir-Regresion-S09-MinIO` APROBADO** por el usuario mediante
 `approved: Task/027.1-Corregir-Regresion-S09-MinIO`. Sus decisiones pasan a **Aceptadas y
 Vigentes**, **sin ADR nuevo**. La primera aprobación del 2026-09-20 corresponde al alcance
@@ -42,13 +65,19 @@ esta fase y **solo el usuario fusiona hacia `main`**.
 
 ---
 
+Riesgos vivos de Task/028: pérdida/duplicación del estado temporal, proveedor
+compartido, sesiones ya emitidas, políticas de recursos fuera del inventario y main
+sin protección. EX-028-C7: revisión a 30 días y extinción en Task/030 antes de
+aplicación; permisos backend/Terraform en Task/038/039 y validación en Task/040.
+Ninguna prueba local acredita federación ni autorización real.
+
 ## Vista rápida
 
 | Campo | Valor |
 | --- | --- |
-| **Tarea actual** | **Entrega consolidada en `Task/027-Configurar-Cuentas-y-Presupuestos`.** La tarea canónica **`Task/027` sigue Aprobada** desde el 2026-09-17 y **cuenta entre las 41**; su rama integra además, mediante `merge --no-ff` y sin perder historial, el mantenimiento **`Task/027.1-Corregir-Regresion-S09-MinIO`, Aprobado** el 2026-09-21, que **no cuenta entre las 41** y **no altera el avance**. Sigue **27/41 ≈ 66 %**, ETAPA 09 **1/3 ≈ 33 %**. La entrega es un **único PR nuevo `Task/027 → main`**; #47 y #48 son hechos históricos cerrados sin merge. |
+| **Tarea actual** | **Task/028 — En progreso**, implementación local. Diseño reconciliado aceptado; evidencia real AWS/GitHub pendiente de autorización. [Ficha](../tasks/TASK-028-github-oidc-aws.md) · [Reporte](../task-reports/TASK-028-report.md). No cambia 27/41 ni ETAPA 09 1/3. |
 | **Etapa actual** | **ETAPA 09 — Cuentas y Seguridad Cloud — En progreso** desde el 2026-09-15 con `Task/027`. Tiene **1 de 3 tareas aprobadas (≈ 33 %)**. Gates A–E completos con evidencia saneada; el agente no ejecutó mutaciones externas. El usuario creó un presupuesto con cuatro alertas, pero ningún recurso de aplicación atribuible a Task/027. Todo lo observado previamente en Floci sigue siendo hipótesis hasta la ETAPA 10 |
-| **Mantenimiento consolidado en esta entrega** | **Task/027.1-Corregir-Regresion-S09-MinIO: Aprobada.** El usuario aprobó el **addendum Floci** el **2026-09-21** mediante `approved: Task/027.1-Corregir-Regresion-S09-MinIO`; sus decisiones pasan a **Aceptadas y Vigentes**, sin ADR nuevo. Primera aprobación MinIO del 2026-09-20 conservada como historia. **Es mantenimiento: no cuenta entre las 41 ni altera el avance.** El cierre se detiene tras publicar la rama: sin PR ni integración en `dev`. |
+| **Mantenimiento anterior (historia)** | Task/027.1 aprobado el 2026-09-21; consolidación en Task/027 y cierre postmerge comunicados por el usuario. No cuenta entre las 41. Git/GitHub son la fuente viva. |
 | **Tarea anterior** | `Task/026-Runbooks-de-Despliegue` quedó **Aprobada** el 2026-09-15 y cerrada post-merge; `Task/026.1` corrigió dos frases transitorias y también quedó cerrada post-merge sin contar en las 41. ETAPA 08 permanece **Completada (4/4, 100 %)**. Los cinco runbooks están Vigentes; el modo `production` sigue bloqueado, el bucket de estado no existe y toda evidencia de Floci sigue siendo hipótesis local. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
 | **Task/026 (historia)** | **Registro del 2026-09-15:** **`Task/026-Runbooks-de-Despliegue` — Aprobada** el 2026-09-15 mediante `approved: Task/026-Runbooks-de-Despliegue`; en aquella fecha `Task/027` aún estaba pendiente; fue aprobada después, el 2026-09-17. Rama creada sólo en infra desde `main` actualizado y limpio, SHA base `940a531827602ae04db37ddc5b15b5722500cc37`; backend y frontend en solo lectura, sin rama. Entrega cinco runbooks, destino explícito, binding de Floci fail-closed, planes humanos ligados a SHA-256, inspección `boto3` desde el ZIP y drift controlado. Ciclo real ejecutado contra el laboratorio: **21 recursos creados**, `GET /health` **200**, drift introducido y reconciliado, **dos `destroy`** con ausencia verificada por API y reconstrucción intermedia; **0 residuos Docker** al terminar. **202/202** pruebas y gates estáticos en verde, incluidos Compose, enlaces Markdown y **Gitleaks 8.30.1 en 0 hallazgos**. Dos defectos propios encontrados durante la ejecución real y corregidos con regresión: **DEF-026-1** (`botocore` no podía leer `endpoints.json` importando desde el ZIP) y **DEF-026-2** (la política IAM aparecía como actualización dependiente al recrear el SSM). **Rollback NO ejecutado: precondición ausente**, registrado sin fingir éxito y convertido en deuda con propietario. **Cero AWS real.** **APROBADA:** sus decisiones **D-026-A** a **D-026-J** pasan a **Aceptadas y Vigentes** sin ADR nuevo, los cinco runbooks pasan a **Vigentes**, y **el avance pasa de 25/41 ≈ 61 % a 26/41 ≈ 63 %**, completando la **ETAPA 08**. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
 | **Antecedente: `Task/024`** | `Task/024-Artefacto-ZIP-Lambda` quedó **Aprobada** el 2026-09-13. Ramas creadas **desde `main`** en **backend** (`8795ac7…`) e **infra** (`7397eca…`); **frontend en solo lectura, sin rama**. Entrega el **artefacto ZIP de despliegue**: `scripts/empaquetar_lambda.py` instala las dependencias **dentro de la imagen oficial del runtime de Lambda para Python 3.12, `linux/amd64`, fijada por digest** —el backend se desarrolla en Windows y **13** de sus **41** distribuciones de ejecución traen binarios nativos— con `--require-hashes`, `--only-binary=:all:` y `--no-compile`. **Reproducibilidad demostrada byte a byte:** dos construcciones independientes dieron el mismo SHA-256 `6580410109207f33…`, **43 288 578 bytes** comprimidos (41,28 MiB) y **114 086 988** descomprimidos (108,80 MiB), **3 975** entradas y **41/41** distribuciones de ejecución sin ninguna de las **20** de desarrollo. El *handler* respondió **200** a `GET /health` **ejecutado desde el ZIP** en un proceso Linux `-I -S -W error`, sin árbol de fuentes, sin `site-packages`, sin `.env` y sin credenciales; Argon2, Pillow y el driver binario de PostgreSQL **ejercitados**, y **tres controles negativos** de aislamiento. **49 pruebas nuevas** —48 pasan en Windows, 1 se omite—; suite **1965 passed, 3 skipped**. **0 dependencias nuevas.** **Con su aprobación el avance pasó de 23/41 ≈ 56 % a 24/41 ≈ 59 %.** [Ficha](../tasks/TASK-024-lambda-zip-artifact.md) · [Reporte](../task-reports/TASK-024-report.md) |
@@ -86,13 +115,13 @@ esta fase y **solo el usuario fusiona hacia `main`**.
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Tarea recién aprobada** | `Task/027-Configurar-Cuentas-y-Presupuestos` — **Aprobada** el 2026-09-17. Gates A–E y DoD completados con evidencia saneada; D-13 resuelta. El agente no operó el navegador ni recibió datos privados. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) |
 | **Mantenimiento consolidado** | `Task/027.1-Corregir-Regresion-S09-MinIO` — **Aprobada** el 2026-09-21 y publicada en `39b6d59`; integrada en esta rama con `merge --no-ff`, con su historial íntegro. Es mantenimiento: **fuera de las 41** y **sin efecto en el avance**. |
-| **Próxima tarea prevista** | `Task/028-GitHub-OIDC-AWS` — **Pendiente, no iniciada**; requiere completar el cierre Git de `Task/027`. `Task/029` también permanece Pendiente. No se ha creado ninguna rama ni implementación para ellas Aprobar el addendum `Task/027.1` **no** autoriza iniciar `Task/028`: consolidarlo en esta rama tampoco. Toda nueva Task nace de `main` actualizado y limpio ([WORKFLOW §2.1](WORKFLOW.md)). |
+| **Próxima tarea prevista** | Task/029 permanece **Pendiente**. Task/028 está **En progreso**, limitada al checkpoint local autorizado. Toda nueva Task nace de main actualizado y limpio ([WORKFLOW §2.1](WORKFLOW.md)); avanzar requiere las autorizaciones del workflow. |
 | **Avance global** | **27/41 ≈ 66 %** — 27 de 41 tareas aprobadas |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
 | **Bloqueos activos** | **Ninguno abierto.** **No existe defecto bloqueante demostrado atribuible a `Task/023`.** **H-023-3** no es un bloqueo: es una **observación abierta no diagnosticada** —un fallo de `test_dos_publicaciones_simultaneas_solo_prosperan_una` en una ejecución completa, sin traza conservada y **no reproducido** en ocho intentos posteriores—. No se declara resuelto, no se declara descartado y **no se atribuye al adaptador Lambda**, que no participa en el camino de código de ese test. **Debe vigilarse en la CI**; si reaparece, el cierre **se detiene** y se analiza. **B-020.3-C — RESUELTO** el 2026-09-12: el gate Trivy de la imagen backend pasó de 12 hallazgos accionables (9 HIGH, 3 CRITICAL, exit 1) a **0 accionables, exit 0**, tras autorización explícita del usuario para aplicar las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile. La política S-09 no se relajó: sigue siendo `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, sin `.trivyignore` ni baseline de backend. **Historia preservada:** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`) — **RESUELTO** el 2026-09-12 con la aprobación de `Task/022`: la semilla local creó el administrador y el perfil, y el recorrido administrativo real generó contenido publicado con imágenes, de modo que la evidencia que faltaba ya existe. **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **48** (R-01, **R-08** y **R-14** cerrados; **R-021-1**, el residual de la imagen de Portainer, añadido el 2026-09-11 por `Task/021`, con su tabla en la sección de riesgos; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) |
-| **Decisiones abiertas** | **12** — **D-13** resuelta por `Task/027` el 2026-09-17; **D-21** (estrategia de *rendering*) y D-16 a D-20 permanecen abiertas, junto con las demás decisiones diferidas registradas en el [índice](../architecture/open-decisions.md) |
+| **Decisiones abiertas** | **11** — **D-13** resuelta por `Task/027` el 2026-09-17; **D-21** (estrategia de *rendering*) y D-16 a D-20 permanecen abiertas, junto con las demás decisiones diferidas registradas en el [índice](../architecture/open-decisions.md) |
 
 > **Recuento tras la aprobación de `Task/018`, 2026-09-08:**
 > **18 de 41 — 44 %**; ETAPA 05 **Completada, 3 de 3 — 100 %**.
@@ -2529,8 +2558,8 @@ Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **14** — la siguiente, tras cerrar Task/027, es `Task/028`, **no iniciada** |
-| En progreso | 0 |
+| Pendiente | **13** — Task/029–Task/041 |
+| En progreso | **1** — Task/028, implementación local |
 | Lista para validación | **0** |
 | **Aprobada** | **27** |
 | Bloqueada | 0 |
@@ -2735,7 +2764,7 @@ Distribución por estado:
 | `Task/025-Terraform-Cloud` | 08 | infra | **Aprobada** (2026-09-14) |
 | `Task/026-Runbooks-de-Despliegue` | 08 | infra | **Aprobada** (2026-09-15) |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | 09 | infra | **Aprobada** (2026-09-17) — Gates A–E y DoD completos; D-13 resuelta |
-| `Task/028-GitHub-OIDC-AWS` | 09 | infra | Pendiente |
+| `Task/028-GitHub-OIDC-AWS` | 09 | infra | **En progreso** — [ficha](../tasks/TASK-028-github-oidc-aws.md), checkpoint local |
 | `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` | 09 | infra | Pendiente |
 | `Task/030-Desplegar-Amazon-S3` | 10 | infra | Pendiente |
 | `Task/031-Desplegar-SSM-y-CloudWatch` | 10 | infra | Pendiente |

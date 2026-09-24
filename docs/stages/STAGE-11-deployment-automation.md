@@ -39,7 +39,10 @@ GitHub Actions hacia Cloudflare Pages.
 
 ### `Task/038-Deploy-Automatico-Backend` — *Pendiente*
 
-GitHub Actions hacia AWS Lambda usando OIDC.
+GitHub Actions hacia AWS Lambda usando OIDC. **Task/038 es propietaria de los
+permisos mínimos de despliegue backend**, acotados a operaciones y recursos reales.
+No reutilizar ni ampliar el rol de validación Task/028. Protección efectiva de main
+obligatoria antes de habilitar este rol; Task/040 valida integralmente.
 
 **Además — canal de migraciones en producción** (*ownership* asignado en `Task/005.5`).
 `Task/036` ejecuta la **primera** migración a mano; el canal **repetible** es de esta
@@ -56,7 +59,10 @@ tarea, y debe dejar definido:
 ### `Task/039-Automatizar-Terraform` — *Pendiente*
 
 `terraform plan` revisable en cada PR, `apply` protegido por aprobación manual y
-**sin destrucción automática**.
+**sin destrucción automática**. **Task/039 es propietaria de los permisos mínimos
+Terraform**, incluidos backend/lock según D-06 y recursos gestionados. Rol separado
+del validador Task/028; protección efectiva de main antes de habilitarlo.
+Task/040 valida la cadena completa.
 
 #### Automatización multi-provider
 

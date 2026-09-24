@@ -482,7 +482,9 @@ Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
 - **AWS real sigue siendo la validación final.** El laboratorio no sustituye a
   la ETAPA 10.
 
-No decide **D-06** (backend de estado de Terraform, `Task/025`): sigue abierta.
+**D-06 está Resuelta y Vigente desde Task/025 (2026-09-14)**: local protegido
+para laboratorio y S3 con lock nativo para AWS. Bucket pendiente de Task/030;
+EX-028-C7 acota el estado local temporal del bootstrap OIDC ([runbook](../runbooks/github-oidc-bootstrap.md)).
 **D-01** quedó **resuelta** por `Task/005.3` en cuanto al **modelo** (sección
 16); el **proveedor** sigue en `Task/029`.
 
@@ -521,8 +523,9 @@ Decisión: [`ADR-007`](../adr/ADR-007-production-postgresql-on-vps.md) —
     crear recursos RDS.
 12. **PostgreSQL local sigue siendo el destino normal de desarrollo.**
 
-No resuelve **D-06**, ni el proveedor concreto, ni los tamaños de pool, ni
-`max_connections`, ni la frecuencia de backups: todo eso es de `Task/029`.
+Esta regla no selecciona proveedor VPS, tamaños de pool, `max_connections` ni
+frecuencia de backups: eso es de Task/029. **D-06 ya fue resuelta por Task/025**;
+Task/030 materializa el backend y migra el bootstrap, con la excepción de ETAPA 10.
 
 
 ## 17. Restricciones del proyecto

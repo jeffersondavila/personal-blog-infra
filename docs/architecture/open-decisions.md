@@ -3,9 +3,9 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-17 (`Task/027` **Aprobada** — Gates A–E completados; D-13 resuelta) |
-| **Decisiones abiertas** | **12** — D-13 resuelta por aprobación de `Task/027`; D-21 permanece abierta |
-| **Decisiones resueltas** | **9** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-13 (2026-09-17)** |
+| **Última actualización** | 2026-09-22 — Task/028 En progreso; reconciliación D-06 y propiedad Task/030 |
+| **Decisiones abiertas** | **11** — D-13 resuelta por aprobación de `Task/027`; D-21 permanece abierta |
+| **Decisiones resueltas** | **10** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)** |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
@@ -348,6 +348,28 @@ laboratorio, no solo escrita.
 - **No decide** región, nombre del bucket ni política de retención: son de la ETAPA 10.
 - **No convierte** al laboratorio en prueba de que el backend `s3` funcionará en AWS. Que la
   vía sea practicable en local es una hipótesis hasta la ETAPA 10 (ADR-006, límite 5).
+
+### Addendum Task/028 — mecanismo resuelto, materialización pendiente
+
+**D-06 sigue Resuelta y Vigente desde Task/025.** No se reabre por la ausencia del
+bucket. **EX-028-C7**, aceptada como diseño de trabajo el 2026-09-21, permite
+exclusivamente al root `bootstrap/github-oidc/` estado local privado fuera de Git
+y fuera del grafo de aplicación: un escritor, lock, snapshots y backups cifrados
+externos con recuperación verificada. No concede permisos a CI ni cumple C-7
+literalmente. Revisar a 30 días de primera creación cloud.
+
+**Task/030** materializa el bucket S3 dedicado solo al estado: privado, versionado,
+cifrado, public access block, bloqueo nativo `use_lockfile=true`, sin DynamoDB,
+separado de medios/backups. Migra `bootstrap/github-oidc/terraform.tfstate` mediante
+`terraform init -migrate-state` y resuelve la custodia/migración del estado del
+propio bootstrap del bucket. Debe extinguir EX-028-C7 **antes del primer apply
+de infraestructura de aplicación**. La ficha Task/030 deberá incorporar estos
+entregables y su recuperación verificada cuando se abra; no se implementa aquí.
+
+Es una **excepción explícita y acotada de ETAPA 10**. Task/030–033 siguen reutilizando
+los módulos Task/025 para aplicación: el backend debe existir antes de inicializar
+el grafo que depende de él y, por tanto, requiere bootstrap independiente.
+[Procedimiento y límites](../runbooks/github-oidc-bootstrap.md).
 
 ## D-07 — Dominio concreto y DNS
 

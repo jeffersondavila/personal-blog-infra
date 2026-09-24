@@ -76,10 +76,22 @@ Git, enlaces y patrones de secretos pasó; el usuario aprobó Task/027 el 2026-0
 [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) ·
 [Reporte](../task-reports/TASK-027-report.md)
 
-### `Task/028-GitHub-OIDC-AWS` — *Pendiente*
+### `Task/028-GitHub-OIDC-AWS` — *En progreso*
 
-Confianza OIDC entre GitHub Actions y AWS con roles temporales, **sin credenciales AWS
-permanentes** almacenadas en GitHub.
+Federación OIDC real GitHub Actions → AWS, **sin access keys permanentes**.
+Rol exclusivo `PersonalBlogGitHubOidcValidation`, cero managed/inline policies:
+no acredita despliegue. Root separado, provider A/B/C fail-closed, EX-028-C7,
+trust Task exacta/caducable → main exclusiva y reconfirmación postmerge.
+Checkpoint del 2026-09-22: implementación/pruebas locales ejecutadas, autorizadas el 2026-09-21;
+federación real pendiente. Checkpoint del 2026-09-24: bajo autorización acotada a solo lectura
+y plan se observó el caso real **A** con ownership **A** y se revisó un plan de **dos**
+creaciones administradas, con **cero mutaciones AWS** y **sin apply**. La federación real,
+las publicaciones y la reconfirmación postmerge siguen pendientes de autorización.
+[Ficha](../tasks/TASK-028-github-oidc-aws.md) · [Reporte §12](../task-reports/TASK-028-report.md).
+
+Task/038 define permisos mínimos backend; Task/039 los de Terraform; Task/040
+valida integralmente. Branch protection queda fuera de Task/028, pero debe existir
+antes de habilitar roles de despliegue efectivos. No promover el rol de validación.
 
 **Depende de:** `Task/027`.
 
@@ -145,7 +157,17 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 - [ ] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
       **en GitHub**. Esta afirmación se limita a GitHub Actions: **no** describe todavía
       cómo el VPS accederá a AWS (**D-16**).
-- [ ] El rol tiene permisos mínimos para el despliegue previsto.
+- [ ] El rol de validación tiene **cero managed policies y cero inline policies**,
+      trust exacta y GetCallerIdentity correcto, con evidencia real saneada.
+- [ ] Las operaciones negativas elegidas devuelven **AccessDenied**; no se deduce
+      ausencia universal de permisos por resource-based policies de toda la cuenta.
+- [ ] La trust final acepta exclusivamente main; el rechazo desde Task con token
+      nuevo y la reconfirmación postmerge main quedan demostrados.
+
+Permisos de despliegue: fuera de este criterio, propietarios Task/038 y Task/039,
+validación integral Task/040. Inspección de resource policies: limitada al inventario
+efectivamente comprobado.
+
 - [ ] **Proveedor de VPS seleccionado**, con costo, región y límites documentados, usando
       **precios verificados en el momento de la selección**.
 - [ ] El **RTT hacia la región AWS objetivo** está **medido**, no estimado, con método
