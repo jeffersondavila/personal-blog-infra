@@ -95,6 +95,33 @@ No poner credenciales en variables Terraform ni en backend. Nunca usar
 local vacío por defecto apuntaría al checkout. Las guardas rechazan rutas en Git;
 el plan-check además vincula el backend inicializado al estado externo esperado.
 
+## 2.1 Entornos de operación soportados
+
+Dos, ambos explícitos; cualquier otro se rechaza con `UNSUPPORTED_PLATFORM`.
+
+| Entorno | Credenciales | Invocación |
+| --- | --- | --- |
+| **CloudShell (Linux)** | sesión ambiental del contenedor | sin `--aws-profile`; un perfil nombrado se rechaza (`CLOUDSHELL_PROFILE_FORBIDDEN`) |
+| **Estación Windows** | perfil nombrado renovado por `aws login` | `--aws-profile personal-blog` obligatorio (`LOCAL_PROFILE_REQUIRED`) |
+
+El perfil viaja como **argumento explícito** hacia cada llamada `aws`, nunca como
+entorno heredado: `AWS_PROFILE` y `AWS_DEFAULT_PROFILE` presentes se rechazan
+(`IMPLICIT_PROFILE`), porque decidirían el destino sin aparecer en el comando
+revisado. Las claves de larga vida siguen prohibidas: si hay `AWS_ACCESS_KEY_ID`
+debe ser de sesión (`ASIA…`) y traer su `AWS_SESSION_TOKEN`.
+
+En Windows no existe el modo POSIX, así que la guarda de rutas privadas exige que
+el archivo viva bajo `%LOCALAPPDATA%` y rechaza *reparse points* —junctions y
+symlinks que podrían redirigir una ruta ya comprobada—. Es una guarda de **ámbito**,
+no una auditoría de ACL: la ACL sigue siendo responsabilidad del operador.
+
+Ninguna otra guarda cambia: destino de cuenta, identidad humana, rechazo de root,
+estado, trust, proveedor, políticas y la prohibición de destroy/import/target son
+idénticas en los dos entornos.
+
+**El estado de Terraform es único y vive donde se creó.** Operar desde el otro
+entorno no lo duplica: una segunda copia activa está prohibida (§4).
+
 ## 3. Inventario y lifecycle A/B/C
 
 Ejecutar el inventario de solo lectura **después de su autorización**, desde la
@@ -233,6 +260,13 @@ del digest anterior es indispensable**. Después, snapshot/cifrado/copia externa
 recuperación; nuevo plan sin cambios y readback IAM exacto. Si apply falla,
 snapshot parcial, STOP e inventario; no reintentar a ciegas.
 
+El **plan posterior sin cambios** se acredita con el propio Terraform:
+`-detailed-exitcode` en 0 y `resource_drift` vacío. **No** se reejecuta `plan-check`
+sobre él: esa guarda es la puerta previa al apply y revalida la ventana de caducidad,
+de modo que rechaza con `EXPIRY_WINDOW` cualquier plan de fase task una vez vencido
+el literal, aunque no cambie nada. Es deliberado: un literal vencido no debe poder
+aplicarse.
+
 ## 6. Trust y sesiones
 
 Principal único: `arn:aws:iam::<CUENTA>:oidc-provider/token.actions.githubusercontent.com`.
@@ -259,8 +293,13 @@ managed ni inline policies, ni AdministratorAccess/ReadOnlyAccess/permisos aplic
 Cambios futuros sujetos a autorización: publicar workflow/código, configurar solo
 variables no secretas `AWS_OIDC_ROLE_ARN`, `AWS_EXPECTED_ACCOUNT_ID` y `AWS_REGION`.
 Sin secretos AWS, cambios de subject OIDC, environments ni branch protection aquí.
-El repositorio es público: los valores no secretos permanecen fuera del código y
-los logs; revisar saneamiento antes de compartir evidencia.
+El repositorio es público y las **variables de Actions no se enmascaran** en los
+logs, a diferencia de los secrets: GitHub vuelca el bloque `env:` del job, de modo
+que el Account ID y el ARN del rol **sí quedan visibles** en la ejecución. Observado
+el 2026-09-24 y **aceptado**: son identificadores, no credenciales (D-028-A). Lo que
+nunca debe aparecer en un log es material de autenticación —JWT, access keys, secret
+access keys, session tokens—; el verificador no los imprime. Revisar saneamiento
+antes de compartir evidencia sigue siendo obligatorio.
 
 El workflow usa acciones fijadas por SHA y permisos de job `contents: read` +
 `id-token: write`; otro job sin id-token demuestra solo la limitación del lado

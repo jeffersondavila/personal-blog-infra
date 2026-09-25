@@ -145,6 +145,17 @@ Diseño de trabajo aceptado, sin ADR nuevo ni aprobación de Task/028:
   ETAPA 10 para bootstrap S3 dedicado de D-06, sus protecciones y ambos estados.
 - Dos publicaciones premerge futuras: Task SUCCESS con trust temporal; Task DENIED
   con trust final. Cada una requiere autorización propia; postmerge main SUCCESS.
+- **D-028-A (2026-09-24), aceptada por el usuario:** el Account ID de AWS y el ARN
+  derivado del rol son **identificadores no secretos**, no credenciales. Se acepta
+  que GitHub Actions los muestre en el bloque `env:` de un workflow público. **No**
+  se convierten en secrets ni se rediseña el workflow por este motivo. Se mantiene
+  íntegra la prohibición de imprimir JWT, access keys, secret access keys, session
+  tokens o cualquier otro material de autenticación.
+- **D-028-B (2026-09-24):** el flujo admite **dos entornos explícitos** —CloudShell
+  y la estación Windows con perfil nombrado— en lugar de exigir Linux. El perfil se
+  pasa como argumento explícito, nunca heredado del entorno, y en Windows las rutas
+  privadas deben vivir bajo `%LOCALAPPDATA%` sin *reparse points*. Ninguna guarda de
+  seguridad se relaja: el cambio amplía el entorno, no los permisos.
 
 ## 13. Documentación creada o actualizada
 
@@ -161,8 +172,10 @@ Solo infra. El código de aplicación y los otros dos repositorios quedan intact
 Se registra la ejecución real local en el reporte. La evidencia de GitHub es
 **pendiente**, no sustituida por pruebas sintéticas. El 2026-09-24 se incorporó la
 evidencia AWS real de solo lectura y del plan revisado
-([reporte §12](../task-reports/TASK-028-report.md)); la federación real sigue sin
-demostrarse.
+([reporte §12](../task-reports/TASK-028-report.md)). El 2026-09-24 la **federación
+real quedó demostrada**: apply del plan revisado, readback exacto y primera ejecución
+premerge en verde ([reporte §13](../task-reports/TASK-028-report.md)). Quedan la
+transición de trust y la segunda publicación.
 
 ## 16. Problemas encontrados
 

@@ -4,6 +4,8 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
+import sys
 
 ROLE = "PersonalBlogGitHubOidcValidation"
 HUMAN = "PersonalBlogAdministrator"
@@ -14,6 +16,10 @@ TASK = "Task/028-GitHub-OIDC-AWS"
 ROLE_ADDRESS = "aws_iam_role.validation"
 PROVIDER_ADDRESS = "aws_iam_openid_connect_provider.github[0]"
 REGION = r"(us|eu|ap|sa|ca|me|af|il|mx)-(east|west|north|south|central|northeast|southeast)-[1-9]"
+# Two operator environments are supported, both explicit: AWS CloudShell (Linux,
+# ambient container credentials) and the human Windows workstation (named profile
+# refreshed by `aws login`). Nothing else, and never an implicit default profile.
+EXPECTED_PROFILE = "personal-blog"
 
 
 class Stop(ValueError):
@@ -51,6 +57,30 @@ def config_check(config, now=None, check_future=True):
             remaining = expiry - (now or utcnow())
             require(dt.timedelta(0) < remaining <= dt.timedelta(hours=2), "EXPIRY_WINDOW")
     return config
+
+
+def environment_check(profile, platform=None, environ=None):
+    """Bind real AWS work to one of the two supported, explicit environments.
+
+    Linux means CloudShell and its ambient session: a named profile there would
+    silently pick another identity, so it is refused. Windows means the human
+    workstation, where the profile must be named explicitly. In both cases an
+    inherited AWS_PROFILE is refused, because it would decide the destination
+    without appearing in the command that was reviewed.
+    """
+    platform = sys.platform if platform is None else platform
+    environ = os.environ if environ is None else environ
+    require(platform in ("linux", "win32"), "UNSUPPORTED_PLATFORM")
+    if platform == "linux":
+        require(profile is None, "CLOUDSHELL_PROFILE_FORBIDDEN")
+    else:
+        require(profile == EXPECTED_PROFILE, "LOCAL_PROFILE_REQUIRED")
+    require(not environ.get("AWS_PROFILE") and not environ.get("AWS_DEFAULT_PROFILE"),
+            "IMPLICIT_PROFILE")
+    if environ.get("AWS_ACCESS_KEY_ID"):
+        require(environ["AWS_ACCESS_KEY_ID"].startswith("ASIA")
+                and bool(environ.get("AWS_SESSION_TOKEN")), "STATIC_CREDENTIALS")
+    return platform
 
 
 def provider_arn(account):
@@ -105,6 +135,17 @@ def private_path(value, repo, directory=False, must_exist=True):
         for item in {anchor, anchor if anchor.is_dir() else anchor.parent}:
             mode = item.stat()
             require(mode.st_uid == os.getuid() and mode.st_mode & 0o077 == 0, "PATH_PERMISSIONS")
+    else:
+        # Windows has no POSIX mode. The per-user LOCALAPPDATA tree is the private
+        # root the operator protects by ACL; junctions and symlinks could redirect
+        # a checked path elsewhere, so a reparse point is refused outright. This is
+        # a scope guard, not a full ACL audit: the ACL itself stays operator-owned.
+        local = os.environ.get("LOCALAPPDATA", "")
+        require(bool(local), "WINDOWS_PRIVATE_ROOT")
+        require(resolved.is_relative_to(Path(local).resolve()), "WINDOWS_PRIVATE_ROOT")
+        for item in {anchor, anchor if anchor.is_dir() else anchor.parent}:
+            attributes = getattr(os.lstat(item), "st_file_attributes", 0)
+            require(not attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT, "PATH_REPARSE")
     return resolved
 
 

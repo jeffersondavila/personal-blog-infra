@@ -418,3 +418,148 @@ caducidad de un rol ya creado, y `prevent_destroy` impide recrearlo. En
 consecuencia, el apply y la primera federación real con éxito deben ocurrir
 **dentro de la misma ventana**. Si vence antes, el runbook §6 obliga a detenerse y
 abrir una revisión y autorización nuevas; no se renueva automáticamente.
+
+## 13. Primera federación real (2026-09-24)
+
+Ejecutado bajo autorización acotada: apply del plan revisado, readback, copia local
+posterior a la mutación, publicación de la rama y primera ejecución premerge.
+**La tarea sigue En progreso.** Evidencia fechada; AWS, Git y GitHub son la fuente
+viva de su estado.
+
+### 13.1 Apply y readback
+
+| Evidencia | Resultado |
+| --- | --- |
+| Caducidad al iniciar | `EXPIRY_WINDOW_VALID=true`, 2384 s restantes |
+| Plan consumido | digest `f3691441…84b008`, **el revisado**, sin regenerar |
+| Terraform | 1.16.2, `TF_DATA_DIR_MODE=reinit`, `BACKEND_BINDING_OK=true` |
+| Apply | `APPLY_RC=0` |
+| Readback `--verify-target` | `INVENTORY_OK case=B ownership=owned-A` |
+| Copia local posterior | `20260924T034243Z`, tar `3c51a14a…d66b4` |
+
+`case=B ownership=owned-A` es la **continuación de A** definida en el runbook §3: tras
+crear el proveedor, `GetOpenIDConnectProvider` ya devuelve documento, y `owned-A`
+acredita que el estado custodiado lo posee. **No** es un proveedor compartido y no se
+reclasifica. El readback con `--verify-target` comprobó además trust exacta contra
+`trust(config)`, cero políticas gestionadas, cero inline y ausencia de permissions
+boundary.
+
+### 13.2 C-9 — recursos realmente creados frente a lo planificado
+
+**Creados: exactamente 2.** Coinciden uno a uno con el plan revisado; ningún tercer
+recurso, ningún import, ningún reemplazo.
+
+| Dirección | Recurso | Propiedades verificadas en el readback |
+| --- | --- | --- |
+| `aws_iam_openid_connect_provider.github[0]` | Proveedor IAM OIDC de GitHub | url `https://token.actions.githubusercontent.com`, client list exactamente `["sts.amazonaws.com"]` |
+| `aws_iam_role.validation` | Rol `PersonalBlogGitHubOidcValidation` | path `/`, MaxSessionDuration 3600, **0 managed**, **0 inline**, sin permissions boundary, trust exacta |
+
+### 13.3 Primera ejecución premerge
+
+Commit publicado `9afb469`. Ambos workflows en verde el 2026-09-24:
+`Verify AWS OIDC` run `35952961378` **success** (03:48:11 → 03:48:30 UTC) y
+`CI Infra` run `35952961379` **success**.
+
+Evidencia impresa por el verificador, literal:
+
+```text
+GitHub job without id-token: token request unavailable (GitHub-side evidence)
+GetCallerIdentity: expected account and role
+iam:ListRoles: AccessDenied (scope: this operation only)
+Wrong audience: InvalidIdentityToken (provider/trust chain)
+```
+
+Esas líneas solo se emiten si pasan las guardas correspondientes: federación STS con
+JWT genuino, identidad exacta de cuenta y rol asumido, `iam:ListRoles` con
+`AccessDenied` **exacto** y un segundo JWT de audiencia incorrecta con
+`InvalidIdentityToken` **exacto**. Un fallo arbitrario no habría contado como
+evidencia negativa.
+
+Barrido del log completo: **0 JWT**, **0 access keys AWS**, **0 campos de credencial
+STS**, **0 STOP**. El run de evidencia **no se borra ni se altera**.
+
+Límite que esto **no** demuestra: nada sobre las resource-based policies de la cuenta.
+El inventario de esas policies sigue vacío y `AccessDenied` en `ListRoles` caracteriza
+esa operación, no toda AWS.
+
+### 13.4 D-028-A — identificadores no secretos en logs públicos
+
+Hallazgo de la ejecución real: GitHub vuelca el bloque `env:` del job y **las
+variables de Actions no se enmascaran**, a diferencia de los secrets. En un
+repositorio público eso deja visibles el Account ID y el ARN del rol. El verificador
+no los imprime; la exposición procede del propio runner.
+
+**Decisión del usuario, aceptada el 2026-09-24:** son identificadores, no
+credenciales. Se acepta la exposición, **no** se convierten en secrets y **no** se
+rediseña el workflow. Se mantiene íntegra la prohibición sobre JWT, access keys,
+secret access keys y session tokens. La promesa contraria del runbook §7 quedó
+corregida.
+
+### 13.5 EX-028-C7 — fecha de revisión
+
+Primera creación cloud: **2026-09-24**. Revisión a 30 días: **2026-10-24**. La
+extinción sigue siendo de Task/030, antes del primer apply de infraestructura de
+aplicación.
+
+### 13.6 Convergencia real demostrada
+
+Tras el apply, un `refresh-only` **acotado y validado antes de aplicarse** normalizó
+dos atributos calculados que AWS devuelve vacíos: `tags` y `tags_all` de ambos
+recursos, de `null` a `{}`. No tocó trust, políticas ni ownership.
+
+Con el estado ya normalizado, Terraform acredita la convergencia por sí mismo:
+
+```text
+CONVERGE_PLAN_RC=0        # plan -detailed-exitcode: sin cambios
+RESOURCE_DRIFT_COUNT=0    # sin drift detectado
+```
+
+**`plan-check` no es el gate de convergencia.** Es la puerta **previa al apply**, y
+`plan_check` revalida la ventana de caducidad en cada ejecución
+([guards.py:158](../../scripts/oidc/guards.py)). Una vez vencido el literal temporal
+rechaza con `EXPIRY_WINDOW` **cualquier** plan de fase task, incluido uno que no
+cambia nada. Es comportamiento deliberado, no un defecto: un literal muerto no debe
+poder aplicarse. Se reprodujo localmente que el mismo plan convergente **sí** se
+acepta mientras el literal está vigente, y quedaron cuatro regresiones que fijan
+ambos lados del contrato, además de que la convergencia no relaja el rechazo de
+políticas y de que el `url` del proveedor debe conservar su esquema.
+
+### 13.7 Consecuencia operativa
+
+El wrapper privado `recover-plan` **ya no puede volver a ejecutarse**: su `setup()`
+exige que el estado no exista (`STATE_PREEXISTING`) y el estado ya existe. Las
+operaciones restantes usan los comandos del runbook §5 más la guarda oficial
+`plan-check`.
+
+## 14. Segundo entorno de operación (2026-09-24)
+
+El flujo exigía Linux (`EXPLICIT_AWS_CLOUDSHELL_REQUIRED`), lo que ataba toda
+operación AWS a CloudShell. Se añadió la **estación Windows** como segundo entorno
+explícito, sin relajar ninguna guarda.
+
+| Guarda nueva | Efecto |
+| --- | --- |
+| `UNSUPPORTED_PLATFORM` | solo `linux` y `win32`; cualquier otro se rechaza |
+| `CLOUDSHELL_PROFILE_FORBIDDEN` | en CloudShell un perfil nombrado se rechaza: elegiría otra identidad |
+| `LOCAL_PROFILE_REQUIRED` | en Windows `--aws-profile personal-blog` es obligatorio |
+| `IMPLICIT_PROFILE` | `AWS_PROFILE`/`AWS_DEFAULT_PROFILE` heredados se rechazan |
+| `STATIC_CREDENTIALS` | claves de larga vida rechazadas; de sesión solo con su token |
+| `WINDOWS_PRIVATE_ROOT` | rutas privadas bajo `%LOCALAPPDATA%` |
+| `PATH_REPARSE` | junctions y symlinks rechazados en Windows |
+
+El perfil viaja como argumento explícito a cada llamada `aws`; nunca por entorno.
+Identidad humana, destino de cuenta, rechazo de root, estado, trust, proveedor,
+políticas y la prohibición de destroy/import/target son **idénticos** en ambos
+entornos: lo que cambia es dónde se opera, no qué se permite.
+
+**Límite declarado:** en Windows la guarda de privacidad es de *ámbito* —directorio
+bajo `%LOCALAPPDATA%` y ausencia de reparse point—, no una auditoría de ACL. La ACL
+sigue siendo responsabilidad del operador, como en el helper de verificación local.
+
+**El estado de Terraform no se duplica.** Sigue siendo único y vive donde se creó;
+el segundo entorno no lo copia ni lo migra (D-028-B).
+
+Cobertura: `tests/oidc/test_local_env.py`, 20 pruebas — entornos, perfil explícito,
+perfil heredado, claves de larga vida, root, principal inesperado, cuenta
+equivocada, ausencia de material de credencial en la línea de comandos, y que
+CloudShell sigue comportándose exactamente igual.

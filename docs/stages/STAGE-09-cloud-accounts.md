@@ -87,6 +87,10 @@ federación real pendiente. Checkpoint del 2026-09-24: bajo autorización acotad
 y plan se observó el caso real **A** con ownership **A** y se revisó un plan de **dos**
 creaciones administradas, con **cero mutaciones AWS** y **sin apply**. La federación real,
 las publicaciones y la reconfirmación postmerge siguen pendientes de autorización.
+Checkpoint del 2026-09-24: **federación real demostrada** —dos recursos creados, trust
+exacta, cero políticas, `AccessDenied` e `InvalidIdentityToken` exactos en la primera
+ejecución premerge—. Los criterios de salida de abajo **no se marcan**: por convención
+de esta etapa, una casilla se marca cuando la respalda una tarea **aprobada**.
 [Ficha](../tasks/TASK-028-github-oidc-aws.md) · [Reporte §12](../task-reports/TASK-028-report.md).
 
 Task/038 define permisos mínimos backend; Task/039 los de Terraform; Task/040

@@ -20,6 +20,19 @@ autorizado ni ejecutado**, y ninguna publicación preparada. Task/028 sigue **En
 progreso**: el avance permanece en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 [Reporte §12](../task-reports/TASK-028-report.md).
 
+**2026-09-24 — Primera federación real de Task/028 demostrada.** Se aplicó
+exactamente el plan revisado `f3691441…84b008`: **dos** recursos creados —proveedor
+IAM OIDC y rol `PersonalBlogGitHubOidcValidation`—, con readback que confirma trust
+exacta, **cero políticas gestionadas y cero inline**. La primera ejecución premerge
+terminó en verde: federación STS con JWT genuino, `GetCallerIdentity` esperado,
+`iam:ListRoles` con **AccessDenied** y audiencia incorrecta con
+**InvalidIdentityToken**; cero JWT y cero credenciales en el log. **D-028-A:** el
+Account ID y el ARN del rol se aceptan como identificadores no secretos visibles en
+logs públicos; no se convierten en secrets. Revisión de EX-028-C7: **2026-10-24**.
+Task/028 sigue **En progreso** —faltan transición de trust Task → main, segunda
+publicación y reconfirmación postmerge—; el avance permanece en **27/41 ≈ 66 %** y
+ETAPA 09 en **1/3 ≈ 33 %**. [Reporte §13](../task-reports/TASK-028-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 

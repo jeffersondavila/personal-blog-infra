@@ -12,9 +12,10 @@ import re
 import subprocess
 import sys
 
-from .guards import (ROLE, ROLE_ADDRESS, Stop, config_check, human_check,
-                     instant, ownership, plan_check, private_path, provider_arn,
-                     provider_case, require, role_check, state_resources, trust, utcnow)
+from .guards import (ROLE, ROLE_ADDRESS, Stop, config_check, environment_check,
+                     human_check, instant, ownership, plan_check, private_path,
+                     provider_arn, provider_case, require, role_check,
+                     state_resources, trust, utcnow)
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -27,10 +28,12 @@ def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def aws_read(arguments, region, absent_ok=False):
+def aws_read(arguments, region, absent_ok=False, profile=None):
     require(not any(k.startswith("AWS_ENDPOINT_URL") or k in ("AWS_CA_BUNDLE",) for k in os.environ), "AWS_ENDPOINT_OVERRIDE")
+    # The profile travels as an explicit argument, never as inherited environment.
+    selector = ["--profile", profile] if profile else []
     result = subprocess.run(
-        ["aws", *arguments, "--region", region, "--output", "json", "--no-cli-pager"],
+        ["aws", *arguments, "--region", region, *selector, "--output", "json", "--no-cli-pager"],
         capture_output=True, text=True, timeout=45, check=False,
         env=dict(os.environ, AWS_PAGER="", AWS_CLI_AUTO_PROMPT="off"),
     )
@@ -55,17 +58,17 @@ def write_private(path, document):
     os.replace(temporary, path)
 
 
-def inventory(config, state, verify_target=False):
+def inventory(config, state, verify_target=False, profile=None):
     account, region = config["expected_account_id"], config["aws_region"]
-    human_check(aws_read(["sts", "get-caller-identity"], region), account)
+    human_check(aws_read(["sts", "get-caller-identity"], region, profile=profile), account)
     resources = state_resources(read(state) if state.exists() else None, account)
-    provider = aws_read(["iam", "get-open-id-connect-provider", "--open-id-connect-provider-arn", provider_arn(account)], region, True)
+    provider = aws_read(["iam", "get-open-id-connect-provider", "--open-id-connect-provider-arn", provider_arn(account)], region, True, profile)
     case = provider_case(provider, "NoSuchEntity" if provider is None else None)
-    response = aws_read(["iam", "get-role", "--role-name", ROLE], region, True)
+    response = aws_read(["iam", "get-role", "--role-name", ROLE], region, True, profile)
     mode = ownership(case, resources, response is not None)
     if response is not None:
-        attached = aws_read(["iam", "list-attached-role-policies", "--role-name", ROLE], region)
-        inline = aws_read(["iam", "list-role-policies", "--role-name", ROLE], region)
+        attached = aws_read(["iam", "list-attached-role-policies", "--role-name", ROLE], region, profile=profile)
+        inline = aws_read(["iam", "list-role-policies", "--role-name", ROLE], region, profile=profile)
         previous = json.loads(resources[ROLE_ADDRESS]["assume_role_policy"])
         conditions = previous.get("Statement", [{}])[0].get("Condition", {})
         previous_config = dict(config, trust_phase="main", task_expires_at=None)
@@ -90,6 +93,8 @@ def main(argv=None):
     parser.add_argument("--inventory", required=True)
     parser.add_argument("--plan")
     parser.add_argument("--aws-real", action="store_true")
+    parser.add_argument("--aws-profile", default=None,
+                        help="Named AWS profile. Required on Windows, refused on CloudShell.")
     parser.add_argument("--verify-target", action="store_true")
     args = parser.parse_args(argv)
     try:
@@ -99,19 +104,21 @@ def main(argv=None):
         require(config_path != state and inv_path not in (config_path, state), "PATH_COLLISION")
         config = config_check(read(config_path))
         if args.operation == "inventory":
-            require(args.aws_real and sys.platform == "linux", "EXPLICIT_AWS_CLOUDSHELL_REQUIRED")
+            require(args.aws_real, "EXPLICIT_AWS_REQUIRED")
+            environment_check(args.aws_profile)
             data_dir = private_path(os.environ.get("TF_DATA_DIR", ""), REPO, directory=True)
             require(data_dir not in (state.parent, inv_path.parent) and
                     not any(k.startswith("TF_CLI_ARGS") or k in ("TF_LOG", "TF_LOG_PATH")
                             for k in os.environ), "TF_ENVIRONMENT")
             generated = inv_path.parent / "bootstrap.auto.tfvars.json"
             require(generated not in (config_path, state, inv_path), "PATH_COLLISION")
-            result = inventory(config, state, args.verify_target)
+            result = inventory(config, state, args.verify_target, args.aws_profile)
             write_private(inv_path, result)
             write_private(generated, dict(config, provider_mode=result["provider_mode"]))
             print("INVENTORY_OK case=" + result["observed_case"] + " ownership=" + result["ownership"])
         else:
-            require(not args.aws_real and args.plan and not args.verify_target, "PLAN_ARGUMENTS")
+            require(not args.aws_real and args.plan and not args.verify_target
+                    and args.aws_profile is None, "PLAN_ARGUMENTS")
             inv = read(inv_path)
             require(inv["config"] == config and inv["state_sha256"] == digest(state), "INVENTORY_BINDING")
             age = (utcnow() - instant(inv["checked_at"])).total_seconds()

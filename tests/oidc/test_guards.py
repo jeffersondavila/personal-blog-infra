@@ -11,8 +11,8 @@ from unittest.mock import patch
 from scripts.oidc import bootstrap
 from scripts.oidc.guards import (
     ROLE, ROLE_ADDRESS, PROVIDER_ADDRESS, Stop, config_check, human_check,
-    ownership, plan_check, private_path, provider_case, role_check,
-    state_resources, trust, utcnow,
+    ownership, plan_check, private_path, provider_arn, provider_case,
+    role_check, state_resources, trust, utcnow,
 )
 
 ACCOUNT = "123456789012"  # Synthetic only.
@@ -31,6 +31,47 @@ def plan():
                 "after": {"name": ROLE, "path": "/", "max_session_duration": 3600,
                           "description": "Task028 federation validation only; no resource permissions",
                           "assume_role_policy": json.dumps(trust(CONFIG))}}}]}
+
+
+def converged(config):
+    """Plan real posterior al apply: ambos recursos existen y ninguno cambia.
+
+    Reproduce lo observado en Task/028 el 2026-09-24, cuando Terraform devolvio
+    exit 0 con `-detailed-exitcode` y `resource_drift` vacio.
+    """
+    role = {"arn": f"arn:aws:iam::{ACCOUNT}:role/{ROLE}",
+            "assume_role_policy": json.dumps(trust(config)),
+            "description": "Task028 federation validation only; no resource permissions",
+            "force_detach_policies": False, "id": ROLE, "inline_policy": [],
+            "managed_policy_arns": [], "max_session_duration": 3600, "name": ROLE,
+            "path": "/", "permissions_boundary": "", "tags": {}, "tags_all": {}}
+    provider = {"arn": provider_arn(ACCOUNT), "client_id_list": ["sts.amazonaws.com"],
+                "tags": {}, "tags_all": {}, "thumbprint_list": [],
+                "url": "https://token.actions.githubusercontent.com"}
+    value = plan()
+    value["variables"] = {key: {"value": item}
+                          for key, item in dict(config, provider_mode="create").items()}
+    value["configuration"]["root_module"]["resources"] = [
+        {"mode": "managed", "type": "aws_iam_role",
+         "expressions": {"name": {}, "path": {}, "description": {},
+                         "max_session_duration": {}, "assume_role_policy": {}}},
+        {"mode": "managed", "type": "aws_iam_openid_connect_provider",
+         "expressions": {"url": {}, "client_id_list": {}}, "count_expression": {}}]
+    value["resource_changes"] = [
+        {"address": "data.aws_caller_identity.human", "mode": "data",
+         "change": {"actions": ["read"]}},
+        {"address": ROLE_ADDRESS, "mode": "managed", "change": {
+            "actions": ["no-op"], "before": copy.deepcopy(role), "after": role,
+            "after_unknown": {}}},
+        {"address": PROVIDER_ADDRESS, "mode": "managed", "change": {
+            "actions": ["no-op"], "before": copy.deepcopy(provider), "after": provider,
+            "after_unknown": {}}}]
+    return value
+
+
+def live_task_config():
+    expires = (utcnow() + dt.timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return dict(CONFIG, trust_phase="task", task_expires_at=expires)
 
 
 class GuardTests(unittest.TestCase):
@@ -225,6 +266,39 @@ class GuardTests(unittest.TestCase):
         value["variables"]["expected_account_id"]["value"] = "999999999999"
         with self.assertRaises(Stop):
             plan_check(value, CONFIG, "existing", {})
+
+    def test_plan_accepts_post_apply_convergence(self):
+        # Ambos recursos ya existen y el plan no cambia nada: la guarda debe
+        # aceptarlo mientras el literal temporal siga vigente.
+        config = live_task_config()
+        plan_check(converged(config), config, "create",
+                   {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}})
+
+    def test_plan_rejects_convergence_once_expiry_passed(self):
+        # Deliberado, no defecto: plan-check tambien es la puerta previa al apply y
+        # un literal vencido nunca debe pasarla. La convergencia posterior al apply
+        # se acredita con el exit code de Terraform, no reejecutando esta guarda.
+        config = dict(CONFIG, trust_phase="task", task_expires_at="2020-01-01T00:00:00Z")
+        with self.assertRaisesRegex(Stop, "EXPIRY_WINDOW"):
+            plan_check(converged(config), config, "create",
+                       {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}})
+
+    def test_plan_provider_url_keeps_scheme(self):
+        # La API IAM devuelve el host sin esquema. El plan debe conservar el valor
+        # configurado; un plan con el host pelado se rechaza.
+        config = live_task_config()
+        value = converged(config)
+        value["resource_changes"][-1]["change"]["after"]["url"] = "token.actions.githubusercontent.com"
+        with self.assertRaisesRegex(Stop, "PLAN_PROVIDER"):
+            plan_check(value, config, "create", {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}})
+
+    def test_convergent_plan_still_rejects_grants(self):
+        # La convergencia no relaja nada: una politica adjunta se sigue rechazando.
+        config = live_task_config()
+        value = converged(config)
+        value["resource_changes"][1]["change"]["after"]["managed_policy_arns"] = ["AdministratorAccess"]
+        with self.assertRaisesRegex(Stop, "PLAN_GRANT"):
+            plan_check(value, config, "create", {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}})
 
     def test_inventory_requires_explicit_aws(self):
         with tempfile.TemporaryDirectory() as temporary:
