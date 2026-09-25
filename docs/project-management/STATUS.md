@@ -91,6 +91,10 @@ esta fase y **solo el usuario fusiona hacia `main`**.
 
 ---
 
+Riesgo nuevo **H-028-1** (2026-09-25): `CI Infra` no puede construir la imagen de
+MinIO porque quay.io dejó de permitir el acceso anónimo al digest fijado; ajeno a
+Task/028 y con propietario en el área de imágenes.
+
 Riesgos vivos de Task/028: pérdida/duplicación del estado temporal, proveedor
 compartido, sesiones ya emitidas, políticas de recursos fuera del inventario y main
 sin protección. EX-028-C7: revisión a 30 días y extinción en Task/030 antes de

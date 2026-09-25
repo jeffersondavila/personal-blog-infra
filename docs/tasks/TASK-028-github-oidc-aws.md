@@ -188,6 +188,14 @@ transición de trust y la segunda publicación.
 Drift vigente de D-06 y contradicción de propiedad del backend reconciliados.
 Las incidencias de implementación y gates se registran en el reporte.
 
+**H-028-1, abierto (2026-09-25):** `CI Infra` falla en *Build the project images*
+porque quay.io dejó de permitir el acceso anónimo a `minio/minio`; el digest fijado
+devuelve `401 UNAUTHORIZED`. Los 23 gates anteriores pasan, incluidos todos los de
+esta tarea. Ningún commit de Task/028 toca imágenes, Compose ni el workflow, y el
+reintento reprodujo el error. Corregirlo exigiría cambiar el origen de la imagen o
+añadir credenciales de registro: queda **fuera del alcance** de Task/028, con
+propietario en el área de imágenes ([reporte §17.2](../task-reports/TASK-028-report.md)).
+
 ## 17. Pasos de validación para el usuario
 
 Revisar diff, ejecutar §9 con versiones fijadas y leer runbook/reporte. Ningún paso
@@ -196,7 +204,9 @@ futuras se limitan a operaciones concretas revisadas, sin pedir secretos al agen
 
 ## 18. Deuda técnica pendiente
 
-Federación real y cierre Task/028; materialización/migración D-06 en Task/030,
+**H-028-1** (acceso anónimo a la imagen de MinIO en quay.io) y la custodia externa
+cifrada de los tres snapshots locales. Federación real y cierre Task/028;
+materialización/migración D-06 en Task/030,
 incluido estado del propio bucket; protección de main antes de despliegue;
 permisos mínimos separados en Task/038 y Task/039; validación Task/040.
 

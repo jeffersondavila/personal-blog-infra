@@ -700,3 +700,68 @@ aws_iam_role.validation                    no-op
 ```
 
 No hubo drift de `tags`, asi que **no se ejecuto refresh-only**.
+
+## 17. Segunda publicacion DENIED y estado de los gates (2026-09-25)
+
+### 17.1 Rechazo demostrado
+
+`security/oidc-validation.json` paso a `DENIED` y la rama se publico en `49fed29`.
+`Verify AWS OIDC` run `36177780350`: **success**, ambos jobs en verde.
+
+```text
+GitHub job without id-token: token request unavailable (GitHub-side evidence)
+Task fresh-token STS: AccessDenied (expected)
+```
+
+La segunda linea solo se imprime si STS devolvio **exactamente** `AccessDenied` con
+un JWT **nuevo** pedido en esa misma ejecucion: `InvalidIdentityToken`, un token
+caducado, un fallo de red o una variable ausente habrian detenido el job con
+`TASK_REJECTION_REQUIRED`. GitHub sigue emitiendo token para la rama Task; quien
+rechaza es STS, porque la trust ya solo acepta `refs/heads/main`.
+
+Barrido del log: **0 JWT**, **0 access keys**, **0 campos de credencial**, **0 STOP**.
+
+### 17.2 H-028-1 — CI Infra bloqueado por un cambio externo del registro
+
+`CI Infra` run `36177780346` termino en **failure**, y no por Task/028.
+
+**Los 23 gates anteriores pasaron**, incluidos todos los que esta tarea toca:
+Terraform `fmt`/`init`/`validate`, validacion estatica OIDC y planes mock, compilacion
+Python, Compose, comparador de baseline y **Gitleaks sobre el historial completo**.
+
+El unico paso fallido es *Build the project images*:
+
+```text
+ERROR: failed to build: unexpected status from HEAD request to
+https://quay.io/v2/minio/minio/manifests/sha256:a1a8bd4a…cbaba2: 401 Unauthorized
+```
+
+Los seis pasos siguientes quedaron **skipped**, no fallidos.
+
+Diagnostico, con evidencia:
+
+- `git diff --name-only 9afb469..HEAD -- docker/ docker-compose.yml .github/workflows/ci-infra.yml`
+  esta **vacio**: ningun commit de esta fase toca imagenes, Compose ni el workflow.
+- El mismo paso paso en verde el 2026-09-24 con el mismo digest fijado.
+- Sonda directa al registro: el endpoint de autenticacion responde 200 pero **no
+  entrega token**, y el manifiesto devuelve `401 UNAUTHORIZED`. quay.io dejo de
+  permitir el acceso anonimo a `minio/minio`.
+- Un reintento de los jobs fallidos reprodujo el mismo error: **no es transitorio**.
+
+**Fuera del alcance de Task/028.** Corregirlo exigiria cambiar el origen de la imagen
+de MinIO o introducir credenciales de registro: lo primero invalidaria la procedencia
+verificada de Task/027.1 y su baseline S-09, lo segundo esta prohibido. Queda
+registrado como **H-028-1, abierto**, con propietario en el area de imagenes.
+
+### 17.3 Custodia externa pendiente
+
+Tres copias locales esperan cifrado y custodia externa con recuperacion verificada:
+
+| Snapshot | Rol |
+| --- | --- |
+| `pre-main-20260925T145118Z.tar` | estado previo a la mutacion, transferido desde CloudShell |
+| `local-pre-main-20260925T190328Z.tar` | copia local inmediatamente anterior al apply |
+| `post-main-20260925T190328Z.tar` | **copia final autoritativa**, posterior a la transicion |
+
+El cifrado simetrico exige una frase que el agente no debe conocer ni manejar, y el
+destino externo exige una sesion de navegador. Ambas cosas son del operador.
