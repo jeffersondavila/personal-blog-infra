@@ -77,6 +77,11 @@ def environment_check(profile, platform=None, environ=None):
         require(profile == EXPECTED_PROFILE, "LOCAL_PROFILE_REQUIRED")
     require(not environ.get("AWS_PROFILE") and not environ.get("AWS_DEFAULT_PROFILE"),
             "IMPLICIT_PROFILE")
+    # Honest limit: nothing here proves *how* the named profile obtains credentials.
+    # Deciding that would mean reading ~/.aws/credentials or the sign-in cache, which
+    # is forbidden. What is proven instead, and enforced by human_check, is that the
+    # effective caller is an assumed-role STS session: a long-lived IAM user key
+    # yields an iam::…:user/… ARN and is refused there, not here.
     if environ.get("AWS_ACCESS_KEY_ID"):
         require(environ["AWS_ACCESS_KEY_ID"].startswith("ASIA")
                 and bool(environ.get("AWS_SESSION_TOKEN")), "STATIC_CREDENTIALS")

@@ -109,6 +109,14 @@ class LocalIdentityTests(unittest.TestCase):
             self.inventory_with({"Account": ACCOUNT,
                                  "Arn": f"arn:aws:sts::{ACCOUNT}:assumed-role/{ROLE}/local"})
 
+    def test_long_lived_user_identity_is_refused(self):
+        # The profile mechanism is not inspectable without touching credential
+        # material, so the proof lives here: an IAM user ARN means long-lived keys
+        # and never reaches the inventory.
+        with self.assertRaisesRegex(Stop, "HUMAN_IDENTITY"):
+            self.inventory_with({"Account": ACCOUNT,
+                                 "Arn": f"arn:aws:iam::{ACCOUNT}:user/personal-blog-entry"})
+
     def test_account_mismatch_is_refused(self):
         with self.assertRaisesRegex(Stop, "HUMAN_IDENTITY"):
             self.inventory_with({"Account": "999999999999",

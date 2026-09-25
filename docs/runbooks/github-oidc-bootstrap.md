@@ -110,6 +110,14 @@ entorno heredado: `AWS_PROFILE` y `AWS_DEFAULT_PROFILE` presentes se rechazan
 revisado. Las claves de larga vida siguen prohibidas: si hay `AWS_ACCESS_KEY_ID`
 debe ser de sesión (`ASIA…`) y traer su `AWS_SESSION_TOKEN`.
 
+**Límite declarado.** El código **no** prueba que el perfil `personal-blog` obtenga
+sus credenciales de `aws login`: averiguarlo exigiría leer `~/.aws/credentials` o la
+caché de sesión, prohibido por diseño. Lo que sí queda probado es más útil: la
+identidad efectiva debe ser una **sesión STS asumida** de `PersonalBlogAdministrator`.
+Una clave de usuario IAM de larga vida produce un ARN `iam::…:user/…` y la guarda de
+identidad la rechaza. El mecanismo concreto del perfil es responsabilidad del
+operador; la naturaleza temporal de la credencial efectiva sí se verifica.
+
 En Windows no existe el modo POSIX, así que la guarda de rutas privadas exige que
 el archivo viva bajo `%LOCALAPPDATA%` y rechaza *reparse points* —junctions y
 symlinks que podrían redirigir una ruta ya comprobada—. Es una guarda de **ámbito**,

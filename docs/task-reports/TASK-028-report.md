@@ -552,9 +552,14 @@ Identidad humana, destino de cuenta, rechazo de root, estado, trust, proveedor,
 políticas y la prohibición de destroy/import/target son **idénticos** en ambos
 entornos: lo que cambia es dónde se opera, no qué se permite.
 
-**Límite declarado:** en Windows la guarda de privacidad es de *ámbito* —directorio
-bajo `%LOCALAPPDATA%` y ausencia de reparse point—, no una auditoría de ACL. La ACL
-sigue siendo responsabilidad del operador, como en el helper de verificación local.
+**Dos límites declarados, no disimulados.** En Windows la guarda de privacidad es
+de *ámbito* —directorio bajo `%LOCALAPPDATA%` y ausencia de reparse point—, no una
+auditoría de ACL; la ACL sigue siendo responsabilidad del operador. Y el código **no
+prueba** que el perfil `personal-blog` se alimente de `aws login`: determinarlo
+exigiría leer credenciales o la caché de sesión, prohibido por diseño. Lo que sí
+queda demostrado es que la identidad efectiva es una **sesión STS asumida** de
+`PersonalBlogAdministrator`; una clave IAM de larga vida produce un ARN
+`iam::…:user/…` y la guarda de identidad la rechaza, con su regresión.
 
 **El estado de Terraform no se duplica.** Sigue siendo único y vive donde se creó;
 el segundo entorno no lo copia ni lo migra (D-028-B).
