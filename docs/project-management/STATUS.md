@@ -33,6 +33,19 @@ Task/028 sigue **En progreso** —faltan transición de trust Task → main, seg
 publicación y reconfirmación postmerge—; el avance permanece en **27/41 ≈ 66 %** y
 ETAPA 09 en **1/3 ≈ 33 %**. [Reporte §13](../task-reports/TASK-028-report.md).
 
+**2026-09-25 — Trust final main-only aplicada en Task/028.** El estado cambió de
+custodia de CloudShell a la estación local (**D-028-C**), único escritor desde
+entonces. La transición consumió el plan revisado `007559b2…dc8072a5`: proveedor
+`no-op`, rol `update` y **un solo atributo**, `assume_role_policy`. `plan-check` y la
+compuerta de transición pasaron dos veces, antes y justo antes del apply. IAM
+confirma trust **sin DateLessThan**, subject exclusivamente `refs/heads/main`,
+MaxSessionDuration 3600, **cero políticas gestionadas y cero inline**. Convergencia
+posterior limpia: `CONVERGE_MAIN_RC=0`, `RESOURCE_DRIFT_COUNT=0`, sin refresh-only.
+También se corrigió un defecto propio de la guarda: `plan_check` exigía el esquema
+`https://` en el URL del proveedor mientras IAM lo devuelve sin él, lo que rechazaba
+un plan correcto. Task/028 sigue **En progreso**; el avance permanece en **27/41 ≈
+66 %** y ETAPA 09 en **1/3 ≈ 33 %**. [Reporte §15-§16](../task-reports/TASK-028-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 

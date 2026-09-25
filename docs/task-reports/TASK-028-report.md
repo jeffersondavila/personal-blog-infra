@@ -629,3 +629,74 @@ nueve formas rechazadas y el helper probado aisladamente.
 | `init -backend=false -lockfile=readonly` | PASS; **el lock no cambio** |
 | `fmt -check -recursive` / `validate` / `test` | PASS / PASS / **9 passed, 0 failed** |
 | API de CloudShell en la CLI | **no existe**: sus operaciones son internas de la consola |
+
+## 16. Cutover de custodia y transicion a trust main (2026-09-25)
+
+### 16.1 Cambio de custodia, no segundo estado
+
+El estado autoritativo vivia en el HOME de CloudShell us-east-2, lo que ataba cada
+operacion a esa consola. **No existe ruta oficial** para recuperarlo por API: la CLI
+v2.37.1 no expone el servicio `cloudshell` —`ParamValidation: invalid choice`, cero
+modelos botocore— porque `DescribeEnvironments` y `GetFileDownloadUrls` son API
+interna de la consola. El archivo se transfirio por la interfaz, en una sola accion.
+
+Lo transferido fue `pre-main-20260925T145118Z.tar`, creado **antes** del intento que
+se detuvo en `PRE_APPLY`, de modo que contiene el estado previo a cualquier posible
+mutacion. Verificacion antes de usarlo:
+
+| Comprobacion | Resultado |
+| --- | --- |
+| `SHA256SUMS` interno | **6/6** |
+| Estado | version 4, serial 4, `terraform_version` 1.16.2, lineage presente |
+| Recursos administrados | **exactamente** rol + proveedor |
+| `deposed` | ninguno |
+| Binding de cuenta | coincide con la sesion viva |
+| `provider.lock.hcl` | **identico** al del repositorio |
+
+El archivo original se conserva **inmutable** en `snapshots/`. La copia operativa
+pasa a `%LOCALAPPDATA%/PersonalBlog/bootstrap/github-oidc/`.
+
+**Esto es una transferencia de custodia bajo EX-028-C7, no un segundo estado activo.**
+La copia que permanece fisicamente en CloudShell queda como **backup inactivo** y no
+debe volver a usarse para plan ni apply: el unico escritor es ahora el local.
+
+### 16.2 Perfil explicito tambien para Terraform
+
+Los helpers reciben `--aws-profile personal-blog`. El proveedor de Terraform no lee
+ese argumento y fallo con *No valid credential sources found*, intentando incluso el
+IMDS de EC2. Se resolvio pasando el perfil **acotado a cada invocacion** de Terraform,
+nunca fijado en la sesion: sigue apareciendo en el comando que se revisa, que es la
+propiedad que la guarda `IMPLICIT_PROFILE` protege. `allowed_account_ids` mantiene el
+binding de cuenta con independencia de eso.
+
+### 16.3 Transicion aplicada
+
+| Evidencia | Resultado |
+| --- | --- |
+| Plan de transicion | `007559b22220b9632e7f5edcda56f0d27b9b983cf5bd1d400aa420d2dc8072a5` |
+| Cambios | proveedor `no-op`, rol `update`, drift 0 |
+| `plan-check` | `PLAN_OK json_sha256=6a7b7e2b…065965` |
+| Compuerta de transicion | `TRANSITION_OK=true`, unico atributo `assume_role_policy` |
+| Revalidacion previa al apply | digest sin cambios, ambas compuertas repetidas |
+| Apply | `APPLY_MAIN_RC=0` |
+| Readback `--verify-target` | `INVENTORY_OK case=B ownership=owned-A` |
+
+Lectura directa de IAM despues del apply:
+
+```text
+STATEMENT_COUNT=1          HAS_DATELESSTHAN=False
+AUD=sts.amazonaws.com      SUB_ENDS_WITH=refs/heads/main
+MAX_SESSION_DURATION=3600  PATH=/   PERMISSIONS_BOUNDARY=None
+MANAGED_POLICIES=0         INLINE_POLICIES=0
+```
+
+### 16.4 Convergencia
+
+```text
+CONVERGE_MAIN_RC=0
+RESOURCE_DRIFT_COUNT=0
+aws_iam_openid_connect_provider.github[0]  no-op
+aws_iam_role.validation                    no-op
+```
+
+No hubo drift de `tags`, asi que **no se ejecuto refresh-only**.

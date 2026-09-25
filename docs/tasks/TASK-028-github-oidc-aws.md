@@ -39,7 +39,8 @@ trabajo; no constituye aprobación de la tarea ni autorización de operaciones c
 - [x] Runbook, reconciliación documental y evidencia local.
 - [ ] Tras autorización independiente: inventario, bootstrap, federación real y
   dos publicaciones premerge autorizadas individualmente.
-- [ ] Trust final exclusiva de main y reconfirmación postmerge desde main.
+- [x] Trust final exclusiva de main, aplicada y verificada contra IAM el 2026-09-25.
+- [ ] Reconfirmación postmerge desde main.
 
 El 2026-09-24, con autorización acotada a **solo lectura AWS y plan**, se ejecutó
 una parte del tercer punto: inventario real (caso A, ownership A), recuperación
@@ -156,6 +157,11 @@ Diseño de trabajo aceptado, sin ADR nuevo ni aprobación de Task/028:
   pasa como argumento explícito, nunca heredado del entorno, y en Windows las rutas
   privadas deben vivir bajo `%LOCALAPPDATA%` sin *reparse points*. Ninguna guarda de
   seguridad se relaja: el cambio amplía el entorno, no los permisos.
+- **D-028-C (2026-09-25):** el estado de Terraform **cambia de custodia** de
+  CloudShell a la estación local, que pasa a ser el **único escritor**. La copia que
+  permanece en CloudShell queda como backup inactivo y no vuelve a usarse para plan
+  ni apply. No es un segundo estado activo ni una migración de backend: EX-028-C7
+  sigue vigente y su extinción sigue siendo de Task/030.
 
 ## 13. Documentación creada o actualizada
 
