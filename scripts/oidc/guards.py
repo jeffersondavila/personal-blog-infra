@@ -109,11 +109,25 @@ def human_check(identity, account):
             re.fullmatch(f"arn:aws:sts::{account}:assumed-role/{HUMAN}/[^/]+", identity.get("Arn", "")), "HUMAN_IDENTITY")
 
 
+def provider_url_ok(value):
+    """The IAM API returns the provider URL without its scheme; Terraform keeps
+    whichever representation it last read, so a plan that creates the provider shows
+    the configured `https://…` while a refreshed no-op shows the bare host. Both
+    denote the same endpoint. The comparison is therefore semantic but still exact:
+    the host must match, an `https://` prefix is optional, and nothing else passes —
+    no `http://`, no port, no path, no other host.
+    """
+    if not isinstance(value, str):
+        return False
+    host = value[len("https://"):] if value.startswith("https://") else value
+    return host == HOST
+
+
 def provider_case(document, error=None):
     if error == "NoSuchEntity" and document is None:
         return "A"
     require(error is None and isinstance(document, dict), "PROVIDER_INCONCLUSIVE")
-    require(document.get("Url") in (HOST, f"https://{HOST}") and
+    require(provider_url_ok(document.get("Url")) and
             document.get("ClientIDList") == [AUDIENCE], "PROVIDER_DISCREPANT_C")
     # TLS for GitHub is validated with AWS root CAs. Thumbprints are recorded,
     # not rewritten; IAM trust conditions belong to the role, not the provider.
@@ -266,7 +280,9 @@ def plan_check(plan, config, mode, resources):
                 require(config["trust_phase"] == "main" and old == trust(old_config), "PLAN_TRANSITION")
         else:
             require(actions in (["create"], ["no-op"]), "PLAN_PROVIDER_UPDATE")
-            require(after.get("url") == f"https://{HOST}" and after.get("client_id_list") == [AUDIENCE] and
+            # A no-op provider carries the refreshed value, which IAM returns without
+            # the scheme; a create carries the configured one. Same endpoint either way.
+            require(provider_url_ok(after.get("url")) and after.get("client_id_list") == [AUDIENCE] and
                     not after.get("tags") and not after.get("tags_all"), "PLAN_PROVIDER")
             require(not has_unknown(unknown.get("url")) and not has_unknown(unknown.get("client_id_list")), "PLAN_PROVIDER_UNKNOWN")
     require(seen == expected, "PLAN_INCOMPLETE")

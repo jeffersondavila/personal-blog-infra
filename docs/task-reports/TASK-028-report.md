@@ -568,3 +568,64 @@ Cobertura: `tests/oidc/test_local_env.py`, 20 pruebas — entornos, perfil expl�
 perfil heredado, claves de larga vida, root, principal inesperado, cuenta
 equivocada, ausencia de material de credencial en la línea de comandos, y que
 CloudShell sigue comportándose exactamente igual.
+
+## 15. Defecto PLAN_PROVIDER en la transicion (2026-09-25)
+
+El primer intento de transicion Task → main se detuvo en `STOP_PHASE=PRE_APPLY` con
+`PLAN_PROVIDER`. **No hubo apply, ni mutacion AWS, ni refresh-only**: el estado
+quedo intacto.
+
+### 15.1 Causa
+
+Dos partes del mismo codigo discrepaban sobre la representacion canonica del URL del
+proveedor. `provider_case` aceptaba **ambas** —con y sin esquema—, tal y como el
+runbook §3 ya declaraba, pero `plan_check` exigia literalmente `https://…`:
+
+```python
+require(after.get("url") == f"https://{HOST}" and …, "PLAN_PROVIDER")
+```
+
+En el plan de **creacion** el valor procedia de la configuracion y llevaba esquema,
+asi que paso. En el plan de **transicion** el proveedor es `no-op` y su `after`
+procede del estado refrescado, es decir de lo que devuelve IAM.
+
+### 15.2 Evidencia real, no supuesta
+
+`GetOpenIDConnectProvider` contra la cuenta real, el 2026-09-25:
+
+```text
+Url            = 'token.actions.githubusercontent.com'   # sin esquema
+ClientIDList   = ['sts.amazonaws.com']
+Tags           = []
+```
+
+El proveedor AWS 6.64.0 suprime la diferencia de esquema al comparar, por eso
+Terraform lo considera `no-op`, pero conserva el valor que IAM devuelve. La guarda
+rechazaba un plan correcto.
+
+### 15.3 Correccion
+
+Un helper explicito, `provider_url_ok`, compara **semanticamente** ese unico campo:
+el host debe ser exactamente `token.actions.githubusercontent.com`, el prefijo
+`https://` es opcional y **nada mas pasa** —ni `http://`, ni puerto, ni ruta, ni un
+host que lo contenga como sufijo—. `provider_case` reutiliza el mismo helper, de modo
+que ahora existe una sola definicion.
+
+Lo demas de `PLAN_PROVIDER` no se toca: `client_id_list` exactamente
+`["sts.amazonaws.com"]`, cero tags, cero `tags_all`, proveedor en `create` o `no-op`
+y sin valores desconocidos.
+
+**Una prueba anterior codificaba la expectativa equivocada** —exigia el esquema— y se
+sustituyo por tener un error demostrado: la ejecucion real la refuto y la API de IAM
+confirmo la representacion. Quedan tres regresiones: ambas representaciones aceptadas,
+nueve formas rechazadas y el helper probado aisladamente.
+
+### 15.4 Entorno local verificado
+
+| Comprobacion | Resultado |
+| --- | --- |
+| Identidad AWS local | `assumed-role/PersonalBlogAdministrator/…`, sin root ni usuario IAM |
+| Terraform `windows_amd64` | 1.16.2, zip verificado contra el `SHA256SUMS` oficial de HashiCorp |
+| `init -backend=false -lockfile=readonly` | PASS; **el lock no cambio** |
+| `fmt -check -recursive` / `validate` / `test` | PASS / PASS / **9 passed, 0 failed** |
+| API de CloudShell en la CLI | **no existe**: sus operaciones son internas de la consola |

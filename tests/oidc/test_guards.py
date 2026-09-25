@@ -12,7 +12,7 @@ from scripts.oidc import bootstrap
 from scripts.oidc.guards import (
     ROLE, ROLE_ADDRESS, PROVIDER_ADDRESS, Stop, config_check, human_check,
     ownership, plan_check, private_path, provider_arn, provider_case,
-    role_check, state_resources, trust, utcnow,
+    provider_url_ok, role_check, state_resources, trust, utcnow,
 )
 
 ACCOUNT = "123456789012"  # Synthetic only.
@@ -283,14 +283,46 @@ class GuardTests(unittest.TestCase):
             plan_check(converged(config), config, "create",
                        {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}})
 
-    def test_plan_provider_url_keeps_scheme(self):
-        # La API IAM devuelve el host sin esquema. El plan debe conservar el valor
-        # configurado; un plan con el host pelado se rechaza.
+    def test_plan_provider_url_accepts_both_representations(self):
+        # Esta prueba exigia antes el esquema, y era un error demostrado: el
+        # 2026-09-25 la transicion real fue rechazada con PLAN_PROVIDER, y
+        # GetOpenIDConnectProvider confirmo que IAM devuelve el host **sin**
+        # esquema. Un create arrastra el valor configurado; un no-op refrescado
+        # arrastra el de IAM. Ambos designan el mismo endpoint, y el runbook ya
+        # los declaraba equivalentes.
         config = live_task_config()
-        value = converged(config)
-        value["resource_changes"][-1]["change"]["after"]["url"] = "token.actions.githubusercontent.com"
-        with self.assertRaisesRegex(Stop, "PLAN_PROVIDER"):
-            plan_check(value, config, "create", {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}})
+        resources = {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}}
+        for url in ("https://token.actions.githubusercontent.com",
+                    "token.actions.githubusercontent.com"):
+            with self.subTest(url=url):
+                value = converged(config)
+                value["resource_changes"][-1]["change"]["after"]["url"] = url
+                plan_check(value, config, "create", resources)
+
+    def test_plan_provider_url_rejects_anything_else(self):
+        # La comparacion es semantica, no laxa: solo el host exacto, con https
+        # opcional y nada mas.
+        config = live_task_config()
+        resources = {ROLE_ADDRESS: {}, PROVIDER_ADDRESS: {}}
+        for url in ("http://token.actions.githubusercontent.com",
+                    "https://token.actions.githubusercontent.com/",
+                    "token.actions.githubusercontent.com:443",
+                    "https://evil.example", "evil.example",
+                    "token.actions.githubusercontent.com.evil.example",
+                    "https://https://token.actions.githubusercontent.com",
+                    "", None, 42):
+            with self.subTest(url=url), self.assertRaisesRegex(Stop, "PLAN_PROVIDER"):
+                value = converged(config)
+                value["resource_changes"][-1]["change"]["after"]["url"] = url
+                plan_check(value, config, "create", resources)
+
+    def test_provider_url_helper_is_exact(self):
+        self.assertTrue(provider_url_ok("token.actions.githubusercontent.com"))
+        self.assertTrue(provider_url_ok("https://token.actions.githubusercontent.com"))
+        for value in ("http://token.actions.githubusercontent.com", "evil.example",
+                      "https://evil.example", "", None, 42, ["x"]):
+            with self.subTest(value=value):
+                self.assertFalse(provider_url_ok(value))
 
     def test_convergent_plan_still_rejects_grants(self):
         # La convergencia no relaja nada: una politica adjunta se sigue rechazando.
