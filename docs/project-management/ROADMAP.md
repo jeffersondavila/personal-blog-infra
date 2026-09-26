@@ -61,8 +61,8 @@ aprobación: sigue en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 
 **2026-09-26 — Task/028 vuelve a En progreso para resolver H-028-1 en la misma tarea.**
 Por decisión del usuario, H-028-1 no se delega a otra tarea. Causa raíz establecida con
-evidencia: `minio/minio` **fue retirada de la distribución pública** —privada en quay.io,
-inexistente en Docker Hub—, mientras otros **69** repositorios del mismo namespace siguen
+evidencia: `minio/minio` **dejó de estar públicamente accesible** —exige autenticación en
+quay.io, no existe en Docker Hub—, mientras otros **69** repositorios del mismo namespace siguen
 públicos, lo que descarta un cambio de autenticación del registro. Ninguna ubicación
 oficial sirve ese digest; `aistor/minio` es otro producto con otra licencia. El artefacto
 **no se ha perdido**: la caché local conserva la base con sus nueve `diff_ids` idénticos a

@@ -24,14 +24,11 @@ on:
   push:
   pull_request:
 
-# El workflow solo lee: no publica, no comenta, no despliega y no necesita
-# ningun secreto del proyecto. `packages: read` se anade por H-028-1: la base de
-# MinIO dejo de ser accesible anonimamente en upstream y se sirve desde un espejo
-# PRIVADO del propio proyecto, que se lee con el GITHUB_TOKEN efimero del run.
-# No hay PAT ni secreto almacenado.
+# El workflow solo lee el repositorio: no publica, no comenta y no despliega.
+# `packages: read` NO se concede: el espejo privado de la base de MinIO se lee con
+# un secreto dedicado, no con el GITHUB_TOKEN. Ver el paso de login mas abajo.
 permissions:
   contents: read
-  packages: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -383,13 +380,39 @@ jobs:
       # Las imagenes propias se construyen aqui con la MISMA base fijada por
       # digest que declara `.env.example`: se escanea lo que el proyecto corre,
       # con sus parches aplicados, no la base sin parchear.
-      # H-028-1: la base de MinIO vive en un espejo privado del proyecto, con el
-      # MISMO digest que el upstream retirado. Se autentica con el token efimero
-      # del propio run, nunca con una credencial personal.
+      # H-028-1: la base de MinIO vive en un espejo PRIVADO del proyecto, con el
+      # MISMO digest que la ubicacion oficial que dejo de ser accesible.
+      #
+      # Se lee con un secreto dedicado, NO con el GITHUB_TOKEN, y la razon es de
+      # seguridad, no de comodidad. Conceder a este repositorio —que es PUBLICO—
+      # acceso al paquete privado mediante «Manage Actions access» lo abriria a los
+      # forks: GitHub advierte que «if you grant a public repository access to
+      # private packages, forks of the repository may be able to access the private
+      # packages», el GITHUB_TOKEN de un `pull_request` desde fork conserva los
+      # permisos de LECTURA, y ese workflow se ejecuta desde el merge commit, que
+      # controla quien abre el PR. Cualquier `if:` aqui seria editable por el
+      # atacante y no es frontera.
+      #
+      # Los secretos del repositorio SI son frontera: GitHub no los entrega a
+      # workflows de `pull_request` desde fork. Por eso el PAT no queda expuesto a
+      # codigo ajeno. El paquete permanece privado y sin acceso concedido al repo.
+      #
+      # Consecuencia declarada: un PR externo que dependa del espejo privado no
+      # puede ejecutar esta parte del CI con credenciales privadas. Separar un CI
+      # apto para forks de un CI completo de confianza queda pendiente para cuando
+      # ese flujo se habilite; Task/028 recupera primero push y PR internos.
       - name: Log in to GHCR for the private MinIO base
+        env:
+          GHCR_MINIO_READ_TOKEN: ${{ secrets.GHCR_MINIO_READ_TOKEN }}
         run: |
           set -euo pipefail
-          printf '%s' "${{ github.token }}"             | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          if test -z "${GHCR_MINIO_READ_TOKEN}"; then
+            echo "FALLO: falta el secreto GHCR_MINIO_READ_TOKEN." >&2
+            echo "En un pull_request desde un fork esto es esperado: los secretos" >&2
+            echo "no se entregan a esas ejecuciones y el espejo privado no es legible." >&2
+            exit 1
+          fi
+          printf '%s' "${GHCR_MINIO_READ_TOKEN}"             | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
           echo "autenticado en ghcr.io para leer la base privada"
 
       - name: Build the project images

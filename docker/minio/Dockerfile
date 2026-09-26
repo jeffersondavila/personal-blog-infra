@@ -39,9 +39,9 @@ RUN set -eux; \
 # nuevo sustituye /usr/bin/minio; mc, entrypoint, OS, config y permisos quedan
 # heredados byte a byte y el verificador OCI lo exige.
 #
-# H-028-1 (2026-09-26): upstream retiro `minio/minio` de la distribucion publica
-# —privada en quay.io, inexistente en Docker Hub— y el digest dejo de ser
-# accesible anonimamente. La referencia apunta ahora a un espejo PRIVADO en el
+# H-028-1 (2026-09-26): `minio/minio` dejo de estar publicamente accesible en sus
+# ubicaciones oficiales comprobadas —exige autenticacion en quay.io, no existe en
+# Docker Hub— y el digest dejo de ser recuperable anonimamente. La referencia apunta ahora a un espejo PRIVADO en el
 # GHCR del proyecto que conserva **el mismo digest**: los bytes del manifiesto se
 # republicaron sin alterarlos, de modo que el pin sigue siendo identico y la
 # identidad verificada por Task/027.1 se mantiene, no se sustituye. Solo cambia

@@ -853,9 +853,10 @@ custodia se reabre.
 
 ### 19.2 Causa
 
-**Caso A: la imagen upstream fue retirada de la distribucion publica.**
-`minio/minio` paso a privada en quay.io y desaparecio de Docker Hub, coincidiendo con el
-giro del proyecto a su linea comercial AIStor.
+**Caso A: la imagen upstream dejo de estar publicamente accesible.**
+`minio/minio` requiere autenticacion en quay.io y no existe en Docker Hub. Como contexto
+observado, el namespace `minio` publica hoy repositorios `aistor/*`; **no se atribuye
+intencion ni causa** a esa coincidencia, porque no hay fuente oficial que la establezca.
 
 Queda descartado:
 
@@ -884,16 +885,17 @@ es GHCR, y hoy:
 
 - el paquete es **privado** y el token disponible **no tiene** `read:packages`;
 - publicar un espejo exige `write:packages`, es decir una credencial nueva;
-- hacerlo **publico** redistribuiria una imagen que su autor retiro deliberadamente de
-  la distribucion publica. La AGPL lo permite, pero es una decision con consecuencias
-  externas que no corresponde tomar por iniciativa propia.
+- hacerlo **publico** redistribuiria una imagen que hoy no esta publicamente accesible
+  en sus ubicaciones oficiales. La AGPL lo permite, pero es una decision con
+  consecuencias externas que no corresponde tomar por iniciativa propia.
 
 ## 20. H-028-1 resuelto: espejo privado que preserva el digest (2026-09-26)
 
 ### 20.1 Solucion elegida
 
 Opcion A del abanico evaluado: **espejo privado en el GHCR del proyecto**, sin
-redistribucion publica de una imagen que su autor retiro deliberadamente.
+redistribucion publica de una imagen que hoy no esta publicamente accesible en sus
+ubicaciones oficiales comprobadas.
 
 Los bytes del manifiesto `linux/amd64` se republicaron **sin alterarlos**, subiendo los
 blobs y el manifiesto originales mediante la API de distribucion OCI. El resultado no es
@@ -978,3 +980,61 @@ contenido al nombrar el espejo. **No cambian** `reference`, `expected_digest` ni
 El test `test_baseline_is_bound_to_exact_build_manifest` hizo exactamente su trabajo al
 bloquear el cambio hasta revalidar. No se toco para que CI pasara: se revalido primero
 —rebuild, verificador, Trivy— y despues se actualizo la unica ligadura afectada.
+
+## 21. Modelo de acceso al espejo privado y exposicion a forks (2026-09-26)
+
+### 21.1 Por que no se usa el GITHUB_TOKEN
+
+La primera version de la correccion leia el espejo con el `GITHUB_TOKEN` del run y
+requeria conceder a `personal-blog-infra` acceso al paquete mediante *Manage Actions
+access*. **Se descarto por inseguro**, y la razon esta documentada por GitHub:
+
+> *If you grant a public repository access to private packages, forks of the repository
+> may be able to access the private packages.*
+
+`personal-blog-infra` es **publico**. La cadena de exposicion, con documentacion oficial:
+
+1. La concesion es **por repositorio** y no distingue quien origino la ejecucion.
+2. El `GITHUB_TOKEN` de un `pull_request` desde fork es de solo lectura, pero `packages`
+   es uno de sus scopes y para forks la escritura se degrada a **lectura**, no se elimina.
+3. Ese evento **ejecuta el workflow del merge commit**, y GitHub advierte que *«for a pull
+   request opened from a fork, that commit is controlled by someone without write access
+   to the base repository»*.
+
+De 3 se sigue lo decisivo: un `if:`, una separacion de jobs o un `permissions:` reducido
+**no son frontera de seguridad** frente a un fork, porque el autor del PR puede editarlos.
+
+### 21.2 La frontera que si existe
+
+Los **secretos del repositorio** no se entregan a workflows de `pull_request` desde fork:
+*«with the exception of GITHUB_TOKEN, secrets are not passed to the runner when a workflow
+is triggered from a forked repository»*. Esa es la frontera, y la aplica GitHub, no
+nuestro YAML.
+
+Por eso el acceso al espejo usa un secreto dedicado, `GHCR_MINIO_READ_TOKEN`, con un PAT
+classic limitado a `read:packages` y con caducidad. GHCR no admite otra cosa para
+autenticacion fuera de Actions: *«GitHub Packages only supports authentication using a
+personal access token (classic)»*.
+
+### 21.3 Estado resultante
+
+| Propiedad | Estado |
+| --- | --- |
+| Visibilidad del paquete espejo | **privada**, sin cambios |
+| *Manage Actions access* para `personal-blog-infra` | **no concedido** |
+| `packages` en `permissions` del workflow | **no concedido**; queda solo `contents: read` |
+| GITHUB_TOKEN de un fork | **no puede** leer el espejo por esta via |
+| PAT | en un secreto del repositorio, **no entregado** a workflows de fork |
+| Scopes del PAT | unicamente `read:packages`, con caducidad |
+
+**Precision deliberada:** la aprobacion de workflows de colaboradores externos, si se
+activa, **no entrega secretos a un fork** — no los entrega en ningun caso. Es defensa
+adicional contra ejecuciones no revisadas, **no** la frontera que protege el PAT.
+
+### 21.4 Limitacion declarada, no disimulada
+
+Un pull request **externo** que dependa del espejo privado **no puede** ejecutar esa parte
+del CI con credenciales privadas: el paso de login falla con un mensaje explicito, no se
+silencia ni se degrada a aviso. Separar un CI apto para forks de un CI completo de
+confianza es un diseño que deberá abordarse **si** ese flujo se habilita. Task/028 recupera
+primero el pipeline de `push` y de pull requests internos, que es el que la tarea necesita.
