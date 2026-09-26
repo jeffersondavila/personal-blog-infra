@@ -59,6 +59,17 @@ implementación. Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** ha
 aprobación: sigue en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 [Reporte §17-§18](../task-reports/TASK-028-report.md).
 
+**2026-09-26 — Task/028 vuelve a En progreso para resolver H-028-1 en la misma tarea.**
+Por decisión del usuario, H-028-1 no se delega a otra tarea. Causa raíz establecida con
+evidencia: `minio/minio` **fue retirada de la distribución pública** —privada en quay.io,
+inexistente en Docker Hub—, mientras otros **69** repositorios del mismo namespace siguen
+públicos, lo que descarta un cambio de autenticación del registro. Ninguna ubicación
+oficial sirve ese digest; `aistor/minio` es otro producto con otra licencia. El artefacto
+**no se ha perdido**: la caché local conserva la base con sus nueve `diff_ids` idénticos a
+`build-manifest.json`. El problema es de **accesibilidad anónima** desde el runner, no de
+integridad ni de procedencia. La parte AWS/OIDC/estado/custodia queda terminada y no se
+reabre. [Reporte §19](../task-reports/TASK-028-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 

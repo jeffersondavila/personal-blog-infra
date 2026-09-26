@@ -827,3 +827,63 @@ sigue en rojo por el cambio de politica de quay.io sobre la imagen de MinIO: **n
 oculta ni se minimiza**, y debera resolverse fuera del alcance de Task/028 antes de
 considerar sano el pipeline de integracion. No se ha creado pull request, no se ha
 fusionado nada y `dev` no se ha tocado.
+
+## 19. H-028-1: causa raiz del fallo de `CI Infra` (2026-09-26)
+
+Por decision del usuario, H-028-1 se resuelve **dentro de Task/028**. La tarea vuelve a
+**En progreso** hasta recuperar `CI Infra` en verde. Nada de AWS, OIDC, estado o
+custodia se reabre.
+
+### 19.1 Evidencia recogida
+
+| Sonda | Resultado |
+| --- | --- |
+| `quay.io` token anonimo para `minio/minio` | **emitido** (200) |
+| `quay.io` manifiesto por tag y por digest | **401 UNAUTHORIZED** en ambos |
+| `quay.io` API del repositorio `minio/minio` | **401** *Requires authentication* |
+| `quay.io` API del namespace `minio`, repos publicos | **69 publicos**, y `minio/minio` **no esta** entre ellos |
+| Namespace `minio` hoy | publica la linea comercial `aistor/*` (28 repos) |
+| Docker Hub `minio/minio` | **404** *object not found* |
+| `registry.min.io/minio/minio` | 401 |
+| `quay.io/minio/aistor/minio` por ese digest | 404 |
+| `public.ecr.aws`, `mirror.gcr.io` | 404 |
+| Cache Docker local | conserva la base: **los 9 `diff_ids` coinciden** con `build-manifest.json` |
+| `ghcr.io` derivado propio, anonimo | **401**, el paquete sigue privado |
+| Token `gh` disponible | `gist, read:org, repo, workflow` — **sin** `read:packages` ni `write:packages` |
+
+### 19.2 Causa
+
+**Caso A: la imagen upstream fue retirada de la distribucion publica.**
+`minio/minio` paso a privada en quay.io y desaparecio de Docker Hub, coincidiendo con el
+giro del proyecto a su linea comercial AIStor.
+
+Queda descartado:
+
+- **B, cambio de autenticacion de quay.io:** otros **69** repositorios del mismo
+  namespace siguen siendo publicos y anonimamente accesibles.
+- **C, cambio de repositorio oficial:** ninguna ubicacion oficial sirve ese digest.
+  `aistor/minio` es **otro producto**, con otra licencia, y no responde a ese digest.
+- **D, ruta incorrecta en CI:** una sonda limpia contra el mismo digest reproduce el
+  401 exacto, sin intervencion del workflow.
+
+No es un fallo transitorio: dos reintentos de CI y varias sondas directas lo reproducen.
+
+### 19.3 Lo que si conservamos
+
+El artefacto exacto **no se ha perdido**. La cache local conserva la base con sus nueve
+`diff_ids` identicos a los registrados, y el derivado completo sigue publicado en GHCR
+con el digest que `Task/027.1` verifico. El problema no es de integridad ni de
+procedencia: es de **accesibilidad anonima** desde el runner.
+
+### 19.4 Por que la correccion no puede aplicarse sin una decision
+
+Toda ruta que conserve la garantia de `Task/027.1` —imagen identificada de forma
+reproducible y verificable, mismo producto, pin por digest, sin tags moviles— pasa por
+servir esa base desde una ubicacion que el runner pueda leer. La unica que controlamos
+es GHCR, y hoy:
+
+- el paquete es **privado** y el token disponible **no tiene** `read:packages`;
+- publicar un espejo exige `write:packages`, es decir una credencial nueva;
+- hacerlo **publico** redistribuiria una imagen que su autor retiro deliberadamente de
+  la distribucion publica. La AGPL lo permite, pero es una decision con consecuencias
+  externas que no corresponde tomar por iniciativa propia.

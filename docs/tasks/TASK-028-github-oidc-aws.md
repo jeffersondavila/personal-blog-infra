@@ -4,13 +4,13 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **Lista para validación** · bloqueo externo para integración: **H-028-1** |
+| Estado | **En progreso** — resolver H-028-1 y recuperar `CI Infra` verde |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
 | SHA base verificado | `65fbf860a7ba47460eecad70431f0ba8f5bcfab1` |
 | Autorización / aceptación del diseño | 2026-09-21 |
-| Inicio de ejecución / última actualización | 2026-09-22 / 2026-09-25 |
+| Inicio de ejecución / última actualización | 2026-09-22 / 2026-09-26 |
 
 ## 0. Preparación Git
 
@@ -219,7 +219,9 @@ Task/028 según WORKFLOW. Este checkpoint no cambia 27/41 ni ETAPA 09 1/3.
 
 ## 20. Aprobación
 
-Pendiente, exclusivamente del usuario. Estado **Lista para validación**: la
+Pendiente, exclusivamente del usuario. Estado **En progreso**: por decisión del
+usuario, H-028-1 se resuelve **dentro de esta tarea** en lugar de abrir otra, de modo
+que la tarea vuelve a En progreso hasta recuperar `CI Infra` en verde. La
 implementación está completa y verificada contra AWS y GitHub reales, y la custodia
 EX-028-C7 quedó cerrada con recuperación demostrada. **`CI Infra` sigue en rojo por
 H-028-1**, ajeno a esta tarea: es un bloqueo externo para la integración, no un
