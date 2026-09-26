@@ -1038,3 +1038,67 @@ del CI con credenciales privadas: el paso de login falla con un mensaje explicit
 silencia ni se degrada a aviso. Separar un CI apto para forks de un CI completo de
 confianza es un diseño que deberá abordarse **si** ese flujo se habilita. Task/028 recupera
 primero el pipeline de `push` y de pull requests internos, que es el que la tarea necesita.
+
+## 22. H-028-1 resuelto y H-028-2 abierto (2026-09-26)
+
+### 22.1 H-028-1: RESUELTO
+
+Con el secreto `GHCR_MINIO_READ_TOKEN` en su sitio, `CI Infra` ejecuto **32 de 33 pasos
+en verde**, entre ellos todos los que H-028-1 bloqueaba:
+
+| Paso | Resultado |
+| --- | --- |
+| Login a GHCR con el secreto dedicado | correcto |
+| `Pinned artifact identity is coherent (S-09)` | `RESULTADO: CORRECTO` |
+| `Build the project images` | correcto, desde cero y contra el espejo privado |
+| Verificador OCI | correcto |
+| `MinIO SBOM and deterministic provenance` | correcto |
+| Escaneos Trivy de las 6 imagenes | correctos |
+
+**La base de MinIO vuelve a ser accesible para CI sin redistribuirla publicamente y sin
+conceder acceso al repositorio publico.** H-028-1 queda cerrado.
+
+### 22.2 H-028-2: el baseline de riesgo aceptado ha envejecido
+
+El unico paso que falla es el ultimo, `Image vulnerability gate (S-09)`, y **no por este
+cambio**. Tres hallazgos accionables quedan fuera del baseline, y los tres son **el mismo
+aviso**:
+
+| Imagen | Componente | Identidad |
+| --- | --- | --- |
+| MinIO, `usr/bin/mc` | `google.golang.org/grpc` v1.71.0 | `CVE-2026-84445`, HIGH |
+| MinIO, `usr/bin/minio` | `google.golang.org/grpc` v1.72.0 | `CVE-2026-84445`, HIGH |
+| Portainer | `google.golang.org/grpc` v1.82.1 | `CVE-2026-84445`, HIGH |
+
+Corregido en `grpc` 1.82.2 y posteriores.
+
+**Por que no lo causa el cambio de Task/028**, con evidencia:
+
+1. El **2026-09-24**, en el commit `9afb469`, este mismo gate termino en **success** con la
+   misma baseline y los mismos digests.
+2. La imagen de MinIO es **bit a bit la misma** que se acepto: su `manifest_digest` sigue
+   siendo `sha256:84c67632…059129`, comprobado dos veces.
+3. **Portainer se fija por digest y Task/028 no lo toca**, y aun asi recibe el mismo
+   hallazgo nuevo.
+
+La conclusion es que el aviso entro en la base de datos de Trivy entre el 2026-09-24 y el
+2026-09-26. El contenido de las imagenes no cambio; cambio lo que se sabe de el.
+
+### 22.3 Por que no lo resuelvo por iniciativa propia
+
+El baseline es el registro del riesgo que **el usuario acepto** el 2026-09-14. Ampliarlo es
+aceptar riesgo nuevo, y eso no es una correccion tecnica: es una decision suya. Las
+alternativas, con su coste real:
+
+- **Aceptar las tres identidades** en el baseline, fechadas y con su version de correccion,
+  como ya se hizo con H-025-6, H-025-7 y R-018-3. Es el mecanismo para el que el baseline
+  existe.
+- **Subir Portainer** a una version cuyo `grpc` sea >= 1.82.2. Esta a **un solo parche** del
+  arreglo, asi que es plausible; pertenece al area de imagenes, no a Task/028.
+- **Subir `grpc` en el derivado de MinIO** exigiria un segundo parche al codigo fuente, lo
+  que **cambiaria el artefacto**, invalidaria el digest que acabamos de demostrar y obligaria
+  a repetir la procedencia de Task/027.1. Contradice justo lo que esta tarea acaba de
+  preservar.
+
+Task/028 permanece **En progreso** hasta que esa decision se tome: declararla lista con el
+gate en rojo seria ocultar el estado real.
