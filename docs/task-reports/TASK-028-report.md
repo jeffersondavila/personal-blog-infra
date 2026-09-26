@@ -1081,8 +1081,10 @@ Corregido en `grpc` 1.82.2 y posteriores.
 3. **Portainer se fija por digest y Task/028 no lo toca**, y aun asi recibe el mismo
    hallazgo nuevo.
 
-La conclusion es que el aviso entro en la base de datos de Trivy entre el 2026-09-24 y el
-2026-09-26. El contenido de las imagenes no cambio; cambio lo que se sabe de el.
+Lo unico probado es que **Trivy empezo a reportarlo entre esas dos ejecuciones**. El
+aviso se publico el 2026-09-15, antes del run verde del 24, asi que no se afirma cuando
+entro en su base de datos: solo se constata el cambio de comportamiento observado. El
+contenido de las imagenes no cambio.
 
 ### 22.3 Por que no lo resuelvo por iniciativa propia
 
@@ -1102,3 +1104,69 @@ alternativas, con su coste real:
 
 Task/028 permanece **En progreso** hasta que esa decision se tome: declararla lista con el
 gate en rojo seria ocultar el estado real.
+
+## 23. Aplicabilidad real de CVE-2026-84445 (2026-09-26)
+
+Antes de aceptar riesgo o mover versiones se comprobo si el camino vulnerable existe.
+
+### 23.1 Que exige el aviso
+
+El advisory oficial acota la vulnerabilidad a servidores creados con
+**`xds.NewGRPCServer()`**: esos instalan un interceptor de enrutado xDS en cada RPC que,
+ante una peticion sin `:authority` ni `Host`, indexa una lista vacia y provoca panico. Una
+dependencia de `google.golang.org/grpc` presente **no** implica ese camino.
+
+### 23.2 Metodo, y su validacion
+
+Para cada binario real —extraidos del artefacto, no de una suposicion— se busco el nombre
+de funcion `NewGRPCServer` en la tabla de simbolos, y se distinguio el lado cliente del
+lado servidor. **El metodo se valido antes en cada binario con controles positivos**
+(`main.main`, `grpc.Dial`, `grpc.NewClient`, `grpc.NewServer`): los tres dieron
+coincidencias, de modo que una ausencia no puede atribuirse a un fallo de deteccion. En Go,
+una funcion que no esta en el binario no puede ejecutarse.
+
+### 23.3 Evidencia por producto
+
+**`/usr/bin/minio`** (grpc v1.72.0). En el `go.mod` del commit fijado
+`07c3a429bfed433e49018cb0f78a52145d4bedeb`, grpc figura como **`// indirect`**: el codigo de
+MinIO no lo importa, llega por OpenTelemetry. En el binario aparecen 31 rutas del arbol
+`grpc/xds` —incluida `xds/googledirectpath`, que enlazan las bibliotecas de Google Cloud
+para enrutado **del cliente**—, pero **no existe ninguna funcion `NewGRPCServer`**, y
+tampoco `grpc.NewServer`: el binario no crea ningun servidor gRPC. Si aparecen `grpc.Dial`
+y `grpc.NewClient`, es decir uso de cliente.
+
+**`/usr/bin/mc`** (grpc v1.71.0). **Cero** rutas del arbol `grpc/xds` en el binario, sin
+`grpc.NewServer` y sin otelgrpc. grpc aparece solo como cliente.
+
+**Portainer** (grpc v1.82.1). En su `go.mod` de 2.39.7 grpc tambien es **`// indirect`**, via
+otelgrpc, y no hay referencia alguna a `grpc/xds`. El binario **si** enlaza
+`grpc.NewServer` —crea servidores gRPC **planos**— pero **cero** rutas `grpc/xds` y ningun
+`NewGRPCServer`. El contraste es justamente la prueba de que el detector distingue un
+servidor gRPC normal de uno xDS.
+
+### 23.4 El upgrade de Portainer no es remedio
+
+| Version | `google.golang.org/grpc` |
+| --- | --- |
+| 2.39.7 (fijada) | v1.82.1 |
+| 2.39.8 LTS | v1.82.1 |
+| 2.40.0 / 2.41.0 / 2.42.0 | **v1.79.3** |
+| `develop` | v1.82.1 |
+
+Ninguna publica `grpc` >= 1.82.2, y las de la serie 2.4x **retroceden** la version. Subir
+no corrige el hallazgo y empeoraria otras identidades.
+
+### 23.5 Matriz
+
+| Producto | grpc | Usa `xds.NewGRPCServer` | Alcanzable | CVE aplicable | Accion propuesta |
+| --- | --- | --- | --- | --- | --- |
+| MinIO `/usr/bin/minio` | v1.72.0, indirecta | **No**, simbolo ausente | **No** | **No aplicable** | declarar no-aplicable con justificacion |
+| MinIO `/usr/bin/mc` | v1.71.0, indirecta | **No**, arbol xds no enlazado | **No** | **No aplicable** | declarar no-aplicable con justificacion |
+| Portainer | v1.82.1, indirecta | **No**, solo `grpc.NewServer` plano | **No** | **No aplicable** | declarar no-aplicable; el upgrade no remedia |
+
+**Limite declarado:** esto demuestra que el constructor vulnerable **no esta en los
+binarios**, lo que en Go basta para descartar su ejecucion. No es un analisis formal de
+grafo de llamadas de todo el arbol de dependencias, y si una version futura de cualquiera
+de los tres empezara a crear servidores xDS, la conclusion tendria que revisarse. Por eso
+la accion propuesta es **declarar no-aplicable con su justificacion y su fecha**, no borrar
+el hallazgo del radar.
