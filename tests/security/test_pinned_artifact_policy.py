@@ -372,12 +372,28 @@ class CoexistenciaTests(unittest.TestCase):
         )
 
     def test_el_baseline_real_sigue_conservando_las_aceptaciones_historicas(self):
+        # Portainer paso de 16 aceptadas a 4 el 2026-09-26 al subir de 2.39.7 a
+        # 2.45.1 LTS. No es una relajacion: la version nueva RESUELVE 12 de las 16
+        # y no introduce ninguna identidad nueva, asi que las 4 restantes son
+        # subconjunto exacto de las ya aprobadas. Se comprobo con Trivy 0.74.0 y
+        # con govulncheck en modo binario, que deja de reportar GO-2026-6443.
         datos = json.loads(
             (ROOT / "security/vulnerability-baseline.json").read_text(encoding="utf-8")
         )
         por_clave = {i["key"]: i for i in datos["images"]}
         self.assertEqual(len(por_clave["minio"]["accepted_findings"]), 99)
-        self.assertEqual(len(por_clave["portainer"]["accepted_findings"]), 16)
+        self.assertEqual(len(por_clave["portainer"]["accepted_findings"]), 4)
+        aceptadas = {(f["id"], f["package"]) for f in por_clave["portainer"]["accepted_findings"]}
+        # Ninguna de las 4 puede ser una identidad nueva respecto de las historicas.
+        historicas = {
+            ("CVE-2025-15558", "github.com/docker/cli"),
+            ("CVE-2026-17106", "github.com/moby/go-archive"),
+            ("CVE-2026-33747", "github.com/moby/buildkit"),
+            ("CVE-2026-33748", "github.com/moby/buildkit"),
+        }
+        self.assertEqual(aceptadas, historicas)
+        # El hallazgo que motivo la subida no puede reaparecer en el baseline.
+        self.assertNotIn("CVE-2026-84445", {f["id"] for f in por_clave["portainer"]["accepted_findings"]})
         for clave in ("postgres", "traefik"):
             self.assertEqual(por_clave[clave]["policy"], "zero-tolerance")
             self.assertEqual(por_clave[clave]["accepted_findings"], [])

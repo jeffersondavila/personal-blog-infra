@@ -1158,11 +1158,16 @@ no corrige el hallazgo y empeoraria otras identidades.
 
 ### 23.5 Matriz
 
+> **Esta matriz quedo REFUTADA el 2026-09-26.** Se conserva como registro del error.
+> Ver §24: `govulncheck` demuestra que los simbolos vulnerables **si** son alcanzables en
+> los tres binarios, porque el registro oficial GO-2026-6443 no se limita a
+> `xds.NewGRPCServer`. Buscar solo ese constructor fue un metodo insuficiente.
+
 | Producto | grpc | Usa `xds.NewGRPCServer` | Alcanzable | CVE aplicable | Accion propuesta |
 | --- | --- | --- | --- | --- | --- |
-| MinIO `/usr/bin/minio` | v1.72.0, indirecta | **No**, simbolo ausente | **No** | **No aplicable** | declarar no-aplicable con justificacion |
-| MinIO `/usr/bin/mc` | v1.71.0, indirecta | **No**, arbol xds no enlazado | **No** | **No aplicable** | declarar no-aplicable con justificacion |
-| Portainer | v1.82.1, indirecta | **No**, solo `grpc.NewServer` plano | **No** | **No aplicable** | declarar no-aplicable; el upgrade no remedia |
+| MinIO `/usr/bin/minio` | v1.72.0, indirecta | No, simbolo ausente | ~~No~~ **SI** | ~~No aplicable~~ | *refutada* |
+| MinIO `/usr/bin/mc` | v1.71.0, indirecta | No, arbol xds no enlazado | ~~No~~ **SI** | ~~No aplicable~~ | *refutada* |
+| Portainer | v1.82.1, indirecta | No, solo `grpc.NewServer` plano | ~~No~~ **SI** | ~~No aplicable~~ | *refutada* |
 
 **Limite declarado:** esto demuestra que el constructor vulnerable **no esta en los
 binarios**, lo que en Go basta para descartar su ejecucion. No es un analisis formal de
@@ -1170,3 +1175,102 @@ grafo de llamadas de todo el arbol de dependencias, y si una version futura de c
 de los tres empezara a crear servidores xDS, la conclusion tendria que revisarse. Por eso
 la accion propuesta es **declarar no-aplicable con su justificacion y su fecha**, no borrar
 el hallazgo del radar.
+
+## 24. govulncheck oficial: el hallazgo SI es alcanzable (2026-09-26)
+
+### 24.1 El error de metodo, y su correccion
+
+El analisis de §23 busco el simbolo `xds.NewGRPCServer` en la tabla de simbolos y, al no
+encontrarlo en ninguno de los tres binarios, concluyo **no aplicable**. Era insuficiente:
+el registro oficial **GO-2026-6443** no lista solo ese constructor, sino tambien
+
+- `google.golang.org/grpc/internal/transport.http2Server.HandleStreams`
+- `google.golang.org/grpc/internal/transport.http2Server.operateHeaders`
+- `google.golang.org/grpc/internal/xds/server.RouteAndProcess`
+
+Los dos primeros viven en el **transporte HTTP/2 del nucleo de gRPC**, que se enlaza con
+practicamente cualquier uso de la biblioteca. La ausencia de un constructor no acota la
+superficie cuando el camino vulnerable esta en el transporte.
+
+### 24.2 Herramienta y resultado
+
+`govulncheck@v1.1.4` sobre Go 1.24.6, base `https://vuln.go.dev` actualizada el
+2026-09-24, en **modo binario** sobre los binarios reales extraidos del artefacto.
+
+`GO-2026-6443` aparece en el inventario OSV de los tres informes —con sus alias
+`CVE-2026-84445` y `GHSA-2v4p-qf9q-27wj`— **y como finding alcanzable**:
+
+| Binario | grpc | Simbolos reportados | Corregido en |
+| --- | --- | --- | --- |
+| `minio` | v1.72.0 | `internal/transport.HandleStreams`, `internal/xds/server.RouteAndProcess` | v1.82.2 |
+| `mc` | v1.71.0 | idem | v1.82.2 |
+| `portainer` 2.39.7 | v1.82.1 | idem | v1.82.2 |
+
+No es un falso negativo por base desactualizada: el aviso **esta** en la base consultada.
+
+### 24.3 Alcanzable no es explotable: lo que si y lo que no esta demostrado
+
+| Pregunta | minio | mc | portainer 2.39.7 |
+| --- | --- | --- | --- |
+| Modulo `grpc` presente | si, **indirecta** | si, indirecta | si, **indirecta** |
+| Simbolos vulnerables alcanzables (`govulncheck`) | **si** | **si** | **si** |
+| Evidencia de que el runtime configure `xds.NewGRPCServer` | **ninguna**: el simbolo no esta en el binario y el codigo propio no importa grpc | **ninguna**: el arbol `xds` no esta enlazado | **ninguna**: enlaza `grpc.NewServer` plano, sin rutas `xds` |
+| Servidor gRPC expuesto en nuestro despliegue | no: MinIO sirve S3 en 9000 y consola en 9001, no gRPC | no: es una CLI, no escucha | Portainer escucha 9443 HTTPS en loopback |
+
+**No se afirma explotabilidad efectiva**: no hay evidencia de que nuestro runtime configure
+un servidor xDS. **Tampoco se declara no aplicable**, porque los simbolos son alcanzables y
+eso es lo que el registro oficial mide. Las dos cosas se documentan por separado a
+proposito.
+
+## 25. Portainer corregido a 2.45.1 LTS (2026-09-26)
+
+### 25.1 Correccion de una afirmacion previa mia
+
+En §22.3 afirme que «ninguna version publicada de Portainer alcanza la correccion». **Era
+falso, y el fallo fue de metodo**: adivine nombres de tag —`2.39.8`, `2.40.0`, `2.41.0`,
+`2.42.0`, `develop`— en lugar de listar los releases publicados, y nunca mire la serie 2.45.
+
+### 25.2 Evidencia de que 2.45.1 corrige
+
+**Portainer 2.45.1 LTS**, publicada el **2026-09-17**, declara en sus notas *«Updated
+google.golang.org/grpc to 1.83.2»*, y GO-2026-6443 esta corregido en 1.82.2 **y** en 1.83.2.
+
+| Comprobacion | Resultado |
+| --- | --- |
+| `grpc` embebido en el binario de 2.45.1 | `google.golang.org/grpc@v1.83.2` |
+| `govulncheck -mode binary` | `GO-2026-6443` **no** es finding alcanzable |
+| Trivy 0.74.0, accionables | **4**, frente a 16 en 2.39.7 |
+| Identidades nuevas respecto al baseline | **0** |
+| Identidades resueltas | **12** |
+| `CVE-2026-84445` | **ausente** |
+
+### 25.3 Compatibilidad con nuestro contrato
+
+| Propiedad que usa nuestro Compose | 2.39.7 | 2.45.1 |
+| --- | --- | --- |
+| Entrypoint | `["/portainer"]` | **igual** |
+| Puertos expuestos | 8000, 9000, 9443 | **iguales** |
+| Volumen | `/data` | **igual** |
+| Imagen distroless de un solo binario | si | si |
+
+El unico *breaking change* documentado en el tramo que nos saltamos afecta a la proteccion
+CSRF y al flag `legacy-csrf`, introducido en 2.41 como ayuda temporal y retirado en 2.42.
+**Nuestro Compose no pasa ningun flag a Portainer** y el acceso es HTTPS directo en
+loopback, sin proxy intermedio, asi que no nos aplica.
+
+**Consecuencia declarada:** Portainer migra `portainer_data` al arrancar y **no admite
+downgrade**. El paso es de un solo sentido; la mitigacion es el procedimiento de respaldo
+local ya existente.
+
+### 25.4 Cambios aplicados
+
+- `.env.example`: `PORTAINER_VERSION` pasa a `2.45.1@sha256:4d616db1…3bd8b0e`, el digest del
+  indice oficial, como ya se fijaba antes.
+- `security/vulnerability-baseline.json`: `reference`, `expected_digest` y
+  `accepted_findings` de 16 a **4**, con la razon en su `rationale`.
+- `tests/security/test_pinned_artifact_policy.py`: el recuento pasa de 16 a 4 **y el test se
+  refuerza**: fija el conjunto exacto de las 4 identidades y prohibe que `CVE-2026-84445`
+  reaparezca en el baseline.
+
+**Portainer no entra en ninguna aceptacion temporal de riesgo:** el hallazgo esta corregido,
+no aceptado.
