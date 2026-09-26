@@ -46,6 +46,19 @@ También se corrigió un defecto propio de la guarda: `plan_check` exigía el es
 un plan correcto. Task/028 sigue **En progreso**; el avance permanece en **27/41 ≈
 66 %** y ETAPA 09 en **1/3 ≈ 33 %**. [Reporte §15-§16](../task-reports/TASK-028-report.md).
 
+**2026-09-25 — Task/028 Lista para validación; bloqueo externo H-028-1.** La segunda
+publicación demostró el rechazo: `Task fresh-token STS: AccessDenied (expected)` con un
+JWT nuevo desde la rama Task, porque la trust ya solo acepta `main`. La custodia
+EX-028-C7 quedó **cerrada**: tres copias cifradas con AES256, custodiadas fuera del
+equipo, y la copia final autoritativa recuperada y verificada de extremo a extremo
+—ciphertext, descifrado, tar, `SHA256SUMS` 6/6, estado v4 con lineage coincidente,
+exactamente rol + proveedor, sin `deposed`, trust main-only—. **`CI Infra` sigue en
+rojo por H-028-1**, un cambio de política de quay.io sobre la imagen de MinIO, ajeno a
+Task/028 y con propietario en el área de imágenes: es bloqueo de integración, no de
+implementación. Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** hasta la
+aprobación: sigue en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
+[Reporte §17-§18](../task-reports/TASK-028-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 

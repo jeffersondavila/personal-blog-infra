@@ -4,13 +4,13 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **En progreso** |
+| Estado | **Lista para validación** · bloqueo externo para integración: **H-028-1** |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
 | SHA base verificado | `65fbf860a7ba47460eecad70431f0ba8f5bcfab1` |
 | Autorización / aceptación del diseño | 2026-09-21 |
-| Inicio de ejecución / última actualización | 2026-09-22 / 2026-09-24 |
+| Inicio de ejecución / última actualización | 2026-09-22 / 2026-09-25 |
 
 ## 0. Preparación Git
 
@@ -40,7 +40,9 @@ trabajo; no constituye aprobación de la tarea ni autorización de operaciones c
 - [ ] Tras autorización independiente: inventario, bootstrap, federación real y
   dos publicaciones premerge autorizadas individualmente.
 - [x] Trust final exclusiva de main, aplicada y verificada contra IAM el 2026-09-25.
-- [ ] Reconfirmación postmerge desde main.
+- [x] Segunda publicación premerge: `AccessDenied` con JWT nuevo desde Task, 2026-09-25.
+- [x] Custodia EX-028-C7 cerrada con recuperación externa verificada, 2026-09-25.
+- [ ] Reconfirmación postmerge desde main, posterior al merge humano (criterio 8).
 
 El 2026-09-24, con autorización acotada a **solo lectura AWS y plan**, se ejecutó
 una parte del tercer punto: inventario real (caso A, ownership A), recuperación
@@ -217,7 +219,11 @@ Task/028 según WORKFLOW. Este checkpoint no cambia 27/41 ni ETAPA 09 1/3.
 
 ## 20. Aprobación
 
-Pendiente, exclusivamente del usuario. Estado **En progreso**. La autorización
+Pendiente, exclusivamente del usuario. Estado **Lista para validación**: la
+implementación está completa y verificada contra AWS y GitHub reales, y la custodia
+EX-028-C7 quedó cerrada con recuperación demostrada. **`CI Infra` sigue en rojo por
+H-028-1**, ajeno a esta tarea: es un bloqueo externo para la integración, no un
+pendiente de la implementación. La autorización
 local del 2026-09-21 no autoriza cierre, publicaciones ni recursos externos. La
 autorización del 2026-09-24 cubrió únicamente lectura AWS y plan: no autoriza
 apply, publicaciones, cierre ni aprobación.

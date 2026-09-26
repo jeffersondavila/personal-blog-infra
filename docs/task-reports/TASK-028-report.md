@@ -653,7 +653,9 @@ mutacion. Verificacion antes de usarlo:
 | Binding de cuenta | coincide con la sesion viva |
 | `provider.lock.hcl` | **identico** al del repositorio |
 
-El archivo original se conserva **inmutable** en `snapshots/`. La copia operativa
+El archivo original se conserva en `snapshots/` como **copia de referencia preservada
+con SHA256 verificado**: no se ha implementado ninguna propiedad de inmutabilidad —ni
+WORM, ni versionado, ni ACL de solo lectura—, y afirmarlo seria inexacto. La copia operativa
 pasa a `%LOCALAPPDATA%/PersonalBlog/bootstrap/github-oidc/`.
 
 **Esto es una transferencia de custodia bajo EX-028-C7, no un segundo estado activo.**
@@ -765,3 +767,63 @@ Tres copias locales esperan cifrado y custodia externa con recuperacion verifica
 
 El cifrado simetrico exige una frase que el agente no debe conocer ni manejar, y el
 destino externo exige una sesion de navegador. Ambas cosas son del operador.
+
+## 18. Cierre de EX-028-C7: custodia externa con recuperacion verificada (2026-09-25)
+
+### 18.1 Defecto propio corregido en el camino
+
+El primer cifrado se ejecuto con `--batch`, que **suprime la confirmacion por
+repeticion** de la frase simetrica. Un error de tecleo quedaba grabado sin aviso, y el
+descifrado de verificacion fallo con `Bad session key`. Los tres ciphertexts quedaron
+**preservados** con sufijo `.UNVERIFIABLE-20260925T2151Z` —no se borraron— y el cifrado
+se repitio sin `--batch`, de modo que GnuPG exige la frase dos veces y rechaza cualquier
+discrepancia. Los tres `.tar` originales se comprobaron **sin cambios** antes y despues.
+
+Leccion aplicada: la verificacion por descifrado se hizo **en local, antes** de la
+custodia externa, para no descubrir un fallo de frase despues de un viaje completo.
+
+### 18.2 Cadena de custodia completa
+
+| Artefacto | Rol | SHA256 del ciphertext |
+| --- | --- | --- |
+| `pre-main-20260925T145118Z.tar.gpg` | estado previo a la mutacion | `d08a51b3…6f2d7c1d` |
+| `local-pre-main-20260925T190328Z.tar.gpg` | copia local anterior al apply | `2694da95…f8c1e923` |
+| `post-main-20260925T190328Z.tar.gpg` | **copia final autoritativa** | `e6cdc1a0…101c8ec5` |
+
+Cifrado simetrico **AES256** con frase confirmada, sin cache de clave. Los tres
+descifraron en local devolviendo su `.tar` **byte a byte**. Los tres viajaron al
+almacenamiento externo del operador.
+
+### 18.3 Recuperacion real de la copia autoritativa
+
+Descargada de vuelta desde el destino externo y verificada de extremo a extremo:
+
+| Comprobacion | Resultado |
+| --- | --- |
+| SHA256 del ciphertext recuperado | **identico** a `e6cdc1a0…101c8ec5` |
+| Descifrado GnuPG | correcto |
+| SHA256 del tar recuperado | **identico** a `cd4a735d…c169ab23` |
+| `SHA256SUMS` interno | **6/6** |
+| Estado | version 4, serial 6, lineage **coincide** con el operativo |
+| Recursos administrados | **exactamente** rol + proveedor |
+| `deposed` | ninguno |
+| Binding de cuenta | correcto |
+| Trust del estado recuperado | **main-only, sin `DateLessThan`** |
+
+El plaintext temporal de verificacion se retiro; los `.tar` locales se conservan.
+
+**EX-028-C7 queda satisfecha en su exigencia de custodia:** copias antes y despues de
+cada mutacion, cifradas, fuera del equipo y con recuperacion **demostrada**, no
+supuesta. Su revision sigue fijada al **2026-10-24** y su extincion sigue siendo de
+Task/030, antes del primer apply de infraestructura de aplicacion.
+
+### 18.4 Estado de la tarea
+
+**Task/028 — Lista para validacion.**
+**Bloqueo externo para integracion/merge: H-028-1.**
+
+La implementacion esta completa y verificada contra AWS y GitHub reales. `CI Infra`
+sigue en rojo por el cambio de politica de quay.io sobre la imagen de MinIO: **no se
+oculta ni se minimiza**, y debera resolverse fuera del alcance de Task/028 antes de
+considerar sano el pipeline de integracion. No se ha creado pull request, no se ha
+fusionado nada y `dev` no se ha tocado.

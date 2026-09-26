@@ -76,7 +76,7 @@ Git, enlaces y patrones de secretos pasó; el usuario aprobó Task/027 el 2026-0
 [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) ·
 [Reporte](../task-reports/TASK-027-report.md)
 
-### `Task/028-GitHub-OIDC-AWS` — *En progreso*
+### `Task/028-GitHub-OIDC-AWS` — *Lista para validación · bloqueo externo H-028-1*
 
 Federación OIDC real GitHub Actions → AWS, **sin access keys permanentes**.
 Rol exclusivo `PersonalBlogGitHubOidcValidation`, cero managed/inline policies:
