@@ -38,5 +38,13 @@ RUN set -eux; \
 # Es exactamente el manifest linux/amd64 de la imagen vigente. El unico layer
 # nuevo sustituye /usr/bin/minio; mc, entrypoint, OS, config y permisos quedan
 # heredados byte a byte y el verificador OCI lo exige.
-FROM quay.io/minio/minio@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2
+#
+# H-028-1 (2026-09-26): upstream retiro `minio/minio` de la distribucion publica
+# —privada en quay.io, inexistente en Docker Hub— y el digest dejo de ser
+# accesible anonimamente. La referencia apunta ahora a un espejo PRIVADO en el
+# GHCR del proyecto que conserva **el mismo digest**: los bytes del manifiesto se
+# republicaron sin alterarlos, de modo que el pin sigue siendo identico y la
+# identidad verificada por Task/027.1 se mantiene, no se sustituye. Solo cambia
+# el registry/repository. El origen historico queda en `runtime_base.upstream_index`.
+FROM ghcr.io/jeffersondavila/personal-blog-minio-base@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2
 COPY --from=builder --chown=0:0 --chmod=0755 /out/minio /usr/bin/minio

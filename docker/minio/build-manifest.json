@@ -23,14 +23,14 @@
   },
   "recipe": {
     "dockerfile": "docker/minio/Dockerfile",
-    "dockerfile_sha256": "72683e763d193412096e271664d003a7faa946046ffd7773b9c3be03230f6bb7",
+    "dockerfile_sha256": "a8a5b65c8fc4741258dbbb2c523dfb80e5040648a81e2b4cedf8a7c5eebc9e99",
     "frontend": "docker/dockerfile:1.19@sha256:b6afd42430b15f2d2a4c5a02b919e98a525b785b1aaff16747d2f623364e39b6",
     "builder_index": "docker.io/library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
     "builder_platform_manifest": "docker.io/library/golang:1.24.6-bookworm@sha256:4f8589362626cfa081fdab2b474cda87c3b51d74b1e227c110d2ffde56daad5c"
   },
   "runtime_base": {
     "upstream_index": "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
-    "platform_manifest": "quay.io/minio/minio@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2",
+    "platform_manifest": "ghcr.io/jeffersondavila/personal-blog-minio-base@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2",
     "config_digest": "sha256:69b2ec208575b69597784255eec6fa6a2985ee9e1a47f4411a51f7f5fdd193a9",
     "runtime_config_sha256": "b6e997f1b66b15567d7929dc94f45b406adb6a4bba3b36c8880a0534906db244",
     "layer_digests": [

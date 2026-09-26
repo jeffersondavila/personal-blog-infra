@@ -24,10 +24,14 @@ on:
   push:
   pull_request:
 
-# El workflow solo lee el repositorio: no publica, no comenta, no despliega y
-# no necesita ningun secreto del proyecto.
+# El workflow solo lee: no publica, no comenta, no despliega y no necesita
+# ningun secreto del proyecto. `packages: read` se anade por H-028-1: la base de
+# MinIO dejo de ser accesible anonimamente en upstream y se sirve desde un espejo
+# PRIVADO del propio proyecto, que se lee con el GITHUB_TOKEN efimero del run.
+# No hay PAT ni secreto almacenado.
 permissions:
   contents: read
+  packages: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
@@ -379,6 +383,15 @@ jobs:
       # Las imagenes propias se construyen aqui con la MISMA base fijada por
       # digest que declara `.env.example`: se escanea lo que el proyecto corre,
       # con sus parches aplicados, no la base sin parchear.
+      # H-028-1: la base de MinIO vive en un espejo privado del proyecto, con el
+      # MISMO digest que el upstream retirado. Se autentica con el token efimero
+      # del propio run, nunca con una credencial personal.
+      - name: Log in to GHCR for the private MinIO base
+        run: |
+          set -euo pipefail
+          printf '%s' "${{ github.token }}"             | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          echo "autenticado en ghcr.io para leer la base privada"
+
       - name: Build the project images
         run: |
           set -euo pipefail

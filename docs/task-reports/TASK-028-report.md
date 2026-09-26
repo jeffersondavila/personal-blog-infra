@@ -887,3 +887,94 @@ es GHCR, y hoy:
 - hacerlo **publico** redistribuiria una imagen que su autor retiro deliberadamente de
   la distribucion publica. La AGPL lo permite, pero es una decision con consecuencias
   externas que no corresponde tomar por iniciativa propia.
+
+## 20. H-028-1 resuelto: espejo privado que preserva el digest (2026-09-26)
+
+### 20.1 Solucion elegida
+
+Opcion A del abanico evaluado: **espejo privado en el GHCR del proyecto**, sin
+redistribucion publica de una imagen que su autor retiro deliberadamente.
+
+Los bytes del manifiesto `linux/amd64` se republicaron **sin alterarlos**, subiendo los
+blobs y el manifiesto originales mediante la API de distribucion OCI. El resultado no es
+una imagen equivalente: es **el mismo artefacto**.
+
+### 20.2 Identidad conservada, comprobada contra el registro
+
+Descargado de vuelta desde el espejo y comparado con lo que registro `Task/027.1`:
+
+| Propiedad | Resultado |
+| --- | --- |
+| Platform manifest digest, cabecera del registro | `sha256:a1a8bd4a…cbaba2` |
+| Platform manifest digest, **recalculado** sobre los bytes servidos | **identico** |
+| Bytes del manifiesto frente al original local | **identicos** |
+| Media type | `application/vnd.docker.distribution.manifest.v2+json`, sin cambio |
+| Config digest | identico, y su blob recalcula correcto |
+| Numero de layers | 9 = 9 |
+| Layer digests, en orden | identicos |
+| `diff_ids`, en orden | identicos |
+| `runtime_config_sha256` | identico, calculado con `canonical()` del propio verificador |
+| Platform del config | `linux/amd64` |
+
+**El digest no cambio**, de modo que no hubo que tocar baseline, provenance ni
+identidades para que CI pasara. Eso habria sido falsificar continuidad; aqui la
+continuidad es demostrable.
+
+### 20.3 Cambios minimos aplicados
+
+- `docker/minio/Dockerfile`: el `FROM` cambia **solo de registry/repository**,
+  conservando el mismo digest, con la razon escrita en el propio archivo.
+- `docker/minio/build-manifest.json`: `runtime_base.platform_manifest` apunta al espejo
+  con el mismo digest; `recipe.dockerfile_sha256` se actualiza porque el Dockerfile
+  cambio. **`runtime_base.upstream_index` queda intacto**: documenta el origen
+  historico, que sigue siendo cierto.
+- `.github/workflows/ci-infra.yml`: `packages: read` y un login a GHCR con el
+  `${{ github.token }}` **efimero** del run. Sin PAT, sin secreto almacenado, sin
+  credencial personal.
+
+### 20.4 Lo que esto no cambia
+
+El espejo es **privado**. No se publica ninguna imagen de MinIO al mundo. El producto es
+el mismo, el pin por digest sigue vigente, no hay tags moviles, S-09 y el gate de
+vulnerabilidades siguen intactos y el build se sigue ejecutando y verificando desde
+cero: nada se ha saltado ni degradado a aviso.
+
+### 20.5 Validacion local: el mismo artefacto final, reconstruido
+
+Build desde cero con `--no-cache --pull`, contra el espejo privado, con el mismo BuildKit
+fijado y el mismo `SOURCE_DATE_EPOCH`:
+
+```text
+manifest_digest      sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129
+config_digest        sha256:25c832aa396d4de7eb2d202529ee8055280633f0ef270687e565bd376d1882a2
+binary_sha256        9437671add14972349f023a780c1d873f4d8993d3a6cd7448b1b8a962e89983f
+binary_size          111145144
+layers               10
+only_minio_replaced  true
+VERIFY_RC            0
+```
+
+Ese `manifest_digest` es **exactamente** el que `Task/027.1` produjo y publico desde
+quay.io. Reconstruir contra el espejo devuelve **el mismo artefacto final bit a bit**:
+la prueba de que el espejo no es una base parecida, sino la misma, y de que la
+reproducibilidad se conserva intacta.
+
+Trivy 0.74.0 —la version fijada en CI— sobre la imagen reconstruida:
+
+```text
+accionables en la imagen   99
+aceptadas en la baseline   99
+CVE-2026-79921             ausente
+github.com/rabbitmq/amqp091-go  ausente
+```
+
+### 20.6 El unico cambio en la baseline, y por que es legitimo
+
+`security/vulnerability-baseline.json` solo cambia en
+`identity_attestation.build_manifest_sha256`, porque el archivo de receta cambio de
+contenido al nombrar el espejo. **No cambian** `reference`, `expected_digest` ni las 99
+`accepted_findings`: la identidad de la imagen es la misma y esta demostrada.
+
+El test `test_baseline_is_bound_to_exact_build_manifest` hizo exactamente su trabajo al
+bloquear el cambio hasta revalidar. No se toco para que CI pasara: se revalido primero
+—rebuild, verificador, Trivy— y despues se actualizo la unica ligadura afectada.
