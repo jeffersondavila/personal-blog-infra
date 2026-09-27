@@ -1,15 +1,31 @@
 # ADR-007 — PostgreSQL de producción en VPS externo
 
+> **Reemplazada — 2026-09-27 (`Task/028.2`, aprobada).**
+> [ADR-010](ADR-010-production-postgresql-on-rds.md) —**Aceptada**— sustituye este ADR por
+> **Amazon RDS for PostgreSQL privado**. Su contenido queda como **historia**: nada se
+> borra, y su texto **no es una instrucción** para ejecutar el modelo VPS.
+>
+> **Por qué:** la premisa de costo y aprendizaje cambió —créditos AWS disponibles,
+> prioridad de aprender RDS, VPC, KMS y backups administrados, y menor interés en operar un
+> host—. **No se califica esta decisión como error.**
+>
+> **Qué sobrevive en ADR-010:** `DATABASE_URL` como único contrato de la aplicación,
+> PostgreSQL nunca público, TLS con validación, credenciales de mínimo privilegio, restore
+> probado y PostgreSQL local como destino de desarrollo. **Qué pierde objeto:** host, SSH,
+> PgBouncer, secretos y configuración del host (D-16 a D-18) y backups desde el host.
+> Canónico vigente: [PostgreSQL RDS](../architecture/production-postgresql-rds.md).
+
+
 | Campo | Valor |
 | --- | --- |
-| **Estado** | **Aceptada** ✔ |
+| **Estado** | **Reemplazada** por [ADR-010](ADR-010-production-postgresql-on-rds.md) el 2026-09-27 (`Task/028.2`). Fue **Aceptada** ✔ el 2026-08-15 |
 | **Fecha** | 2026-08-15 |
 | **Fecha de aceptación** | 2026-08-15 |
 | **Aceptada por** | jeffersondavila (usuario) |
 | **Expresión de aprobación** | `approved: Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` |
 | **Tarea** | `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (mantenimiento; **no cuenta** en las 41 tareas) |
 | **Reemplaza a** | — |
-| **Reemplazada por** | — |
+| **Reemplazada por** | [ADR-010](ADR-010-production-postgresql-on-rds.md) — **Aceptada** el 2026-09-27 |
 | **Modifica parcialmente** | [ADR-003](ADR-003-serverless-low-cost-cloud.md) — **solo la fila «Base de datos»**. El resto de ADR-003 sigue íntegro y vigente |
 | **Documento canónico** | [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) |
 | **Decisión diferida** | **D-01** — **Resuelta** en cuanto al **modelo**; proveedor pendiente de `Task/029` |

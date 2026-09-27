@@ -3,13 +3,20 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-22 — Task/028 En progreso; reconciliación D-06 y propiedad Task/030 |
-| **Decisiones abiertas** | **11** — D-13 resuelta por aprobación de `Task/027`; D-21 permanece abierta |
+| **Última actualización** | 2026-09-27 — enmienda RDS aprobada, Task/028.2 |
+| **Decisiones abiertas** | **11** — D-07, D-08, D-10, D-11, D-12, D-19, D-20 y D-21, más **D-22 a D-24**, abiertas por `Task/028.2` el 2026-09-27 |
+| **Cerradas por no aplicabilidad** | **3** — **D-16**, **D-17** y **D-18**, el 2026-09-27, al aceptarse ADR-010: sin VPS pierden objeto. IDs y texto conservados, no reutilizables |
 | **Decisiones resueltas** | **10** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)** |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
 > `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`.
+
+> **Nota de `Task/028.2`, aprobada el 2026-09-27.** D-01 conserva su resolución histórica,
+> pero su modelo quedó sustituido: [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md)
+> —**Aceptada**— fija **RDS privado**. La parte de proveedor pierde objeto y
+> `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` decide **D-22** a **D-24**. El registro
+> tiene **24 IDs**: 11 abiertos, 10 resueltos y 3 cerrados por no aplicabilidad.
 
 Registro explícito de lo que **todavía no está decidido**, cuándo debe decidirse, qué
 información hará falta y qué se ve afectado.
@@ -27,7 +34,7 @@ ADR.
 
 | # | Decisión | Se resuelve en | Estado |
 | --- | --- | --- | --- |
-| D-01 | Modelo de PostgreSQL de producción | `Task/005.3` (modelo) · `Task/029` (proveedor) | **Resuelta** (2026-08-15) — **autogestionado en VPS externo**. Proveedor pendiente en `Task/029` |
+| D-01 | Modelo de PostgreSQL de producción | `Task/005.3` (modelo) · `Task/029` (proveedor) | **Resuelta** (2026-08-15) — **autogestionado en VPS externo**. Proveedor pendiente en `Task/029`. ***Modelo sustituido el 2026-09-27** por **RDS privado** (ADR-010, `Task/028.2`); la parte de proveedor pierde objeto y `Task/029` decide D-22 a D-24* |
 | D-02 | Mecanismo concreto de autenticación | `Task/011` | **Resuelta** (2026-09-01) — **sesión opaca *server-side* con cookie `HttpOnly`** |
 | D-03 | Biblioteca de componentes visuales | `Task/013` | **Resuelta** (2026-09-04) — **ninguna biblioteca de terceros**: CSS Modules más CSS Custom Properties |
 | D-04 | Editor Markdown | `Task/015` | **Resuelta** (2026-09-05) — `<textarea>` nativo y vista previa con `MarkdownContent` |
@@ -38,17 +45,24 @@ ADR.
 | D-09 | Herramienta concreta de rate limiting | `Task/011` · reforzado en `Task/018` | **Resuelta** (2026-09-01) — **contador de ventana fija en PostgreSQL**, por IP |
 | D-10 | Estrategia de backups cloud | `Task/029` | Abierta |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
-| D-12 | Límites exactos de Lambda | `Task/032` | Abierta |
+| D-12 | Límites exactos de Lambda | `Task/032` · *desde `Task/028.2`: `Task/029` deriva el presupuesto preliminar de conexiones* | Abierta |
 | D-13 | Presupuesto mensual objetivo | `Task/027` | **Resuelta** (2026-09-17) — techo USD 20/mes global y sublímite USD 5/mes AWS |
 | D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
 | D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | **Resuelta** (2026-09-01) — **mismo *site***: sitio y panel en el dominio raíz, API en subdominio |
-| D-16 | **Mecanismo de identidad del VPS hacia AWS** para los backups | `Task/029` (decide) · `Task/030` (materializa) | Abierta |
-| D-17 | **Herramienta de gestión de secretos cifrados del VPS** | `Task/029` | Abierta |
-| D-18 | **Mecanismo de configuración interna del sistema operativo del VPS** | `Task/029` | Abierta |
-| D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) | Abierta |
-| D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) | Abierta |
+| D-16 | **Mecanismo de identidad del VPS hacia AWS** para los backups | `Task/029` (decide) · `Task/030` (materializa) | **Cerrada por no aplicabilidad** (2026-09-27) — `Task/028.2`, ADR-010 |
+| D-17 | **Herramienta de gestión de secretos cifrados del VPS** | `Task/029` | **Cerrada por no aplicabilidad** (2026-09-27) — `Task/028.2`, ADR-010 |
+| D-18 | **Mecanismo de configuración interna del sistema operativo del VPS** | `Task/029` | **Cerrada por no aplicabilidad** (2026-09-27) — `Task/028.2`, ADR-010 |
+| D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) · *desde `Task/028.2`: `Task/029` estima y `Task/031` verifica antes de integrar* | Abierta |
+| D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) · *desde `Task/028.2`: `Task/031` decide **e implementa*** | Abierta |
 | D-21 | **Estrategia de *rendering* del sitio público frente a *crawlers*** | Sin tarea asignada — abierta por `Task/016` | Abierta |
+| D-22 | **Red, topología y capacidad de RDS** | `Task/029` (decide) · `Task/031` (implementa) | Abierta — desde `Task/028.2` (2026-09-27) |
+| D-23 | **TLS, KMS, secretos y autenticación SQL de RDS** | `Task/029` (decide) · `Task/031`/`Task/032` (implementan) | Abierta — desde `Task/028.2` (2026-09-27) |
+| D-24 | **Canal privado de administración y migraciones** | `Task/029` (decide) · `Task/031`/`Task/036`/`Task/038` (implementan) | Abierta — desde `Task/028.2` (2026-09-27) |
 
+> *(Nota de `Task/028.2`: este párrafo es historia de `Task/006.2`. D-17 y D-18 quedaron
+> cerradas por no aplicabilidad el 2026-09-27; los owners vigentes de D-19 y D-20 están en el
+> índice.)*
+>
 > **D-17 a D-20 se añadieron en `Task/006.2`** (**aprobada** el 2026-08-23), al formalizar la arquitectura
 > objetivo de producción. **Son consecuencia de cerrar decisiones, no de abrirlas al azar:**
 > decidir *qué* —secretos cifrados en el VPS, Grafana Cloud, Alloy, CloudWatch mínimo—
@@ -60,6 +74,13 @@ ADR.
 ---
 
 ## D-01 — Modelo de PostgreSQL de producción — **RESUELTA**
+
+**Modelo sustituido el 2026-09-27:** RDS privado, con ADR-010 **Aceptada** al aprobarse
+Task/028.2. La resolución del 2026-08-15 no se borra. Task/029 ya no selecciona
+proveedor de host: resuelve D-22–D-24 y prepara D-10/D-12/costos.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 > **Estado: Resuelta** el 2026-08-15, al aprobar el usuario
 > `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` con la expresión exacta requerida por
@@ -126,6 +147,8 @@ D-01 responde **qué modelo**, no **con qué proveedor**. Siguen pendientes y se
   se toma por lo que Floci soporte: se toma por costo y por aprendizaje, y su consecuencia
   es que **RDS deja de ser el destino de producción**. Ver
   [aws-local-parity.md](aws-local-parity.md) §8.
+
+</details>
 
 ## D-02 — Mecanismo concreto de autenticación — **RESUELTA**
 
@@ -509,6 +532,19 @@ cierra D-08 para desbloquearse**. Detalle en la
 
 ## D-10 — Estrategia de backups cloud
 
+**Abierta; Task/029 decide** RPO/RTO, backups automáticos RDS, PITR, retención,
+snapshots, cifrado, deletion protection/snapshot final y destrucción no productiva.
+Task/031 prueba restore sintético; Task/036 protege las primeras migraciones;
+Task/040 restaura un backup reciente con esquema de app en destino aislado y mide
+integridad/tiempos. No exigir evidencia RDS real en Task/029. Backups administrados
+no necesitan identidad de host ni un bucket del proyecto como destino. D-16 quedó
+cerrada por no aplicabilidad el 2026-09-27. Costos de restore temporal y snapshots cuentan.
+La custodia de backups **locales** R-12 se revisa separadamente: Task/029 prepara
+contrato y Task/031 documenta controles; retirar D-17 no los cifra.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
+
 - **Se resuelve en:** `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`
 - **Información necesaria:** qué backups y snapshots incluye el proveedor elegido;
   retención; costo de retención adicional; procedimiento y tiempo de restauración; si S3
@@ -533,7 +569,18 @@ cierra D-08 para desbloquearse**. Detalle en la
 
   Con qué **identidad** escribe el VPS en S3 es **D-16**, no parte de esta decisión.
 
+</details>
+
 ## D-11 — Retención exacta de CloudWatch
+
+**Abierta; Task/031 decide e implementa.** Retención explícita para logs AWS
+y DB, volumen/costo/privacidad, alarmas y capacidad. Task/029 estima el costo antes
+de provisionar. Task/032/033 añaden señales al desplegar sus servicios; Task/040
+verifica alarmas y diagnóstico. Database Insights/Enhanced Monitoring se justifican
+por utilidad y precio, no se incluyen implícitamente.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 - **Se resuelve en:** `Task/031-Desplegar-SSM-y-CloudWatch`
 - **Información necesaria:** volumen real de logs generado; costo por GB ingerido y
@@ -541,7 +588,19 @@ cierra D-08 para desbloquearse**. Detalle en la
 - **Afecta a:** costo (`Task/041`), capacidad de diagnóstico (`Task/040`).
 - **Criterio ya fijado:** la retención es **limitada y explícita**; nunca infinita.
 
+</details>
+
 ## D-12 — Límites exactos de Lambda
+
+**Abierta; Task/029 deriva presupuesto preliminar y Task/032 decide con medición.**
+Memoria/timeout/concurrencia reservada, pool por proceso, max_connections y reserva
+de administración/migraciones/sondas. Evaluar directo frente a RDS Proxy, incluyendo
+precio, autenticación, pinning y compatibilidad psycopg. Task/040 prueba carga,
+saturación y recuperación. No trasladar defaults locales (pool 5 + overflow 5) a
+producción sin cálculo; no exigir medición Lambda real como salida de Task/029.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 - **Se resuelve en:** `Task/032-Desplegar-AWS-Lambda`
 - **Información necesaria:** memoria necesaria medida; tiempo de arranque en frío real;
@@ -550,6 +609,8 @@ cierra D-08 para desbloquearse**. Detalle en la
   (D-01).
 - **Tensión conocida:** más memoria acelera la ejecución y puede reducir el costo total, y
   más concurrencia agrava el problema de conexiones. Requiere medición, no intuición.
+
+</details>
 
 ## D-13 — Presupuesto mensual objetivo
 
@@ -575,6 +636,16 @@ cierra D-08 para desbloquearse**. Detalle en la
   Lambda (D-12), decisión de continuar o no con la nube.
 - **Por qué es crítica:** es la restricción que gobierna toda la Etapa 09 en adelante. Se
   fija **antes** de crear el primer recurso.
+
+> **Nota de `Task/028.2`, aprobada el 2026-09-27.** **D-13 no
+> cambia**: USD 20/mes para todo el proyecto y USD 5/mes de sublímite AWS. Con RDS, las
+> referencias de arriba al costo del VPS se leen como costo de **RDS** —instancia,
+> almacenamiento, backups y *endpoints*—. **Los créditos AWS no elevan el límite ni hacen
+> gratis el costo bruto**: Budgets los excluye (Credit/Refund). `Task/029` separa **costo
+> bruto**, **crédito elegible consumido**, **desembolso**, **vencimiento** y **escenario
+> poscrédito**. Si el costo no cabe, una **decisión explícita** del usuario es requisito
+> previo al primer `apply` de aplicación. Los créditos tampoco autorizan cambiar de plan
+> (Free Plan). D-19 se verifica antes de integrar Grafana (`Task/031`).
 
 ## D-14 — ¿Se usará un emulador AWS local para la estrategia de IaC? — **RESUELTA**
 
@@ -609,6 +680,12 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 | Procedimientos operativos del laboratorio | `Task/026` |
 | **Proveedor de la base de datos de producción** (**D-01**) | `Task/029` — **sin relación con esta decisión** |
 | Integración del laboratorio en CI | `Task/039` |
+
+*(Nota de `Task/028.2`, 2026-09-27: la tabla es la del 2026-08-15. `Task/025` y `Task/026`
+se aprobaron después, así que versión, estructura, guardas y **D-06** ya tienen evidencia
+en la matriz de paridad; esas filas no reabren nada. La fila de D-01 pasa a ser el diseño
+RDS de `Task/029` —**D-22** a **D-24**— desde que se aceptó ADR-010, igualmente **sin relación con
+D-14**: RDS no se elige porque Floci lo soporte.)*
 
 - **Afecta a:** ETAPA 08 (`Task/023`–`Task/026`), ETAPA 10 (reutilización de módulos),
   ETAPA 11 (`Task/039`) y los límites de seguridad (C-12).
@@ -667,7 +744,16 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 - **Restricción:** se decide la **forma**, con nombres de ejemplo. **No se compra ni se
   reserva ningún dominio** en `Task/011`.
 
-## D-16 — Mecanismo de identidad del VPS hacia AWS
+## D-16 — Mecanismo de identidad del VPS hacia AWS — **CERRADA POR NO APLICABILIDAD**
+
+**Cerrada por no aplicabilidad el 2026-09-27**, al aprobarse Task/028.2 y aceptarse
+ADR-010. Motivo: RDS usa backups administrados, no un proceso VPS que escribe
+en AWS. No reutilizar el ID ni provisionar
+el principal antes previsto. Acceso privado y nuevos roles son D-24 y tareas 031,
+032, 036, 038/039; ninguno amplía el rol OIDC de validación.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 > **Añadida en `Task/005.5`** (2026-08-16), a partir de un hueco real detectado por la
 > auditoría: **`Task/028` cubre GitHub OIDC → AWS y eso no da credenciales a un host
@@ -704,7 +790,18 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 > credenciales permanentes» como propiedad global del proyecto**. La afirmación
 > verificada se limita a **GitHub Actions → AWS** (`Task/028`).
 
-## D-17 — Herramienta de gestión de secretos cifrados del VPS
+</details>
+
+## D-17 — Herramienta de gestión de secretos cifrados del VPS — **CERRADA POR NO APLICABILIDAD**
+
+**Cerrada por no aplicabilidad el 2026-09-27**, al aprobarse Task/028.2 y aceptarse
+ADR-010. Desaparece la gestión de secretos del host VPS, no la obligación
+de proteger credenciales. D-23 cubre TLS/KMS/SSM/Secrets Manager/rotación para
+RDS. R-12 de backups locales sigue abierto
+y se conserva su revisión Task/029 → Task/031; no queda abandonado por este cierre.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 > **Añadida en `Task/006.2`** (2026-08-23). El **modelo** queda cerrado por esa tarea:
 > **secretos cifrados, clave fuera del repositorio y descifrado local seguro**. Lo que sigue
@@ -733,7 +830,18 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 - **Restricción firme mientras siga abierta:** **no se generan claves `age`, ni de ninguna
   otra herramienta, ni se instala nada**, hasta `Task/029`.
 
-## D-18 — Mecanismo de configuración interna del VPS
+</details>
+
+## D-18 — Mecanismo de configuración interna del VPS — **CERRADA POR NO APLICABILIDAD**
+
+**Cerrada por no aplicabilidad el 2026-09-27**, al aprobarse Task/028.2 y aceptarse
+ADR-010. AWS opera el SO del host RDS. Ya no se elige Ansible/cloud-init/
+scripts de Linux. D-22 conserva parameter group, ventana y upgrades; Terraform y
+runbooks de Task/031/039 controlan drift administrado. ID y formulación original
+preservados.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 > **Añadida en `Task/006.2`** (2026-08-23), a partir de una regla que esa tarea sí cierra:
 > **Terraform no es la herramienta de configuración del sistema operativo.** Terraform
@@ -762,7 +870,18 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 - **Por qué no se resuelve ahora:** depende del proveedor y de la distribución, que
   **todavía no están seleccionados**.
 
+</details>
+
 ## D-19 — Plan, límites y costo reales de Grafana Cloud
+
+**Abierta y aplicable:** Grafana Cloud permanece. Task/029 incorpora precios,
+volumen y límites al modelo bruto/créditos; Task/031 verifica antes de contratar o
+integrar; Task/041 revisa consumo real periódicamente. El tier gratuito es una
+preferencia, no garantía. Todo cambio de gasto incompatible con D-13 exige decisión
+explícita. No esperar hasta Task/041 para descubrir costos obligatorios.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 > **Añadida en `Task/006.2`** (2026-08-23). `Task/006.2` cierra **que** Grafana Cloud es el
 > plano central de observabilidad; **no** cierra en qué plan, con qué límites ni a qué
@@ -790,7 +909,19 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 - **Por qué se difiere:** las condiciones de un tier gratuito **no son una garantía eterna**,
   y el volumen real de telemetría no se conoce hasta que el sistema esté en producción.
 
+</details>
+
 ## D-20 — Mecanismo de integración `CloudWatch → Grafana Cloud`
+
+**Abierta; Task/031 decide e implementa** integración CloudWatch → Grafana
+Cloud, con rol/principal dedicado, lectura mínima y costo de consulta/exportación
+incluido. Task/040 demuestra datos y alertas con Lambda/API ya presentes. Alloy de
+host pierde objeto en la enmienda ADR-010; Grafana no desaparece. No dar acceso SQL,
+permisos de despliegue ni secretos permanentes versionados. Si costo o mecanismo
+no encajan, resolverlo explícitamente antes de integrar, sin fingir evidencia.
+
+<details>
+<summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
 > **Añadida en `Task/006.2`** (2026-08-23). La arquitectura **contempla** que Grafana Cloud
 > vea lo que hay en CloudWatch. **Que exista** está cerrado; **con qué mecanismo**, no.
@@ -823,7 +954,17 @@ no *cómo*. Siguen abiertas y **no se resuelven aquí**:
 
 ---
 
+</details>
+
 ## Decisiones no diferidas
+
+> **Nota de `Task/028.2`, aprobada el 2026-09-27.** Las filas de esta sección que
+> describen el **VPS**, **PgBouncer**, los **secretos del host**, **Alloy** o la
+> **configuración del sistema operativo** quedaron sustituidas por
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), **Aceptada**: se conservan como
+> historia y no habilitan ejecutar ese modelo. **Todas las demás siguen vigentes sin
+> cambios.**
+
 
 Todas están **aceptadas**: aprobadas explícitamente por el usuario. Para evitar reabrir lo
 cerrado:
@@ -947,3 +1088,76 @@ JavaScript.
 | Open Graph **de sitio** en `index.html`, visible sin JavaScript | Open Graph **por URL** sin JavaScript |
 | `sitemap.xml` y `robots.txt` correctos en **ambos** canales | — |
 | La medición de los cuatro canales, antes y después | La elección de estrategia |
+
+## D-22 — Red, topología y capacidad de RDS
+
+> **Abierta** por `Task/028.2` el 2026-09-27, junto con
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), **Aceptada**. Sustituye la parte
+> de **proveedor, región y tamaño** que D-01
+> dejaba a `Task/029` en el modelo VPS.
+
+- **Se resuelve en:** `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` (decide) ·
+  `Task/031` (implementa) · `Task/032` (prueba el tráfico real) · `Task/040` (carga y DR).
+- **Qué decide:** región; versión soportada de PostgreSQL; clase, CPU y memoria;
+  almacenamiento, IOPS, *throughput* y límite de crecimiento; **Single-AZ o Multi-AZ**
+  según RPO/RTO y costo; VPC, CIDR, subnets, AZ y **DB subnet group** —que exige subnets en
+  al menos dos AZ incluso para Single-AZ—; security groups; DNS; rutas y *endpoints*;
+  ventana de mantenimiento, actualizaciones menores y *parameter group*.
+- **Información necesaria:** inventario de tráfico de la Lambda repetido sobre el código
+  vigente ([canónico §2](production-postgresql-rds.md#2-inventario-lambda--vpc--egress));
+  precios de la fecha por región, clase, almacenamiento y *endpoint* por AZ; volumen
+  esperado.
+- **Afecta a:** costo frente a **D-13**, conexiones (**D-12**), recuperación (**D-10**),
+  riesgos **R-29**, **R-30**, **R-32** y **R-34**.
+- **Criterio ya fijado:** RDS **sin acceso público**; **sin NAT Gateway** salvo necesidad
+  de salida pública demostrada y decisión explícita; ningún servicio excluido —EC2, ECS,
+  EKS, ECR, ALB— sin decisión nueva; ningún valor elegido por inercia.
+
+## D-23 — TLS, KMS, secretos y autenticación SQL de RDS
+
+> **Abierta** por `Task/028.2` el 2026-09-27. Sustituye
+> en su fondo a **D-17**: desaparecen los secretos **de host**, no la obligación de proteger
+> credenciales.
+
+- **Se resuelve en:** `Task/029` (decide) · `Task/031` (almacena, KMS, IAM y usuarios
+  SQL) · `Task/032` (cliente, entrega, caché y rotación) · `Task/040` (casos negativos).
+- **Qué decide:** TLS con validación de CA y *hostname* (`verify-full`), TLS obligatorio
+  en el *parameter group* y rotación de la CA; clave KMS de la instancia —gestionada por AWS
+  o CMK—, con custodia y recuperación; credencial *master* separada del usuario de la
+  aplicación y del de migraciones; **SSM `SecureString` frente a Secrets Manager**; cómo
+  llega el secreto a la Lambda —en despliegue o en *runtime*— y su rotación; si se adopta
+  **IAM DB authentication**.
+- **Información necesaria:** capacidades de rotación, precio y operación de cada opción;
+  compatibilidad con RDS Proxy si **D-12** lo contempla; custodia del *state* de Terraform.
+- **Afecta a:** si `personal-blog-backend` participa en `Task/032` —hoy no tiene lector de
+  secretos—; riesgos **R-35** y **R-40**.
+- **Criterio ya fijado:** SSM `SecureString` sigue siendo la base; Secrets Manager e IAM DB
+  authentication **no se adoptan por inercia**. Ningún secreto en Git, `.tfvars`,
+  *outputs*, planes publicados ni logs; `sensitive` no elimina un valor del *state*. La
+  clave de la instancia se elige **antes** de crearla. **Este mantenimiento no lee ni crea
+  secretos.**
+
+## D-24 — Canal privado de administración y migraciones
+
+> **Abierta** por `Task/028.2` el 2026-09-27. Con RDS
+> privado **no hay SSH ni host**, y un *runner* público de GitHub **no alcanza la base de
+> datos** solo por tener identidad OIDC.
+
+- **Se resuelve en:** `Task/029` (decide) · `Task/031` (acceso operativo para restore) ·
+  `Task/036` (primeras migraciones, recuperación del administrador **R-43** y purga
+  **R-44**) · `Task/038` (canal repetible y automatizado).
+- **Qué decide:** el mecanismo privado, comparando un **ejecutor Lambda dedicado**,
+  invocado por el plano de control, con otras alternativas compatibles con las
+  restricciones; su identidad, red, artefacto, bloqueo de concurrencia, duración máxima,
+  salida saneada y recuperación.
+- **Información necesaria:** duración real de las migraciones y de las operaciones de
+  restore; límites del ejecutor candidato; costo.
+- **Afecta a:** `Task/031`, `Task/036`, `Task/038`; riesgos **R-35**, **R-43** y **R-44**.
+- **Criterio ya fijado:** ejecuciones **serializadas**, identidad SQL de migración distinta
+  de la de la aplicación, **backup previo** y migraciones **nunca** como efecto lateral del
+  arranque de la Lambda. Si el canal exigiera EC2 u otro servicio excluido, **se detiene** y
+  se pide una decisión explícita. **Nunca** se abre la base de datos a Internet por
+  conveniencia.
+
+Contrato detallado de las tres decisiones:
+[canónico RDS §3](production-postgresql-rds.md#3-decisiones-que-entrega-task029).

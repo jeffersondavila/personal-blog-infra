@@ -50,6 +50,21 @@ responsive y prueba de rollback.
 > comprueba que funcionan **antes** de considerar el blog lanzado. Si algo no está, la
 > tarea propietaria lo corrige.
 
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.** Con
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), la capa de datos vuelve a
+> estar **en AWS**, pero sigue siendo el componente cuyo fallo deja el blog sin contenido,
+> y **no se valida menos**. Las filas **Capa de datos**, **VPS**, **Observabilidad**,
+> **TLS** y **Continuidad** de la tabla anterior quedan sustituidas por:
+>
+> | Ámbito | Qué se verifica |
+> | --- | --- |
+> | **Capa de datos** | Conexión `Lambda → RDS` con TLS verificado desde la Lambda real; pool y concurrencia coherentes **bajo carga real**; saturación, reconexión y recuperación |
+> | **Red y seguridad** | RDS **no** alcanzable desde Internet; casos negativos de security groups, IAM y TLS; roles separados y rol de validación de `Task/028` sin políticas |
+> | **RDS** | Disponibilidad, almacenamiento, IOPS y conexiones con alarmas **disparadas en prueba segura**; *deletion protection* activa |
+> | **Observabilidad** | **CloudWatch mínimo** con su retención real · **Grafana Cloud** recibiendo por **D-20** y alertando · **ninguna alerta muda** · muestreo sin secretos ni PII |
+> | **TLS** | Certificados públicos vigentes y confianza en la **CA de RDS** con su rotación planificada |
+> | **Continuidad** | **Backup reciente restaurado** en destino aislado con el esquema real, **RPO/RTO medidos**, procedimiento de DR y rollback de versión y de migración ejecutados |
+
 **Depende de:** `Task/039`. **Repositorios:** los tres.
 
 ### `Task/041-Proteccion-de-Costos` — *Pendiente*
@@ -70,6 +85,13 @@ recursos activos.
 >
 > **Precios vigentes en el momento de ejecutarse**, nunca cifras heredadas de este
 > documento ni de `Task/029`.
+>
+> *(Enmienda de `Task/028.2`: sin VPS ni IPv4 propia. Se incluyen **RDS**
+> —instancia, almacenamiento, IOPS, backup excedente, snapshots y restores temporales—,
+> ***endpoints*** por AZ y hora, **KMS** y transferencia. Se separan **costo bruto**,
+> **crédito consumido**, **desembolso**, **vencimiento** de los créditos y **escenario
+> poscrédito**. **D-13** no se eleva automáticamente, ni se cambia de plan sin decisión
+> explícita.)*
 
 **Depende de:** `Task/040`. **Repositorio:** `personal-blog-infra`.
 
@@ -103,11 +125,29 @@ recursos activos.
       utilizados siguen siendo aplicables (**D-19**, **R-38**).
 - [ ] Está definida la periodicidad de la revisión de costos.
 
+*(Enmienda de `Task/028.2`: los criterios que nombran **VPS**, **PgBouncer** o
+**Alloy** se leen sobre RDS según la tabla de enmienda de `Task/040`. Se añaden desde la aprobación
+del 2026-09-27:)*
+
+- [ ] RDS no es accesible públicamente; casos negativos de red, security groups, IAM y TLS
+      comprobados.
+- [ ] Carga y latencia `Lambda ↔ RDS`, saturación de conexiones, reconexión y *cold starts*
+      medidos contra los límites de **D-12**.
+- [ ] **Backup reciente restaurado** en destino aislado, con esquema y contenido íntegros y
+      **RPO/RTO medidos**; limpieza autorizada sin tocar producción.
+- [ ] Procedimiento de DR y rollback de versión y de migración verificados.
+- [ ] Alarmas de RDS —almacenamiento, conexiones, backup— **disparadas en prueba segura**.
+- [ ] Costo bruto real contrastado con la estimación de `Task/029`; crédito consumido,
+      desembolso, vencimiento y escenario poscrédito separados; **D-13** sin elevar
+      automáticamente.
+
 ## Fuera del alcance de la etapa
 
 - Nuevas funcionalidades del blog (roadmap posterior).
 - Migración a arquitecturas con costo fijo (EC2, ECS, EKS), excluidas por
   [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md).
+- *(`Task/028.2`)* Introducir NAT Gateway, RDS Proxy, Multi-AZ, Secrets Manager o
+  funciones avanzadas de monitoreo **sin** la decisión de su tarea propietaria.
 
 ## Riesgos conocidos
 
@@ -118,6 +158,8 @@ recursos activos.
 | Recursos huérfanos que nadie recuerda haber creado. | Inventario de recursos mantenido en Terraform y revisado. |
 | Rollback nunca probado en producción real. | Se ejecuta como criterio obligatorio en `Task/040`. |
 | Abandono del mantenimiento tras el lanzamiento. | Runbooks y automatización que reducen el esfuerzo de operación. |
+| *(`Task/028.2`)* **Los créditos AWS se agotan o caducan** y el costo bruto de RDS pasa a pagarse (**R-02**). | Escenario poscrédito en `Task/029` y `Task/041`; decisión explícita antes de que ocurra, no después. |
+| *(`Task/028.2`)* **Confundir backup administrado con recuperación** (**R-31**). | Solo cuenta un restore reciente demostrado; Multi-AZ **no** sustituye al backup ni al PITR. |
 
 ## Cierre del roadmap
 
