@@ -1497,10 +1497,41 @@ cada nivel, y ahora **imprime los hashes que compara**.
 | `tests/security/test_minio_derivative.py` | conjunto exacto de las 10; los dos CVE corregidos no pueden reaparecer; identidad anterior conservada |
 | `tests/security/test_pinned_artifact_policy.py` | recuento de MinIO 99 → 10 |
 | `tests/security/test_vulnerability_gate.py` | atestado sintético con el esquema v2 |
+| `.gitleaks.toml` | **nuevo**: las líneas `go.sum` de los parches no son secretos (ver §26.9.1) |
 
 Suites: `tests/oidc` **60 OK**, `tests/laboratorio` **176 OK**, `tests/security` **88 OK**.
 Gate de coherencia: **CORRECTO**. Compilación de los 17 scripts Python: **0 fallos**. CRLF en
 los archivos tocados: **0**.
+
+#### 26.9.1 Por qué hubo que configurar Gitleaks, y por qué no se relajó
+
+Los parches de dependencias llevan líneas de `go.sum`, y `generic-api-key` marcó **5** cuya
+ruta de módulo contiene `auth`, `oauth2` o `api`. Son hashes dirhash del árbol de cada
+módulo, **publicados en `sum.golang.org`**: su propósito es el contrario al de un secreto, y
+sin ellos el build no podría ejecutar `go mod verify`.
+
+La primera versión de `.gitleaks.toml` **no suprimía nada** —seguía dando los mismos 5— y eso
+se detectó porque se volvió a ejecutar el escáner, no porque se supusiera. Con un caso mínimo
+reproducible en Gitleaks 8.30.1 se estableció por qué:
+
+| Intento | Resultado |
+| --- | --- |
+| `regexes` sobre el `match` | no suprime: el hallazgo no expone la línea completa |
+| `regexTarget = "line"` | no suprime, por lo mismo |
+| `regexTarget = "secret"` sola | suprime, pero **repo entero**: demasiado amplia |
+| `paths` sola | suprimiría los archivos **completos** |
+| `paths` + `secret` sin `condition` | **OR** por defecto: equivale a exceptuar los archivos |
+| `paths` + `secret` + `matchCondition = "AND"` | la clave **se ignora en silencio**; degrada a OR |
+| `paths` + `secret` + `condition = "AND"` | **correcto** |
+
+La excepción final exige **las dos** condiciones: ruta de parche de dependencias **y** valor
+que sea exactamente un Base64 de 32 bytes. Se validó con un **control positivo**: el *mismo*
+Base64 colocado en otro archivo **sigue apareciendo** como hallazgo. No se desactivó ninguna
+regla, no se exceptuó ningún archivo completo y no se usó `.gitleaksignore` con huellas,
+porque una huella lleva dentro el SHA del commit y deja de aplicar en cuanto el commit cambia.
+
+Escaneo del historial completo con la invocación exacta de `CI Infra`, y también por
+autodetección del archivo sin `--config`: **`no leaks found`** en ambos casos.
 
 ### 26.10 Brecha declarada: el derivado D-1 no está publicado
 
