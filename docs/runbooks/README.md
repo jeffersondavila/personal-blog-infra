@@ -53,3 +53,9 @@ La operación contra AWS real sigue pendiente según el roadmap:
 > real:** el modo `production` permanece **bloqueado**, el bucket S3 del backend de
 > estado **no existe**, y privacidad de S3, *enforcement* de IAM y cifrado real siguen
 > siendo AWS-only hasta la ETAPA 10.
+
+## Ampliación RDS — Task/028.2
+
+Los cinco runbooks de despliegue conservan evidencia del grafo Task/026.
+Task/031 los ampliará para red/RDS y restore antes de usarlos; Task/036/038 para
+migraciones privadas; Task/040 para DR integral. [Contrato](../architecture/production-postgresql-rds.md).

@@ -31,7 +31,8 @@ from typing import Any, Final
 #: Tipos de recurso que esta tarea puede crear. Lista **cerrada**: cualquier otro
 #: tipo en el plan aborta, que es como se detecta que el grafo crecio sin que una
 #: decision lo autorizara. En particular no hay ningun `aws_db_*` ni `aws_rds_*`:
-#: ADR-007 situa PostgreSQL en un VPS externo y `Task/025` no crea RDS.
+#: El grafo aprobado de Task/025 no incluye RDS. ADR-010 lo amplia en Task/031;
+#: hasta implementarlo y validarlo alli, la guarda sigue rechazando RDS.
 TIPOS_PREVISTOS: Final = frozenset(
     {
         # S3 — bucket de medios

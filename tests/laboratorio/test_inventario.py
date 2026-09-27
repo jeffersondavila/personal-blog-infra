@@ -94,7 +94,7 @@ class PlanTests(unittest.TestCase):
         self.assertIn("aws_db_instance", str(capturado.exception))
 
     def test_plan_con_recurso_rds_aborta_siempre(self):
-        """ADR-007: PostgreSQL vive en un VPS externo. Task/025 no crea RDS."""
+        """El grafo Task/025 no incluye RDS; ampliacion futura en Task/031, no aqui."""
         for tipo in ("aws_db_instance", "aws_rds_cluster", "aws_db_subnet_group"):
             with self.subTest(tipo=tipo):
                 with self.assertRaises(modulo.ErrorDeInventario):

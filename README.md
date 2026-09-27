@@ -30,31 +30,31 @@ Repositorios hermanos:
 
 ## 2. Estado actual del proyecto
 
-- **ETAPA 00 — Fundación y Gobierno: completada** (2 de 2 tareas aprobadas).
-- **ETAPA 01 — Infraestructura Local: completada** (2 de 2 tareas aprobadas).
-- **Etapa actual:** **ETAPA 02 — Fundaciones de las Aplicaciones**, *en curso* (1 de 3).
-- **Última tarea aprobada:** `Task/005-Fundacion-Backend-FastAPI` (2026-08-12). Sus PR `#2`
-  (backend) y `#6` (infra) fueron **fusionados** el 2026-08-13 y normalizados.
-- **Último mantenimiento aprobado:** `Task/005.7-Cerrar-Hallazgos-Finales-de-Certificacion`
-  (2026-08-16). Anteriores: `Task/005.6`, `Task/005.5`, `Task/005.4`, `Task/005.3`,
-  `Task/005.2`, `Task/005.1`. Ninguno cuenta en las 41 tareas.
-- **Mantenimiento en curso:** ninguno.
-  *(Actualizado en `Task/005.7`: aquí se nombraba `Task/005.4` como último mantenimiento
-  aprobado y `Task/005.5` como en curso; ambas quedaron aprobadas después.)*
-- **Próxima tarea del roadmap:** `Task/006-Fundacion-Frontend-React` — *Pendiente, no
-  iniciada*. Será el **primer código React** del proyecto.
-- **Tareas aprobadas:** 5 de 41 (12 %).
+> **Instantánea del 2026-09-27.** El estado vigente vive en
+> [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md). Git y GitHub son
+> la fuente viva de ramas y PR ([WORKFLOW §6.1](docs/project-management/WORKFLOW.md)).
+
+- **ETAPAS 00 a 08: completadas.**
+- **Etapa actual:** **ETAPA 09 — Cuentas y Seguridad Cloud**, *en curso* (2 de 3):
+  `Task/027` y `Task/028` aprobadas; `Task/029` **Pendiente**.
+- **Tareas aprobadas:** 28 de 41 (≈ 68 %).
+- **Mantenimiento de esta fecha:** `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` —
+  **Aprobada** el 2026-09-27, fuera de las 41. Fija PostgreSQL de producción en **RDS
+  privado** ([ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md), **Aceptada**).
+
+*(Corregido en `Task/028.2`: esta sección seguía describiendo el estado del 2026-08-16
+—ETAPA 02 en curso, 5 de 41— y la tabla siguiente, el anterior a `Task/006`.)*
 
 Estado de la implementación:
 
-| Área | Estado |
+| Área | Estado (instantánea del 2026-09-27) |
 | --- | --- |
-| **Infraestructura local** | **Completa y respaldada.** `docker-compose.yml` con PostgreSQL, MinIO y Portainer CE (`Task/003`), más respaldo y recuperación verificados (`Task/004`). |
-| **Backend** (FastAPI) | **Base profesional entregada y aprobada** (`Task/005`): FastAPI con Python 3.12, configuración tipada, logging JSON en UTC, `GET /health`, OpenAPI, SQLAlchemy 2 con psycopg 3, Alembic y suite de pruebas. **La funcionalidad del blog empieza en `Task/008`.** |
-| **Frontend** (React) | **No ha comenzado.** Sin código de aplicación. Empieza en `Task/006`. |
-| **Terraform e infraestructura cloud** | **No existen.** Sin archivos `.tf`. Empieza en `Task/025`. |
-| **Recursos cloud y cuentas** | **Ninguno creado.** Etapas 09 y 10. |
-| **VPS de producción** | **No contratado.** Modelo decidido (`ADR-007`); proveedor en `Task/029`. |
+| **Infraestructura local** | **Completa y respaldada.** `docker-compose.yml` con PostgreSQL, MinIO, Portainer CE, backend, frontend y Traefik; respaldo y recuperación verificados (`Task/003`, `Task/004`, `Task/007`, `Task/022`). |
+| **Backend** (FastAPI) | Dominio, API pública y administrativa, almacenamiento y autenticación (`Task/008`–`Task/012`), CI (`Task/020`), compatibilidad con Lambda (`Task/023`) y artefacto ZIP (`Task/024`). |
+| **Frontend** (React) | Sistema de diseño, sitio público y panel (`Task/013`–`Task/015`), SEO y accesibilidad (`Task/016`) y CI (`Task/019`). |
+| **Terraform e infraestructura cloud** | Grafo portable validado **solo** contra el laboratorio local (`Task/025`) y runbooks (`Task/026`). **Ningún recurso de aplicación en AWS.** |
+| **Recursos cloud y cuentas** | Cuentas, MFA y presupuestos (`Task/027`); federación OIDC de **validación**, sin permisos de despliegue (`Task/028`). |
+| **Base de datos de producción** | **Ni contratada ni creada.** Decidida: RDS privado (ADR-010, Aceptada); diseño en `Task/029`, provisión en `Task/031`. |
 
 Consulta siempre [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md)
 para el estado vigente.
@@ -157,17 +157,24 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 
 ## 4. Arquitectura cloud objetivo (bajo costo)
 
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.**
+> [ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada**— sustituye el
+> PostgreSQL autogestionado en VPS por **Amazon RDS for PostgreSQL privado**, con la
+> Lambda conectada a la VPC y **sin NAT Gateway** por defecto. Las filas y apartados
+> afectados se marcan abajo; el modelo VPS se conserva como historia. **No autoriza crear
+> recursos.**
+
 | Responsabilidad | Servicio previsto |
 | --- | --- |
 | Frontend | Cloudflare Pages |
 | Entrada HTTP | Amazon API Gateway (HTTP API) |
 | Backend | AWS Lambda ejecutando FastAPI |
 | Archivos e imágenes | Amazon S3 |
-| Base de datos | **PostgreSQL autogestionado en VPS externo**, con PgBouncer delante |
+| Base de datos | **PostgreSQL autogestionado en VPS externo**, con PgBouncer delante. *(Desde el 2026-09-27: **Amazon RDS for PostgreSQL privado**)* |
 | Configuración | AWS SSM Parameter Store |
 | Logs y métricas (AWS) | Amazon CloudWatch **mínimo** (retención corta y explícita) |
-| Observabilidad central | **Grafana Cloud**, alimentado desde el VPS por **Grafana Alloy** |
-| Secretos del VPS | **Cifrados**, con la clave fuera del repositorio (herramienta pendiente, **D-17**) |
+| Observabilidad central | **Grafana Cloud**, alimentado desde el VPS por **Grafana Alloy**. *(Desde el 2026-09-27: alimentado desde CloudWatch por **D-20**; sin agente de host)* |
+| Secretos del VPS | **Cifrados**, con la clave fuera del repositorio (herramienta pendiente, **D-17**). *(Desde el 2026-09-27: sin host; credenciales de la base de datos y KMS según **D-23**)* |
 | CI/CD | GitHub Actions |
 | Infraestructura como código | Terraform |
 
@@ -179,6 +186,8 @@ Detalle y justificación: [ADR-003](docs/adr/ADR-003-serverless-low-cost-cloud.m
 > **vista visual vigente** de la arquitectura objetivo. Su contraparte **textual** —la que
 > permite razonar sobre la arquitectura sin mirar la imagen— es
 > [`docs/architecture/target-production-architecture.md`](docs/architecture/target-production-architecture.md).
+> *(Con la enmienda, la imagen **diverge en la capa de datos** hasta que el usuario
+> la actualice; para esa capa manda el texto.)*
 
 ### Observabilidad de producción — dos planos
 
@@ -195,6 +204,11 @@ Prometheus ni Loki** en el VPS: sus recursos son de PostgreSQL. El tier gratuito
 Cloud es una **preferencia presupuestaria**, no una dependencia arquitectónica; los precios
 y límites se verifican en `Task/041`.
 
+*(Enmienda: sin VPS, toda la producción observada vive en AWS. CloudWatch recoge
+Lambda, API Gateway y las métricas nativas de RDS; Grafana Cloud recibe datos **solo** por
+**D-20**, que `Task/031` decide e implementa. Plan y límites de Grafana se verifican antes
+de integrar —**D-19**— y otra vez en `Task/041`.)*
+
 Estrategia completa:
 [`docs/architecture/target-production-architecture.md`](docs/architecture/target-production-architecture.md) ·
 [ADR-008](docs/adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada**
@@ -208,7 +222,29 @@ es un **runtime obligatorio de producción**: el frontend son estáticos en Clou
 el backend es un **artefacto ZIP** en Lambda —**ECR sigue excluido**— y **Portainer no llega
 a producción**.
 
-### Base de datos de producción — VPS externo
+### Base de datos de producción — RDS privado
+
+**[ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md), Aceptada el 2026-09-27.**
+PostgreSQL de producción en **Amazon RDS privado**: subnets privadas, sin
+acceso público, TLS con validación de CA y *hostname*, cifrado con KMS y credenciales SQL
+separadas. La Lambda se conecta a la VPC; **NAT no es consecuencia de RDS** y el candidato
+preferido no lo usa. El motivo del cambio son los **créditos AWS disponibles** y la
+**prioridad de aprender** servicios administrados. **RDS no es gratis**: tiene costo fijo
+aunque no haya tráfico, y los créditos reducen el desembolso, no el costo bruto, que se
+evalúa frente a **D-13** (USD 5 AWS / USD 20 global).
+
+```
+Cloudflare Pages → API Gateway → Lambda (FastAPI, en VPC) ──TLS──► RDS PostgreSQL (privado)
+```
+
+`Task/029` **decide y prepara, sin provisionar**; `Task/030` crea el backend de estado y
+S3; `Task/031` provisiona red y RDS y demuestra un restore; `Task/032` conecta la Lambda;
+`Task/036`/`Task/038` migran por un canal privado; `Task/040` valida carga, restore y DR.
+Región, clase, Single-AZ o Multi-AZ, RDS Proxy y *endpoints* se deciden con datos.
+Estrategia: [`docs/architecture/production-postgresql-rds.md`](docs/architecture/production-postgresql-rds.md).
+
+<details>
+<summary>Historia — «Base de datos de producción — VPS externo», vigente del 2026-08-15 al 2026-09-27</summary>
 
 PostgreSQL de producción será **autogestionado en un VPS económico**, con **PgBouncer** como
 único endpoint externo de la capa de datos y **PostgreSQL nunca expuesto a Internet**. El
@@ -223,6 +259,8 @@ Estrategia completa:
 [`docs/architecture/production-postgresql-vps.md`](docs/architecture/production-postgresql-vps.md) ·
 [ADR-007](docs/adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15). El **proveedor, la región y el tamaño se deciden en `Task/029`**.
 
+</details>
+
 ### AWS Local Parity — laboratorio local de infraestructura
 
 Antes de crear un solo recurso real, la infraestructura se desarrolla, se aprende, se
@@ -235,7 +273,9 @@ Estrategia completa:
 [`docs/architecture/aws-local-parity.md`](docs/architecture/aws-local-parity.md) ·
 [ADR-006](docs/adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada** (2026-08-15).
 
-La estrategia está aprobada; **la implementación llega en `Task/025`**.
+La estrategia está aprobada; **la implementación llega en `Task/025`**. *(Corrección de
+drift de `Task/028.2`: `Task/025` y `Task/026` están aprobadas; el grafo de 21 recursos tiene
+evidencia **local**. La red y RDS de la enmienda están **No evaluadas**.)*
 
 ### Servicios que NO usaremos inicialmente
 
@@ -246,10 +286,12 @@ La estrategia está aprobada; **la implementación llega en `Task/025`**.
 - Application Load Balancer
 - NAT Gateway
 - Portainer en producción
-- **Amazon RDS** *(añadido por `Task/005.3`)*
+- ~~**Amazon RDS**~~ *(añadido por `Task/005.3`; **retirado de esta lista el 2026-09-27**
+  por `Task/028.2`, al aceptarse ADR-010)*
 
 Motivo: costo fijo mensual y complejidad operativa desproporcionados para un blog
-personal de bajo tráfico.
+personal de bajo tráfico. *(Con RDS, ese costo fijo se acepta conscientemente y se evalúa
+frente a **D-13**. **NAT Gateway sigue excluido.**)*
 
 ---
 
@@ -301,7 +343,8 @@ docs/
 │   ├── open-decisions.md              ← decisiones diferidas
 │   ├── local-to-cloud-mapping.md      ← correspondencia local → nube
 │   ├── aws-local-parity.md            ← estrategia de IaC local (AWS Local Parity)
-│   ├── production-postgresql-vps.md   ← capa de datos de producción en VPS externo
+│   ├── production-postgresql-rds.md   ← capa de datos en RDS privado (vigente, ADR-010)
+│   ├── production-postgresql-vps.md   ← capa de datos en VPS externo (histórico; reemplazado)
 │   └── target-production-architecture.md ← arquitectura objetivo de producción (texto)
 ├── adr/                               ← decisiones arquitectónicas
 └── task-reports/                      ← reportes finales de ejecución

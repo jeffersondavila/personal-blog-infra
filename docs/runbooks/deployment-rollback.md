@@ -1,5 +1,14 @@
 # Runbook — Rollback de una versión
 
+> **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
+> el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
+> Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
+> snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.
+> Task/036/038 añade migraciones privadas y Task/040 verifica DR/restore integral.
+> [Contrato RDS](../architecture/production-postgresql-rds.md). No autoriza AWS ni
+> extiende EX-028-C7; D-06 en Task/030 precede al primer apply de aplicación.
+
+
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/026` (2026-09-15) |

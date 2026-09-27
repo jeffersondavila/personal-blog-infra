@@ -67,7 +67,7 @@ variable "bucket_de_medios" {
   description = <<-DESC
     Nombre del bucket de medios. Es el unico bucket que crea esta tarea: el
     paquete Lambda se carga directamente, asi que no hace falta un bucket de
-    despliegue, y el de backups del VPS pertenece a Task/029 y Task/030.
+    despliegue.
   DESC
 
   validation {
