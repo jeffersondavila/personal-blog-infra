@@ -101,6 +101,13 @@ anterior. Publicarlo es una acción externa que requiere autorización humana ex
 ha ejecutado. Ningún gate ata `.env.example` al baseline, de modo que esta brecha no la
 detecta ninguna automatización: consta aquí por eso.
 
+**`CI Infra` vuelve a verde**: `success` en `490c6c0`, los 32 pasos, incluidos *Log in to GHCR
+for the private MinIO base*, *Build the project images* y *No secrets in the full history*.
+Gate S-09 sobre las seis imágenes: 25 accionables comparados, `RESULTADO: CORRECTO`.
+`Verify AWS OIDC` `success` con `AccessDenied (expected)`. El runner reprodujo **el mismo
+digest, los mismos hashes de los dos binarios y los mismos `sha256` de SBOM y procedencia**
+que el build local: la reproducibilidad queda comprobada en **dos máquinas independientes**.
+
 Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** hasta la aprobación: sigue en
 **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 [Reporte §20-§26](../task-reports/TASK-028-report.md).

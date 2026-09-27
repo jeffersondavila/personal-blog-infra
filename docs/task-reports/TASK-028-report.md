@@ -1544,7 +1544,38 @@ porque una huella lleva dentro el SHA del commit y deja de aplicar en cuanto el 
 Escaneo del historial completo con la invocación exacta de `CI Infra`, y también por
 autodetección del archivo sin `--config`: **`no leaks found`** en ambos casos.
 
-### 26.10 Brecha declarada: el derivado D-1 no está publicado
+### 26.10 `CI Infra` en verde y reproducibilidad entre máquinas
+
+`CI Infra` **success** en `490c6c0`, los 32 pasos en verde, incluidos los que antes fallaban:
+*Log in to GHCR for the private MinIO base*, *Build the project images* y *No secrets in the
+full history*. `Verify AWS OIDC` **success**, con `Task fresh-token STS: AccessDenied
+(expected)`: la trust sigue aceptando solo `main`.
+
+Esto añade una evidencia que el rebuild local **no** podía dar por sí solo. El runner de
+GitHub construyó el derivado desde cero, en otra máquina y otro sistema, y produjo
+**exactamente la misma identidad**:
+
+| Valor | Local | `CI Infra` |
+| --- | --- | --- |
+| `manifest_digest` | `sha256:247a1cd3…f80702` | **idéntico** |
+| `config_digest` | `sha256:9712173f…a5ce64` | **idéntico** |
+| `sha256` de `usr/bin/minio` | `067d5d80…a42f028` | **idéntico** |
+| `sha256` de `usr/bin/mc` | `0878407c…37af0921` | **idéntico** |
+| Layers / heredados | 11 / 9 | **idéntico** |
+| `build_manifest_sha256` | `3792c2d5…6a18f3215` | **idéntico** |
+| `canonical_sbom_sha256` | `ff59cec7…8e52278d` | **idéntico** |
+| `provenance_sha256` | `35cdf0a1…ef50caadd` | **idéntico** |
+
+La afirmación exacta sigue siendo la de §26.2 —construcción reproducible con identidades
+fijadas y verificadas, **no** hermética ni offline—, pero ahora está comprobada en **dos
+máquinas independientes** y no solo en una.
+
+Gate S-09 sobre las **seis** imágenes declaradas: `Hallazgos accionables comparados en total:
+25`, `RESULTADO: CORRECTO`. La entrada MinIO: `Identidad: derivado MinIO reproducible,
+atestado exacto de 2 binarios`, `Accionables 10 · Aprobados 10 · Nuevos 0 · Coincidencias
+exactas 10`.
+
+### 26.11 Brecha declarada: el derivado D-1 no está publicado
 
 `.env.example` sigue apuntando a `sha256:84c67632…059129`, la identidad de Task/027.1, que es
 **la única publicada en GHCR**. Publicar el derivado D-1 es una **acción externa que requiere
@@ -1559,7 +1590,7 @@ Consecuencia exacta, sin adornos:
 - ningún gate ata `.env.example` al baseline, así que esta brecha **no** enrojece `CI Infra`.
   Está declarada aquí precisamente porque no la detecta ninguna automatización.
 
-### 26.11 Estado de las incidencias
+### 26.12 Estado de las incidencias
 
 | Incidencia | Estado |
 | --- | --- |

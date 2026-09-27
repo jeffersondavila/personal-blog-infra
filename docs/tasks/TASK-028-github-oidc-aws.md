@@ -4,7 +4,7 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **Lista para validación** — H-028-1 y H-028-2 resueltas |
+| Estado | **Lista para validación** — H-028-1 y H-028-2 resueltas; `CI Infra` y `Verify AWS OIDC` en verde |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
