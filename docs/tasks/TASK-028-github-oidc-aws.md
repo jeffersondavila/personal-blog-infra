@@ -4,7 +4,7 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **Lista para validación** — H-028-1 y H-028-2 resueltas; `CI Infra` y `Verify AWS OIDC` en verde |
+| Estado | **Lista para validación** — H-028-1 y H-028-2 **cerradas**, incluido el runtime de Portainer; `CI Infra` y `Verify AWS OIDC` en verde |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
@@ -206,7 +206,10 @@ resultó **alcanzable** —no solo presente— en `minio`, `mc` y Portainer, dem
 `govulncheck -mode binary`. Se corrigió **sin aceptar riesgo nuevo**: Portainer a **2.45.1
 LTS** y MinIO y `mc` **reconstruidos** con `grpc v1.83.2` en el derivado, desde
 dependencias congeladas en parches versionados y hasheados. Baseline de MinIO **99 → 10
-accionables, 89 resueltos, 0 nuevas**; `CVE-2026-84445` **2 → 0**
+accionables, 89 resueltos, 0 nuevas**; `CVE-2026-84445` **2 → 0**. El derivado quedó
+**publicado y en consumo** el 2026-09-27, y ese mismo día se corrigió también el **runtime** de
+Portainer, que seguía en 2.39.7 aunque la configuración ya fijara 2.45.1: la incidencia estuvo
+declarada cerrada **antes de tiempo** y solo cierra al dejar de ejecutarse la imagen vulnerable
 ([reporte §24-§26](../task-reports/TASK-028-report.md)).
 
 ## 17. Pasos de validación para el usuario
@@ -220,11 +223,11 @@ futuras se limitan a operaciones concretas revisadas, sin pedir secretos al agen
 **Rotación de `GHCR_MINIO_READ_TOKEN`** antes del **2027-09-25**. **Publicar SBOM y
 procedencia junto a la imagen** antes de hacer público el paquete: pendiente **heredado de
 Task/027.1**, atado a hacer público el paquete —que no está autorizado—, y no consecuencia de
-Task/028; el proyecto no tiene definido aún el mecanismo. **Recrear los contenedores locales de
-Portainer, PostgreSQL y Traefik**, que llevan días en marcha y son anteriores a la última
-configuración: el de Portainer sigue siendo 2.39.7 con `CVE-2026-84445` alcanzable aunque `.env`
-ya fije 2.45.1, y recrearlo migra `portainer_data` **sin downgrade posible**, así que es
-decisión del usuario ([reporte §26.11.6](../task-reports/TASK-028-report.md)). Federación real y cierre Task/028;
+Task/028; el proyecto no tiene definido aún el mecanismo. **Iniciar sesión en la UI de Portainer** y
+confirmar que entornos y ajustes se ven como antes: es la única comprobación que exige
+credenciales del usuario, y no se pidieron. **Recrear los contenedores locales de PostgreSQL y
+Traefik**, anteriores a la última configuración y sin hallazgo de seguridad pendiente: es
+mantenimiento del usuario ([reporte §26.11.7](../task-reports/TASK-028-report.md)). Federación real y cierre Task/028;
 materialización/migración D-06 en Task/030,
 incluido estado del propio bucket; protección de main antes de despliegue;
 permisos mínimos separados en Task/038 y Task/039; validación Task/040.

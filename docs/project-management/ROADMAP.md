@@ -126,6 +126,26 @@ Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** hasta la aprobació
 **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 [Reporte §20-§26](../task-reports/TASK-028-report.md).
 
+**2026-09-27 — el runtime de Portainer, corregido: H-028-2 cierra de verdad.** La declaración
+anterior de cierre era **prematura** y el usuario lo señaló: `.env` y `.env.example` ya fijaban
+Portainer 2.45.1, pero el **contenedor en ejecución** seguía siendo `2.39.7` con
+`CVE-2026-84445` alcanzable. Configuración corregida no es runtime corregido.
+
+Se cerró **fail-closed**, sin cambiar ninguna versión ni ninguna decisión: primero respaldo con
+el procedimiento propio de `Task/004` —conjunto `20260927-020353`, integridad **8/8**— y
+**restauración probada** en una instancia temporal sin socket de Docker que respondió `HTTP 200`
+con el **mismo `InstanceID`**; solo entonces `docker compose up -d --no-deps portainer`. Cinco
+de los seis contenedores conservan su Id: **únicamente Portainer se recreó**.
+
+Después: `Image` = `2.45.1@sha256:4d616db1…3bd8b0e`, su API declara **`2.45.1`**, **cero**
+contenedores con la imagen 2.39.7, `InstanceID` **preservado**, migración `2.43.0 → 2.44.0 →
+2.45.0 → 2.45.1` registrada en el log, **0** líneas de `ERR`/`FTL`/`panic`, UI `HTTP 200`, y el
+endurecimiento intacto —`read_only`, `cap_drop: ALL`, `no-new-privileges`, puerto solo en
+loopback—. El `portainer.db` cambia de hash y se explica **midiéndolo**: BoltDB reescribe el
+archivo al arrancar, no al detenerse; la copia del respaldo sí es byte a byte la registrada
+antes de migrar. Queda para el usuario lo único que exige credenciales: **iniciar sesión en la
+UI**. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 

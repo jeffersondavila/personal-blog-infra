@@ -1709,7 +1709,7 @@ seguridad y no lo detecta ningún gate:
 | | Fijado en `.env` y `.env.example` | **Contenedor realmente en marcha** |
 | --- | --- | --- |
 | MinIO | `…@sha256:247a1cd3…f80702` | **coincide** (recreado en esta verificación) |
-| Portainer | `2.45.1@sha256:4d616db1…3bd8b0e` | **`2.39.7@sha256:0e3c8bc8…`** — obsoleto |
+| Portainer | `2.45.1@sha256:4d616db1…3bd8b0e` | era **`2.39.7@sha256:0e3c8bc8…`** — **corregido**, §26.11.7 |
 | PostgreSQL, Traefik | coinciden entre sí | contenedores de hace 3 días |
 
 **La configuración de Portainer es correcta**: `.env` y `.env.example` ya fijan 2.45.1. Lo
@@ -1717,16 +1717,132 @@ obsoleto es el **contenedor**, levantado antes de ese cambio y nunca recreado. E
 el Portainer que se está ejecutando **sigue siendo el 2.39.7 con `CVE-2026-84445` alcanzable**,
 que es justo lo que §25 corrigió en la configuración.
 
-**No se recreó, y es deliberado.** §25.3 dejó constancia de que Portainer **migra
-`portainer_data` al arrancar y no admite downgrade**: recrear el contenedor es un paso de un
-solo sentido sobre datos del usuario. Eso queda **fuera** de esta autorización, que cubre el
-derivado de MinIO, y es una decisión del usuario, no del agente. La mitigación previa es el
-procedimiento de respaldo local ya existente.
+En el momento de redactar esto **no se recreó**, y fue deliberado: §25.3 dejó constancia de que
+Portainer **migra `portainer_data` al arrancar y no admite downgrade**, así que recrear el
+contenedor es un paso de un solo sentido sobre datos del usuario, fuera de la autorización de
+entonces —limitada al derivado de MinIO—.
 
-Lo mismo vale, sin componente de seguridad conocido, para PostgreSQL y Traefik: sus
-contenedores llevan tres días en marcha y se recrearán cuando el usuario decida.
+**El usuario autorizó después cerrar este punto**, con razón: dar H-028-2 por cerrada con el
+runtime todavía en 2.39.7 era una contradicción. El cierre real está en **§26.11.7**.
 
-#### 26.11.7 SBOM y procedencia: qué se hizo y qué sigue pendiente
+Lo mismo valía, sin componente de seguridad conocido, para PostgreSQL y Traefik: sus
+contenedores siguen siendo los de hace días y se recrearán cuando el usuario decida.
+
+#### 26.11.7 El runtime de Portainer, corregido de verdad (2026-09-27)
+
+**Corrección de una declaración prematura mía.** Este reporte dio H-028-2 por cerrada cuando
+`.env` y `.env.example` ya fijaban Portainer 2.45.1. **No era suficiente, y el usuario lo
+señaló:** mi propio hallazgo de §26.11.6 demostraba que el contenedor **realmente en ejecución**
+seguía siendo `2.39.7`, con `CVE-2026-84445` alcanzable. Configuración corregida no es runtime
+corregido. La incidencia **no podía darse por cerrada** hasta que el proceso en marcha dejase de
+ser el vulnerable.
+
+Bajo autorización acotada se cerró ese último punto operativo, **fail-closed**: nada se recreó
+hasta tener un respaldo **probado restaurable**, porque Portainer migra `portainer_data` al
+arrancar y **no admite downgrade**.
+
+##### Identidad antes
+
+| | Valor |
+| --- | --- |
+| Contenedor | `494638918c12`, creado el 2026-09-13 |
+| `Config.Image` | `portainer/portainer-ce:2.39.7@sha256:0e3c8bc8…` |
+| Versión según su propia API (`/api/status`) | **`2.39.7`** |
+| `InstanceID` | `8221eaf1-6f98-4152-88a6-c0900a606fb0` |
+| Volumen | `personal-blog-local_portainer_data` → `/data` |
+| `/data` | 6 archivos, 58 733 B; `portainer.db` = `39744d78…6981040` |
+
+La configuración de destino **no se tocó**: `2.45.1@sha256:4d616db1…3bd8b0e`, el mismo valor en
+`.env`, en `.env.example` y en la entrada `portainer` del baseline. No se cambió ninguna versión
+ni ninguna decisión de diseño.
+
+##### Respaldo con el procedimiento del propio proyecto
+
+Se usó el procedimiento existente de `Task/004`, sin inventar nada: `New-LocalBackup.ps1`,
+`Test-LocalBackup.ps1` y `Restore-LocalBackupTest.ps1`.
+
+| Paso | Resultado |
+| --- | --- |
+| Conjunto creado | `20260927-020353`, 8 archivos, 76,62 KB, en `local-backups/` (ignorado por Git) |
+| Portainer | detenido para obtener una copia coherente y reiniciado; PostgreSQL y MinIO **no** se detienen |
+| Integridad SHA-256 | **8/8 correctos** |
+| **Restauración probada** | instancia temporal en `127.0.0.1:9445`, **sin** el socket de Docker: `/api/status` HTTP 200 y **`InstanceID` idéntico** al del entorno principal |
+| PostgreSQL y MinIO en la prueba | 17 tablas restauradas; 6 objetos con `SHA-256` y `Content-Type` coincidentes |
+| Recursos temporales | eliminados; los tres volúmenes principales **intactos** |
+
+Un respaldo no está validado hasta haberse restaurado. Aquí se restauró **antes** de migrar.
+
+##### La recreación tocó solo Portainer
+
+`docker compose pull portainer` y `docker compose up -d --no-deps portainer`. Los identificadores
+de contenedor lo demuestran: **cinco de los seis no cambiaron**.
+
+```
+solo cambia:  personal-blog-local-portainer  494638918c12 -> 4964d7fcbe46
+sin cambios:  backend, frontend, minio, postgres, traefik  (mismo container Id)
+```
+
+##### Identidad después
+
+| Comprobación | Resultado |
+| --- | --- |
+| `Config.Image` | `portainer/portainer-ce:2.45.1@sha256:4d616db1…3bd8b0e` |
+| `Image` (id) == digest aprobado | **sí** |
+| Versión según su propia API | **`2.45.1`** |
+| ¿Sigue siendo `2.39.7`? | **no** |
+| Contenedores con la imagen 2.39.7 | **0** |
+| `InstanceID` | `8221eaf1-…-c0900a606fb0`, **preservado** |
+| Migración en el log | `2.43.0` → `2.44.0` → `2.45.0` → **`db migrated to 2.45.1`** |
+| Líneas de `ERR`, `FTL` o `panic` tras migrar | **0** |
+| `GET /` (UI) | **HTTP 200**, HTML de la aplicación |
+| `GET /api/status` y `/api/system/status` | **HTTP 200**, `Version 2.45.1` |
+| Endurecimiento preservado | `read_only`, `cap_drop: ALL`, `no-new-privileges`, puerto solo en loopback `127.0.0.1:9444` |
+| Socket de Docker | sigue montado `:ro`, como lo declara el Compose, que **no se modificó** |
+
+El `InstanceID` es el mismo identificador **no sensible** que el runbook usa para comprobar una
+restauración: que sobreviva a la migración es la evidencia de que los datos y la configuración
+—usuarios, endpoints, ajustes— son los de antes y no una instalación nueva.
+
+##### Por qué el hash de la base cambia, medido y no supuesto
+
+`portainer.db` **no** es byte a byte el mismo, y conviene decir por qué en lugar de presentarlo
+como si coincidiera:
+
+| Momento | `sha256` de `portainer.db` |
+| --- | --- |
+| 2.39.7 en marcha, antes de todo | `39744d78…6981040` |
+| **Dentro del respaldo del proyecto** (tomado con el contenedor detenido) | **`39744d78…6981040` — idéntico** |
+| `backups/portainer.db.bak`, la copia previa que deja 2.45.1 al migrar | `2d075b55…5311890f` |
+| Tras migrar a 2.45.1 | `51beb2a3…4ca0d245` |
+
+La copia interna de Portainer difiere porque el procedimiento de respaldo **detuvo y volvió a
+arrancar** el 2.39.7 entre las dos mediciones, y BoltDB reescribe su archivo **al abrirlo**. Eso
+se comprobó de forma directa sobre el propio 2.45.1:
+
+```
+en marcha                : 51beb2a3…4ca0d245
+tras detenerlo           : 51beb2a3…4ca0d245   (detener NO cambia el archivo)
+tras volver a arrancarlo : c1b8d295…4a0b01a7   (arrancar SI lo cambia)
+```
+
+Por eso la copia recuperable **autoritativa** es la del respaldo del proyecto, que sí coincide
+exactamente con el estado registrado antes de migrar. La integridad lógica se acredita con el
+`InstanceID` y con la restauración probada, no con el hash de un fichero que su motor reescribe
+en cada arranque.
+
+##### Lo que queda para el usuario
+
+La única comprobación que **no** puede hacerse sin credenciales es **iniciar sesión en la UI**.
+El servidor responde `HTTP 200` y sirve la aplicación, y no se pidió ni se usó ninguna
+credencial. Iniciar sesión y confirmar que los entornos y ajustes se ven como antes es la parte
+que le corresponde al usuario.
+
+**Los contenedores de PostgreSQL y Traefik siguen siendo los de hace tres días.** No tienen
+ningún hallazgo de seguridad conocido pendiente —sus entradas de baseline son `zero-tolerance`
+con cero aceptados— y recrearlos no formaba parte de esta autorización, que se limitó a
+Portainer. Queda como tarea de mantenimiento del usuario, no como pendiente de Task/028.
+
+#### 26.11.8 SBOM y procedencia: qué se hizo y qué sigue pendiente
 
 `CI Infra` genera el SBOM CycloneDX canónico y la procedencia in-toto del artefacto, con
 hashes **deterministas** que el runner reprodujo idénticos a los locales
@@ -1756,7 +1872,12 @@ Task/028.
 | Incidencia | Estado |
 | --- | --- |
 | **H-028-1** — `minio/minio` dejó de estar públicamente accesible en las ubicaciones oficiales comprobadas | **Cerrada** (§20): espejo privado byte a byte que preserva el digest, más secreto de repositorio como único límite que GitHub impone frente a forks (§21) |
-| **H-028-2** — `CVE-2026-84445` alcanzable en `minio`, `mc` y Portainer | **Cerrada**: Portainer por actualización a 2.45.1 LTS (§25); `minio` y `mc` por corrección técnica en el derivado (§26), **publicada y en consumo** (§26.11) |
+| **H-028-2** — `CVE-2026-84445` alcanzable en `minio`, `mc` y Portainer | **Cerrada**, y solo ahora: `minio` y `mc` por corrección técnica en el derivado (§26), **publicado y en consumo** (§26.11); Portainer por actualización a 2.45.1 LTS en la configuración (§25) **y en el runtime** (§26.11.7) |
 
-No queda ninguna identidad corregida sin publicar, ni ningún consumidor apuntando a la
-identidad vulnerable.
+Esta incidencia estuvo declarada como cerrada **antes de tiempo**: la configuración de Portainer
+apuntaba a 2.45.1 mientras el contenedor en ejecución seguía siendo 2.39.7. El criterio de
+cierre es explícito y ya se cumple: **el runtime de Portainer no es 2.39.7**, ningún contenedor
+usa esa imagen, y su propia API declara `2.45.1`.
+
+No queda ninguna identidad corregida sin publicar, ningún consumidor apuntando a la identidad
+vulnerable, ni ningún proceso en marcha con `CVE-2026-84445` alcanzable.

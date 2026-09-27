@@ -97,7 +97,9 @@ aceptado de MinIO de **99 a 10** y **cero identidades nuevas**—. El 2026-09-27
 autorización acotada, el derivado corregido queda **publicado** en el GHCR privado con etiqueta
 nueva —digest preservado por construcción, verificado releyéndolo del registro, identidad de
 Task/027.1 intacta— y **consumido** por el entorno local, que ya no ejecuta la identidad
-vulnerable. Los criterios de salida de abajo **no se marcan**: por
+vulnerable. Ese mismo día se corrigió el **runtime** de Portainer, que seguía ejecutando 2.39.7
+aunque la configuración ya fijara 2.45.1 —respaldo restaurado y verificado antes de migrar—, con
+lo que H-028-2 cierra de verdad. Los criterios de salida de abajo **no se marcan**: por
 convención de esta etapa, una casilla se marca cuando la respalda una tarea **aprobada**.
 [Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
 [Reporte §12-§26](../task-reports/TASK-028-report.md).
