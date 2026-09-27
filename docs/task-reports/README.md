@@ -103,8 +103,8 @@ Ejemplo: `TASK-001-report.md`.
 > El indice omitia `Task/010` a `Task/017`, cuyos reportes existian desde su
 > aprobacion. Se completo el 2026-09-07 durante `Task/018`.
 
-## Mantenimiento arquitectónico preparado
+## Mantenimiento arquitectónico
 
 | Tarea | Reporte | Estado |
 | --- | --- | --- |
-| Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS | [Reporte](TASK-028.2-report.md) · [Auditoría de referencias](TASK-028.2-reference-audit.md) | **Lista para validación**, fuera de las 41 |
+| Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS | [Reporte](TASK-028.2-report.md) · [Auditoría de referencias](TASK-028.2-reference-audit.md) | **Aprobada** el 2026-09-27, fuera de las 41 |

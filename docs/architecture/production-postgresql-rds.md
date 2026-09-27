@@ -2,9 +2,9 @@
 
 | Campo | Valor |
 | --- | --- |
-| Estado | **Propuesta — pendiente de aprobación**. Canónico futuro; solo `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` lo hace vigente. No autoriza recursos |
+| Estado | **Vigente** ✔ — aprobado el 2026-09-27 mediante `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`. **No autoriza recursos**: cada uno exige su tarea propietaria y la autorización del usuario |
 | Fecha | 2026-09-27 |
-| ADR | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), Propuesta |
+| ADR | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), **Aceptada** |
 | Historia | [Modelo VPS](production-postgresql-vps.md), conservado; sustitución pendiente |
 | Próxima tarea | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Pendiente** |
 
@@ -70,7 +70,7 @@ un Deny global por `SourceVpce` podría bloquearlo. Validar D-08 en Task/030.
 ## 3. Decisiones que entrega Task/029
 
 Cada decisión incluye alternativas, fuente/fecha, costo bruto, resultado y prueba
-posterior. D-22 a D-24 son nuevas y propuestas; D-10/11/12 mantienen sus IDs.
+posterior. D-22 a D-24 son nuevas, abiertas el 2026-09-27; D-10/11/12 mantienen sus IDs.
 
 | Decisión | Entrega de Task/029 | Implementación / evidencia real |
 | --- | --- | --- |
@@ -180,8 +180,8 @@ automático; no basar el presupuesto en apagado indefinido.
 
 Se amplía **explícitamente** Task/031: antes SSM/CloudWatch, ahora red/RDS además de
 SSM/CloudWatch, porque es la tarea de servicios AWS previa a Lambda. La precede
-Task/030 para satisfacer D-06. Es una propuesta de gobierno de Task/028.2, no una
-afirmación de que el roadmap anterior ya le asignara RDS.
+Task/030 para satisfacer D-06. Es una decisión de gobierno de Task/028.2, aprobada el
+2026-09-27, no una afirmación de que el roadmap anterior ya le asignara RDS.
 
 | Task | Depende de | Entrega verificable |
 | --- | --- | --- |
@@ -208,7 +208,7 @@ antes del primer apply de aplicación. No se extiende.
 
 Matriz de propietarios por materia —state, red, RDS, S3, Lambda, API, secretos, KMS,
 IAM, CloudWatch, migraciones, restore, carga, roles, seguridad, DR y validación
-integral—: [ROADMAP, mapa transversal](../project-management/ROADMAP.md#enmienda-propuesta--adr-010-pendiente-de-aprobación).
+integral—: [ROADMAP, mapa transversal](../project-management/ROADMAP.md#enmienda--adr-010-aprobada-el-2026-09-27).
 
 Identidades separadas: validación OIDC existente sin políticas; ejecución Lambda;
 despliegue backend; Terraform; migración; administración humana; integración Grafana.

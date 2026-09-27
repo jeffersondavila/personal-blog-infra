@@ -39,9 +39,8 @@ Repositorios hermanos:
   `Task/027` y `Task/028` aprobadas; `Task/029` **Pendiente**.
 - **Tareas aprobadas:** 28 de 41 (≈ 68 %).
 - **Mantenimiento de esta fecha:** `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` —
-  **Lista para validación**, fuera de las 41. Propone PostgreSQL de producción en **RDS
-  privado** ([ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md), **Propuesta —
-  pendiente de aprobación**).
+  **Aprobada** el 2026-09-27, fuera de las 41. Fija PostgreSQL de producción en **RDS
+  privado** ([ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md), **Aceptada**).
 
 *(Corregido en `Task/028.2`: esta sección seguía describiendo el estado del 2026-08-16
 —ETAPA 02 en curso, 5 de 41— y la tabla siguiente, el anterior a `Task/006`.)*
@@ -55,7 +54,7 @@ Estado de la implementación:
 | **Frontend** (React) | Sistema de diseño, sitio público y panel (`Task/013`–`Task/015`), SEO y accesibilidad (`Task/016`) y CI (`Task/019`). |
 | **Terraform e infraestructura cloud** | Grafo portable validado **solo** contra el laboratorio local (`Task/025`) y runbooks (`Task/026`). **Ningún recurso de aplicación en AWS.** |
 | **Recursos cloud y cuentas** | Cuentas, MFA y presupuestos (`Task/027`); federación OIDC de **validación**, sin permisos de despliegue (`Task/028`). |
-| **Base de datos de producción** | **Ni contratada ni creada.** Propuesta: RDS privado (ADR-010, pendiente); diseño en `Task/029`, provisión en `Task/031`. |
+| **Base de datos de producción** | **Ni contratada ni creada.** Decidida: RDS privado (ADR-010, Aceptada); diseño en `Task/029`, provisión en `Task/031`. |
 
 Consulta siempre [`docs/project-management/STATUS.md`](docs/project-management/STATUS.md)
 para el estado vigente.
@@ -158,8 +157,8 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 
 ## 4. Arquitectura cloud objetivo (bajo costo)
 
-> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.**
-> [ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md) propone sustituir el
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.**
+> [ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada**— sustituye el
 > PostgreSQL autogestionado en VPS por **Amazon RDS for PostgreSQL privado**, con la
 > Lambda conectada a la VPC y **sin NAT Gateway** por defecto. Las filas y apartados
 > afectados se marcan abajo; el modelo VPS se conserva como historia. **No autoriza crear
@@ -171,11 +170,11 @@ Referencia de los scripts: [scripts/backup/](scripts/backup/README.md).
 | Entrada HTTP | Amazon API Gateway (HTTP API) |
 | Backend | AWS Lambda ejecutando FastAPI |
 | Archivos e imágenes | Amazon S3 |
-| Base de datos | **PostgreSQL autogestionado en VPS externo**, con PgBouncer delante. *(Propuesta: **Amazon RDS for PostgreSQL privado**)* |
+| Base de datos | **PostgreSQL autogestionado en VPS externo**, con PgBouncer delante. *(Desde el 2026-09-27: **Amazon RDS for PostgreSQL privado**)* |
 | Configuración | AWS SSM Parameter Store |
 | Logs y métricas (AWS) | Amazon CloudWatch **mínimo** (retención corta y explícita) |
-| Observabilidad central | **Grafana Cloud**, alimentado desde el VPS por **Grafana Alloy**. *(Propuesta: alimentado desde CloudWatch por **D-20**; sin agente de host)* |
-| Secretos del VPS | **Cifrados**, con la clave fuera del repositorio (herramienta pendiente, **D-17**). *(Propuesta: sin host; credenciales de la base de datos y KMS según **D-23**)* |
+| Observabilidad central | **Grafana Cloud**, alimentado desde el VPS por **Grafana Alloy**. *(Desde el 2026-09-27: alimentado desde CloudWatch por **D-20**; sin agente de host)* |
+| Secretos del VPS | **Cifrados**, con la clave fuera del repositorio (herramienta pendiente, **D-17**). *(Desde el 2026-09-27: sin host; credenciales de la base de datos y KMS según **D-23**)* |
 | CI/CD | GitHub Actions |
 | Infraestructura como código | Terraform |
 
@@ -187,7 +186,7 @@ Detalle y justificación: [ADR-003](docs/adr/ADR-003-serverless-low-cost-cloud.m
 > **vista visual vigente** de la arquitectura objetivo. Su contraparte **textual** —la que
 > permite razonar sobre la arquitectura sin mirar la imagen— es
 > [`docs/architecture/target-production-architecture.md`](docs/architecture/target-production-architecture.md).
-> *(Con la enmienda propuesta, la imagen **diverge en la capa de datos** hasta que el usuario
+> *(Con la enmienda, la imagen **diverge en la capa de datos** hasta que el usuario
 > la actualice; para esa capa manda el texto.)*
 
 ### Observabilidad de producción — dos planos
@@ -205,7 +204,7 @@ Prometheus ni Loki** en el VPS: sus recursos son de PostgreSQL. El tier gratuito
 Cloud es una **preferencia presupuestaria**, no una dependencia arquitectónica; los precios
 y límites se verifican en `Task/041`.
 
-*(Enmienda propuesta: sin VPS, toda la producción observada vive en AWS. CloudWatch recoge
+*(Enmienda: sin VPS, toda la producción observada vive en AWS. CloudWatch recoge
 Lambda, API Gateway y las métricas nativas de RDS; Grafana Cloud recibe datos **solo** por
 **D-20**, que `Task/031` decide e implementa. Plan y límites de Grafana se verifican antes
 de integrar —**D-19**— y otra vez en `Task/041`.)*
@@ -223,10 +222,10 @@ es un **runtime obligatorio de producción**: el frontend son estáticos en Clou
 el backend es un **artefacto ZIP** en Lambda —**ECR sigue excluido**— y **Portainer no llega
 a producción**.
 
-### Base de datos de producción — RDS privado (propuesta)
+### Base de datos de producción — RDS privado
 
-**Propuesta de [ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md), pendiente de
-aprobación.** PostgreSQL de producción en **Amazon RDS privado**: subnets privadas, sin
+**[ADR-010](docs/adr/ADR-010-production-postgresql-on-rds.md), Aceptada el 2026-09-27.**
+PostgreSQL de producción en **Amazon RDS privado**: subnets privadas, sin
 acceso público, TLS con validación de CA y *hostname*, cifrado con KMS y credenciales SQL
 separadas. La Lambda se conecta a la VPC; **NAT no es consecuencia de RDS** y el candidato
 preferido no lo usa. El motivo del cambio son los **créditos AWS disponibles** y la
@@ -245,7 +244,7 @@ Región, clase, Single-AZ o Multi-AZ, RDS Proxy y *endpoints* se deciden con dat
 Estrategia: [`docs/architecture/production-postgresql-rds.md`](docs/architecture/production-postgresql-rds.md).
 
 <details>
-<summary>Historia — «Base de datos de producción — VPS externo», vigente desde el 2026-08-15 hasta la propuesta</summary>
+<summary>Historia — «Base de datos de producción — VPS externo», vigente del 2026-08-15 al 2026-09-27</summary>
 
 PostgreSQL de producción será **autogestionado en un VPS económico**, con **PgBouncer** como
 único endpoint externo de la capa de datos y **PostgreSQL nunca expuesto a Internet**. El
@@ -276,7 +275,7 @@ Estrategia completa:
 
 La estrategia está aprobada; **la implementación llega en `Task/025`**. *(Corrección de
 drift de `Task/028.2`: `Task/025` y `Task/026` están aprobadas; el grafo de 21 recursos tiene
-evidencia **local**. La red y RDS de la enmienda propuesta están **No evaluadas**.)*
+evidencia **local**. La red y RDS de la enmienda están **No evaluadas**.)*
 
 ### Servicios que NO usaremos inicialmente
 
@@ -287,8 +286,8 @@ evidencia **local**. La red y RDS de la enmienda propuesta están **No evaluadas
 - Application Load Balancer
 - NAT Gateway
 - Portainer en producción
-- **Amazon RDS** *(añadido por `Task/005.3`)* — *la enmienda propuesta por `Task/028.2`
-  lo retira de esta lista si se aprueba ADR-010*
+- ~~**Amazon RDS**~~ *(añadido por `Task/005.3`; **retirado de esta lista el 2026-09-27**
+  por `Task/028.2`, al aceptarse ADR-010)*
 
 Motivo: costo fijo mensual y complejidad operativa desproporcionados para un blog
 personal de bajo tráfico. *(Con RDS, ese costo fijo se acepta conscientemente y se evalúa
@@ -344,8 +343,8 @@ docs/
 │   ├── open-decisions.md              ← decisiones diferidas
 │   ├── local-to-cloud-mapping.md      ← correspondencia local → nube
 │   ├── aws-local-parity.md            ← estrategia de IaC local (AWS Local Parity)
-│   ├── production-postgresql-rds.md   ← capa de datos en RDS privado (propuesta, ADR-010)
-│   ├── production-postgresql-vps.md   ← capa de datos en VPS externo (histórico; reemplazo propuesto)
+│   ├── production-postgresql-rds.md   ← capa de datos en RDS privado (vigente, ADR-010)
+│   ├── production-postgresql-vps.md   ← capa de datos en VPS externo (histórico; reemplazado)
 │   └── target-production-architecture.md ← arquitectura objetivo de producción (texto)
 ├── adr/                               ← decisiones arquitectónicas
 └── task-reports/                      ← reportes finales de ejecución

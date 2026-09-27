@@ -54,7 +54,7 @@ tarea, y debe dejar definido:
 - qué ocurre **si la migración falla** a mitad, y cómo se revierte;
 - qué **impide una ejecución accidental** contra producción.
 
-> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.** Con RDS
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.** Con RDS
 > privado, un *runner* público de GitHub **no alcanza la base de datos** solo por tener
 > identidad OIDC: **OIDC acredita identidad, no conectividad SQL**. El canal repetible se
 > construye sobre el **canal privado D-24** que decide `Task/029`, habilita `Task/031` y
@@ -95,10 +95,10 @@ solo resuelve GitHub OIDC → AWS.** Esta tarea es propietaria de lo demás:
 > no haya demostrado cómo Cloudflare y el VPS se autentican sin ellas. La afirmación
 > vigente y verificada se limita a **GitHub Actions → AWS**.
 
-> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.** Sin VPS,
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.** Sin VPS,
 > los providers son **dos**: **AWS y Cloudflare**. Pierden objeto la fila de credenciales
 > y la guarda del proveedor del VPS, y la nota sobre su sistema operativo (**D-18**, con
-> cierre por no aplicabilidad propuesto). Se añade: **red y RDS** entran en los
+> cierre por no aplicabilidad (2026-09-27)). Se añade: **red y RDS** entran en los
 > inventarios, en las guardas de cuenta, región y entorno, y en la **protección contra
 > borrado** —*deletion protection*, snapshot final, ningún `destroy` real automático—. La
 > afirmación «sin credenciales permanentes» sigue limitada a GitHub Actions → AWS mientras
@@ -167,8 +167,8 @@ Estrategia completa: [aws-local-parity.md](../architecture/aws-local-parity.md) 
       orden respecto al despliegue, comportamiento ante fallo y protección contra
       ejecución accidental.
 
-*(Enmienda propuesta por `Task/028.2`: en los criterios anteriores, «el VPS» deja de ser un
-provider; quedan **AWS y Cloudflare**. Se añaden, pendientes de aprobación:)*
+*(Enmienda de `Task/028.2`: en los criterios anteriores, «el VPS» deja de ser un
+provider; quedan **AWS y Cloudflare**. Se añaden desde la aprobación del 2026-09-27:)*
 
 - [ ] El canal de migraciones usa el **canal privado D-24**, serializa las ejecuciones, usa
       una identidad SQL de migración distinta de la de la aplicación y exige backup previo.
@@ -190,8 +190,8 @@ provider; quedan **AWS y Cloudflare**. Se añaden, pendientes de aprobación:)*
 | Destrucción accidental de recursos vía CI. | `destroy` **prohibido contra cualquier destino real** (AWS, Cloudflare, VPS); permitido solo contra el emulador efímero del job. `apply` real con aprobación manual y verificación previa del destino. |
 | Divergencia entre el estado de Terraform y lo desplegado. | `plan` en cada PR; deriva tratada como defecto. |
 | Secretos expuestos en logs de CI. | Uso de secretos enmascarados y revisión de salidas. |
-| *(Propuesta `Task/028.2`)* **Migración contra RDS lanzada por accidente o dos a la vez** (**R-35**). | Canal privado **D-24**, ejecuciones serializadas, entorno protegido y backup previo. |
-| *(Propuesta)* **Plan o *state* con credenciales de la base de datos** publicados en CI. | Custodia del *state* definida antes del `apply` y salidas revisadas; `sensitive` no elimina el valor del *state*. |
+| *(`Task/028.2`)* **Migración contra RDS lanzada por accidente o dos a la vez** (**R-35**). | Canal privado **D-24**, ejecuciones serializadas, entorno protegido y backup previo. |
+| *(`Task/028.2`)* **Plan o *state* con credenciales de la base de datos** publicados en CI. | Custodia del *state* definida antes del `apply` y salidas revisadas; `sensitive` no elimina el valor del *state*. |
 
 ## Siguiente etapa
 

@@ -1,6 +1,6 @@
 # Runbook — Validar un despliegue
 
-> **Alcance futuro RDS — Task/028.2, propuesta del 2026-09-27, pendiente de aprobación.** Este runbook conserva
+> **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
 > el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
 > Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
 > snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.

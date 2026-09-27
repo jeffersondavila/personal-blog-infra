@@ -485,19 +485,19 @@ Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
 **D-06 está Resuelta y Vigente desde Task/025 (2026-09-14)**: local protegido
 para laboratorio y S3 con lock nativo para AWS. Bucket pendiente de Task/030;
 EX-028-C7 acota el estado local temporal del bootstrap OIDC ([runbook](../runbooks/github-oidc-bootstrap.md)).
-**D-01** conserva su resolución histórica; ADR-010 propone sustituir el modelo
-(sección 16). Task/029 prepara las decisiones RDS; Task/031 amplía el grafo.
+**D-01** conserva su resolución histórica; ADR-010 —Aceptada el 2026-09-27— sustituyó
+el modelo (sección 16). Task/029 prepara las decisiones RDS; Task/031 amplía el grafo.
 
 
 ## 16. PRODUCTION DATABASE LAW
 
-**Transición propuesta por Task/028.2 (2026-09-27), pendiente de aprobación.**
-La instrucción actual del usuario suspende nuevas ejecuciones del modelo VPS.
-[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) conserva su historia;
-[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone reemplazarlo.
-Canónico futuro: [PostgreSQL RDS](../architecture/production-postgresql-rds.md).
+**Vigente** desde el 2026-09-27 (`Task/028.2`, aprobada).
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada**— reemplaza a
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), que queda **Reemplazada** y se
+conserva como historia: el modelo VPS no se ejecuta.
+Fuente completa y única: [PostgreSQL RDS](../architecture/production-postgresql-rds.md).
 
-1. PostgreSQL productivo propuesto: **RDS privado**, nunca accesible públicamente;
+1. PostgreSQL productivo: **RDS privado**, nunca accesible públicamente;
    Lambda conectada a VPC.
 2. SG restrictivos, TLS verificado, KMS/secretos y acceso SQL de mínimo privilegio.
 3. Task/029 decide/prepara sin provisionar ni exigir evidencia de recursos futuros.
@@ -513,8 +513,8 @@ Canónico futuro: [PostgreSQL RDS](../architecture/production-postgresql-rds.md)
 8. D-13 no cambia: USD 5 AWS / USD 20 global; créditos separados del costo bruto.
 9. Aplicación neutral mediante DATABASE_URL; PostgreSQL local permanece. Floci no
    prueba RDS real. No alterar Task/028 ni ampliar su rol de validación.
-10. No crear recursos ni secretos con esta propuesta. Task/029 sigue Pendiente
-    hasta cerrar Task/028.2. Solo el usuario puede aceptar ADR-010.
+10. Esta regla no crea recursos ni secretos: cada recurso exige su tarea propietaria
+    y la autorización explícita del usuario. Task/029 sigue Pendiente.
 
 Las doce reglas del modelo VPS (vigentes desde `Task/005.3`) se conservan como historia
 en ADR-007 y en `production-postgresql-vps.md`; siguen vigentes en su fondo las que no
@@ -545,8 +545,8 @@ Arquitectura acordada y vigente:
 - Floci como laboratorio AWS **local** para validar la IaC (sección 15).
   **Vigente** desde 2026-08-15 (ADR-006). No es un servicio de producción ni
   altera la arquitectura cloud objetivo.
-- PostgreSQL productivo propuesto en **RDS privado**, según ADR-010 y sección 16.
-  Aceptación pendiente; no ejecutar la alternativa histórica sustituida.
+- PostgreSQL productivo en **RDS privado** (sección 16). **Vigente** desde
+  2026-09-27 (ADR-010, Aceptada); ADR-007 Reemplazada: no ejecutar el modelo VPS.
 
 Consultar siempre los ADR y documentos vigentes antes de cambiar estas
 decisiones.

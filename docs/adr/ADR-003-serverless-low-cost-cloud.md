@@ -1,14 +1,13 @@
 ﻿# ADR-003 — Nube serverless de bajo costo
 
-> **Modificación parcial propuesta — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
-> [ADR-010](ADR-010-production-postgresql-on-rds.md) —**Propuesta**— modificaría este ADR
-> **solo** en lo siguiente, y solo si el usuario aprueba `Task/028.2`. El texto de abajo
-> queda **intacto** como registro aprobado:
+> **Nota de vigencia — 2026-09-27 (`Task/028.2`, aprobada).**
+> [ADR-010](ADR-010-production-postgresql-on-rds.md) —**Aceptada**— modifica este ADR
+> **solo** en lo siguiente. El texto de abajo queda **intacto** como registro aprobado:
 >
 > - **Fila «Base de datos»:** vuelve a ser PostgreSQL **administrado**, concretado en
 >   **Amazon RDS for PostgreSQL privado**, y sustituye la modificación de ADR-007.
 > - **Alternativa «Lambda dentro de VPC con base de datos privada»** y **fila «NAT
->   Gateway»:** esa alternativa pasa a ser la propuesta, **sin NAT Gateway**. La frase «exige
+>   Gateway»:** esa alternativa pasa a ser la vigente, **sin NAT Gateway**. La frase «exige
 >   NAT Gateway para salida a internet» solo es cierta si la función necesita salida
 >   pública, y **VPC no implica NAT**: el inventario del backend solo encuentra PostgreSQL
 >   —dentro de la VPC— y S3/SSM —cubribles con *VPC endpoints*—. **NAT Gateway sigue
@@ -32,7 +31,7 @@
 | **Tarea** | `Task/001-Inicializar-Workspace-y-Roadmap` |
 | **Reemplaza a** | — |
 | **Reemplazada por** | — |
-| **Modificado parcialmente por** | [ADR-007](ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15), solo la fila «Base de datos» · [ADR-008](ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada** (2026-08-23), solo la fila «Logs y métricas» |
+| **Modificado parcialmente por** | [ADR-007](ADR-007-production-postgresql-on-vps.md) — **Aceptada** (2026-08-15), solo la fila «Base de datos»; **Reemplazada** el 2026-09-27 · [ADR-008](ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada** (2026-08-23), solo la fila «Logs y métricas» · [ADR-010](ADR-010-production-postgresql-on-rds.md) — **Aceptada** (2026-09-27): fila «Base de datos», alternativa «Lambda dentro de VPC» y consecuencias de costo |
 
 > **Nota de vigencia — 2026-08-15 (`Task/005.3`, aprobada).** Este ADR sigue **Aceptado y
 > vigente**, incluidas su decisión serverless y su lista de servicios excluidos.

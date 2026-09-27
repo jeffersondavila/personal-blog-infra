@@ -60,16 +60,16 @@ Esa frase es la meta completa. Se descompone en cuatro propósitos concretos:
   concretas que se ejecutaron y su estado de aprobación.
 - **No** resuelve **D-01** (modelo y proveedor de PostgreSQL de producción). El **modelo** lo
   **resolvió** `Task/005.3`, **aprobada** el 2026-08-15 — **VPS externo autogestionado**, ver
-  §8 —; el **proveedor** sigue en `Task/029`. *(Enmienda propuesta por `Task/028.2`:
-  [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone **RDS privado**;
+  §8 —; el **proveedor** sigue en `Task/029`. *(Enmienda de `Task/028.2`:
+  [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada** el 2026-09-27— fija **RDS privado**;
   `Task/029` diseña y `Task/031` incorpora red y RDS al grafo. Ver §8.4.)*
 - La estrategia original no decidió **D-06**; la resolvió Task/025, aprobada el
   2026-09-14. Su decisión vigente se resume en §4.5.
 - **No** sustituye la arquitectura objetivo de producción, que es la de
   [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md) **modificada en su capa de datos
   por** [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), y cuya representación
-  canónica vigente es el diagrama de §3.3 de este documento. *(Enmienda propuesta: ADR-010
-  sustituiría esa modificación; §3.3 muestra ambos diagramas.)*
+  canónica vigente es el diagrama de §3.3 de este documento. *(Enmienda: desde el
+  2026-09-27, ADR-010 sustituye esa modificación; §3.3 muestra ambos diagramas.)*
 - **No** promete paridad completa con AWS. La matriz nació *No evaluada* el 2026-08-15;
   §7 distingue la evidencia local obtenida después de la validación pendiente en AWS.
 
@@ -151,9 +151,9 @@ diagrama Mermaid de este apartado**, que incorpora
 Floci **no sustituye** ninguna de las dos: añade la vista del Modo B, que es un
 *laboratorio*, no un destino.
 
-> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.** Con
-> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), el Modo C sería el siguiente;
-> el diagrama de después es el vigente hasta la aprobación. La PNG diverge en la capa de
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.** Con
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), el Modo C es el siguiente; el
+> diagrama de después es **historia**, vigente hasta el 2026-09-27. La PNG diverge en la capa de
 > datos hasta que el usuario la actualice
 > ([target-production-architecture.md](target-production-architecture.md) §2).
 >
@@ -163,7 +163,7 @@ Floci **no sustituye** ninguna de las dos: añade la vista del Modo B, que es un
 >     CF --> PAGES["Cloudflare Pages<br/>React estático"]
 >     CF --> AGW["API Gateway HTTP API"]
 >     AGW --> LMB["AWS Lambda<br/>FastAPI · en VPC"]
->     LMB -->|"TLS verificado · SG a SG"| DB[("RDS for PostgreSQL<br/>privado · ADR-010 propuesta")]
+>     LMB -->|"TLS verificado · SG a SG"| DB[("RDS for PostgreSQL<br/>privado · ADR-010")]
 >     LMB --> S3[("Amazon S3")]
 >     LMB --> SSM[("SSM Parameter Store")]
 >     LMB --> CW[("CloudWatch<br/>retención limitada")]
@@ -195,7 +195,7 @@ flowchart TD
 | **Cómputo** | Proceso ASGI / contenedor | Lambda emulada (Docker) | AWS Lambda |
 | **Objetos** | MinIO | S3 emulado | Amazon S3 |
 | **Configuración** | `.env` | SSM emulado | SSM Parameter Store |
-| **Base de datos** | PostgreSQL Docker | Local cuando la prueba lo requiera; **no se emula** (§8) | **PgBouncer → PostgreSQL en VPS externo**, fuera de AWS. *(Propuesta `Task/028.2`: **RDS privado** en AWS; en el Modo B, **No evaluado**, §8.4)* |
+| **Base de datos** | PostgreSQL Docker | Local cuando la prueba lo requiera; **no se emula** (§8) | **PgBouncer → PostgreSQL en VPS externo**, fuera de AWS. *(Enmienda `Task/028.2`: **RDS privado** en AWS; en el Modo B, **No evaluado**, §8.4)* |
 | **Costo** | 0 | 0 | Variable, con presupuesto |
 | **Autoridad sobre el comportamiento** | Ninguna sobre la nube | **Ninguna sobre AWS** | **Final** |
 | **Se usa cuando** | Se desarrolla el producto | Se desarrolla o se aprende la infraestructura | Se despliega de verdad |
@@ -476,7 +476,7 @@ real*. En ningún punto se afirma que algo sea «idéntico a AWS».
 | **Declarado disponible** | Instancias y clústeres, grupos de subred y de parámetros, listado de *snapshots*, *DB proxies* con esquema de autenticación IAM, tags |
 | **Declarado ausente / degradado** | El plano de datos de **DB Proxy** es solo metadatos de plano de control: sin *pooling* real, *timeouts*, TLS ni *session pinning* |
 | **Postura del proyecto** | **RDS no es el destino de producción.** [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) sitúa PostgreSQL en un **VPS externo**. Por tanto **no se emula RDS**, `Task/025` **no crea recursos RDS** y este apartado queda como registro de investigación. Ver §8 |
-| **Enmienda propuesta (`Task/028.2`)** | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone RDS privado, **por créditos AWS y prioridad de aprendizaje, no por este soporte declarado**. Estos hallazgos pasan a ser la **hipótesis de partida** de `Task/031`: qué recursos RDS y de red acepta el emulador se **comprueba**, no se supone. El DB Proxy emulado **no sirve** para evaluar *pooling*, TLS ni *pinning* (**D-12**). Ver §8.4 |
+| **Enmienda (`Task/028.2`)** | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —Aceptada— fija RDS privado, **por créditos AWS y prioridad de aprendizaje, no por este soporte declarado**. Estos hallazgos pasan a ser la **hipótesis de partida** de `Task/031`: qué recursos RDS y de red acepta el emulador se **comprueba**, no se supone. El DB Proxy emulado **no sirve** para evaluar *pooling*, TLS ni *pinning* (**D-12**). Ver §8.4 |
 
 ---
 
@@ -539,10 +539,10 @@ real, nunca con expectativas.
 | **CloudWatch Metrics / alarmas** | **No evaluada** | **No evaluada** | Pendiente | `No evaluada` | **`Task/025` no creó ninguna alarma ni métrica, a propósito.** ADR-006 §6.7 observó en la 1.6.0 que el estado se fija a mano con `SetAlarmState` y que no hay motor de evaluación documentado; crear una alarma solo habría demostrado que la definición se acepta. **Observación sin comprobar:** el CHANGELOG de `2.0.0` menciona *«evaluate alarms over CloudWatch's wider evaluation range»*, que contradiría aquello. **No se ha verificado**, así que esta fila **no** cambia de estado: `SetAlarmState` nunca demuestra evaluación automática | **`Task/031`, `Task/041`** |
 | **Terraform (`plan`/`apply`/`destroy`)** | **Sí** | **Ciclo completo revalidado en 2.1.0**: 21 recursos, apply, segundo plan **exit 0**, destroy y ausencia por API | Pendiente | `Paridad parcial` | Camino crítico APIGWv2 → Lambda → Logs correcto. La divergencia histórica `tags_all` de 2.0.1 está resuelta, sin excepciones activas de idempotencia. API Gateway presente y ausente comprobado con parser corregido. Estado local fuera de Git y del emulador (D-06); se conserva el único grafo Terraform | `Task/025` ✔, addendum `Task/027.1` (aprobado 2026-09-21) → **ETAPA 10** |
 | **AWS CLI / boto3** | **boto3: sí**, inspección desde el ZIP canónico en Task/026; **AWS CLI: no evaluada** | Inventario de recursos del ciclo local | Pendiente | `Paridad parcial` | Task/025 y el addendum 027.1 usaron el cliente SigV4 de biblioteca estándar; no acreditan por sí solos CLI/SDK. Task/026 sí ejecutó la inspección con boto3 desde el ZIP, corrigió DEF-026-1 y verificó ausencia; [evidencia](../task-reports/TASK-026-report.md). No implica validación AWS | `Task/026` ✔ → **ETAPA 10** |
-| **PostgreSQL** | **No aplica** | — | **No aplica** | `AWS-only` (fuera de AWS) | La base de datos de producción vive en un **VPS externo** ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md)): no pertenece al grafo AWS y el laboratorio **no debe reproducirla** | **`Task/029`** — proveedor y dimensionamiento. *(Sustituida por las tres filas siguientes si se aprueba ADR-010)* |
-| **RDS PostgreSQL, *parameter group* y DB subnet group** *(propuesta `Task/028.2`)* | No evaluada | No evaluada | No evaluada | `No evaluada` | No existe en el grafo actual. PostgreSQL local valida SQL, **no** la operación administrada | `Task/031` → `Task/040` |
-| **VPC, subnets, security groups, DNS y *endpoints*** *(propuesta `Task/028.2`)* | No evaluada | No evaluada | No evaluada | `No evaluada` | Aceptar un plan no demuestra aislamiento, rutas ni permisos efectivos | `Task/031`/`Task/032` → `Task/040` |
-| **KMS de RDS, TLS, backup/PITR, restore y *failover*** *(propuesta `Task/028.2`)* | No evaluada | No evaluada | No evaluada | `AWS-only` | Exigen evidencia en AWS real; la emulación **nunca** cuenta como prueba de seguridad ni de DR | `Task/031`/`Task/032` → `Task/040` |
+| **PostgreSQL** | **No aplica** | — | **No aplica** | `AWS-only` (fuera de AWS) | La base de datos de producción vive en un **VPS externo** ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md)): no pertenece al grafo AWS y el laboratorio **no debe reproducirla** | **`Task/029`** — proveedor y dimensionamiento. *(Sustituida el 2026-09-27 por las tres filas siguientes, al aceptarse ADR-010)* |
+| **RDS PostgreSQL, *parameter group* y DB subnet group** *(`Task/028.2`)* | No evaluada | No evaluada | No evaluada | `No evaluada` | No existe en el grafo actual. PostgreSQL local valida SQL, **no** la operación administrada | `Task/031` → `Task/040` |
+| **VPC, subnets, security groups, DNS y *endpoints*** *(`Task/028.2`)* | No evaluada | No evaluada | No evaluada | `No evaluada` | Aceptar un plan no demuestra aislamiento, rutas ni permisos efectivos | `Task/031`/`Task/032` → `Task/040` |
+| **KMS de RDS, TLS, backup/PITR, restore y *failover*** *(`Task/028.2`)* | No evaluada | No evaluada | No evaluada | `AWS-only` | Exigen evidencia en AWS real; la emulación **nunca** cuenta como prueba de seguridad ni de DR | `Task/031`/`Task/032` → `Task/040` |
 | **Cloudflare Pages / DNS** | **No aplica** | — | Pendiente | `AWS-only` (fuera de AWS) | Floci no emula Cloudflare | `Task/034`, `Task/035` |
 | **Presupuestos y alarmas de costo** | **No aplica** | — | Configuración verificada en Task/027, aprobada el 2026-09-17; operación continua pendiente | `AWS-only` | No se emula facturación. El alcance aprobado de Task/027 incluye presupuesto y cuatro alertas; no demuestra un disparo futuro ni autoriza nuevas acciones cloud. Evidencia original identificada en [Task/027.1 §15](../task-reports/TASK-027.1-report.md#15-reconciliación-documental-y-estrategia-de-cierre--2026-09-21) | `Task/027` ✔, `Task/041` |
 
@@ -603,14 +603,14 @@ Consecuencia directa para el laboratorio de paridad:
 región y el dimensionamiento**, con precios actuales — no el modelo, que ya está aceptado.
 Detalle en [open-decisions.md](open-decisions.md), **D-01**.
 
-### 8.4 Enmienda propuesta — RDS en el grafo AWS (`Task/028.2`, pendiente de aprobación)
+### 8.4 Enmienda — RDS en el grafo AWS (`Task/028.2`, aprobada el 2026-09-27)
 
-[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone **Amazon RDS for
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada**— fija **Amazon RDS for
 PostgreSQL privado**. La regla de este apartado **se cumple otra vez**: la elección se
 hace por **créditos AWS disponibles y prioridad de aprendizaje de servicios
 administrados**, no porque Floci soporte RDS.
 
-| Regla de §8.1 | Con la enmienda propuesta |
+| Regla de §8.1 | Con la enmienda |
 | --- | --- |
 | La base de datos de producción no forma parte del grafo AWS | **Pasa a formar parte**: `Task/031` amplía los módulos comunes con red y RDS, **después** del backend de estado de `Task/030` |
 | `Task/025` no debe crear recursos RDS | **Sigue siendo cierto para `Task/025`**, aprobada y no reabierta: sus 21 recursos no incluyen RDS |
@@ -696,7 +696,7 @@ no cambia; su alcance sí:
 
 Esto **no se implementa aquí ni se convierte en código Terraform ahora**. Es un requisito
 con propietarios explícitos: **`Task/025`** para el destino local/AWS y **`Task/039`** para
-extenderlo a Cloudflare y al VPS en la automatización. *(Enmienda propuesta por
+extenderlo a Cloudflare y al VPS en la automatización. *(Enmienda por
 `Task/028.2`: sin VPS, los providers vuelven a ser **dos**, AWS y Cloudflare. La guarda de
 **cuenta y región AWS** cubre también la red y RDS de `Task/031`, que además necesita
 protección contra borrado. La guarda del proveedor del VPS pierde objeto.)*
@@ -921,9 +921,9 @@ argumento a favor de la regla de portabilidad de §4.
 - [Decisiones diferidas](open-decisions.md) — **D-06 Resuelta** por Task/025; **D-14 Resuelta**;
   **D-01 Resuelta** (modelo) por `Task/005.3`
 - [PostgreSQL de producción en VPS](production-postgresql-vps.md) ·
-  [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada**; reemplazo
-  propuesto por [PostgreSQL en RDS](production-postgresql-rds.md) ·
-  [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Propuesta**
+  [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) — **Reemplazada** el 2026-09-27
+  por [PostgreSQL en RDS](production-postgresql-rds.md) ·
+  [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Aceptada**
 - [ETAPA 08 — Preparación Cloud + AWS Local Parity](../stages/STAGE-08-cloud-ready.md)
 - [ETAPA 10 — Despliegue Cloud](../stages/STAGE-10-cloud-deployment.md)
 - [ETAPA 11 — Automatización de Despliegues](../stages/STAGE-11-deployment-automation.md)

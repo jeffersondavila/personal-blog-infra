@@ -1,7 +1,7 @@
 # ADR-008 — Observabilidad: CloudWatch mínimo y Grafana Cloud con Alloy
 
-> **Modificación parcial propuesta — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
-> Si el usuario aprueba [ADR-010](ADR-010-production-postgresql-on-rds.md), sin VPS pierde
+> **Nota de vigencia — 2026-09-27 (`Task/028.2`, aprobada).** Con
+> [ADR-010](ADR-010-production-postgresql-on-rds.md) —**Aceptada**—, sin VPS pierde
 > objeto **solo** lo que dependía del host: la decisión **K** —Alloy como agente del VPS—,
 > su credencial como secreto del host y las reglas G-01, G-04 y G-05. **Se conservan**
 > CloudWatch mínimo con retención corta (**I**), **Grafana Cloud como plano central**
@@ -23,6 +23,7 @@
 | **Tarea** | `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` (mantenimiento; **no cuenta** en las 41 tareas) |
 | **Reemplaza a** | — |
 | **Reemplazada por** | — |
+| **Modificado parcialmente por** | [ADR-010](ADR-010-production-postgresql-on-rds.md) — **Aceptada** (2026-09-27): decisión **K**, reglas G-01/G-04/G-05 y alcance de **D-20** |
 | **Modifica parcialmente** | [ADR-003](ADR-003-serverless-low-cost-cloud.md) — **solo la fila «Logs y métricas»**. El resto de ADR-003 sigue íntegro y vigente |
 | **Complementa a** | [ADR-007](ADR-007-production-postgresql-on-vps.md) — cierra la herramienta del *baseline* de observabilidad del VPS que aquel documento dejó explícitamente sin decidir |
 | **Documento canónico** | [target-production-architecture.md](../architecture/target-production-architecture.md) §10–§13 — **Vigente** |

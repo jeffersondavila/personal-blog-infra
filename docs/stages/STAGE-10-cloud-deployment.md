@@ -31,7 +31,7 @@ de aplicación**. La expectativa explícita es:
 > **Utilizar los módulos construidos y validados localmente en `Task/025` y materializarlos
 > contra AWS real.**
 
-> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.** Con
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.** Con
 > [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), `Task/031` **amplía** los
 > módulos comunes con **red y RDS**, que el grafo de `Task/025` no contenía. Lo hace en el
 > **mismo grafo**, sin duplicar módulos local/cloud, sin recursos específicos del emulador
@@ -69,7 +69,7 @@ laboratorio local. Por cada recurso se documenta y se clasifica:
 Diferencias que hay que comparar de forma expresa: **IAM** (autorización real, que el
 laboratorio **no** ejercita), **red y DNS** (`execute-api`, TLS, dominios personalizados),
 **cuotas y límites de cuenta**, **arranque en frío real** de la Lambda, **cifrado real de
-`SecureString`** en SSM y **evaluación real de alarmas** en CloudWatch. *(Enmienda propuesta:
+`SecureString`** en SSM y **evaluación real de alarmas** en CloudWatch. *(Enmienda:
 también **red privada** —VPC, subnets, security groups, rutas y *endpoints*—, **TLS
 verificado hacia RDS**, **KMS**, **backups administrados, PITR y restore**, y el
 comportamiento de la **Lambda conectada a la VPC**: todo **AWS-only** a efectos de
@@ -86,16 +86,16 @@ laboratorio se corrige.
 
 | Tarea | Contenido | Depende de |
 | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. **Validación de `S3Storage` contra S3 real**. Resuelve **D-08**. **Excepción D-06:** bucket de estado y protección, migración OIDC y custodia/migración del estado del propio bootstrap. *(Propuesta `Task/028.2`: se retiran el **destino de los backups del VPS** y la **materialización de D-16**, que pierden objeto con los backups administrados de RDS.)* | `Task/029` |
-| `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` *(antes `Task/031-Desplegar-SSM-y-CloudWatch`; propuesta `Task/028.2`)* | Parámetros **`SecureString`** y permisos IAM mínimos. **CloudWatch mínimo**: grupos de logs, **retención corta y explícita** (**D-11**), alarmas mínimas. Integración `CloudWatch → Grafana Cloud`: **decide e implementa D-20**, con modelo IAM de **solo lectura** y **D-19** verificada antes. **Alcance exclusivamente AWS.** Además: **VPC, subnets, security groups y rutas o *endpoints*** (**D-22**), **RDS privado** con *parameter group*, KMS y credenciales (**D-23**), **acceso operativo privado** (**D-24**), **restore sintético y PITR** demostrados (**D-10**), y runbooks, inventarios y guardas ampliados | `Task/030` *(antes `Task/029`)* |
-| `Task/032-Desplegar-AWS-Lambda` | Función, rol IAM, configuración, memoria y timeout. ***Reserved Concurrency*** coherente con el pool de PgBouncer, **RTT real `Lambda → PgBouncer` medido** y *wiring* de `S3Storage`. *(Propuesta `Task/028.2`: Lambda **conectada a la VPC**, `DATABASE_URL` hacia **RDS** con **TLS verificado**, secretos según **D-23**, *Reserved Concurrency* y pool **medidos** frente a `max_connections`, **latencia `Lambda ↔ RDS` medida**, y tráfico real a PostgreSQL, S3, SSM y logs **sin NAT**.)* | `Task/030`, `Task/031` |
-| `Task/033-Desplegar-API-Gateway` | HTTP API, rutas, CORS, throttling. *(Propuesta: logs y métricas del API con la política **D-11**.)* | `Task/032` |
+| `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. **Validación de `S3Storage` contra S3 real**. Resuelve **D-08**. **Excepción D-06:** bucket de estado y protección, migración OIDC y custodia/migración del estado del propio bootstrap. *(Enmienda `Task/028.2`: se retiran el **destino de los backups del VPS** y la **materialización de D-16**, que pierden objeto con los backups administrados de RDS.)* | `Task/029` |
+| `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` *(antes `Task/031-Desplegar-SSM-y-CloudWatch`; `Task/028.2`)* | Parámetros **`SecureString`** y permisos IAM mínimos. **CloudWatch mínimo**: grupos de logs, **retención corta y explícita** (**D-11**), alarmas mínimas. Integración `CloudWatch → Grafana Cloud`: **decide e implementa D-20**, con modelo IAM de **solo lectura** y **D-19** verificada antes. **Alcance exclusivamente AWS.** Además: **VPC, subnets, security groups y rutas o *endpoints*** (**D-22**), **RDS privado** con *parameter group*, KMS y credenciales (**D-23**), **acceso operativo privado** (**D-24**), **restore sintético y PITR** demostrados (**D-10**), y runbooks, inventarios y guardas ampliados | `Task/030` *(antes `Task/029`)* |
+| `Task/032-Desplegar-AWS-Lambda` | Función, rol IAM, configuración, memoria y timeout. ***Reserved Concurrency*** coherente con el pool de PgBouncer, **RTT real `Lambda → PgBouncer` medido** y *wiring* de `S3Storage`. *(Enmienda `Task/028.2`: Lambda **conectada a la VPC**, `DATABASE_URL` hacia **RDS** con **TLS verificado**, secretos según **D-23**, *Reserved Concurrency* y pool **medidos** frente a `max_connections`, **latencia `Lambda ↔ RDS` medida**, y tráfico real a PostgreSQL, S3, SSM y logs **sin NAT**.)* | `Task/030`, `Task/031` |
+| `Task/033-Desplegar-API-Gateway` | HTTP API, rutas, CORS, throttling. *(Desde `Task/028.2`: logs y métricas del API con la política **D-11**.)* | `Task/032` |
 | `Task/034-Desplegar-Cloudflare-Pages` | Build de React, variables, dominio. | `Task/033` |
 | `Task/035-Configurar-DNS` | Dominio principal, `www`, `api`, `media` si corresponde. | `Task/034` |
-| `Task/036-Publicar-Primer-Contenido` | Migraciones, administrador, perfil, artículo, review, video, imágenes. *(Propuesta `Task/028.2`: migraciones por el **canal privado D-24**, con identidad SQL distinta y **backup previo**; recuperación del administrador **R-43** y purga **R-44** según el diseño de `Task/029`.)* | `Task/035` |
+| `Task/036-Publicar-Primer-Contenido` | Migraciones, administrador, perfil, artículo, review, video, imágenes. *(Enmienda `Task/028.2`: migraciones por el **canal privado D-24**, con identidad SQL distinta y **backup previo**; recuperación del administrador **R-43** y purga **R-44** según el diseño de `Task/029`.)* | `Task/035` |
 
 **Repositorio principal:** `personal-blog-infra` (Terraform), con participación de
-`personal-blog-frontend` y `personal-blog-backend` en `Task/034` y `Task/036`. *(Propuesta
+`personal-blog-frontend` y `personal-blog-backend` en `Task/034` y `Task/036`. *(Desde
 `Task/028.2`: el backend participa además en `Task/032` si **D-23** exige leer secretos en
 *runtime*; hoy no existe ese lector.)*
 
@@ -108,7 +108,7 @@ laboratorio se corrige.
       justificadas.
 - [ ] **D-20 decidida**: está definido con qué mecanismo IAM de **solo lectura** accedería
       Grafana Cloud a CloudWatch, sin credenciales de larga vida versionadas. **Implementarla
-      no es obligatorio en esta etapa; decidirla, sí.** *(Enmienda propuesta: sin Alloy, es
+      no es obligatorio en esta etapa; decidirla, sí.** *(Enmienda: sin Alloy, es
       la única vía de datos hacia Grafana; `Task/031` también la **implementa**, salvo una
       decisión explícita en contra por costo o mecanismo.)*
 - [ ] La Lambda responde correctamente a través de API Gateway.
@@ -119,18 +119,18 @@ laboratorio se corrige.
 - [ ] El costo real observado coincide con lo estimado.
 - [ ] El **destino de backups del VPS** existe en S3, con su política, su retención y el
       **principal de acceso** derivado de **D-16**, sin credenciales versionadas.
-      *(Pierde objeto con la enmienda propuesta; lo sustituyen los criterios de RDS de más
+      *(Pierde objeto con la enmienda; lo sustituyen los criterios de RDS de más
       abajo.)*
 - [ ] `S3Storage` —cuyo código entrega `Task/010`— **funciona contra S3 real**.
 - [ ] La **`Reserved Concurrency`** de la Lambda es coherente con el pool de PgBouncer y con
-      `max_connections`, según los números derivados en `Task/029`. *(Enmienda propuesta:
+      `max_connections`, según los números derivados en `Task/029`. *(Enmienda:
       coherente con el pool por proceso y `max_connections` de RDS, **medidos** en
       `Task/032`.)*
 - [ ] Los módulos de **aplicación** son los validados en Task/025; solo se añade
-      el bootstrap independiente de D-06 bajo la excepción Task/030. *(Enmienda propuesta:
+      el bootstrap independiente de D-06 bajo la excepción Task/030. *(Enmienda:
       además, la **extensión de red y RDS** de `Task/031`, en el mismo grafo.)*
 
-Criterios **propuestos por `Task/028.2`** para la capa de datos RDS:
+Criterios **fijados por `Task/028.2`** (2026-09-27) para la capa de datos RDS:
 
 - [ ] RDS **no es accesible públicamente**: subnets privadas y security group que solo
       admite el puerto SQL desde los security groups autorizados. Casos negativos
@@ -171,12 +171,12 @@ Criterios **propuestos por `Task/028.2`** para la capa de datos RDS:
 | CORS mal configurado que rompe el frontend. | Orígenes permitidos explícitos; prueba desde el dominio real. |
 | Propagación de DNS más lenta de lo previsto. | TTL bajo durante el corte; ventana de validación holgada. |
 | Arranque en frío perceptible en la primera visita. | Medición y ajuste de memoria de la Lambda. |
-| *(Propuesta `Task/028.2`)* **RDS o sus snapshots expuestos por error**, o security group demasiado amplio (**R-30**). | Sin acceso público, subnets privadas, SG de SG a SG, casos negativos en `Task/031` y `Task/040`. |
-| *(Propuesta)* **Borrado o pérdida de acceso** a RDS, a sus snapshots o a su clave KMS (**R-35**). | *Deletion protection*, snapshot final, claves nunca deshabilitadas en pruebas, planes revisados y ningún `destroy` automático contra la base real. |
-| *(Propuesta)* **Backup administrado que no restaura** (**R-31**). | Restore sintético y PITR en `Task/031`; restore reciente en `Task/040`. «`available`» no es evidencia. |
-| *(Propuesta)* **Agotamiento de conexiones** (**R-03**, **R-33**). | Pool por proceso y concurrencia **medidos** en `Task/032`; RDS Proxy solo con evidencia. |
-| *(Propuesta)* **Costo fijo de RDS y *endpoints*** por encima de **D-13**, o créditos que caducan (**R-02**). | Estimación de `Task/029` y decisión explícita si no cabe, antes del primer `apply` de aplicación. |
-| *(Propuesta)* Una política de bucket con `aws:SourceVpce` **rompe las URLs prefirmadas** del navegador. | Validarla con **D-08** en `Task/030` y con la Lambda real en `Task/032`. |
+| *(`Task/028.2`)* **RDS o sus snapshots expuestos por error**, o security group demasiado amplio (**R-30**). | Sin acceso público, subnets privadas, SG de SG a SG, casos negativos en `Task/031` y `Task/040`. |
+| *(`Task/028.2`)* **Borrado o pérdida de acceso** a RDS, a sus snapshots o a su clave KMS (**R-35**). | *Deletion protection*, snapshot final, claves nunca deshabilitadas en pruebas, planes revisados y ningún `destroy` automático contra la base real. |
+| *(`Task/028.2`)* **Backup administrado que no restaura** (**R-31**). | Restore sintético y PITR en `Task/031`; restore reciente en `Task/040`. «`available`» no es evidencia. |
+| *(`Task/028.2`)* **Agotamiento de conexiones** (**R-03**, **R-33**). | Pool por proceso y concurrencia **medidos** en `Task/032`; RDS Proxy solo con evidencia. |
+| *(`Task/028.2`)* **Costo fijo de RDS y *endpoints*** por encima de **D-13**, o créditos que caducan (**R-02**). | Estimación de `Task/029` y decisión explícita si no cabe, antes del primer `apply` de aplicación. |
+| *(`Task/028.2`)* Una política de bucket con `aws:SourceVpce` **rompe las URLs prefirmadas** del navegador. | Validarla con **D-08** en `Task/030` y con la Lambda real en `Task/032`. |
 
 ## Siguiente etapa
 

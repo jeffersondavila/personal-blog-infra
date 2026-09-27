@@ -2,37 +2,37 @@
 
 | Campo | Valor |
 | --- | --- |
-| **Estado** | **Vigente** ✔ — aprobado en `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` (2026-08-23). **Enmienda de la capa de datos: Propuesta — pendiente de aprobación** en `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` (2026-09-27) |
-| **Fecha** | 2026-08-23 · enmienda propuesta 2026-09-27 |
+| **Estado** | **Vigente** ✔ — aprobado en `Task/006.2-Formalizar-Arquitectura-Objetivo-Produccion` (2026-08-23). **Enmienda de la capa de datos: Vigente** ✔ — aprobada en `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` (2026-09-27) |
+| **Fecha** | 2026-08-23 · enmienda aprobada el 2026-09-27 |
 | **Tipo** | Documento canónico de arquitectura. **Mantenimiento transversal**: no cuenta en las 41 tareas |
-| **Qué formaliza** | La contraparte **textual** del diagrama [`images/Infraestructura.png`](../../images/Infraestructura.png), actualizado por el usuario en `main` (commit `d08fe27`). Desde la enmienda propuesta, la imagen y este texto **divergen en la capa de datos** (§2) |
+| **Qué formaliza** | La contraparte **textual** del diagrama [`images/Infraestructura.png`](../../images/Infraestructura.png), actualizado por el usuario en `main` (commit `d08fe27`). Desde la enmienda, la imagen y este texto **divergen en la capa de datos** (§2) |
 | **Qué NO hace** | **No implementa nada.** 0 recursos AWS, 0 Cloudflare, 0 VPS, 0 Grafana, 0 Terraform nuevo. La enmienda tampoco crea RDS, VPC, endpoints, claves KMS ni secretos |
-| **Decisión asociada** | [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada** ✔ · [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Propuesta — pendiente de aprobación** |
+| **Decisión asociada** | [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md) — **Aceptada** ✔ · [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Aceptada** ✔ (2026-09-27) |
 
-> **Enmienda propuesta — `Task/028.2`, 2026-09-27, pendiente de aprobación.**
-> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone sustituir el modelo
+> **Enmienda de `Task/028.2`, aprobada el 2026-09-27.**
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada**— sustituye el modelo
 > PostgreSQL en VPS externo + PgBouncer de [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md)
-> por **Amazon RDS for PostgreSQL privado**, con la Lambda conectada a la VPC. Esta enmienda
+> —**Reemplazada**— por **Amazon RDS for PostgreSQL privado**, con la Lambda conectada a la VPC. Esta enmienda
 > reescribe **solo** lo que dependía del VPS: §3, §6, §9, §11, §14, §15 y §17, y las filas
 > afectadas de §5, §7, §8, §10, §12, §13, §16 y §18–§26. Cada sección conserva su texto
 > anterior en un bloque **«Historia»** plegable o lo cita de forma explícita. El resto del
 > documento sigue **Vigente** sin cambios. La enmienda **no es autorización** para crear
-> recursos (§24): solo `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` la
-> hace vigente, y la instrucción actual del usuario suspende cualquier nueva ejecución del
-> modelo VPS. Canónico de la capa de datos propuesta:
+> recursos (§24): cada recurso exige su tarea propietaria y la autorización explícita del
+> usuario. El modelo VPS queda como historia y no se ejecuta. Canónico de la capa de datos:
 > [production-postgresql-rds.md](production-postgresql-rds.md).
 
 > **Vigente** desde el 2026-08-23, al aprobar el usuario `Task/006.2` con la expresión
 > exacta requerida por [WORKFLOW.md](../project-management/WORKFLOW.md). Todo lo que este
 > documento marca como **decisión cerrada** es de cumplimiento obligatorio. Lo que ya estaba
 > **Aceptado** antes —ADR-001 a ADR-007— sigue vigente y **este documento no lo reabre**.
+> *(Desde el 2026-09-27, ADR-007 está **Reemplazada** por ADR-010, `Task/028.2`.)*
 >
 > **Vigencia no es autorización.** Este documento describe el objetivo; ejecutarlo requiere
 > la tarea propietaria y la autorización explícita del usuario (§24).
 
 Relacionados: [overview.md](overview.md) · [local-to-cloud-mapping.md](local-to-cloud-mapping.md) ·
-[production-postgresql-rds.md](production-postgresql-rds.md) (propuesta) ·
-[production-postgresql-vps.md](production-postgresql-vps.md) (histórico, reemplazo propuesto) ·
+[production-postgresql-rds.md](production-postgresql-rds.md) (vigente) ·
+[production-postgresql-vps.md](production-postgresql-vps.md) (histórico, reemplazado) ·
 [aws-local-parity.md](aws-local-parity.md) ·
 [security-boundaries.md](security-boundaries.md) ·
 [open-decisions.md](open-decisions.md)
@@ -60,7 +60,7 @@ detalle, el detalle vive en su documento canónico y aquí solo se enlaza.
 
 **Regla de precedencia.** Si este documento y un documento especializado se contradicen,
 manda el especializado —[production-postgresql-rds.md](production-postgresql-rds.md) para la
-capa de datos (propuesta; hasta la enmienda era
+capa de datos (desde el 2026-09-27; hasta la enmienda era
 [production-postgresql-vps.md](production-postgresql-vps.md)),
 [aws-local-parity.md](aws-local-parity.md) para el laboratorio de IaC,
 [security-boundaries.md](security-boundaries.md) para las comunicaciones permitidas— y **la
@@ -75,7 +75,7 @@ Vista visual versionada: [`images/Infraestructura.png`](../../images/Infraestruc
 | Campo | Valor |
 | --- | --- |
 | **Ruta** | `images/Infraestructura.png`, en la raíz de `personal-blog-infra` |
-| **Estado** | **Vigente** para el borde, el frontend, la aplicación y la observabilidad central. **Divergente en la capa de datos** desde la enmienda propuesta: muestra el modelo VPS + PgBouncer + Alloy de ADR-007/ADR-008 |
+| **Estado** | **Vigente** para el borde, el frontend, la aplicación y la observabilidad central. **Divergente en la capa de datos** desde la enmienda del 2026-09-27: muestra el modelo VPS + PgBouncer + Alloy de ADR-007/ADR-008 |
 | **Actualizada** | Por el usuario, manualmente, en el commit `d08fe27` sobre `main` |
 | **Mantenimiento** | **No se regenera, edita, comprime ni convierte de formato** salvo decisión explícita del usuario |
 
@@ -96,8 +96,8 @@ Vista visual versionada: [`images/Infraestructura.png`](../../images/Infraestruc
 
 ## 3. Arquitectura productiva
 
-> **Enmienda propuesta (ADR-010).** Los diagramas y la tabla de planos de esta sección
-> describen la propuesta RDS. Los del modelo VPS se conservan íntegros en el bloque
+> **Enmienda (ADR-010).** Los diagramas y la tabla de planos de esta sección
+> describen el diseño RDS. Los del modelo VPS se conservan íntegros en el bloque
 > «Historia» al final de la sección.
 
 ```
@@ -164,7 +164,7 @@ Tres proveedores, cuatro planos:
 | --- | --- | --- |
 | **Borde y frontend** | **Cloudflare** | DNS, CDN, WAF, Cloudflare Pages |
 | **Aplicación y servicios gestionados** | **AWS** | API Gateway HTTP API, Lambda, S3, SSM, CloudWatch, IAM |
-| **Capa de datos y su operación** | **AWS** (propuesta ADR-010) | RDS for PostgreSQL privado, VPC/subnets/security groups, KMS, backups/PITR/snapshots |
+| **Capa de datos y su operación** | **AWS** (ADR-010) | RDS for PostgreSQL privado, VPC/subnets/security groups, KMS, backups/PITR/snapshots |
 | **Observabilidad central** | **Grafana Cloud** | Visualización, consulta y alertas |
 
 **Sin NAT Gateway por defecto.** Conectar la Lambda a la VPC **no** exige NAT: NAT solo
@@ -173,7 +173,7 @@ no encuentra ninguna. S3 y SSM se cubren con rutas específicas (D-22). Ver
 [production-postgresql-rds.md](production-postgresql-rds.md) §2.
 
 <details>
-<summary>Historia — diagramas del modelo VPS (vigentes del 2026-08-23 hasta la enmienda propuesta)</summary>
+<summary>Historia — diagramas del modelo VPS (vigentes del 2026-08-23 hasta la enmienda del 2026-09-27)</summary>
 
 ```
 USUARIOS
@@ -281,7 +281,7 @@ React SPA (navegador) ──HTTPS──► API Gateway HTTP API ──► AWS La
 ```
 
 - La SPA **nunca** habla con PostgreSQL, con S3 con credenciales, ni con la capa de datos
-  —la VPC y RDS en la enmienda propuesta; el VPS en el modelo histórico—. Su **único canal
+  —la VPC y RDS en la enmienda; el VPS en el modelo histórico—. Su **único canal
   de datos** es el API.
 - **API Gateway HTTP API** aporta enrutado, TLS gestionado, CORS y *throttling*
   (`Task/033`).
@@ -299,9 +299,9 @@ y de tamaño del artefacto.
 
 ---
 
-## 6. Flujo Lambda → RDS (propuesta ADR-010)
+## 6. Flujo Lambda → RDS (ADR-010)
 
-> Hasta la enmienda propuesta, esta sección se titulaba **«Flujo Lambda → VPS»**; su texto
+> Hasta la enmienda del 2026-09-27, esta sección se titulaba **«Flujo Lambda → VPS»**; su texto
 > se conserva íntegro en el bloque «Historia» siguiente.
 
 ```
@@ -326,7 +326,7 @@ y de consulta `Lambda ↔ RDS` se **mide** con la Lambda real en `Task/032` y ba
 `Task/040` (**R-34**, reformulado).
 
 <details>
-<summary>Historia — «Flujo Lambda → VPS», vigente del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — «Flujo Lambda → VPS», vigente del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 ```
 AWS Lambda ──TLS──► PgBouncer ──red interna del VPS──► PostgreSQL (privado)
@@ -368,7 +368,7 @@ y cada consulta paga el RTT `Lambda ↔ VPS` (**R-34**). Por eso la selección d
   URL prefirmada** — que expira. La URL se genera en el momento de servir.
 - Cómo se sirven los medios **públicos** desde un bucket **privado**, y qué URL usa
   `og:image`, es **D-08**, que resuelve `Task/030`.
-- **Enmienda propuesta (ADR-010): S3 desde una Lambda en VPC.** `PutObject`, `GetObject`,
+- **Enmienda (ADR-010): S3 desde una Lambda en VPC.** `PutObject`, `GetObject`,
   `HeadObject`, `DeleteObject` y la sonda `ListObjectsV2` de `/ready` necesitan una ruta de
   red desde la VPC; **firmar** una URL prefirmada es un cálculo local. La ruta candidata es
   un *gateway endpoint* de S3 (**D-22**). Una política de bucket que exija
@@ -402,7 +402,7 @@ Reglas:
 Propietario de la materialización: `Task/031` (parámetros y permisos) y `Task/032`
 (*wiring* de la Lambda).
 
-**Enmienda propuesta (ADR-010).** La decisión SSM `SecureString` **no cambia**: sigue
+**Enmienda (ADR-010).** La decisión SSM `SecureString` **no cambia**: sigue
 siendo la base. Lo que se añade:
 
 - La credencial SQL de la **aplicación** es un secreto de Lambda más. La credencial
@@ -420,11 +420,11 @@ siendo la base. Lo que se añade:
 
 ---
 
-## 9. Credenciales de la base de datos (propuesta ADR-010)
+## 9. Credenciales de la base de datos (ADR-010)
 
-> Hasta la enmienda propuesta, esta sección era **«Secretos del VPS»**. Sin host propio no
-> hay secretos de host: **D-17** tiene **cierre por no aplicabilidad propuesto**, efectivo
-> solo al aprobar `Task/028.2`. Su texto se conserva en el bloque «Historia» siguiente.
+> Hasta la enmienda del 2026-09-27, esta sección era **«Secretos del VPS»**. Sin host propio no
+> hay secretos de host: **D-17** quedó **cerrada por no aplicabilidad** el 2026-09-27. Su
+> texto se conserva en el bloque «Historia» siguiente.
 
 La obligación de fondo **no desaparece**: cambia de plano.
 
@@ -444,7 +444,7 @@ La obligación de fondo **no desaparece**: cambia de plano.
   en la máquina local; ver §15.
 
 <details>
-<summary>Historia — «Secretos del VPS», vigente del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — «Secretos del VPS», vigente del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 **Decisión cerrada:** el VPS usa **secretos cifrados**, con la **clave fuera del
 repositorio** y **descifrado local seguro** en el momento del despliegue o de la ejecución,
@@ -494,32 +494,32 @@ Reglas:
   `Task/031`.
 - **CloudWatch no observa el VPS.** Un host externo no aparece en CloudWatch por defecto, y
   el proyecto **no adopta CloudWatch Agent por omisión** en el VPS: eso tendría costo,
-  superficie y credenciales propias. *(Regla del modelo VPS. Con la enmienda propuesta la
+  superficie y credenciales propias. *(Regla del modelo VPS. Con la enmienda la
   capa de datos vive en AWS: RDS publica sus **métricas nativas** en CloudWatch y exporta los
   **logs que se seleccionen** (§11). Enhanced Monitoring y Database Insights solo se adoptan
   con utilidad y costo justificados.)*
 - **Costo bajo control**: la ingesta y la retención de logs son la vía habitual por la que
   CloudWatch se vuelve caro (`Task/041`).
 
-Propietario: `Task/031-Desplegar-SSM-y-CloudWatch` — **solo AWS**. *(Enmienda propuesta:
+Propietario: `Task/031-Desplegar-SSM-y-CloudWatch` — **solo AWS**. *(Enmienda:
 la tarea conserva el ID y pasa a llamarse `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`.
 Fija la política de retención **D-11** y crea las señales de RDS; `Task/032` y `Task/033`
 aplican esa misma política a la Lambda y a API Gateway cuando existen.)*
 
 ---
 
-## 11. Telemetría de la base de datos (propuesta ADR-010)
+## 11. Telemetría de la base de datos (ADR-010)
 
-> Hasta la enmienda propuesta, esta sección era **«Observabilidad del VPS — Grafana
+> Hasta la enmienda del 2026-09-27, esta sección era **«Observabilidad del VPS — Grafana
 > Alloy»**. En RDS no se instala ningún agente: AWS opera el host. La decisión **K**
-> (Alloy) y el riesgo **R-41** pierden objeto; su **cierre** es una propuesta, no un hecho.
+> (Alloy) pierde objeto y el riesgo **R-41** quedó **cerrado por no aplicabilidad** el 2026-09-27.
 > El texto anterior se conserva en el bloque «Historia» siguiente.
 
 **Ninguna señal del *baseline* anterior desaparece sin sustituto.** Cada una pasa a una
 fuente nativa de AWS. Los umbrales concretos **no** se fijan aquí: los decide `Task/031`
 con **D-11**.
 
-| Señal del *baseline* VPS | Equivalente propuesto en RDS |
+| Señal del *baseline* VPS | Equivalente en RDS |
 | --- | --- |
 | *Uptime* del host | Disponibilidad y **eventos** de la instancia RDS (reinicios, *failover* si Multi-AZ, mantenimiento) |
 | CPU · RAM | Métricas nativas de CPU y memoria libre; créditos de *burst* si la clase es *burstable* |
@@ -535,7 +535,7 @@ con **D-11**.
 - **Sigue vigente:** no autohospedar Grafana, Prometheus ni Loki en ninguna parte (§24).
 
 <details>
-<summary>Historia — «Observabilidad del VPS — Grafana Alloy», vigente del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — «Observabilidad del VPS — Grafana Alloy», vigente del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 **Decisión cerrada: el agente de observabilidad del VPS es Grafana Alloy**, y su destino es
 **Grafana Cloud**.
@@ -577,7 +577,7 @@ alertas** del proyecto.
 | Aspecto | Definición |
 | --- | --- |
 | **Qué es** | El sitio donde se **mira** la telemetría, se **consulta** y se **alerta** |
-| **Qué recibe en el diseño actual** | Lo que envía **Grafana Alloy** desde el VPS. *(Enmienda propuesta: sin agente de host, recibe lo que llegue desde **CloudWatch** por la integración **D-20** —señales de RDS, Lambda y API Gateway—.)* |
+| **Qué recibe en el diseño actual** | Lo que envía **Grafana Alloy** desde el VPS. *(Enmienda: sin agente de host, recibe lo que llegue desde **CloudWatch** por la integración **D-20** —señales de RDS, Lambda y API Gateway—.)* |
 | **Qué recibirá** | Además, lo que llegue desde **CloudWatch** por una integración segura (§13). *(Con la enmienda, esa integración pasa a ser su **única** fuente de datos de producción.)* |
 | **Qué NO es** | **No es el único destino de telemetría**, y **no reemplaza a CloudWatch** |
 
@@ -597,7 +597,7 @@ Consecuencias explícitas de esa frase:
   que se documente en el futuro debe marcarse **«verificar en `Task/041` / antes de
   contratar»**. Las condiciones de un tier gratuito **no son una garantía eterna**.
 - **Decisión abierta:** **D-19** — plan, límites y costo reales de Grafana Cloud. **Owner:
-  `Task/041`**, con aporte de `Task/027` (presupuesto). *(Enmienda propuesta: Grafana
+  `Task/041`**, con aporte de `Task/027` (presupuesto). *(Enmienda: Grafana
   empieza a usarse con **D-20** en `Task/031`, no en `Task/029`. Por la regla «verificar
   antes de contratar», `Task/031` verifica plan y límites antes de integrar; `Task/029` lo
   incluye en la estimación de costo frente a **D-13**; `Task/041` sigue revisándolo.)*
@@ -608,7 +608,7 @@ Consecuencias explícitas de esa frase:
 Enviar telemetría a un tercero es **exportar datos fuera del proyecto**. Regla vigente:
 los logs y las métricas **no contienen contraseñas, tokens, cadenas de conexión ni datos
 personales innecesarios** (**O-08**). Aplicada a Alloy, significa que **qué se recolecta es
-parte del diseño**, no un detalle de configuración (**R-39**). *(Con la enmienda propuesta,
+parte del diseño**, no un detalle de configuración (**R-39**). *(Con la enmienda,
 la misma regla se aplica a la integración **D-20** y a los logs de PostgreSQL que se exporten:
 ni consultas con datos sensibles ni *payloads* con secretos.)*
 
@@ -623,29 +623,29 @@ mediante **el mecanismo seguro/IAM que corresponda**.
 | --- | --- |
 | **Que exista la integración** | **Contemplado en la arquitectura objetivo** |
 | **Con qué mecanismo concreto** —rol IAM asumible, credencial acotada, *push* desde AWS— | **No decidido** |
-| **Cuándo se implementa** | **No ahora.** Ninguna tarea en curso lo toca. *(Enmienda propuesta: `Task/031` la **decide e implementa**, porque sin agente de host es la única vía de datos hacia Grafana Cloud)* |
+| **Cuándo se implementa** | **No ahora.** Ninguna tarea en curso lo toca. *(Enmienda: `Task/031` la **decide e implementa**, porque sin agente de host es la única vía de datos hacia Grafana Cloud)* |
 
 - **Decisión abierta:** **D-20** — mecanismo concreto de integración `CloudWatch → Grafana
   Cloud` y su modelo de permisos. **Owner: `Task/031`** (decide y prepara la base AWS);
-  **`Task/040`** valida que funciona. *(Enmienda propuesta: `Task/031` también la
+  **`Task/040`** valida que funciona. *(Enmienda: `Task/031` también la
   **implementa**. Si el costo o el mecanismo no encajan, se resuelve con una decisión
   explícita antes de integrar, sin fingir evidencia.)*
 - **Restricción de seguridad, ya heredada:** permisos **mínimos**, de **solo lectura** sobre
   lo estrictamente necesario, y **ninguna credencial de larga vida versionada**. Este
   problema es de la **misma familia** que **D-16** (identidad del VPS hacia AWS) y debe
   resolverse con el mismo criterio, **sin fusionarse con ella**: son dos principals
-  distintos, con dos superficies distintas. *(D-16 tiene cierre por no aplicabilidad
-  propuesto; el criterio de principal dedicado, mínimo y de solo lectura sigue vigente.
+  distintos, con dos superficies distintas. *(D-16 quedó cerrada por no aplicabilidad
+  el 2026-09-27; el criterio de principal dedicado, mínimo y de solo lectura sigue vigente.
   Grafana nunca recibe acceso SQL, permisos de despliegue ni permisos Terraform.)*
 
 ---
 
-## 14. PostgreSQL y conexiones (propuesta ADR-010)
+## 14. PostgreSQL y conexiones (ADR-010)
 
-> Hasta la enmienda propuesta, esta sección era **«PostgreSQL y PgBouncer»**; su texto se
+> Hasta la enmienda del 2026-09-27, esta sección era **«PostgreSQL y PgBouncer»**; su texto se
 > conserva en el bloque «Historia» siguiente.
 
-| Elemento | Propuesta |
+| Elemento | Decisión |
 | --- | --- |
 | **Motor** | **PostgreSQL**, el mismo que en local. La compatibilidad de versión, extensiones y privilegios de las migraciones Alembic se revisa en `Task/029` |
 | **Modelo** | **Amazon RDS for PostgreSQL**, administrado y **privado** |
@@ -670,11 +670,11 @@ disponibilidad (**D-22**); TLS, KMS y credenciales (**D-23**); canal privado de
 administración y migraciones (**D-24**); backups y recuperación (**D-10**); presupuesto
 preliminar de conexiones (**D-12**).
 
-Documento canónico propuesto: [production-postgresql-rds.md](production-postgresql-rds.md) ·
-[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Propuesta**.
+Documento canónico: [production-postgresql-rds.md](production-postgresql-rds.md) ·
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Aceptada** ✔ (2026-09-27).
 
 <details>
-<summary>Historia — «PostgreSQL y PgBouncer», vigente del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — «PostgreSQL y PgBouncer», vigente del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 | Elemento | Decisión |
 | --- | --- |
@@ -705,10 +705,10 @@ Documento canónico: [production-postgresql-vps.md](production-postgresql-vps.md
 
 ## 15. Backups y restore
 
-> **Enmienda propuesta (ADR-010).** La regla de fondo —**un backup que nunca se ha
+> **Enmienda (ADR-010).** La regla de fondo —**un backup que nunca se ha
 > restaurado no cuenta como backup**— **no cambia**. Cambia el mecanismo:
 
-| Regla | Propuesta RDS |
+| Regla | RDS |
 | --- | --- |
 | **Backups automáticos con retención no nula, PITR y snapshots** | Frecuencia, retención, RPO y RTO: **D-10**, `Task/029` |
 | **Cifrados** | Con la clave KMS de la instancia (**D-23**) |
@@ -716,7 +716,7 @@ Documento canónico: [production-postgresql-vps.md](production-postgresql-vps.md
 | **Protección frente al borrado** | *Deletion protection*, snapshot final y ningún `destroy` automático contra la base real |
 | **Pérdida de cuenta o región** | Copia cruzada de snapshots solo si **D-10** la justifica por riesgo y costo |
 
-| Tramo | Owner propuesto |
+| Tramo | Owner |
 | --- | --- |
 | Estrategia: retención, PITR, snapshots, RPO/RTO, *deletion protection* | **`Task/029`** (**D-10**) |
 | Provisión y **restore sintético + PITR demostrados**, con integridad y tiempos | **`Task/031`** |
@@ -725,12 +725,12 @@ Documento canónico: [production-postgresql-vps.md](production-postgresql-vps.md
 
 Los backups administrados **no usan** un bucket del proyecto ni una identidad de host: el
 tramo «destino S3 de backups» de `Task/030` y **D-16** pierden objeto (cierre por no
-aplicabilidad propuesto). Los **respaldos locales** de `Task/004` (**R-12**) son otro asunto:
+aplicabilidad (2026-09-27)). Los **respaldos locales** de `Task/004` (**R-12**) son otro asunto:
 siguen sin cifrar en la máquina local; `Task/029` prepara su contrato de custodia y
 `Task/031` su revisión.
 
 <details>
-<summary>Historia — backups off-host del modelo VPS, vigentes del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — backups off-host del modelo VPS, vigentes del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 **Decisión cerrada:** los backups de PostgreSQL son **cifrados** y **salen del VPS**.
 
@@ -770,9 +770,9 @@ backup correcto y un restore probado.
 | --- | --- |
 | **AWS** | Gestionado por Terraform |
 | **Cloudflare** | Gestionado por Terraform |
-| **Creación del VPS** | **Puede** gestionarla, **si** el proveedor elegido en `Task/029` tiene un provider mantenido y adecuado. No se da por hecho. *(Sin objeto con la enmienda propuesta)* |
-| **Configuración interna del sistema operativo del VPS** | **No.** Ver §17. *(Sin objeto con la enmienda propuesta)* |
-| **Red y RDS** *(enmienda propuesta)* | **Gestionados por Terraform** desde `Task/031`, en el **mismo grafo modular**: sin módulos local/cloud duplicados ni recursos específicos del emulador. Parámetros de la instancia en su *parameter group*, también en Terraform |
+| **Creación del VPS** | **Puede** gestionarla, **si** el proveedor elegido en `Task/029` tiene un provider mantenido y adecuado. No se da por hecho. *(Sin objeto con la enmienda)* |
+| **Configuración interna del sistema operativo del VPS** | **No.** Ver §17. *(Sin objeto con la enmienda)* |
+| **Red y RDS** *(enmienda)* | **Gestionados por Terraform** desde `Task/031`, en el **mismo grafo modular**: sin módulos local/cloud duplicados ni recursos específicos del emulador. Parámetros de la instancia en su *parameter group*, también en Terraform |
 
 Reglas heredadas y vigentes:
 
@@ -792,17 +792,17 @@ Reglas heredadas y vigentes:
   existe **antes** del primer `apply` de aplicación, incluido el de red/RDS de `Task/031`.
 - Credenciales, rotación, *scopes* y guardas de destino **para los tres providers** son de
   `Task/039`. **`Task/028` solo resuelve GitHub Actions → AWS.** *(Con la enmienda
-  propuesta los providers son **dos**, AWS y Cloudflare. `Task/031` se aplica con una
+  los providers son **dos**, AWS y Cloudflare. `Task/031` se aplica con una
   identidad operativa humana, mínima y autorizada explícitamente; no espera al rol de CI
   de `Task/039` ni amplía el rol de validación de `Task/028`.)*
 
 ---
 
-## 17. Operación administrada de RDS (propuesta ADR-010)
+## 17. Operación administrada de RDS (ADR-010)
 
-> Hasta la enmienda propuesta, esta sección era **«Configuración interna del VPS»**. En RDS,
+> Hasta la enmienda del 2026-09-27, esta sección era **«Configuración interna del VPS»**. En RDS,
 > AWS opera el sistema operativo del host y su parcheo: **D-18** tiene **cierre por no
-> aplicabilidad propuesto**. El texto anterior se conserva en el bloque «Historia».
+> aplicabilidad (2026-09-27)**. El texto anterior se conserva en el bloque «Historia».
 
 Delegar el host **no** delega la responsabilidad de operar la base de datos. El proyecto
 conserva:
@@ -820,7 +820,7 @@ usuarios y privilegios SQL · **KMS** · *deletion protection* y snapshot final 
   Terraform y revisión de planes.
 
 <details>
-<summary>Historia — «Configuración interna del VPS», vigente del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — «Configuración interna del VPS», vigente del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 **Decisión cerrada:** la configuración interna del sistema operativo del VPS **está
 separada de Terraform**.
@@ -882,7 +882,7 @@ Docker Compose
 | **React** servido tras el proxy local | **Cloudflare Pages** |
 | **FastAPI** como proceso o contenedor | **AWS Lambda** |
 | **MinIO** | **Amazon S3** |
-| **PostgreSQL** en Docker | **PostgreSQL en el VPS**, tras PgBouncer. *(Enmienda propuesta: **Amazon RDS for PostgreSQL privado**)* |
+| **PostgreSQL** en Docker | **PostgreSQL en el VPS**, tras PgBouncer. *(Enmienda: **Amazon RDS for PostgreSQL privado**)* |
 | **Reverse proxy** (Traefik v3) | **Cloudflare + API Gateway** |
 | **Portainer** | **Nada.** Herramienta local; **no es un servicio público de producción** |
 
@@ -893,7 +893,7 @@ Docker Compose
   [ADR-003](../adr/ADR-003-serverless-low-cost-cloud.md).
 - Que Docker en el VPS sea obligatorio: **el VPS puede usarlo o no**; si lo usa, será con el
   **mínimo privilegio razonable** (regla V-10). Esa elección es de `Task/029` y no cambia
-  esta arquitectura. *(Sin objeto con la enmienda propuesta: RDS no tiene host propio.)*
+  esta arquitectura. *(Sin objeto con la enmienda: RDS no tiene host propio.)*
 - Que PostgreSQL en Docker **pruebe** el comportamiento de RDS: valida SQL y lógica de la
   aplicación, **no** red, IAM, KMS, backups administrados ni *failover*.
 - Que Portainer llegue a producción: **excluido explícitamente**.
@@ -907,18 +907,18 @@ Docker Compose
 | Frontend | React + Vite tras el proxy | **Cloudflare Pages** |
 | Entrada HTTP | **Traefik v3** | **Cloudflare** + **API Gateway HTTP API** |
 | Backend | FastAPI (proceso o contenedor) | **AWS Lambda** |
-| Base de datos | PostgreSQL en Docker | **Amazon RDS for PostgreSQL privado** *(propuesta; antes: PostgreSQL en VPS tras PgBouncer)* |
-| Red | Red de Docker local | **VPC, subnets privadas, security groups** y rutas a S3/SSM según **D-22** *(propuesta)* |
-| Pool de conexiones | Pool de SQLAlchemy por proceso | Pool por proceso con presupuesto derivado y medido (**D-12**); **RDS Proxy evaluable** *(propuesta; antes: PgBouncer)* |
+| Base de datos | PostgreSQL en Docker | **Amazon RDS for PostgreSQL privado** *(desde `Task/028.2`; antes: PostgreSQL en VPS tras PgBouncer)* |
+| Red | Red de Docker local | **VPC, subnets privadas, security groups** y rutas a S3/SSM según **D-22** *(desde `Task/028.2`)* |
+| Pool de conexiones | Pool de SQLAlchemy por proceso | Pool por proceso con presupuesto derivado y medido (**D-12**); **RDS Proxy evaluable** *(desde `Task/028.2`; antes: PgBouncer)* |
 | Archivos | **MinIO** | **Amazon S3** |
 | Configuración | `.env` (ignorado por Git) | **SSM Parameter Store**; `SecureString` para lo sensible |
-| Credenciales de la base de datos | `.env` local, valores ficticios | Credencial de la aplicación como secreto de Lambda; *master* fuera del runtime (§9, **D-23**) *(propuesta; antes: secretos cifrados en el VPS)* |
-| Logs y métricas | `stdout` capturado por Docker, visible en Portainer | **CloudWatch mínimo** —Lambda, API Gateway y RDS— + **Grafana Cloud** vía **D-20** *(propuesta; antes: Alloy desde el VPS)* |
+| Credenciales de la base de datos | `.env` local, valores ficticios | Credencial de la aplicación como secreto de Lambda; *master* fuera del runtime (§9, **D-23**) *(desde `Task/028.2`; antes: secretos cifrados en el VPS)* |
+| Logs y métricas | `stdout` capturado por Docker, visible en Portainer | **CloudWatch mínimo** —Lambda, API Gateway y RDS— + **Grafana Cloud** vía **D-20** *(desde `Task/028.2`; antes: Alloy desde el VPS)* |
 | Supervisión | **Portainer** | **Grafana Cloud**. Portainer **no existe** en producción |
-| Backups | Scripts locales (`Task/004`) | **Backups administrados de RDS, PITR y snapshots, con restore probado** (§15) *(propuesta; antes: cifrados y fuera del host)* |
-| Ejecución | Docker Compose | **Serverless** + **RDS administrado**, con costo fijo *(propuesta; antes: un VPS acotado a la capa de datos)* |
+| Backups | Scripts locales (`Task/004`) | **Backups administrados de RDS, PITR y snapshots, con restore probado** (§15) *(desde `Task/028.2`; antes: cifrados y fuera del host)* |
+| Ejecución | Docker Compose | **Serverless** + **RDS administrado**, con costo fijo *(desde `Task/028.2`; antes: un VPS acotado a la capa de datos)* |
 | Infraestructura | Docker Compose | **Terraform** (AWS + Cloudflare) *(antes: y el VPS si procede)* |
-| TLS | No hay TLS real | **HTTPS en todo el camino público** y **TLS verificado en `Lambda → RDS`** *(propuesta; antes: `Lambda → PgBouncer`)* |
+| TLS | No hay TLS real | **HTTPS en todo el camino público** y **TLS verificado en `Lambda → RDS`** *(desde `Task/028.2`; antes: `Lambda → PgBouncer`)* |
 
 Correspondencia detallada, incluida la columna del laboratorio de paridad:
 [local-to-cloud-mapping.md](local-to-cloud-mapping.md).
@@ -930,7 +930,7 @@ Correspondencia detallada, incluida la columna del laboratorio de paridad:
 Componentes y reglas completas: [security-boundaries.md](security-boundaries.md). Aquí, la
 lectura de conjunto.
 
-Propuesta ADR-010:
+Desde la enmienda (ADR-010):
 
 ```
 ┌─ INTERNET ─────────────────────────────────────────────────────────────┐
@@ -958,7 +958,7 @@ Propuesta ADR-010:
 ```
 
 <details>
-<summary>Historia — fronteras del modelo VPS, vigentes del 2026-08-23 hasta la enmienda propuesta</summary>
+<summary>Historia — fronteras del modelo VPS, vigentes del 2026-08-23 hasta la enmienda del 2026-09-27</summary>
 
 ```
 ┌─ INTERNET ─────────────────────────────────────────────────────────────┐
@@ -997,8 +997,8 @@ Reglas transversales que no admiten excepción:
 | 2 | **PostgreSQL nunca se expone a Internet**, en ningún entorno productivo |
 | 3 | **No hay *security through obscurity***: cambiar el puerto o confiar en que nadie conozca la IP no son controles |
 | 4 | **Ningún secreto real se versiona**, en ninguno de los tres repositorios |
-| 5 | **El compromiso del VPS se trata como exposición de datos**, no como una incidencia de servicio. *(Enmienda propuesta: lo mismo vale para RDS, sus credenciales, sus snapshots y su clave KMS)* |
-| 6 | **Permisos mínimos** en todo principal: Lambda hacia SSM y S3, VPS hacia S3, Grafana hacia CloudWatch. *(Enmienda propuesta: sin principal de VPS; se añaden el ejecutor privado de **D-24** y los roles separados de ejecución, despliegue, Terraform y migración)* |
+| 5 | **El compromiso del VPS se trata como exposición de datos**, no como una incidencia de servicio. *(Enmienda: lo mismo vale para RDS, sus credenciales, sus snapshots y su clave KMS)* |
+| 6 | **Permisos mínimos** en todo principal: Lambda hacia SSM y S3, VPS hacia S3, Grafana hacia CloudWatch. *(Enmienda: sin principal de VPS; se añaden el ejecutor privado de **D-24** y los roles separados de ejecución, despliegue, Terraform y migración)* |
 | 7 | **La telemetría que sale hacia un tercero no lleva secretos ni datos personales innecesarios** (**O-08**, **R-39**) |
 | 8 | **El emulador AWS local nunca ve credenciales ni secretos reales**, y nunca se expone |
 
@@ -1006,7 +1006,7 @@ Reglas transversales que no admiten excepción:
 el **agente Alloy en el VPS** (C-16) y **Grafana Cloud** como destino externo (C-17), ambos
 formalizados en [security-boundaries.md](security-boundaries.md) §1 y §10.
 
-**Enmienda propuesta (ADR-010):** retira C-13 (VPS), C-14 (PgBouncer) y C-16 (Alloy)
+**Enmienda (ADR-010):** retira C-13 (VPS), C-14 (PgBouncer) y C-16 (Alloy)
 —sus IDs se conservan y no se reutilizan—, reformula C-15 como **RDS privado** y mantiene
 C-17. Reglas nuevas **DB-01 a DB-09** en [security-boundaries.md](security-boundaries.md) §9.
 
@@ -1017,10 +1017,10 @@ C-17. Reglas nuevas **DB-01 a DB-09** en [security-boundaries.md](security-bound
 > Todas son **vigentes** desde el 2026-08-23 (ver cabecera). Las que ya estaban
 > **Aceptadas** antes —A, B, C, D, E, F— se **reiteran**, no se reabren.
 >
-> **Enmienda propuesta (ADR-010):** las filas **E, F, H, K, L, M, N y O** tienen texto
-> sustituto propuesto en §21.1. Hasta que el usuario apruebe `Task/028.2`, la tabla
-> siguiente conserva el texto aprobado; la instrucción actual del usuario suspende
-> ejecutar el modelo VPS que describen E, F, H, K, M y O.
+> **Enmienda (ADR-010), aprobada el 2026-09-27:** las filas **E, F, H, K, L, M, N y O**
+> tienen texto sustituto en §21.1, que es el vigente. La tabla siguiente conserva el texto
+> aprobado el 2026-08-23 como historia: el modelo VPS que describen E, F, H, K, M y O ya no
+> se ejecuta.
 
 | # | Decisión | Estado previo |
 | --- | --- | --- |
@@ -1044,21 +1044,21 @@ C-17. Reglas nuevas **DB-01 a DB-09** en [security-boundaries.md](security-bound
 Las decisiones **nuevas de observabilidad** —**I**, **J**, **K**, **L**— se registran en
 [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md).
 
-### 21.1 Enmienda propuesta — ADR-010, pendiente de aprobación
+### 21.1 Enmienda — ADR-010, aprobada el 2026-09-27
 
-La tabla anterior conserva el texto **aprobado el 2026-08-23**. Si el usuario aprueba
+La tabla anterior conserva el texto **aprobado el 2026-08-23**. Desde la aprobación de
 `Task/028.2`, estas filas quedan modificadas; **A, B, C, D, G, I, J y P no cambian**:
 
-| # | Texto propuesto | Estado |
+| # | Texto vigente | Estado |
 | --- | --- | --- |
-| **E** | **Base de datos: Amazon RDS for PostgreSQL privado**, administrado, sin acceso público, con TLS verificado y cifrado en reposo | Propuesta — sustituye ADR-007 |
-| **F** | **Conectividad: la Lambda se conecta a la VPC** y llega a RDS solo de SG a SG. **Sin NAT Gateway**, salvo necesidad de salida pública demostrada y decisión explícita | Propuesta — modifica ADR-003 |
-| **H** | **Sin secretos de host.** Credenciales de la base de datos, KMS y rotación según **D-23**; la *master* fuera del runtime | Propuesta — D-17 cierre N/A |
-| **K** | **Sin agente de host.** Telemetría nativa de RDS en CloudWatch (§11) | Propuesta — modifica ADR-008 |
-| **L** | La integración `CloudWatch → Grafana Cloud` **se decide e implementa** en `Task/031` (**D-20**) | Propuesta — modifica ADR-008 |
-| **M** | **Backups administrados de RDS** —automáticos, PITR y snapshots—, cifrados, con **restore probado** (§15) | Propuesta |
-| **N** | **Terraform** para AWS —incluidas red y RDS— y Cloudflare, sin provider de VPS | Propuesta |
-| **O** | **Sin configuración de sistema operativo propia**: *parameter groups* y operación administrada mediante Terraform y runbooks (§17) | Propuesta — D-18 cierre N/A |
+| **E** | **Base de datos: Amazon RDS for PostgreSQL privado**, administrado, sin acceso público, con TLS verificado y cifrado en reposo | Vigente — sustituye ADR-007 |
+| **F** | **Conectividad: la Lambda se conecta a la VPC** y llega a RDS solo de SG a SG. **Sin NAT Gateway**, salvo necesidad de salida pública demostrada y decisión explícita | Vigente — modifica ADR-003 |
+| **H** | **Sin secretos de host.** Credenciales de la base de datos, KMS y rotación según **D-23**; la *master* fuera del runtime | Vigente — D-17 cerrada N/A |
+| **K** | **Sin agente de host.** Telemetría nativa de RDS en CloudWatch (§11) | Vigente — modifica ADR-008 |
+| **L** | La integración `CloudWatch → Grafana Cloud` **se decide e implementa** en `Task/031` (**D-20**) | Vigente — modifica ADR-008 |
+| **M** | **Backups administrados de RDS** —automáticos, PITR y snapshots—, cifrados, con **restore probado** (§15) | Vigente |
+| **N** | **Terraform** para AWS —incluidas red y RDS— y Cloudflare, sin provider de VPS | Vigente |
+| **O** | **Sin configuración de sistema operativo propia**: *parameter groups* y operación administrada mediante Terraform y runbooks (§17) | Vigente — D-18 cerrada N/A |
 
 ---
 
@@ -1066,7 +1066,7 @@ La tabla anterior conserva el texto **aprobado el 2026-08-23**. Si el usuario ap
 
 Ninguna se resuelve aquí. **Todas tienen propietario y ninguna crea una tarea nueva.**
 Registro vivo completo: [open-decisions.md](open-decisions.md). La tabla siguiente es la
-del 2026-08-23; los cambios que propone ADR-010 están en la tabla de enmienda que la sigue.
+del 2026-08-23; los cambios de ADR-010, vigentes desde el 2026-09-27, están en la tabla de enmienda que la sigue.
 
 | # | Decisión abierta | Owner |
 | --- | --- | --- |
@@ -1088,14 +1088,14 @@ Además, siguen sin decidirse dentro del alcance ya documentado de `Task/029`: `
 tamaños de pool, `max_connections`, el *sizing* definitivo del VPS y la adopción o no de
 **mTLS**.
 
-**Enmienda propuesta (ADR-010)** —el registro vivo es
+**Enmienda (ADR-010)** —el registro vivo es
 [open-decisions.md](open-decisions.md)—:
 
-| # | Cambio propuesto | Owner propuesto |
+| # | Cambio | Owner |
 | --- | --- | --- |
 | **D-01** (resto) | El proveedor de VPS pierde objeto; lo sustituye **D-22** | — |
 | **D-12** | Presupuesto preliminar de conexiones y decisión sobre evaluar RDS Proxy | `Task/029` · `Task/032` mide y fija |
-| **D-16**, **D-17**, **D-18** | **Cierre por no aplicabilidad propuesto**; IDs y texto conservados | Efectivo solo al aprobar `Task/028.2` |
+| **D-16**, **D-17**, **D-18** | **Cerradas por no aplicabilidad** el 2026-09-27; IDs y texto conservados | — |
 | **D-19** | Verificación previa a contratar o integrar | `Task/029` estima · `Task/031` verifica · `Task/041` revisa |
 | **D-20** | Decidir **e implementar** | `Task/031` · `Task/040` valida |
 | **D-22** *(nueva)* | Red, topología y capacidad de RDS | `Task/029` decide · `Task/031` implementa |
@@ -1124,24 +1124,24 @@ Quién es responsable de cada pieza. **No se renumera nada** y **no se crea ning
 | Runbooks de despliegue y de operación | `Task/026` | `Task/040` |
 | Cuentas, MFA, presupuestos (**D-13**) | `Task/027` | `Task/041` |
 | GitHub Actions → AWS por OIDC | `Task/028` | `Task/040` |
-| **Diseño de la capa de datos RDS** *(propuesta; antes: «VPS completo» —provisión, *hardening*, firewall, TLS, PgBouncer, PostgreSQL, SCRAM, límites de conexión, D-17, D-18, Alloy, backups y D-16—)*: **D-22**, **D-23**, **D-24**, **D-10**, **D-12** preliminar, inventario de tráfico, costo bruto y créditos frente a **D-13**, contratos y planes de prueba. **Cero provisión** | **`Task/029`** | `Task/031`, `Task/032`, `Task/040` |
-| **S3**: bucket, políticas, CORS, *lifecycle*, prefirmadas, **D-08**; bootstrap del backend de estado **D-06** *(propuesta: sin «destino de backups» del VPS)* | `Task/030` | `Task/040` |
-| **Red, RDS, KMS, SSM `SecureString`, CloudWatch mínimo (D-11) e integración Grafana (D-20)**; acceso privado operativo (**D-24**); **restore sintético y PITR** *(propuesta; antes: SSM + CloudWatch + base de D-20)* | `Task/031` | `Task/040` |
-| **Lambda**: función, IAM, configuración no secreta por entorno, **secretos desde SSM**, conexión a la VPC, `DATABASE_URL` hacia RDS con **TLS verificado**, entrega de secretos según **D-23**, *Reserved Concurrency* y pool medidos, logging compatible con la observabilidad elegida, **D-12** *(propuesta; antes: `DATABASE_URL` hacia PgBouncer y TLS hacia el VPS)* | `Task/032` | `Task/040` |
+| **Diseño de la capa de datos RDS** *(desde `Task/028.2`; antes: «VPS completo» —provisión, *hardening*, firewall, TLS, PgBouncer, PostgreSQL, SCRAM, límites de conexión, D-17, D-18, Alloy, backups y D-16—)*: **D-22**, **D-23**, **D-24**, **D-10**, **D-12** preliminar, inventario de tráfico, costo bruto y créditos frente a **D-13**, contratos y planes de prueba. **Cero provisión** | **`Task/029`** | `Task/031`, `Task/032`, `Task/040` |
+| **S3**: bucket, políticas, CORS, *lifecycle*, prefirmadas, **D-08**; bootstrap del backend de estado **D-06** *(desde `Task/028.2`: sin «destino de backups» del VPS)* | `Task/030` | `Task/040` |
+| **Red, RDS, KMS, SSM `SecureString`, CloudWatch mínimo (D-11) e integración Grafana (D-20)**; acceso privado operativo (**D-24**); **restore sintético y PITR** *(desde `Task/028.2`; antes: SSM + CloudWatch + base de D-20)* | `Task/031` | `Task/040` |
+| **Lambda**: función, IAM, configuración no secreta por entorno, **secretos desde SSM**, conexión a la VPC, `DATABASE_URL` hacia RDS con **TLS verificado**, entrega de secretos según **D-23**, *Reserved Concurrency* y pool medidos, logging compatible con la observabilidad elegida, **D-12** *(desde `Task/028.2`; antes: `DATABASE_URL` hacia PgBouncer y TLS hacia el VPS)* | `Task/032` | `Task/040` |
 | **API Gateway HTTP API**: rutas, CORS, *throttling*, dominio del API si corresponde | `Task/033` | `Task/040` |
 | **Cloudflare Pages**: build, variables, publicación de la SPA | `Task/034` | `Task/040` |
 | **DNS, CDN y WAF de Cloudflare**; dominio concreto (**D-07**) | `Task/035` | `Task/040` |
-| Primer contenido y primera migración en producción *(propuesta: por el canal privado **D-24**, con backup previo; recuperación del administrador **R-43** y purga **R-44** según el diseño de `Task/029`)* | `Task/036` | `Task/040` |
+| Primer contenido y primera migración en producción *(desde `Task/028.2`: por el canal privado **D-24**, con backup previo; recuperación del administrador **R-43** y purga **R-44** según el diseño de `Task/029`)* | `Task/036` | `Task/040` |
 | Deploy automático del frontend hacia Cloudflare Pages | `Task/037` | `Task/040` |
-| Deploy automático del backend y **canal repetible de migraciones** *(propuesta: sobre **D-24**; un *runner* público no alcanza RDS solo por OIDC)* | `Task/038` | `Task/040` |
-| **Terraform en CI**: AWS + Cloudflare + VPS; credenciales, rotación, *scopes*, guardas de destino *(propuesta: AWS + Cloudflare, incluidas red y RDS en inventarios y guardas)* | `Task/039` | `Task/040` |
+| Deploy automático del backend y **canal repetible de migraciones** *(desde `Task/028.2`: sobre **D-24**; un *runner* público no alcanza RDS solo por OIDC)* | `Task/038` | `Task/040` |
+| **Terraform en CI**: AWS + Cloudflare + VPS; credenciales, rotación, *scopes*, guardas de destino *(desde `Task/028.2`: AWS + Cloudflare, incluidas red y RDS en inventarios y guardas)* | `Task/039` | `Task/040` |
 | **Validación final end-to-end**, incluida la capa de datos y la observabilidad | `Task/040` | — |
-| **Costos con precios reales del momento**: AWS, Cloudflare, VPS, **Grafana Cloud (D-19)**, backups, transferencia *(propuesta: sin VPS; RDS, snapshots y restores temporales, *endpoints*, KMS; **créditos separados del costo bruto**, vencimiento y escenario poscrédito)* | `Task/041` | — |
+| **Costos con precios reales del momento**: AWS, Cloudflare, VPS, **Grafana Cloud (D-19)**, backups, transferencia *(desde `Task/028.2`: sin VPS; RDS, snapshots y restores temporales, *endpoints*, KMS; **créditos separados del costo bruto**, vencimiento y escenario poscrédito)* | `Task/041` | — |
 
 **Reglas de ownership que esto preserva:**
 
 - **`Task/017` es observabilidad local.** No es owner del VPS ni de AWS.
-- **`Task/031` es solo AWS.** No observa el VPS. *(Con la enmienda propuesta toda la
+- **`Task/031` es solo AWS.** No observa el VPS. *(Con la enmienda toda la
   producción observada vive en AWS; `Task/031` depende de `Task/030` para que el backend de
   estado **D-06** exista antes de su primer `apply`.)*
 - **`Task/029` define y prepara; `Task/030`, `Task/031` y `Task/032` materializan;
@@ -1164,11 +1164,11 @@ Esta arquitectura es un **objetivo**, no una autorización de trabajo.
 | Contratar, registrar o configurar **Grafana Cloud** |
 | Contratar, provisionar o configurar un **VPS** |
 | Crear **buckets S3**, **parámetros SSM**, **roles IAM**, **funciones Lambda** o **API Gateway** |
-| Crear **RDS**, **VPC**, **subnets**, **security groups**, **VPC endpoints** o **claves KMS** *(añadido por la enmienda propuesta)* |
+| Crear **RDS**, **VPC**, **subnets**, **security groups**, **VPC endpoints** o **claves KMS** *(añadido por la enmienda)* |
 | Escribir **Terraform productivo** antes de `Task/025` |
 | Instalar **Ansible**, **Alloy**, **SOPS** o **age**, o generar claves de cifrado |
 | Introducir **Docker como runtime de producción**, o Lambda por imagen de contenedor |
-| Introducir **RDS**, **EC2**, **ECS**, **EKS**, **ECR**, **ALB** o **NAT Gateway** *(enmienda propuesta: RDS solo mediante su tarea propietaria, `Task/031`, y únicamente si se aprueba ADR-010; los demás siguen excluidos)* |
+| Introducir **RDS**, **EC2**, **ECS**, **EKS**, **ECR**, **ALB** o **NAT Gateway** *(enmienda: RDS solo mediante su tarea propietaria, `Task/031`, con ADR-010 aceptada; los demás siguen excluidos)* |
 | Autohospedar **Grafana**, **Prometheus** o **Loki** en el VPS *(ni en ningún otro sitio)* |
 | Publicar **PostgreSQL** en Internet, o tratar el número de puerto como control de seguridad |
 | Versionar cualquier **secreto real**, en cualquier repositorio |
@@ -1189,7 +1189,7 @@ Criterio práctico para comprobar que `Task/007` respeta la regla: al terminar, 
 MinIO por S3, el proxy local por API Gateway y PostgreSQL local por PgBouncer **debe ser un
 cambio de configuración y de adaptador**, nunca una reescritura del dominio.
 
-> *Guardrail histórico de `Task/007`, aprobada.* Con la enmienda propuesta el criterio es
+> *Guardrail histórico de `Task/007`, aprobada.* Con la enmienda el criterio es
 > el mismo con otro destino: sustituir PostgreSQL local por RDS privado es un cambio de
 > configuración (`DATABASE_URL`, TLS) y de despliegue (VPC, secretos), **nunca del dominio**.
 
@@ -1204,11 +1204,11 @@ ni límite comercial, a propósito.
 | --- | --- |
 | **Cloudflare Pages** cubre el sitio estático en su plan de entrada | Supuesto — **verificar en `Task/041`** |
 | **API Gateway, Lambda, S3, SSM y CloudWatch** cuestan prácticamente cero en reposo con tráfico bajo | Supuesto — **verificar en `Task/041`** |
-| El **VPS** es el **único costo fijo mensual asumido conscientemente** de la arquitectura | **Decidido** (ADR-007). Importe: `Task/029`, con **precios actuales**. *(Enmienda propuesta: sustituido por la fila siguiente)* |
-| *(Propuesta)* **RDS es costo fijo** aunque no haya tráfico, y los *interface endpoints* se cobran por AZ y hora. **Detener** la instancia no es costo cero: conserva almacenamiento y backups, y AWS la vuelve a arrancar pasado el plazo máximo | Importe, escenarios y compatibilidad con **D-13**: `Task/029`, con **precios actuales**. Una incompatibilidad exige **decisión explícita antes del primer `apply` de aplicación** |
-| *(Propuesta)* Los **créditos AWS** reducen el **desembolso** mientras duren y sean elegibles; **no** reducen el **costo bruto** ni cambian **D-13** | Saldo, elegibilidad y vencimiento verificados en privado en `Task/029`; seguimiento y escenario poscrédito en `Task/041` |
+| El **VPS** es el **único costo fijo mensual asumido conscientemente** de la arquitectura | **Decidido** (ADR-007). Importe: `Task/029`, con **precios actuales**. *(Enmienda: sustituido por la fila siguiente)* |
+| *(`Task/028.2`)* **RDS es costo fijo** aunque no haya tráfico, y los *interface endpoints* se cobran por AZ y hora. **Detener** la instancia no es costo cero: conserva almacenamiento y backups, y AWS la vuelve a arrancar pasado el plazo máximo | Importe, escenarios y compatibilidad con **D-13**: `Task/029`, con **precios actuales**. Una incompatibilidad exige **decisión explícita antes del primer `apply` de aplicación** |
+| *(`Task/028.2`)* Los **créditos AWS** reducen el **desembolso** mientras duren y sean elegibles; **no** reducen el **costo bruto** ni cambian **D-13** | Saldo, elegibilidad y vencimiento verificados en privado en `Task/029`; seguimiento y escenario poscrédito en `Task/041` |
 | **Grafana Cloud** en tier gratuito es suficiente para este volumen | Supuesto — **verificar en `Task/041` / antes de contratar** (**D-19**) |
-| El **almacenamiento y la transferencia de backups** son marginales frente al VPS | Supuesto — **verificar en `Task/041`**. *(Enmienda propuesta: el backup excedente, los snapshots manuales y las instancias temporales de restore **tienen costo**; se estiman en `Task/029`)* |
+| El **almacenamiento y la transferencia de backups** son marginales frente al VPS | Supuesto — **verificar en `Task/041`**. *(Enmienda: el backup excedente, los snapshots manuales y las instancias temporales de restore **tienen costo**; se estiman en `Task/029`)* |
 | El **dominio** y, si aplica, la **IPv4 dedicada** tienen costo propio | Supuesto — `Task/035`, `Task/041`. *(Sin VPS ni NAT no se prevé IPv4 pública propia)* |
 
 **Reglas firmes:**
@@ -1216,7 +1216,7 @@ ni límite comercial, a propósito.
 - **`Task/041` verifica precios reales vigentes en ese momento**, nunca cifras heredadas de
   este documento ni de `Task/029`.
 - Debe cubrir **AWS**, **Cloudflare**, **VPS**, **Grafana Cloud**, **almacenamiento y
-  backups**, **transferencia** y **observabilidad**. *(Enmienda propuesta: sin VPS; con
+  backups**, **transferencia** y **observabilidad**. *(Enmienda: sin VPS; con
   RDS, *endpoints*, KMS y la separación entre costo bruto, crédito consumido, desembolso y
   escenario poscrédito.)*
 - Debe **confirmar que los tiers gratuitos siguen siendo aplicables** en ese momento
@@ -1229,7 +1229,7 @@ ni límite comercial, a propósito.
 
 | # | Regla |
 | --- | --- |
-| 1 | **Este documento y `images/Infraestructura.png` deben decir lo mismo.** Si divergen, se corrige el que esté desactualizado — y **la imagen solo la cambia el usuario**. *(Divergencia declarada en la capa de datos desde la enmienda propuesta: §2)* |
+| 1 | **Este documento y `images/Infraestructura.png` deben decir lo mismo.** Si divergen, se corrige el que esté desactualizado — y **la imagen solo la cambia el usuario**. *(Divergencia declarada en la capa de datos desde la enmienda del 2026-09-27: §2)* |
 | 2 | **No se persiste aquí estado transitorio de Git o GitHub** —ramas vivas, PR abiertos, sincronía de `main`/`dev`—. [WORKFLOW §6.1](../project-management/WORKFLOW.md) |
 | 3 | **No se persisten precios, cuotas ni límites comerciales** como si fueran permanentes. Si se documentan, se marcan **«verificar en `Task/041` / antes de contratar»** |
 | 4 | **Una decisión cerrada solo cambia con un ADR** que reemplace o modifique al vigente, propuesto y **aprobado por el usuario** |

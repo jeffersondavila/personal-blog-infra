@@ -1,23 +1,21 @@
 ﻿# PostgreSQL de producción en VPS externo
 
-> **Reemplazo propuesto — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
-> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone sustituir este modelo
-> por **Amazon RDS for PostgreSQL privado**; canónico propuesto:
-> [production-postgresql-rds.md](production-postgresql-rds.md). Hasta la aprobación, este
-> documento conserva su estado, pero la instrucción actual del usuario **suspende nuevas
-> ejecuciones** del modelo VPS: **no es una instrucción para ejecutarlo**. Si se aprueba,
-> todo el texto siguiente queda como **historia**, sin borrarse. Sus principios no ligados
+> **Reemplazado — 2026-09-27 (`Task/028.2`, aprobada).**
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada**— sustituye este
+> modelo por **Amazon RDS for PostgreSQL privado**; canónico vigente:
+> [production-postgresql-rds.md](production-postgresql-rds.md). Todo el texto siguiente es
+> **historia**, sin borrarse: **no es una instrucción** para ejecutar el modelo VPS. Sus principios no ligados
 > al host —`DATABASE_URL`, base de datos nunca pública, TLS verificado, restore probado,
 > conexiones como riesgo principal— continúan en el canónico RDS.
 
 
 | Campo | Valor |
 | --- | --- |
-| **Estado** | **Vigente** ✔ — aprobado en `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (2026-08-15) |
+| **Estado** | **Histórico** — reemplazado el 2026-09-27 por [production-postgresql-rds.md](production-postgresql-rds.md) (ADR-010, `Task/028.2`). Fue **Vigente** ✔ desde su aprobación en `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (2026-08-15) |
 | **Fecha** | 2026-08-15 · §11.1.1 y §15.3.1 ampliadas y **aprobadas** el 2026-08-23 (`Task/006.2`) |
 | **Tipo** | Documento canónico de arquitectura de la capa de datos de producción |
 | **Repositorio** | `personal-blog-infra` |
-| **ADR asociado** | [ADR-007 — PostgreSQL de producción en VPS](../adr/ADR-007-production-postgresql-on-vps.md) — **Aceptada** ✔ |
+| **ADR asociado** | [ADR-007 — PostgreSQL de producción en VPS](../adr/ADR-007-production-postgresql-on-vps.md) — **Reemplazada** el 2026-09-27 por ADR-010 |
 | **Decisión que resuelve** | **D-01** — **Resuelta** en cuanto al **modelo**; proveedor pendiente de `Task/029` |
 | **Se implementa en** | `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` (ETAPA 09) y ETAPA 10 |
 

@@ -142,8 +142,8 @@ de entorno y `GET /health` sirven sin cambios. Toda la integración es configura
 > [target-production-architecture.md](../architecture/target-production-architecture.md)
 > §24.
 >
-> *(Guardrail histórico de `Task/007`, aprobada. La enmienda propuesta por `Task/028.2`
-> —[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), pendiente de aprobación—
+> *(Guardrail histórico de `Task/007`, aprobada. La enmienda de `Task/028.2`
+> —[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), Aceptada el 2026-09-27—
 > cambia el destino productivo de PostgreSQL a **RDS privado**, con la Lambda conectada a
 > la VPC. El criterio no cambia: sustituir PostgreSQL local por RDS es configuración y
 > despliegue, nunca dominio.)*

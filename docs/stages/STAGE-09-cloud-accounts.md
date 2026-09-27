@@ -8,7 +8,7 @@
 | **Tareas** | 3 |
 | **Aprobadas** | 2 |
 | **Avance** | ≈ 67 % |
-| **Hito que completa** | Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a AWS sin credenciales permanentes** (OIDC, `Task/028`). El modelo de identidad del **VPS hacia AWS** se decide en `Task/029` (**D-16**, abierta) y **Cloudflare y el proveedor del VPS pueden exigir otro mecanismo** (`Task/039`). *(Acotado en `Task/005.6`: el hito afirmaba «acceso sin credenciales permanentes» sin restringir el sujeto, lo que prejuzgaba decisiones todavía abiertas.)* *(Enmienda propuesta por `Task/028.2`: el hito incluye además el **diseño RDS preparado** por `Task/029`, **sin provisión**; D-16 tiene cierre por no aplicabilidad propuesto, y Cloudflare sigue pudiendo exigir otro mecanismo en `Task/039`.)* |
+| **Hito que completa** | Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a AWS sin credenciales permanentes** (OIDC, `Task/028`). El modelo de identidad del **VPS hacia AWS** se decide en `Task/029` (**D-16**, abierta) y **Cloudflare y el proveedor del VPS pueden exigir otro mecanismo** (`Task/039`). *(Acotado en `Task/005.6`: el hito afirmaba «acceso sin credenciales permanentes» sin restringir el sujeto, lo que prejuzgaba decisiones todavía abiertas.)* *(Enmienda de `Task/028.2`: el hito incluye además el **diseño RDS preparado** por `Task/029`, **sin provisión**; D-16 tiene cierre por no aplicabilidad (2026-09-27), y Cloudflare sigue pudiendo exigir otro mecanismo en `Task/039`.)* |
 
 ---
 
@@ -119,11 +119,11 @@ antes de habilitar roles de despliegue efectivos. No promover el rol de validaci
 ### `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — *Pendiente*
 
 > **Alcance redefinido de nuevo el 2026-09-27** por `Task/028.2` (mantenimiento):
-> **propuesta pendiente de aprobación**. El **identificador `029` no cambia**; cambian el
+> **aprobado el mismo día**. El **identificador `029` no cambia**; cambian el
 > nombre y el alcance. Antes se llamaba `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`,
-> y antes aún `Task/029-Seleccionar-PostgreSQL-Administrado`. Estrategia propuesta:
+> y antes aún `Task/029-Seleccionar-PostgreSQL-Administrado`. Estrategia:
 > [production-postgresql-rds.md](../architecture/production-postgresql-rds.md) ·
-> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Propuesta**. Ficha:
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Aceptada**. Ficha:
 > [TASK-029](../tasks/TASK-029-prepare-production-postgresql-rds.md).
 
 **Decide y prepara el PostgreSQL de producción en Amazon RDS privado. No provisiona
@@ -149,7 +149,7 @@ ni se cuenta con los créditos como costo cero.
 **Repositorio:** `personal-blog-infra`.
 
 <details>
-<summary>Historia — definición de Task/029 para el modelo VPS, vigente del 2026-08-15 hasta la propuesta de Task/028.2</summary>
+<summary>Historia — definición de Task/029 para el modelo VPS, vigente del 2026-08-15 al 2026-09-27</summary>
 
 > **Alcance redefinido el 2026-08-15** por `Task/005.3` (mantenimiento). El **identificador
 > `029` no cambia**; cambian el nombre y el alcance. Antes se llamaba
@@ -213,8 +213,8 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 - [x] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
       **en GitHub** — federación real demostrada, cero access keys permanentes; Task/028
       aprobada. Esta afirmación se limita a GitHub Actions: **no** describe todavía
-      cómo el VPS accederá a AWS (**D-16**). *(D-16 tiene cierre por no aplicabilidad
-      propuesto por `Task/028.2`. La afirmación sigue sin acreditar permisos de despliegue
+      cómo el VPS accederá a AWS (**D-16**). *(D-16 quedó cerrada por no aplicabilidad
+      el 2026-09-27, `Task/028.2`. La afirmación sigue sin acreditar permisos de despliegue
       ni conectividad SQL privada.)*
 - [x] El rol de validación tiene **cero managed policies y cero inline policies**,
       trust exacta y GetCallerIdentity correcto, con evidencia real saneada — verificado
@@ -233,7 +233,7 @@ Permisos de despliegue: fuera de este criterio, propietarios Task/038 y Task/039
 validación integral Task/040. Inspección de resource policies: limitada al inventario
 efectivamente comprobado.
 
-Criterios de `Task/029` **propuestos por `Task/028.2`**, pendientes de aprobación. Todos se
+Criterios de `Task/029` **fijados por `Task/028.2`**, aprobada el 2026-09-27. Todos se
 satisfacen con decisiones y documentos, **sin recursos AWS**:
 
 - [ ] **D-22**, **D-23**, **D-24** y **D-10** decididas con precios y fuentes de la fecha
@@ -253,7 +253,7 @@ satisfacen con decisiones y documentos, **sin recursos AWS**:
 - [ ] Ninguna credencial de producción versionada.
 
 <details>
-<summary>Historia — criterios de Task/029 para el modelo VPS, vigentes hasta la propuesta de Task/028.2</summary>
+<summary>Historia — criterios de Task/029 para el modelo VPS, vigentes hasta el 2026-09-27</summary>
 
 - [ ] **Proveedor de VPS seleccionado**, con costo, región y límites documentados, usando
       **precios verificados en el momento de la selección**.
@@ -288,10 +288,10 @@ satisfacen con decisiones y documentos, **sin recursos AWS**:
 
 ## Fuera del alcance de la etapa
 
-*(Enmienda propuesta por `Task/028.2`: **crear red, RDS, *endpoints*, claves KMS, secretos o
+*(Enmienda de `Task/028.2`: **crear red, RDS, *endpoints*, claves KMS, secretos o
 roles** es de `Task/031`/`Task/032`; **medir la latencia y los límites desde la Lambda
 real**, de `Task/032`; **demostrar restore**, de `Task/031` y `Task/040`. Conectar la Lambda
-a la VPC es parte de la propuesta; **introducir NAT Gateway** sigue excluido sin decisión
+a la VPC es parte del diseño aprobado; **introducir NAT Gateway** sigue excluido sin decisión
 explícita. La disponibilidad Single-AZ o Multi-AZ la decide **D-22**. Las viñetas siguientes
 son las del modelo VPS y se conservan como historia.)*
 
@@ -323,7 +323,7 @@ son las del modelo VPS y se conservan como historia.)*
 | **El agente de observabilidad compite con PostgreSQL** por RAM, CPU y disco (**R-41**). | **Agente, no *stack***: Alloy en lugar de Grafana + Prometheus + Loki autohospedados. El dimensionamiento lo contempla. |
 | ***Drift* de configuración del host**, que Terraform no ve (**R-42**). | Mecanismo idempotente y reproducible (**D-18**), runbooks (`Task/026`) y verificación en `Task/040`. |
 
-*(Enmienda propuesta por `Task/028.2`. Las filas de R-30, R-34, R-40, R-41 y R-42 describen
+*(Enmienda de `Task/028.2`. Las filas de R-30, R-34, R-40, R-41 y R-42 describen
 el host y pierden objeto literal. Su reformulación está en la
 [reconciliación de riesgos de STATUS](../project-management/STATUS.md). Siguen vigentes:
 **conexiones** (R-03/R-33, ahora con pool derivado y RDS Proxy evaluable), **backup no

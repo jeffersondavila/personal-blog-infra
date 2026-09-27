@@ -5,14 +5,14 @@
 | Identificador | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` |
 | Tipo / etapa | ETAPA 09 — Cuentas y Seguridad Cloud, tercera de tres tareas. **Cuenta entre las 41** |
 | Estado | **Pendiente** — no iniciada |
-| Definición | **Propuesta** por `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` (2026-09-27), pendiente de aprobación. Sustituye a `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`; conserva el ID |
+| Definición | Fijada por `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`, **aprobada** el 2026-09-27. Sustituye a `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`; conserva el ID |
 | Repositorios previstos | `personal-blog-infra`. Backend y frontend solo en lectura, salvo que la inspección al iniciar justifique otra cosa |
 | Rama base | `main` actualizado y limpio; **nunca** `dev` |
 
 ## 0. Preparación Git
 
 **No iniciada: no hay rama ni SHA base.** Requiere `Task/027` y `Task/028` aprobadas —lo
-están— y el mantenimiento `Task/028.2` **aprobado**. Como toda Task, nace de `main`
+están—; `Task/028.2` quedó **aprobada** el 2026-09-27. Como toda Task, nace de `main`
 actualizado tras la normalización. Al abrirla: `fetch --prune`, `switch main`,
 `pull --ff-only`, árbol limpio, `main == origin/main`; crear la rama y comprobar
 `HEAD == main`. Ver [WORKFLOW](../project-management/WORKFLOW.md) §2.1.
@@ -25,7 +25,7 @@ existirá en tareas posteriores.
 
 ## 2. Contexto
 
-[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Propuesta**— sustituye el
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) —**Aceptada** el 2026-09-27— sustituye el
 modelo VPS de [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) por créditos AWS
 disponibles y prioridad de aprendizaje. Esta tarea hereda el principio de `Task/005.5`:
 **una tarea no exige como evidencia recursos que crea una tarea posterior**. No añade una
@@ -130,8 +130,8 @@ relacionados: **R-02**, **R-29** a **R-35**, **R-38** a **R-42**, **R-12**, **R-
 ## 12. Decisiones técnicas
 
 [Canónico RDS §3](../architecture/production-postgresql-rds.md#3-decisiones-que-entrega-task029)
-y [registro de decisiones](../architecture/open-decisions.md). Mientras `Task/028.2` no se
-apruebe, ADR-010 es **Propuesta**.
+y [registro de decisiones](../architecture/open-decisions.md). ADR-010 está **Aceptada**
+desde el 2026-09-27.
 
 ## 13. Documentación creada o actualizada
 

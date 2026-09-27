@@ -29,7 +29,7 @@
 #   React en Compose   -> Cloudflare Pages
 #   FastAPI en Compose -> AWS Lambda (artefacto ZIP, no esta imagen)
 #   MinIO              -> Amazon S3
-#   PostgreSQL Docker  -> RDS privado propuesto (ADR-010; Task/031 futura)
+#   PostgreSQL Docker  -> RDS privado (ADR-010; lo crea Task/031)
 #   Traefik v3         -> Cloudflare + API Gateway HTTP API
 #   Portainer          -> nada: es solo local
 #
@@ -244,7 +244,7 @@ services:
       # PostgreSQL.
       #
       # La aplicacion sigue dependiendo unicamente de DATABASE_URL: no sabe si
-      # detras hay Docker o RDS (ADR-010 propuesta; wiring productivo Task/032).
+      # detras hay Docker o RDS (ADR-010; wiring productivo Task/032).
       # BLOG_DATABASE_URL procede del archivo runtime, con rol sin DDL ni
       # privilegios administrativos. Migraciones conservan POSTGRES_USER.
       # Almacenamiento de objetos (`Task/010`).

@@ -1,10 +1,10 @@
 # ADR-006 — Paridad AWS local con Floci
 
-> **Aplicación futura propuesta — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
-> [ADR-010](ADR-010-production-postgresql-on-rds.md) propone añadir red y RDS al **mismo
-> grafo** en `Task/031`, después del backend de estado de `Task/030`. **Este ADR no cambia**:
+> **Aplicación futura — 2026-09-27 (`Task/028.2`, aprobada).**
+> [ADR-010](ADR-010-production-postgresql-on-rds.md) —**Aceptada**— añade red y RDS al
+> **mismo grafo** en `Task/031`, después del backend de estado de `Task/030`. **Este ADR no cambia**:
 > una sola definición, ningún recurso específico del emulador, guardas *fail-closed* y AWS
-> real como autoridad final. RDS se propone por créditos y aprendizaje, **no porque el
+> real como autoridad final. RDS se eligió por créditos y aprendizaje, **no porque el
 > emulador lo soporte**. Las filas nuevas de la matriz están **No evaluadas**; la evidencia
 > de `Task/025` no acredita RDS, security groups, IAM, KMS ni restore administrado.
 

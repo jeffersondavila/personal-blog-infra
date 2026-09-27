@@ -212,6 +212,24 @@ reabren; su reconfirmación postmerge del 2026-09-26 quedó registrada por `Task
 [Ficha](../tasks/TASK-028.2-reconsider-production-postgresql-rds.md) ·
 [Reporte](../task-reports/TASK-028.2-report.md).
 
+**2026-09-27 — `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` APROBADA** por el
+usuario mediante `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`.
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) pasa a **Aceptada**: PostgreSQL de
+producción en **Amazon RDS for PostgreSQL privado**, con la Lambda conectada a la VPC y sin
+NAT Gateway por defecto. [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) pasa a
+**Reemplazada** y se conserva como historia; ADR-003 y ADR-008 quedan **modificados
+parcialmente** y ADR-006 no cambia. El canónico
+[production-postgresql-rds.md](../architecture/production-postgresql-rds.md) pasa a
+**Vigente**. **D-16**, **D-17** y **D-18** quedan **cerradas por no aplicabilidad**;
+**D-22**, **D-23** y **D-24** quedan **abiertas**, con owner `Task/029`; **D-13 no cambia**.
+**R-41** queda **cerrado por no aplicabilidad** y **R-29** a **R-42** reformulados.
+`Task/029-Preparar-PostgreSQL-Produccion-en-RDS` sigue **Pendiente** y `Task/031` pasa a
+`Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`, dependiente de `Task/030`. Mantenimiento: **no
+cuenta entre las 41 y no altera el avance** —**28/41 ≈ 68 %**, **ETAPA 09 2/3 ≈ 67 %**—.
+**La aprobación no crea recursos**: cada uno exige su tarea propietaria y la autorización
+explícita del usuario. [Ficha](../tasks/TASK-028.2-reconsider-production-postgresql-rds.md) ·
+[Reporte](../task-reports/TASK-028.2-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 
@@ -272,7 +290,7 @@ Ninguna prueba local acredita federación ni autorización real.
 
 | Campo | Valor |
 | --- | --- |
-| **Tarea actual** | Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS — **Lista para validación**, mantenimiento fuera de las 41. |
+| **Tarea actual** | `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` — **Aprobada** el 2026-09-27 mediante `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`. Mantenimiento fuera de las 41: el avance no cambia. **ADR-010 Aceptada**, **ADR-007 Reemplazada**; canónico RDS **Vigente**. [Ficha](../tasks/TASK-028.2-reconsider-production-postgresql-rds.md) · [Reporte](../task-reports/TASK-028.2-report.md) |
 | **Etapa actual** | **ETAPA 09 — Cuentas y Seguridad Cloud — En progreso** desde el 2026-09-15 con `Task/027`. Tiene **2 de 3 tareas aprobadas (≈ 67 %)** tras `Task/028`; falta `Task/029`. Gates A–E completos con evidencia saneada; el agente no ejecutó mutaciones externas. El usuario creó un presupuesto con cuatro alertas, pero ningún recurso de aplicación atribuible a Task/027. Todo lo observado previamente en Floci sigue siendo hipótesis hasta la ETAPA 10 |
 | **Mantenimiento anterior (historia)** | Task/027.1 aprobado el 2026-09-21; consolidación en Task/027 y cierre postmerge comunicados por el usuario. No cuenta entre las 41. Git/GitHub son la fuente viva. |
 | **Tarea anterior** | `Task/026-Runbooks-de-Despliegue` quedó **Aprobada** el 2026-09-15 y cerrada post-merge; `Task/026.1` corrigió dos frases transitorias y también quedó cerrada post-merge sin contar en las 41. ETAPA 08 permanece **Completada (4/4, 100 %)**. Los cinco runbooks están Vigentes; el modo `production` sigue bloqueado, el bucket de estado no existe y toda evidencia de Floci sigue siendo hipótesis local. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
@@ -313,13 +331,13 @@ Ninguna prueba local acredita federación ni autorización real.
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Tarea recién aprobada** | `Task/027-Configurar-Cuentas-y-Presupuestos` — **Aprobada** el 2026-09-17. Gates A–E y DoD completados con evidencia saneada; D-13 resuelta. El agente no operó el navegador ni recibió datos privados. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) |
 | **Mantenimiento consolidado** | `Task/027.1-Corregir-Regresion-S09-MinIO` — **Aprobada** el 2026-09-21 y publicada en `39b6d59`; integrada en esta rama con `merge --no-ff`, con su historial íntegro. Es mantenimiento: **fuera de las 41** y **sin efecto en el avance**. |
-| **Próxima tarea prevista** | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Pendiente**. Requiere `Task/028.2` **aprobada** y, como toda Task, nace de `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)). |
+| **Próxima tarea prevista** | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Pendiente**. `Task/028.2` quedó **aprobada** el 2026-09-27; como toda Task, nace de `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)). |
 | **Avance global** | **28/41 ≈ 68 %** — 28 aprobadas; mantenimiento excluido. |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
 | **Bloqueos activos** | **Ninguno abierto.** **No existe defecto bloqueante demostrado atribuible a `Task/023`.** **H-023-3** no es un bloqueo: es una **observación abierta no diagnosticada** —un fallo de `test_dos_publicaciones_simultaneas_solo_prosperan_una` en una ejecución completa, sin traza conservada y **no reproducido** en ocho intentos posteriores—. No se declara resuelto, no se declara descartado y **no se atribuye al adaptador Lambda**, que no participa en el camino de código de ese test. **Debe vigilarse en la CI**; si reaparece, el cierre **se detiene** y se analiza. **B-020.3-C — RESUELTO** el 2026-09-12: el gate Trivy de la imagen backend pasó de 12 hallazgos accionables (9 HIGH, 3 CRITICAL, exit 1) a **0 accionables, exit 0**, tras autorización explícita del usuario para aplicar las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile. La política S-09 no se relajó: sigue siendo `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, sin `.trivyignore` ni baseline de backend. **Historia preservada:** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`) — **RESUELTO** el 2026-09-12 con la aprobación de `Task/022`: la semilla local creó el administrador y el perfil, y el recorrido administrativo real generó contenido publicado con imágenes, de modo que la evidencia que faltaba ya existe. **B-015-1** sigue **resuelto** por `Task/012.1` |
-| **Riesgos abiertos** | **48** (R-01, **R-08** y **R-14** cerrados; **R-021-1**, el residual de la imagen de Portainer, añadido el 2026-09-11 por `Task/021`, con su tabla en la sección de riesgos; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) *(Sin cambio de recuento por `Task/028.2`: el cierre de **R-41** es solo una propuesta, y R-29 a R-42 siguen abiertos con reformulación propuesta.)* |
-| **Decisiones abiertas** | **14** de 24 IDs: 8 aplicables (D-07, D-08, D-10, D-11, D-12, D-19, D-20, D-21), 3 **nuevas propuestas** (D-22 a D-24) y 3 con **cierre por no aplicabilidad propuesto** (D-16 a D-18, abiertas hasta la aprobación de `Task/028.2`). **10** resueltas. [Índice canónico](../architecture/open-decisions.md). |
+| **Riesgos abiertos** | **47** (R-01, **R-08**, **R-14** y **R-41** cerrados —este último **por no aplicabilidad** el 2026-09-27, `Task/028.2`—; **R-021-1**, el residual de la imagen de Portainer, añadido el 2026-09-11 por `Task/021`, con su tabla en la sección de riesgos; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) *(`Task/028.2`, 2026-09-27: el recuento baja de 48 a 47 por el cierre de **R-41**; R-29 a R-40 y R-42 siguen abiertos, reformulados para RDS.)* |
+| **Decisiones abiertas** | **11** de 24 IDs: D-07, D-08, D-10, D-11, D-12, D-19, D-20, D-21 y **D-22 a D-24**, abiertas por `Task/028.2`. **10** resueltas y **3 cerradas por no aplicabilidad** —**D-16**, **D-17** y **D-18**, el 2026-09-27—. [Índice canónico](../architecture/open-decisions.md). |
 
 > **Recuento tras la aprobación de `Task/018`, 2026-09-08:**
 > **18 de 41 — 44 %**; ETAPA 05 **Completada, 3 de 3 — 100 %**.
@@ -2793,8 +2811,8 @@ Distribución por estado:
 | # | Riesgo | Impacto | Mitigación prevista | Estado |
 | --- | --- | --- | --- | --- |
 | R-01 | Los tres repositorios no tenían commit inicial, por lo que `dev` y las ramas `Task/*` no podían existir como referencias Git. | Medio | **Resuelto** el 2026-07-26 durante la aprobación de `Task/001`: commit inicial vacío en `main`, `dev` creada desde `main` y `Task/001` creada desde `dev` en los tres repositorios. | **Cerrado** |
-| R-02 | Costo cloud imprevisto al llegar a la Etapa 10. | Alto | Presupuestos y alarmas obligatorios en `Task/027`, antes de cualquier despliegue; refuerzo en `Task/041`. **Actualización propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación:** con RDS, el costo fijo existe aunque no haya tráfico y los **créditos AWS** pueden agotarse o caducar. **D-13** no cambia; `Task/029` estima costo bruto, crédito, desembolso y escenario poscrédito, y exige una decisión explícita **antes del primer `apply` de aplicación** si no cabe; `Task/041` hace el seguimiento. | Abierto |
-| R-03 | La elección de la base de datos de producción condiciona el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. **Actualización vigente desde el 2026-08-15 (`Task/005.3`, aprobada):** con PostgreSQL en un VPS, la mitigación concreta es **PgBouncer** con pool limitado más *Reserved Concurrency* de Lambda, aplicada en `Task/032`; ver **R-33**.  **Actualización propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación:** con RDS privado, PgBouncer pierde objeto. La mitigación es un pool por proceso **derivado** (`Task/029`, **D-12**) y **medido** (`Task/032`), con *Reserved Concurrency* y reserva para migraciones, administración y sondas. RDS Proxy solo con evidencia; saturación y recuperación probadas en `Task/040`. | Abierto |
+| R-02 | Costo cloud imprevisto al llegar a la Etapa 10. | Alto | Presupuestos y alarmas obligatorios en `Task/027`, antes de cualquier despliegue; refuerzo en `Task/041`. **Actualización aprobada en `Task/028.2` el 2026-09-27:** con RDS, el costo fijo existe aunque no haya tráfico y los **créditos AWS** pueden agotarse o caducar. **D-13** no cambia; `Task/029` estima costo bruto, crédito, desembolso y escenario poscrédito, y exige una decisión explícita **antes del primer `apply` de aplicación** si no cabe; `Task/041` hace el seguimiento. | Abierto |
+| R-03 | La elección de la base de datos de producción condiciona el diseño de conexiones desde Lambda (pooling, límites). | Medio | Evaluar en `Task/029` y considerar el patrón de conexión desde `Task/005`. **Actualización vigente desde el 2026-08-15 (`Task/005.3`, aprobada):** con PostgreSQL en un VPS, la mitigación concreta es **PgBouncer** con pool limitado más *Reserved Concurrency* de Lambda, aplicada en `Task/032`; ver **R-33**.  **Actualización aprobada en `Task/028.2` el 2026-09-27:** con RDS privado, PgBouncer pierde objeto. La mitigación es un pool por proceso **derivado** (`Task/029`, **D-12**) y **medido** (`Task/032`), con *Reserved Concurrency* y reserva para migraciones, administración y sondas. RDS Proxy solo con evidencia; saturación y recuperación probadas en `Task/040`. | Abierto |
 | R-04 | El roadmap de 41 tareas puede quedar desactualizado si el alcance cambia. | Bajo | `STATUS.md` y `ROADMAP.md` se actualizan en cada cambio de estado, como parte de la Definition of Done. | Abierto |
 | R-05 | Los enlaces cruzados entre repositorios asumen que los tres están clonados como carpetas hermanas. | Bajo | Suposición documentada en los README de frontend y backend; alternativa futura: enlazar a las URL de GitHub. | Abierto |
 | R-06 | El alcance del MVP puede crecer durante la implementación. | Medio | [MVP_SCOPE.md](../product/MVP_SCOPE.md) §6 lista explícitamente lo excluido; toda incorporación exige un ADR que reemplace la decisión vigente. | Abierto |
@@ -2895,13 +2913,13 @@ Distribución por estado:
 | R-27 | Dependencia excesiva del emulador: se aplaza indefinidamente la validación contra AWS real. | Medio | El laboratorio es una **puerta**, no un destino. La ETAPA 10 sigue siendo obligatoria y sus criterios de salida no se relajan. | ETAPA 10 | **Abierto** |
 | R-28 | **El emulador no aplica políticas IAM por omisión**: acepta cualquier credencial y deja pasar toda petición. Un rol puede validarse en local y ser incorrecto —insuficiente o excesivo— en AWS. | **Alto** | El laboratorio valida que un rol **se crea y se adjunta**, nunca que **autoriza**. La verificación de **mínimo privilegio** queda declarada **AWS-only**. | `Task/028`, `Task/032` | **Abierto** |
 
-### Reconciliación propuesta de riesgos — Task/028.2, 2026-09-27
+### Reconciliación de riesgos — Task/028.2, aprobada el 2026-09-27
 
-**Propuesta — pendiente de aprobación.** Ningún riesgo se declara mitigado por este
+**Vigente desde el 2026-09-27.** Ningún riesgo se declara mitigado por este
 mantenimiento: es documental. Las reformulaciones y el cierre por no aplicabilidad de
-**R-41** solo se hacen efectivos al aprobar ADR-010; hasta entonces, las formulaciones
-originales del bloque plegable siguen siendo las aprobadas. Los IDs se conservan y **no
-se reutilizan**. **No se crean IDs nuevos**, porque los riesgos del cambio caben en los
+**R-41** son efectivos desde la aprobación de `Task/028.2`; las formulaciones originales se
+conservan en el bloque plegable como historia. Los IDs se conservan y **no se
+reutilizan**. **No se crean IDs nuevos**, porque los riesgos del cambio caben en los
 existentes con controles explícitos:
 
 - **Exposición pública accidental y security groups excesivos** → **R-30**.
@@ -2914,25 +2932,25 @@ existentes con controles explícitos:
 
 **R-36** y **R-37** no se reabren: sus controles de logs y datos siguen aplicando.
 
-| ID | Riesgo propuesto | Mitigación / evidencia | Owners Task | Estado |
+| ID | Riesgo reformulado | Mitigación / evidencia | Owners Task | Estado |
 | --- | --- | --- | --- | --- |
-| R-29 | Disponibilidad/interrupción RDS; Single-AZ no elimina SPOF. | D-22 decide disponibilidad; backups/restore, mantenimiento y DR. | 029/031/040 | Abierto; reformulación propuesta |
-| R-30 | La formulación SSH/SO/PgBouncer pierde objeto; permanece exposición accidental RDS/SG/SQL/IAM. | DB privada, SG mínimo, TLS y casos negativos. | 029/031/032/040 | Abierto; sustituir formulación de host propuesto |
+| R-29 | Disponibilidad/interrupción RDS; Single-AZ no elimina SPOF. | D-22 decide disponibilidad; backups/restore, mantenimiento y DR. | 029/031/040 | Abierto; reformulado el 2026-09-27 |
+| R-30 | La formulación SSH/SO/PgBouncer pierde objeto; permanece exposición accidental RDS/SG/SQL/IAM. | DB privada, SG mínimo, TLS y casos negativos. | 029/031/032/040 | Abierto; formulación de host sustituida el 2026-09-27 |
 | R-31 | Backup corrupto/incompleto o no restaurable; se mantiene. | Restore sintético y PITR en 031; reciente con app en 040, integridad y RPO/RTO. | 029/031/036/040 | Abierto |
-| R-32 | Capacidad RDS: storage, CPU, memoria, IOPS, throughput y burst credits si aplica. | Dimensionamiento, crecimiento limitado, alarmas y pruebas de carga. | 029/031/032/040 | Abierto; reformulación propuesta |
+| R-32 | Capacidad RDS: storage, CPU, memoria, IOPS, throughput y burst credits si aplica. | Dimensionamiento, crecimiento limitado, alarmas y pruebas de carga. | 029/031/032/040 | Abierto; reformulado el 2026-09-27 |
 | R-33 | Agotamiento de conexiones Lambda/PostgreSQL; se mantiene. | D-12 pool por proceso + reserva + concurrencia; Proxy evaluable con costo/pinning. | 029/032/040 | Abierto |
-| R-34 | RTT hacia host externo pierde objeto; latencia intra-AWS y consultas siguen. | Medir Lambda/RDS real en 032 y carga en 040; no exigir RTT real en 029. | 029/032/040 | Abierto; reformulación propuesta |
-| R-35 | Error humano en Terraform, borrado RDS, migración, restore, KMS o SG. | State protegido, planes revisados, identidades separadas, snapshot final, DR y no destroy automático. | 030/031/036/038/039/040 | Abierto; reformulación propuesta |
+| R-34 | RTT hacia host externo pierde objeto; latencia intra-AWS y consultas siguen. | Medir Lambda/RDS real en 032 y carga en 040; no exigir RTT real en 029. | 029/032/040 | Abierto; reformulado el 2026-09-27 |
+| R-35 | Error humano en Terraform, borrado RDS, migración, restore, KMS o SG. | State protegido, planes revisados, identidades separadas, snapshot final, DR y no destroy automático. | 030/031/036/038/039/040 | Abierto; reformulado el 2026-09-27 |
 | R-38 | Dependencia de límites/precio de Grafana Cloud; se mantiene. | D-19 verificar antes de integrar/contratar y periódicamente; bajo D-13. | 029/031/041 | Abierto |
-| R-39 | Telemetría CloudWatch/RDS/app exportada a tercero con secretos/PII. | Fuentes mínimas, redacción, IAM lectura, muestreo real y costo/retención. | 031/032/040 | Abierto; reformulación propuesta |
-| R-40 | Secretos de host pierden objeto; exposición/rotación fallida de credenciales DB/KMS/SSM persiste. | D-23: almacenamiento/custodia/rotación, SQL mínimo, state seguro y prueba sin mostrar valores. | 029/031/032/040 | Abierto; reformulación propuesta |
-| R-41 | Competencia del agente Alloy del host con PostgreSQL pierde objeto. | Sin agente instalado en RDS; costo/overhead de observabilidad se cubre en R-32/R-38 y D-11. | 028.2 (aceptación) | Cierre N/A propuesto; aún no cerrado |
-| R-42 | Drift SO host pierde objeto; drift de parameter group, SG y recursos administrados persiste. | Terraform común, detección/revisión de drift y runbooks/reconstrucción. | 031/039/040 | Abierto; reformulación propuesta |
+| R-39 | Telemetría CloudWatch/RDS/app exportada a tercero con secretos/PII. | Fuentes mínimas, redacción, IAM lectura, muestreo real y costo/retención. | 031/032/040 | Abierto; reformulado el 2026-09-27 |
+| R-40 | Secretos de host pierden objeto; exposición/rotación fallida de credenciales DB/KMS/SSM persiste. | D-23: almacenamiento/custodia/rotación, SQL mínimo, state seguro y prueba sin mostrar valores. | 029/031/032/040 | Abierto; reformulado el 2026-09-27 |
+| R-41 | Competencia del agente Alloy del host con PostgreSQL pierde objeto. | Sin agente instalado en RDS; costo/overhead de observabilidad se cubre en R-32/R-38 y D-11. | 028.2 | **Cerrado** por no aplicabilidad el 2026-09-27 |
+| R-42 | Drift SO host pierde objeto; drift de parameter group, SG y recursos administrados persiste. | Terraform común, detección/revisión de drift y runbooks/reconstrucción. | 031/039/040 | Abierto; reformulado el 2026-09-27 |
 
 **Owners que cambian** en riesgos anteriores a `Task/005.3`. La tabla fechada «Efecto de
 `Task/018`», del 2026-09-07, conserva los owners de su fecha:
 
-| ID | Owner anterior | Owner propuesto | Motivo |
+| ID | Owner anterior | Owner vigente | Motivo |
 | --- | --- | --- | --- |
 | R-12 | **D-17** / `Task/029` | `Task/029` prepara el contrato de custodia de los respaldos **locales** → `Task/031` revisión y runbook → `Task/040` | El cierre N/A de D-17 **no** cifra estos respaldos; el riesgo sigue abierto |
 | R-36 (telemetría exportada, O-09) | `Task/029`, `Task/040` | `Task/031`, `Task/040` | Sin agente de host, la telemetría sale por **D-20** |
@@ -2940,7 +2958,7 @@ existentes con controles explícitos:
 | R-44 | `Task/029` (operación) | `Task/029` diseña → `Task/036` implementa purga y retención → `Task/038`/`Task/040` | Sin host ni procesos residentes; mecanismo sin servicios excluidos |
 
 <details>
-<summary>Formulaciones aprobadas de R-29 a R-35 (Task/005.3) y R-38 a R-42 (Task/006.2) — vigentes hasta la aprobación de Task/028.2</summary>
+<summary>Formulaciones aprobadas de R-29 a R-35 (Task/005.3) y R-38 a R-42 (Task/006.2) — vigentes hasta el 2026-09-27</summary>
 
 ### Riesgos introducidos por `Task/005.3` — PostgreSQL de producción en VPS
 

@@ -4,14 +4,18 @@
 | --- | --- |
 | **Tarea** | `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` |
 | **Tipo** | Mantenimiento de arquitectura y gobierno. **No cuenta entre las 41** y no altera el avance |
-| **Estado** | **Lista para validación** — no Aprobada |
+| **Estado** | **Aprobada** el 2026-09-27 |
 | **Fecha** | 2026-09-27 |
-| **Ejecución** | Iniciada por Codex, que agotó su límite de uso a mitad de la tarea; continuada y cerrada por Claude Code desde el mismo *working tree* |
+| **Ejecución** | Iniciada por Codex; Claude Code completó la validación y comenzó el cierre. Codex retomó el cierre aprobado desde el mismo *working tree*, sin reescribir el commit validado |
 | **Avance del proyecto** | **28/41 ≈ 68 %**; **ETAPA 09 2/3 ≈ 67 %** (sin cambios) |
-| **ADR-010** | **Propuesta — pendiente de aprobación** |
+| **ADR-010** | **Aceptada** el 2026-09-27 (fue Propuesta durante la validación) |
 | **Task/029** | **Pendiente** |
 | **Ficha** | [TASK-028.2](../tasks/TASK-028.2-reconsider-production-postgresql-rds.md) |
 | **Expresión de aprobación** | `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` |
+
+> **Registro histórico de validación:** las secciones 1–11 describen la entrega
+> fijada en `6c61e8e`. Los estados posteriores a la aprobación se registran en §12.
+> La auditoría enlazada en §9 conserva la evidencia de aquella entrega.
 
 ## 1. Rama y base
 
@@ -427,3 +431,86 @@ ningún archivo de `bootstrap/`, `.github/`, `scripts/oidc/` ni `tests/oidc/` ca
 `Task/029` **no se inició**. Este reporte **no es una aprobación**.
 
 **`Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` — Lista para validación.**
+
+## 12. Aprobación y cierre
+
+**APROBADA** el 2026-09-27 por el usuario mediante
+`approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`.
+
+Las secciones 1 a 11 son el registro de lo que se entregó para validación: el contenido
+exacto que se aprobó quedó fijado en el commit `6c61e8e`, antes de promover nada. El
+cierre, en un commit aparte, registra la aprobación y promueve:
+
+| Elemento | Antes | Después |
+| --- | --- | --- |
+| ADR-010 | Propuesta — pendiente de aprobación | **Aceptada** ✔ |
+| ADR-007 | Aceptada | **Reemplazada** por ADR-010; cuerpo intacto como historia |
+| ADR-003 y ADR-008 | Aceptadas | Aceptadas, **modificadas parcialmente** por ADR-010 (fila «Modificado parcialmente por» y nota de vigencia) |
+| ADR-006 | Aceptada | Sin cambios; nota de aplicación futura |
+| `production-postgresql-rds.md` | Propuesta | **Vigente** |
+| `production-postgresql-vps.md` | Vigente | **Histórico**, reemplazado |
+| D-16, D-17, D-18 | Abiertas, cierre N/A propuesto | **Cerradas por no aplicabilidad** |
+| D-22, D-23, D-24 | Propuestas | **Abiertas**, owner `Task/029` |
+| R-41 | Abierto, cierre N/A propuesto | **Cerrado por no aplicabilidad**; riesgos abiertos 48 → **47** |
+| R-29 a R-40 y R-42 | Reformulación propuesta | **Reformulados**, abiertos |
+| Enmiendas en arquitectura, roadmap, etapas, runbooks, NFR y README | Propuestas | **Vigentes**; la historia VPS sigue plegada |
+| `Task/029` | Pendiente | **Pendiente** —no se inicia— |
+
+Registro de decisiones tras el cierre: **24 IDs — 11 abiertas, 10 resueltas y 3 cerradas
+por no aplicabilidad**. **D-13 no cambia.** El avance no cambia: **28/41 ≈ 68 %**, ETAPA 09
+**2/3 ≈ 67 %**.
+
+**La aprobación no crea recursos.** Cada recurso de ADR-010 exige su tarea propietaria y
+la autorización explícita del usuario. Nada se aplicó en AWS durante el cierre.
+
+### 12.1 Validación posterior a la aprobación
+
+Los validadores temporales se adaptaron a los estados aprobados, conservando las
+comprobaciones de alcance, codificación, enlaces, grafo e historia. La comparación
+técnica usa la base original `2f434ed`; los cuerpos históricos de los cinco documentos
+anteriores se comparan desde su primera sección. Las secciones 1–11 de este reporte y
+la auditoría histórica se comprobaron contra `6c61e8e` sin alterar su evidencia.
+
+La revisión de marcadores separó historia, reglas generales y condiciones técnicas de
+los estados activos de este cierre. Se corrigieron el mapeo local/nube, la fecha de las
+reglas de seguridad, los criterios añadidos de ETAPAS 11–12 y las fichas. Se conservaron
+las entradas fechadas de validación, los estados de otras decisiones y los condicionales
+de funcionalidades futuras. El inventario por aparición queda en la herramienta
+temporal `tmp/task0282/marker-review.json`.
+
+| Gate posterior a la promoción | RC | Resultado |
+| --- | --- | --- |
+| `git diff --check` | 0 | Sin errores de espacios |
+| `python -B tmp/task0282/validate.py` | 0 | 41 tareas: 28 aprobadas, 13 pendientes; ETAPA 09 2/3; 15 nodos futuros, 0 ciclos; 24 decisiones: 11 abiertas, 10 resueltas y 3 N/A; 47 riesgos abiertos; equivalencia de los cuatro archivos técnicos; superficie OIDC intacta |
+| Enlaces, anclas y codificación — mismo validador | 0 | 1842 enlaces locales en 166 Markdown; 0 rotos; UTF-8, LF, BOM y bloques históricos conservados |
+| `python -B tmp/task0282/audit_references.py` | 0 | 2211 apariciones: A=1562, B=527, C=121, D=0, O=1, N=0; 179 con revisión manual; 0 sin revisar. Salida posterior en `tmp/task0282/reference-audit-post-approval.md`; auditoría histórica versionada intacta |
+| Laboratorio — `python -B -m unittest discover -s tests/laboratorio -p 'test_*.py'` | 0 | 176 tests OK en la repetición completa; incidencia inicial detallada abajo |
+| OIDC — `python -B -m unittest discover -s tests/oidc` | 0 | 60 tests, 1 omitido, OK |
+| Seguridad — `python -B -m unittest discover -s tests/security -p 'test_*.py'` | 0 | 88 tests OK |
+| S-09 — `python -B scripts/security/vulnerability_gate.py --baseline security/vulnerability-baseline.json --comprobar-coherencia .` | 0 | CORRECTO |
+| Python — `compile()` sobre `scripts/` y `tests/` | 0 | 37 archivos; sin escribir bytecode |
+| Compose — `docker compose --env-file .env.example --profile admin config --quiet` | 0 | Válido |
+| Compose laboratorio — `docker compose --file laboratorio/docker-compose.laboratorio.yml --env-file laboratorio/.env.laboratorio.example config --quiet` | 0 | Válido |
+| Terraform `fmt -check -recursive`, aplicación / bootstrap | 0 / 0 | Sin cambios |
+| Terraform `init -backend=false -input=false -lockfile=readonly`, aplicación / bootstrap | 0 / 0 | Sin configurar backend; locks intactos |
+| Terraform `validate`, aplicación / bootstrap | 0 / 0 | Configuraciones válidas |
+| Terraform `test`, bootstrap | 0 | 9 passed / 0 failed, proveedores simulados, todos los casos con `command = plan`; sin operación AWS ni modificación del estado real |
+| actionlint, ambos workflows | 0 | Sin hallazgos |
+| Gitleaks sobre copia de los archivos versionados del entregable, rutas relativas y `--redact=100` | 0 | 0 hallazgos |
+
+**Incidencia conservada:** la primera ejecución del laboratorio terminó con RC 1:
+`test_http_200_y_seis_servicios_running` recibió RC 3328 del proceso Bash. El diagnóstico
+aislado del mismo caso devolvió RC 0 y stderr vacío; la repetición de la suite completa
+dio 176 tests OK, RC 0. No se reprodujo la causa; no se cambió la sonda ni el test.
+La primera auditoría posterior detectó 65 apariciones sin revisión manual (RC 1);
+se revisaron sus 55 líneas en contexto y se registraron las clasificaciones explícitas.
+
+### 12.2 Flujo de cierre autorizado
+
+Flujo de cierre de
+[WORKFLOW §3](../project-management/WORKFLOW.md): commit en la rama Task, integración
+`--no-ff` en `dev`, publicación de `dev` y de la rama Task, y PR `Task/028.2 → main`, que
+**solo el usuario fusiona**. El estado de ramas y PR se consulta en Git y GitHub
+([WORKFLOW §6.1](../project-management/WORKFLOW.md)).
+
+**`Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` — Aprobada el 2026-09-27.**
