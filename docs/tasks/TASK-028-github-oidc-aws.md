@@ -4,7 +4,7 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **Aprobada** el 2026-09-27 |
+| Estado | **Aprobada** el 2026-09-26 |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
@@ -42,7 +42,9 @@ trabajo; no constituye aprobación de la tarea ni autorización de operaciones c
 - [x] Trust final exclusiva de main, aplicada y verificada contra IAM el 2026-09-25.
 - [x] Segunda publicación premerge: `AccessDenied` con JWT nuevo desde Task, 2026-09-25.
 - [x] Custodia EX-028-C7 cerrada con recuperación externa verificada, 2026-09-25.
-- [ ] Reconfirmación postmerge desde main, posterior al merge humano (criterio 8).
+- [x] Reconfirmación postmerge desde main, posterior al merge humano (criterio 8) —
+  ejecutada el 2026-09-26 tras el merge del PR #50, `Verify AWS OIDC` **success** por
+  `workflow_dispatch` sobre `main` en `e0fa95b`. Registrada por `Task/028.1`.
 
 El tercer punto se completó por tramos, cada uno con su propia autorización
 acotada: el 2026-09-24 inventario real (caso A, ownership A), recuperación cifrada
@@ -52,9 +54,11 @@ verificada y plan revisado, primero en **solo lectura** y después con apply y
 Task. Ninguna se ejecutó sin autorización previa y ninguna se dio por hecha sin
 evidencia.
 
-La **reconfirmación postmerge** sigue abierta y **no es prerrequisito de la
-aprobación**: por definición requiere que el merge humano ya exista. Es trabajo
-posterior al cierre, no un pendiente de implementación.
+La **reconfirmación postmerge** no era prerrequisito de la aprobación: por definición
+requiere que el merge humano ya exista. Quedó **cumplida el 2026-09-26**, después de que
+el usuario fusionara el PR #50, y su evidencia la registra
+[`Task/028.1`](TASK-028.1-correct-post-merge-documentation-drift.md) porque esta ficha ya
+estaba fusionada y no se reescribe historia.
 
 ## 4. Fuera del alcance
 
@@ -96,7 +100,10 @@ variables, commit, push, PR, merge y dev; tampoco prepara publicaciones de prueb
    antes de dar por integrada Task/028 y antes de avanzar con normalidad a la tarea
    siguiente. Si esa validación falla, el avance se detiene y Task/028 se corrige.
    Ninguna aprobación se sustenta en pruebas mock ni se infiere de las ejecuciones
-   premerge.
+   premerge. **CUMPLIDO el 2026-09-26:** `Verify AWS OIDC` **success** sobre `main` en
+   `e0fa95b`, con `GetCallerIdentity` de la cuenta y el rol esperados,
+   `iam:ListRoles: AccessDenied` y audiencia incorrecta rechazada con
+   `InvalidIdentityToken`.
 
 ## 7. TDD / Plan test-first
 
@@ -214,7 +221,7 @@ resultó **alcanzable** —no solo presente— en `minio`, `mc` y Portainer, dem
 LTS** y MinIO y `mc` **reconstruidos** con `grpc v1.83.2` en el derivado, desde
 dependencias congeladas en parches versionados y hasheados. Baseline de MinIO **99 → 10
 accionables, 89 resueltos, 0 nuevas**; `CVE-2026-84445` **2 → 0**. El derivado quedó
-**publicado y en consumo** el 2026-09-27, y ese mismo día se corrigió también el **runtime** de
+**publicado y en consumo** el 2026-09-26, y ese mismo día se corrigió también el **runtime** de
 Portainer, que seguía en 2.39.7 aunque la configuración ya fijara 2.45.1: la incidencia estuvo
 declarada cerrada **antes de tiempo** y solo cierra al dejar de ejecutarse la imagen vulnerable
 ([reporte §24-§26](../task-reports/TASK-028-report.md)).
@@ -248,7 +255,7 @@ Task/028 según WORKFLOW. Este checkpoint no cambia 27/41 ni ETAPA 09 1/3.
 
 ## 20. Aprobación
 
-**APROBADA** el **2026-09-27** por el usuario mediante la expresión exacta:
+**APROBADA** el **2026-09-26** por el usuario mediante la expresión exacta:
 
 ```
 approved: Task/028-GitHub-OIDC-AWS
