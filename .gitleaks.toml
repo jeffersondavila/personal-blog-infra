@@ -1,0 +1,58 @@
+# Configuracion de Gitleaks del proyecto.
+#
+# EXTIENDE la configuracion por defecto; no la sustituye. Todas las reglas de
+# Gitleaks siguen activas.
+#
+# Unica excepcion, anadida en Task/028: las lineas de `go.sum` que viajan dentro
+# de los parches de dependencias del derivado reproducible de MinIO. Son **sumas
+# de comprobacion de modulos Go** en formato dirhash —`h1:` seguido del Base64
+# de 32 bytes—, y `generic-api-key` marca aquellas cuya ruta de modulo contiene
+# `auth`, `oauth2` o `api`:
+#
+#   cloud.google.com/go/auth v0.16.0 h1:...=
+#   golang.org/x/oauth2 v0.36.0 h1:...=
+#   google.golang.org/api v0.230.0 h1:...=
+#
+# No son credenciales: son hashes del arbol de cada modulo, **publicados de
+# forma publica** en `sum.golang.org`, y su proposito es exactamente el
+# contrario al de un secreto —permitir que cualquiera verifique el modulo—. Sin
+# ellos el build no podria ejecutar `go mod verify`.
+#
+# La excepcion exige DOS condiciones a la vez, y de ahi `condition = "AND"`:
+#
+#   1. el hallazgo esta en uno de los parches de dependencias del derivado, y
+#   2. el valor detectado es EXACTAMENTE un Base64 de 32 bytes.
+#
+# Se comprobo empiricamente, con un control positivo, que asi queda acotada: el
+# **mismo** Base64 colocado en otro archivo **sigue apareciendo** como hallazgo.
+#
+# Por que asi y no de otra forma:
+#
+#   - NO se desactiva `generic-api-key` ni ninguna otra regla.
+#   - NO se exceptua ningun archivo completo: dentro de esos mismos parches,
+#     cualquier valor que no sea un Base64 de 32 bytes sigue analizandose.
+#   - NO se usa `.gitleaksignore` con huellas: una huella lleva dentro el SHA
+#     del commit y deja de aplicar en cuanto el commit cambia, asi que oculta
+#     mas de lo que declara.
+#
+# Dos trampas de esta configuracion, comprobadas en Gitleaks 8.30.1:
+#
+#   - `condition` es la clave correcta. `matchCondition` **se ignora en
+#     silencio** y la lista degrada a OR, que permitiria el Base64 en cualquier
+#     ruta. Si alguien la renombra, la excepcion se vuelve amplia sin avisar.
+#   - Los patrones van en cadenas literales `'''...'''`. Con `"""..."""` TOML
+#     interpreta los escapes y `\.` o `\-` abortan la carga del archivo.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Sumas de comprobacion de modulos Go (go.sum) en los parches del derivado de MinIO"
+condition = "AND"
+paths = [
+  '''^docker/minio/[a-z0-9\-]+-deps-[a-z0-9.\-]+\.patch$''',
+]
+regexTarget = "secret"
+regexes = [
+  '''^[A-Za-z0-9+/]{43}=$''',
+]

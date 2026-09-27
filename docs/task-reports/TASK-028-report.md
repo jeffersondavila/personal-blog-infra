@@ -1,0 +1,1991 @@
+# TASK-028 — Checkpoint de implementación local
+
+**Fecha: 2026-09-22. Estado: En progreso.** Diseño de trabajo aceptado por el
+usuario; no aprobación de Task/028. Alcance del checkpoint: implementación,
+documentación y validaciones locales, sin autorización de operaciones cloud ni
+publicación. [Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
+[Runbook no ejecutado](../runbooks/github-oidc-bootstrap.md).
+
+## 1. Base y recuperación
+
+Base histórica autorizada el 2026-09-21 y verificada al crear la rama el 2026-09-22:
+`65fbf860a7ba47460eecad70431f0ba8f5bcfab1`. Rama de trabajo:
+`Task/028-GitHub-OIDC-AWS`, nacida exclusivamente de main limpio/actualizado.
+La comprobación inmediata dio HEAD = main = origin/main = base.
+
+En la recuperación del 2026-09-22, antes de editar: misma rama/base, staging
+vacío, cero commits main..HEAD. `git ls-remote --heads` no encontró la rama Task
+remota; consulta de PR de ese head, todos los estados, devolvió lista vacía.
+Backend/frontend estaban limpios en main. No se recreó rama, cambió de rama,
+hizo reset ni descartó trabajo.
+
+Estas son observaciones fechadas; Git/GitHub son la fuente viva. No se infiere
+ausencia histórica universal de pushes de terceros: **el agente no hizo push**.
+
+## 2. Implementación entregada
+
+Root Terraform independiente `bootstrap/github-oidc/`; CLI 1.16.2, provider AWS
+6.64.0 y lock copiado sin alterar desde el root aprobado. No se modificó
+`terraform/`, el grafo Task/025 ni código backend/frontend.
+
+| Área | Implementación |
+| --- | --- |
+| Backend | local parcial; runbook exige path/TF_DATA_DIR externos privados; plan-check vincula metadata/backend al estado esperado |
+| Destino | cuenta explícita, región comercial, allowed_account_ids e identidad humana PersonalBlogAdministrator |
+| Rol | PersonalBlogGitHubOidcValidation, path /, MaxSessionDuration 3600; cero managed/inline policies; prevent_destroy |
+| Provider A | ausencia solo ante NoSuchEntity; recurso administrado, prevent_destroy |
+| Provider B | URL GitHub exacta + client list exacta sts.amazonaws.com; solo data source, sin import/ownership |
+| Provider C | discrepancia/lectura indeterminada: STOP, sin arreglos ni imports |
+| Continuación A | ARN/dirección en estado custodiado conservan ownership; no se reclasifica como compartido B |
+| Rol preexistente | sin estado correspondiente: STOP, no adopción silenciosa |
+| Guardas | rutas fuera de Git, permisos privados POSIX, variables/phase/expiry, trust exacta, cero policies, planes limitados, errores saneados |
+| Automatización | no hay apply, import, destroy ni cambios GitHub implementados en scripts |
+
+No se observó A/B/C en AWS durante este checkpoint: solo fixtures/mocks locales.
+El futuro inventario registra el caso real y la propiedad por separado.
+
+## 3. Trust implementada
+
+Principal federado único:
+`arn:aws:iam::<CUENTA>:oidc-provider/token.actions.githubusercontent.com`.
+Action única `sts:AssumeRoleWithWebIdentity`, aud exacta `sts.amazonaws.com`.
+
+- Temporal explícita: sub
+  `repo:jeffersondavila@60154716/personal-blog-infra@1313255836:ref:refs/heads/Task/028-GitHub-OIDC-AWS`;
+  DateLessThan aws:CurrentTime literal obligatorio, futuro y máximo dos horas.
+- Final por defecto: sub
+  `repo:jeffersondavila@60154716/personal-blog-infra@1313255836:ref:refs/heads/main`,
+  sin caducidad y sin entrada Task.
+
+Sin wildcards, repo genérico ni environments. La producción usa plantimestamp
+solo para **validar** el literal; nunca genera/renueva la caducidad. El test mock
+positivo sí crea un valor sintético relativo a su reloj, limitado al archivo de tests.
+El plan-check permite la transición Task → main, no renovación/reapertura automática.
+
+## 4. Workflows
+
+`verify-aws-oidc.yml`: push exclusivamente Task/028 y workflow_dispatch de main,
+con comprobaciones de repositorio/owner ID/ref/evento; sin PR, dev ni tags.
+Permisos globales vacíos; job de federación solo contents:read + id-token:write,
+otro sin id-token. Checkout fijado por SHA, sin credenciales Git persistidas.
+Timeouts 3/5 minutos; sesiones STS 900 s. Sin artifacts ni secretos AWS.
+
+`security/oidc-validation.json` expresa la expectativa de Task (SUCCESS inicialmente,
+DENIED cuando se autorice la segunda publicación futura). Main exige SUCCESS.
+El script comprueba claims sin imprimirlos, STS valida firma, GetCallerIdentity
+valida cuenta/rol y ListRoles exige AccessDenied. Audiencia incorrecta exige
+InvalidIdentityToken; un fallo arbitrario no cuenta como evidencia.
+
+**CI Infra sí quedó actualizado**, con un paso offline que verifica lock versionado,
+fmt -check -recursive del bootstrap, init -backend=false -input=false -lockfile=readonly,
+validate, test mock y tests/oidc. Conserva contents:read, sin id-token ni AWS real.
+Las pruebas OIDC incluyen controles estáticos del workflow y seguridad. No se
+ejecutó ningún workflow remoto.
+
+## 5. Pruebas y gates locales
+
+Evidencia histórica de la primera ejecución: 35 tests OIDC, OK con un skip POSIX
+en Windows. En la recuperación se repitieron validate y los ocho tests Terraform
+originales: **8 passed / 0 failed**, antes de ampliar la cobertura.
+
+| Gate final | Resultado y alcance |
+| --- | --- |
+| Terraform fmt -check -recursive | PASS, root bootstrap |
+| Terraform init -backend=false -input=false -lockfile=readonly | PASS; descarga/uso del provider, sin inicializar backend ni AWS |
+| Terraform validate | PASS |
+| Terraform test | **9 passed / 0 failed**, provider mock, todos command=plan |
+| OIDC Windows | **38 tests: 37 PASS + 1 skip POSIX esperado** |
+| OIDC Linux | **38/38 PASS**, contenedor local sin red, mount solo lectura; cero skips |
+| tests/security | **64/64 PASS** |
+| tests/laboratorio | **176/176 PASS** |
+| actionlint | **1.7.12 PASS**, ambos workflows; archivo y ejecutable verificados |
+| Parser YAML | **2 workflows PASS**, PyYAML 6.0.3 temporal; eventos/permisos/acciones/gates comprobados |
+| Python compile | **35 archivos PASS**, sin escribir bytecode |
+| git diff --check | PASS |
+| Conteo canónico de tareas | **41 = 27 Aprobadas + 1 En progreso + 13 Pendientes** |
+| Conteo índice decisiones | **21 = 10 Resueltas + 11 Abiertas** |
+| Gitleaks / enlaces / criterio 12 | Resultado final registrado en §11 |
+
+Pruebas añadidas: provider A/B/C e inconcluso; ownership/rol previo; identidad
+humana/destino erróneos; rutas privadas y POSIX; temporal válida, ausente, vencida,
+excesiva y main con caducidad; planes create/transición y rechazo de permisos,
+imports, destroy/replacement, destinos/endpoints/datos desconocidos; contextos
+GitHub válidos y forks/PR/dev/tags inválidos; exactitud de errores negativos;
+sanitización y ausencia de credenciales en argumentos.
+
+Herramientas de seguridad reutilizadas, sin actualizar versiones:
+
+- Actionlint Windows zip SHA-256:
+  `6e7241b51e6817ea6a047693d8e6fed13b31819c9a0dd6c5a726e1592d22f6e9`.
+- Gitleaks **8.30.1**, Windows zip SHA-256:
+  `d29144deff3a68aa93ced33dddf84b7fdc26070add4aa0f4513094c8332afc4e`.
+
+Se comprobó también que cada ejecutable coincide byte a byte con el miembro del
+zip validado. PyYAML está solo bajo tmp ignorado, sin dependencia nueva de producto.
+No se repitió build/escaneo de imágenes S-09: imágenes, digests, Dockerfiles,
+baseline y comparadores no se modificaron. Sus regresiones unitarias sí pasaron.
+No se ejecutó ciclo Terraform de aplicación, emulador ni AWS.
+
+## 6. Incidencias corregidas
+
+1. Auditoría detectó que una respuesta vacía del proveedor podía convertirse en
+   ausencia por truthiness; corregido a identidad `is None`, con regresión.
+2. Terraform representa unknowns de listas como `[false]`: una comprobación
+   booleana simple bloqueaba incorrectamente client_id_list conocido. Detectado
+   inspeccionando planes **mock** reales; evaluación recursiva y regresión positiva
+   [false]/negativa [true].
+3. Se reforzó binding del plan a variables, provider sin endpoints alternativos y
+   backend privado; rechazo de expressions que pudieran conceder políticas.
+4. Vista rápida STATUS aún presentaba Task/028 como próxima/Pendiente después de
+   la primera reconciliación; corregida sin alterar entradas históricas.
+
+`tmp/task028/reconcile.py` cumplió su función y fue **eliminado** al continuar.
+No forma parte de entregables ni se convirtió en código de producto.
+
+## 7. Reconciliación documental
+
+**D-06 Resuelta y Vigente desde Task/025 (2026-09-14)**; corregidos drift vigente
+de PROJECT_INSTRUCTIONS, target-production-architecture y riesgo STAGE-08.
+D-06 retirada de la tabla vigente de decisiones abiertas. Contadores STATUS /
+open-decisions ahora 11 abiertas y 10 resueltas, concordantes con el índice.
+Mecanismo resuelto no significa bucket materializado; referencias históricas de
+Task/005 y Task/025 preaprobación permanecen como historia.
+
+**STAGE-09:** Task/028 En progreso; federación/autenticación real pendiente,
+sin atribuir permisos de despliegue al rol validador. Task/038 define mínimos
+backend, Task/039 Terraform y Task/040 validación integral. Main protegida antes
+de esos roles efectivos, fuera de Task/028. Avance sigue **27/41 ≈ 66 %** y
+ETAPA 09 **1/3 ≈ 33 %**.
+
+**STAGE-10 / Task/030:** reutilización Task/025 para aplicación conservada.
+Excepción explícita del bootstrap D-06: bucket exclusivo de estado, privado,
+versionado, cifrado, public access block, use_lockfile=true, sin DynamoDB,
+separado de medios/backups; migración OIDC por init -migrate-state y custodia/
+migración del estado del propio bootstrap. El backend debe preexistir al grafo
+que inicializa; no duplica el grafo de aplicación. ROADMAP y D-06 asignan lo mismo.
+La ficha Task/030 recogerá estos entregables al abrirse; no se inició esa tarea.
+
+**EX-028-C7:** solo root OIDC, local externo protegido, 0700/0600, un escritor/lock,
+snapshots antes/después y tras fallo, backups cifrados externos recuperados de
+prueba; revisión 30 días desde creación cloud, extinción Task/030 antes del primer
+apply de aplicación. No autoriza cloud ni es PASS literal de C-7.
+
+## 8. DoD y límites de evidencia
+
+| Criterios | Evaluación del checkpoint |
+| --- | --- |
+| General 1 y tarea CI ejecutada remotamente | Pendientes: federación real/publicaciones/postmerge no autorizados |
+| General 2–11 | Entrega local acotada, sintaxis/pruebas/docs/riesgos/secretos revisados; base main demostrada |
+| General 12 | Auditoría dirigida en §11; historia fechada o reglas duraderas |
+| C-1 | PASS local |
+| C-2/C-3 | Guardas implementadas/probadas offline; ejecución real pendiente |
+| C-4 | Planes mock verificados; **plan AWS pendiente**, no PASS real |
+| C-5/C-6 | Diferenciación explícita; paridad actualizada sin marcar AWS validado |
+| C-7 | EX-028-C7, **no cumplimiento literal** |
+| C-8 | Ningún recurso creado en este checkpoint |
+| C-9 | Inventario real pendiente; recursos creados por este trabajo: cero |
+| C-10 | Estimación IAM/STS y fuentes actuales en runbook; sin servicios de aplicación |
+| C-11 | Ningún secreto versionado ni credencial AWS real utilizada |
+
+Pruebas locales no demuestran federación AWS. Evidencia real exigida: cero
+managed policies, cero inline policies, trust exacta, GetCallerIdentity correcto y
+operaciones negativas elegidas con AccessDenied. **No prueban universalmente que
+ninguna resource-based policy de la cuenta otorgue alguna capacidad**. El inventario
+de esas policies del script está vacío; toda inspección adicional se acota al
+inventario realmente comprobado.
+
+## 9. Riesgos y autorizaciones futuras
+
+Riesgos abiertos: custodia y pérdida de estado local; proveedor compartido;
+discrepancias AWS/mocks; cambios de subject GitHub; sesiones emitidas que sobreviven
+a cambios de trust; políticas de recursos no inventariadas; main sin protección;
+caducidad temporal durante pruebas; recovery real todavía no ejecutado.
+
+**AWS requiere autorización posterior:** abrir CloudShell/sesión humana; lecturas
+autenticadas/inventario; copias privadas/recuperación; plan real; apply de recursos
+A/rol o solo rol B; transición trust main; readback; contingencias/revocación si
+fueran necesarias. Task/030 necesita autorización propia para S3/migración.
+
+**GitHub/Git requieren autorización posterior:** tres variables no secretas, cada
+commit/push de las dos publicaciones premerge, ejecuciones de verificación, PR,
+merge humano y reconfirmación postmerge desde main. No cambiar subject, crear
+secrets AWS ni convertir el validador en rol de despliegue.
+
+Secuencia futura: publicación Task SUCCESS con trust temporal → transición humana
+main → segunda publicación Task DENIED con JWT nuevo → después del merge,
+main SUCCESS obligatorio. **Ninguna publicación se preparó o ejecutó aquí**.
+No se solicita autorización de apply en este checkpoint.
+
+## 10. Inventario y Git del checkpoint
+
+La captura final de §11 contiene status completo, diff --stat y lista de archivos
+nuevos. `git diff --stat` convencional **no incluye archivos untracked**; estos
+se enumeran aparte sin staging.
+
+## 11. Evidencia final
+
+Captura del **2026-09-22**, después de la implementación y los gates. La tarea
+continúa **En progreso**, todo sin commit y sin staging.
+
+**Gitleaks 8.30.1: cero hallazgos**, sobre copia del worktree de todos los
+247 archivos tracked/no ignorados, incluidos los nuevos; no se incluyeron
+temporales ignorados ni archivos privados. Búsqueda dirigida de claves privadas,
+PAT, access keys y JWT: cero coincidencias. No es una auditoría universal de
+secretos externos o archivos ignorados del usuario.
+
+**Enlaces: PASS**, AST Markdown (fences/inline code excluidos), 15 documentos
+tocados, 520 enlaces: 500 relativos/anclas comprobados, cero rotos; 20 URLs
+externas inventariadas, sin afirmar disponibilidad HTTP de todas.
+
+**Criterio 12: PASS**, búsqueda dirigida y revisión de contexto/diff: menciones
+nuevas a ramas/PR/publicaciones son reglas del procedimiento o capturas fechadas;
+no se declara un trámite Git/GitHub como condición viva de una tarea futura.
+La cabecera de consolidación Task/027 se identifica como historia; las referencias
+Task/005 y Task/025 preaprobación no se reescribieron. La búsqueda de D-06 abierta
+en pasajes vigentes no dejó coincidencias; el hallazgo de STATUS dentro de historia
+Task/005.3 se conservó deliberadamente.
+
+La guarda aceptó además los resource_changes realmente emitidos por Terraform
+mock para casos A/B, con envelope sintético de variables/configuración; esto
+comprueba el formato de unknowns, **no un plan AWS real**.
+
+**Inventario completo: 14 modificados + 18 nuevos = 32 archivos.**
+`M` = modificado sin staging; `??` = nuevo sin tracking. La captura usa
+`git status --short --untracked-files=all` para enumerar cada archivo:
+
+```text
+ M .github/workflows/ci-infra.yml
+ M .gitignore
+ M docs/architecture/aws-local-parity.md
+ M docs/architecture/open-decisions.md
+ M docs/architecture/security-boundaries.md
+ M docs/architecture/target-production-architecture.md
+ M docs/claude/PROJECT_INSTRUCTIONS.md
+ M docs/project-management/ROADMAP.md
+ M docs/project-management/STATUS.md
+ M docs/runbooks/README.md
+ M docs/stages/STAGE-08-cloud-ready.md
+ M docs/stages/STAGE-09-cloud-accounts.md
+ M docs/stages/STAGE-10-cloud-deployment.md
+ M docs/stages/STAGE-11-deployment-automation.md
+?? .github/workflows/verify-aws-oidc.yml
+?? bootstrap/github-oidc/.terraform.lock.hcl
+?? bootstrap/github-oidc/main.tf
+?? bootstrap/github-oidc/outputs.tf
+?? bootstrap/github-oidc/providers.tf
+?? bootstrap/github-oidc/tests/identity.tftest.hcl
+?? bootstrap/github-oidc/variables.tf
+?? bootstrap/github-oidc/versions.tf
+?? docs/runbooks/github-oidc-bootstrap.md
+?? docs/task-reports/TASK-028-report.md
+?? docs/tasks/TASK-028-github-oidc-aws.md
+?? scripts/oidc/__init__.py
+?? scripts/oidc/bootstrap.py
+?? scripts/oidc/guards.py
+?? scripts/oidc/verify.py
+?? security/oidc-validation.json
+?? tests/oidc/test_guards.py
+?? tests/oidc/test_verify.py
+```
+
+`git diff --stat=120`, completo para archivos tracked; los 18 nuevos de arriba
+quedan fuera por semántica de Git, sin añadirlos al staging:
+
+```text
+ .github/workflows/ci-infra.yml                      | 11 +++++++++++
+ .gitignore                                          |  5 +++++
+ docs/architecture/aws-local-parity.md               | 17 +++++++++++++++--
+ docs/architecture/open-decisions.md                 | 28 +++++++++++++++++++++++++---
+ docs/architecture/security-boundaries.md            | 21 ++++++++++++++++++++-
+ docs/architecture/target-production-architecture.md |  5 +++--
+ docs/claude/PROJECT_INSTRUCTIONS.md                 |  9 ++++++---
+ docs/project-management/ROADMAP.md                  | 24 +++++++++++++++++++-----
+ docs/project-management/STATUS.md                   | 30 ++++++++++++++++++++++--------
+ docs/runbooks/README.md                             |  2 ++
+ docs/stages/STAGE-08-cloud-ready.md                 |  4 ++--
+ docs/stages/STAGE-09-cloud-accounts.md              | 26 ++++++++++++++++++++++----
+ docs/stages/STAGE-10-cloud-deployment.md            | 24 +++++++++++++++++++++---
+ docs/stages/STAGE-11-deployment-automation.md       | 10 ++++++++--
+ 14 files changed, 181 insertions(+), 35 deletions(-)
+```
+
+Comprobaciones finales fechadas:
+
+| Comprobación | Resultado |
+| --- | --- |
+| Rama | Task/028-GitHub-OIDC-AWS |
+| HEAD / main / origin/main | Los tres = 65fbf860a7ba47460eecad70431f0ba8f5bcfab1 |
+| git diff --cached --name-only / --stat | Salida vacía |
+| git rev-list --count main..HEAD | 0 |
+| Rama Task/028 remota | Sin referencia en ls-remote |
+| PR del head Task/028, todos los estados | Lista vacía |
+| Acciones del agente | Cero commit, push, PR, mutaciones AWS y cambios de configuración GitHub |
+| reconcile.py | Retirado; Test-Path = False |
+| Backend | main, porcelain vacío, HEAD 4a40364bbd6a444f9469b815d17d2d77a37949ce |
+| Frontend | main, porcelain vacío, HEAD 7dce98aff239d61ae3ae15213d9a3f5ebf0fb8ce |
+| Terraform aplicación / imágenes / baseline | Sin cambios |
+
+**Detención en checkpoint.** No se abrió CloudShell ni se solicitaron credenciales
+o autorización para apply. Las dos publicaciones y reconfirmación main permanecen
+como procedimiento futuro, sin preparar ni ejecutar.
+
+## 12. Checkpoint AWS real de solo lectura y plan (2026-09-24)
+
+Fase ejecutada bajo autorización acotada a **solo lectura AWS + plan**: inventario
+real, recuperación cifrada verificada, `init`, `plan`, `show` y la guarda oficial
+`plan-check`. **Task/028 continúa En progreso.** Esta sección registra evidencia
+fechada; Git, GitHub y AWS son la fuente viva de su estado.
+
+| Evidencia | Resultado |
+| --- | --- |
+| Caso realmente observado en AWS | `INVENTORY_OK case=A ownership=A` |
+| Terraform / provider AWS | **1.16.2** / **6.64.0** |
+| `terraform plan` / `show` | `TERRAFORM_PLAN_OK=true` · `TERRAFORM_SHOW_OK=true` |
+| Guarda oficial | `PLAN_CHECK_RC=0` |
+| Cambios administrados | `MANAGED_CHANGE_COUNT=2` |
+| `aws_iam_openid_connect_provider.github[0]` | `actions=["create"]` |
+| `aws_iam_role.validation` | `actions=["create"]` |
+| Mutaciones AWS | `AWS_MUTATIONS=0` |
+| Apply | `APPLY_EXECUTED=false` |
+| Cierre de la fase | `PLAN_PHASE_COMPLETE=true` · `FINAL_RC=0` |
+
+Digests de la revisión, no secretos:
+
+```text
+plan JSON  d2cb84f13c4a83e105bcf4804796572361f7332f336f942ab716f972d108d2cf
+plan bin   f36914411a3dea4d479ffc6bb8aa035de743fa29c509508c7a2d519d4784b008
+```
+
+**Cualquier apply futuro debe consumir exactamente el plan binario anterior.** El
+plan no se regenera en silencio: un plan nuevo produce otro digest y exige otra
+revisión humana.
+
+La custodia cifrada quedó verificada **antes** de este plan: snapshot cifrado,
+copia independiente en almacenamiento cloud controlado por el usuario, descarga de
+vuelta con digest idéntico y **descifrado real** en CloudShell con verificación del
+tar contra su referencia y de su contenido contra `SHA256SUMS`. Un intento anterior
+en Windows quedó invalidado por un defecto de ejecución, se conservó marcado como
+inválido y **no se usa como evidencia**.
+
+### 12.1 Desviaciones operativas registradas
+
+1. El inventario anterior superó el límite de 600 segundos y **se refrescó
+   inmediatamente antes del plan**, conforme al runbook §5.
+2. Por falta de espacio en CloudShell, los artefactos pesados de Terraform usaron un
+   `TF_DATA_DIR` temporal bajo `/tmp`, fuera de todo checkout Git. No cambió el
+   estado objetivo, el backend vinculado ni el plan final, y `plan-check` verificó
+   la vinculación del backend. **Ese directorio es efímero**: una sesión reciclada
+   obliga a repetir `init` antes de consumir el plan revisado, sin regenerarlo.
+3. CloudShell recicló su entorno durante el trabajo y revirtió GnuPG a la variante
+   mínima; hubo que reinstalar la completa para descifrar. Es una propiedad del
+   entorno, no del procedimiento.
+
+### 12.2 Qué no se ejecutó
+
+Apply, creación o modificación de recursos AWS, cambios IAM fuera del plan,
+configuración de variables en GitHub, publicación de la rama, ejecución real de
+OIDC, commit, push, PR y merge. Ninguna de esas operaciones estaba autorizada.
+
+### 12.3 Gates pendientes antes de *Lista para validación*
+
+| # | Gate | Estado |
+| --- | --- | --- |
+| G-1 | Ventana de la caducidad temporal todavía abierta al aplicar y al federar | **Verificación obligatoria previa** |
+| G-2 | Apply del plan revisado `f3691441…` | No autorizado |
+| G-3 | Readback post-apply `inventory --aws-real --verify-target` | Pendiente |
+| G-4 | Snapshot, cifrado, copia externa y recuperación **posteriores** a la mutación | Pendiente |
+| G-5 | Plan posterior sin cambios | Pendiente |
+| G-6 | Relectura de la configuración OIDC del repositorio | Pendiente |
+| G-7 | Tres variables no secretas del repositorio | Pendiente |
+| G-8 | Primera publicación premerge con expectativa `SUCCESS` | No autorizada |
+| G-9 | Transición de trust Task → main con su propio plan y readback | Pendiente |
+| G-10 | Segunda publicación premerge con expectativa `DENIED` y JWT nuevo | No autorizada |
+| G-11 | Fecha de revisión de EX-028-C7 a 30 días de la primera creación cloud | Se fija al aplicar |
+| G-12 | Repetición de gates locales tras los cambios documentales | Pendiente |
+
+La reconfirmación postmerge mediante `workflow_dispatch` desde main es posterior al
+merge humano y, por tanto, **posterior a la aprobación**: no la condiciona. Sigue
+siendo obligatoria antes de dar por integrada Task/028 y de avanzar a la tarea
+siguiente, y si falla el avance se detiene para corregir Task/028.
+
+### 12.4 Restricción crítica de la caducidad
+
+La trust temporal del plan revisado incorpora un literal `DateLessThan` **de un
+máximo de dos horas** desde su elección. La guarda
+[`plan_check`](../../scripts/oidc/guards.py) solo admite actualizar la trust del rol
+en la transición **Task → main**: no existe camino admitido para renovar la
+caducidad de un rol ya creado, y `prevent_destroy` impide recrearlo. En
+consecuencia, el apply y la primera federación real con éxito deben ocurrir
+**dentro de la misma ventana**. Si vence antes, el runbook §6 obliga a detenerse y
+abrir una revisión y autorización nuevas; no se renueva automáticamente.
+
+## 13. Primera federación real (2026-09-24)
+
+Ejecutado bajo autorización acotada: apply del plan revisado, readback, copia local
+posterior a la mutación, publicación de la rama y primera ejecución premerge.
+**La tarea sigue En progreso.** Evidencia fechada; AWS, Git y GitHub son la fuente
+viva de su estado.
+
+### 13.1 Apply y readback
+
+| Evidencia | Resultado |
+| --- | --- |
+| Caducidad al iniciar | `EXPIRY_WINDOW_VALID=true`, 2384 s restantes |
+| Plan consumido | digest `f3691441…84b008`, **el revisado**, sin regenerar |
+| Terraform | 1.16.2, `TF_DATA_DIR_MODE=reinit`, `BACKEND_BINDING_OK=true` |
+| Apply | `APPLY_RC=0` |
+| Readback `--verify-target` | `INVENTORY_OK case=B ownership=owned-A` |
+| Copia local posterior | `20260924T034243Z`, tar `3c51a14a…d66b4` |
+
+`case=B ownership=owned-A` es la **continuación de A** definida en el runbook §3: tras
+crear el proveedor, `GetOpenIDConnectProvider` ya devuelve documento, y `owned-A`
+acredita que el estado custodiado lo posee. **No** es un proveedor compartido y no se
+reclasifica. El readback con `--verify-target` comprobó además trust exacta contra
+`trust(config)`, cero políticas gestionadas, cero inline y ausencia de permissions
+boundary.
+
+### 13.2 C-9 — recursos realmente creados frente a lo planificado
+
+**Creados: exactamente 2.** Coinciden uno a uno con el plan revisado; ningún tercer
+recurso, ningún import, ningún reemplazo.
+
+| Dirección | Recurso | Propiedades verificadas en el readback |
+| --- | --- | --- |
+| `aws_iam_openid_connect_provider.github[0]` | Proveedor IAM OIDC de GitHub | url `https://token.actions.githubusercontent.com`, client list exactamente `["sts.amazonaws.com"]` |
+| `aws_iam_role.validation` | Rol `PersonalBlogGitHubOidcValidation` | path `/`, MaxSessionDuration 3600, **0 managed**, **0 inline**, sin permissions boundary, trust exacta |
+
+### 13.3 Primera ejecución premerge
+
+Commit publicado `9afb469`. Ambos workflows en verde el 2026-09-24:
+`Verify AWS OIDC` run `35952961378` **success** (03:48:11 → 03:48:30 UTC) y
+`CI Infra` run `35952961379` **success**.
+
+Evidencia impresa por el verificador, literal:
+
+```text
+GitHub job without id-token: token request unavailable (GitHub-side evidence)
+GetCallerIdentity: expected account and role
+iam:ListRoles: AccessDenied (scope: this operation only)
+Wrong audience: InvalidIdentityToken (provider/trust chain)
+```
+
+Esas líneas solo se emiten si pasan las guardas correspondientes: federación STS con
+JWT genuino, identidad exacta de cuenta y rol asumido, `iam:ListRoles` con
+`AccessDenied` **exacto** y un segundo JWT de audiencia incorrecta con
+`InvalidIdentityToken` **exacto**. Un fallo arbitrario no habría contado como
+evidencia negativa.
+
+Barrido del log completo: **0 JWT**, **0 access keys AWS**, **0 campos de credencial
+STS**, **0 STOP**. El run de evidencia **no se borra ni se altera**.
+
+Límite que esto **no** demuestra: nada sobre las resource-based policies de la cuenta.
+El inventario de esas policies sigue vacío y `AccessDenied` en `ListRoles` caracteriza
+esa operación, no toda AWS.
+
+### 13.4 D-028-A — identificadores no secretos en logs públicos
+
+Hallazgo de la ejecución real: GitHub vuelca el bloque `env:` del job y **las
+variables de Actions no se enmascaran**, a diferencia de los secrets. En un
+repositorio público eso deja visibles el Account ID y el ARN del rol. El verificador
+no los imprime; la exposición procede del propio runner.
+
+**Decisión del usuario, aceptada el 2026-09-24:** son identificadores, no
+credenciales. Se acepta la exposición, **no** se convierten en secrets y **no** se
+rediseña el workflow. Se mantiene íntegra la prohibición sobre JWT, access keys,
+secret access keys y session tokens. La promesa contraria del runbook §7 quedó
+corregida.
+
+### 13.5 EX-028-C7 — fecha de revisión
+
+Primera creación cloud: **2026-09-24**. Revisión a 30 días: **2026-10-24**. La
+extinción sigue siendo de Task/030, antes del primer apply de infraestructura de
+aplicación.
+
+### 13.6 Convergencia real demostrada
+
+Tras el apply, un `refresh-only` **acotado y validado antes de aplicarse** normalizó
+dos atributos calculados que AWS devuelve vacíos: `tags` y `tags_all` de ambos
+recursos, de `null` a `{}`. No tocó trust, políticas ni ownership.
+
+Con el estado ya normalizado, Terraform acredita la convergencia por sí mismo:
+
+```text
+CONVERGE_PLAN_RC=0        # plan -detailed-exitcode: sin cambios
+RESOURCE_DRIFT_COUNT=0    # sin drift detectado
+```
+
+**`plan-check` no es el gate de convergencia.** Es la puerta **previa al apply**, y
+`plan_check` revalida la ventana de caducidad en cada ejecución
+([guards.py:158](../../scripts/oidc/guards.py)). Una vez vencido el literal temporal
+rechaza con `EXPIRY_WINDOW` **cualquier** plan de fase task, incluido uno que no
+cambia nada. Es comportamiento deliberado, no un defecto: un literal muerto no debe
+poder aplicarse. Se reprodujo localmente que el mismo plan convergente **sí** se
+acepta mientras el literal está vigente, y quedaron cuatro regresiones que fijan
+ambos lados del contrato, además de que la convergencia no relaja el rechazo de
+políticas y de que el `url` del proveedor debe conservar su esquema.
+
+### 13.7 Consecuencia operativa
+
+El wrapper privado `recover-plan` **ya no puede volver a ejecutarse**: su `setup()`
+exige que el estado no exista (`STATE_PREEXISTING`) y el estado ya existe. Las
+operaciones restantes usan los comandos del runbook §5 más la guarda oficial
+`plan-check`.
+
+## 14. Segundo entorno de operación (2026-09-24)
+
+El flujo exigía Linux (`EXPLICIT_AWS_CLOUDSHELL_REQUIRED`), lo que ataba toda
+operación AWS a CloudShell. Se añadió la **estación Windows** como segundo entorno
+explícito, sin relajar ninguna guarda.
+
+| Guarda nueva | Efecto |
+| --- | --- |
+| `UNSUPPORTED_PLATFORM` | solo `linux` y `win32`; cualquier otro se rechaza |
+| `CLOUDSHELL_PROFILE_FORBIDDEN` | en CloudShell un perfil nombrado se rechaza: elegiría otra identidad |
+| `LOCAL_PROFILE_REQUIRED` | en Windows `--aws-profile personal-blog` es obligatorio |
+| `IMPLICIT_PROFILE` | `AWS_PROFILE`/`AWS_DEFAULT_PROFILE` heredados se rechazan |
+| `STATIC_CREDENTIALS` | claves de larga vida rechazadas; de sesión solo con su token |
+| `WINDOWS_PRIVATE_ROOT` | rutas privadas bajo `%LOCALAPPDATA%` |
+| `PATH_REPARSE` | junctions y symlinks rechazados en Windows |
+
+El perfil viaja como argumento explícito a cada llamada `aws`; nunca por entorno.
+Identidad humana, destino de cuenta, rechazo de root, estado, trust, proveedor,
+políticas y la prohibición de destroy/import/target son **idénticos** en ambos
+entornos: lo que cambia es dónde se opera, no qué se permite.
+
+**Dos límites declarados, no disimulados.** En Windows la guarda de privacidad es
+de *ámbito* —directorio bajo `%LOCALAPPDATA%` y ausencia de reparse point—, no una
+auditoría de ACL; la ACL sigue siendo responsabilidad del operador. Y el código **no
+prueba** que el perfil `personal-blog` se alimente de `aws login`: determinarlo
+exigiría leer credenciales o la caché de sesión, prohibido por diseño. Lo que sí
+queda demostrado es que la identidad efectiva es una **sesión STS asumida** de
+`PersonalBlogAdministrator`; una clave IAM de larga vida produce un ARN
+`iam::…:user/…` y la guarda de identidad la rechaza, con su regresión.
+
+**El estado de Terraform no se duplica.** Sigue siendo único y vive donde se creó;
+el segundo entorno no lo copia ni lo migra (D-028-B).
+
+Cobertura: `tests/oidc/test_local_env.py`, 20 pruebas — entornos, perfil explícito,
+perfil heredado, claves de larga vida, root, principal inesperado, cuenta
+equivocada, ausencia de material de credencial en la línea de comandos, y que
+CloudShell sigue comportándose exactamente igual.
+
+## 15. Defecto PLAN_PROVIDER en la transicion (2026-09-25)
+
+El primer intento de transicion Task → main se detuvo en `STOP_PHASE=PRE_APPLY` con
+`PLAN_PROVIDER`. **No hubo apply, ni mutacion AWS, ni refresh-only**: el estado
+quedo intacto.
+
+### 15.1 Causa
+
+Dos partes del mismo codigo discrepaban sobre la representacion canonica del URL del
+proveedor. `provider_case` aceptaba **ambas** —con y sin esquema—, tal y como el
+runbook §3 ya declaraba, pero `plan_check` exigia literalmente `https://…`:
+
+```python
+require(after.get("url") == f"https://{HOST}" and …, "PLAN_PROVIDER")
+```
+
+En el plan de **creacion** el valor procedia de la configuracion y llevaba esquema,
+asi que paso. En el plan de **transicion** el proveedor es `no-op` y su `after`
+procede del estado refrescado, es decir de lo que devuelve IAM.
+
+### 15.2 Evidencia real, no supuesta
+
+`GetOpenIDConnectProvider` contra la cuenta real, el 2026-09-25:
+
+```text
+Url            = 'token.actions.githubusercontent.com'   # sin esquema
+ClientIDList   = ['sts.amazonaws.com']
+Tags           = []
+```
+
+El proveedor AWS 6.64.0 suprime la diferencia de esquema al comparar, por eso
+Terraform lo considera `no-op`, pero conserva el valor que IAM devuelve. La guarda
+rechazaba un plan correcto.
+
+### 15.3 Correccion
+
+Un helper explicito, `provider_url_ok`, compara **semanticamente** ese unico campo:
+el host debe ser exactamente `token.actions.githubusercontent.com`, el prefijo
+`https://` es opcional y **nada mas pasa** —ni `http://`, ni puerto, ni ruta, ni un
+host que lo contenga como sufijo—. `provider_case` reutiliza el mismo helper, de modo
+que ahora existe una sola definicion.
+
+Lo demas de `PLAN_PROVIDER` no se toca: `client_id_list` exactamente
+`["sts.amazonaws.com"]`, cero tags, cero `tags_all`, proveedor en `create` o `no-op`
+y sin valores desconocidos.
+
+**Una prueba anterior codificaba la expectativa equivocada** —exigia el esquema— y se
+sustituyo por tener un error demostrado: la ejecucion real la refuto y la API de IAM
+confirmo la representacion. Quedan tres regresiones: ambas representaciones aceptadas,
+nueve formas rechazadas y el helper probado aisladamente.
+
+### 15.4 Entorno local verificado
+
+| Comprobacion | Resultado |
+| --- | --- |
+| Identidad AWS local | `assumed-role/PersonalBlogAdministrator/…`, sin root ni usuario IAM |
+| Terraform `windows_amd64` | 1.16.2, zip verificado contra el `SHA256SUMS` oficial de HashiCorp |
+| `init -backend=false -lockfile=readonly` | PASS; **el lock no cambio** |
+| `fmt -check -recursive` / `validate` / `test` | PASS / PASS / **9 passed, 0 failed** |
+| API de CloudShell en la CLI | **no existe**: sus operaciones son internas de la consola |
+
+## 16. Cutover de custodia y transicion a trust main (2026-09-25)
+
+### 16.1 Cambio de custodia, no segundo estado
+
+El estado autoritativo vivia en el HOME de CloudShell us-east-2, lo que ataba cada
+operacion a esa consola. **No existe ruta oficial** para recuperarlo por API: la CLI
+v2.37.1 no expone el servicio `cloudshell` —`ParamValidation: invalid choice`, cero
+modelos botocore— porque `DescribeEnvironments` y `GetFileDownloadUrls` son API
+interna de la consola. El archivo se transfirio por la interfaz, en una sola accion.
+
+Lo transferido fue `pre-main-20260925T145118Z.tar`, creado **antes** del intento que
+se detuvo en `PRE_APPLY`, de modo que contiene el estado previo a cualquier posible
+mutacion. Verificacion antes de usarlo:
+
+| Comprobacion | Resultado |
+| --- | --- |
+| `SHA256SUMS` interno | **6/6** |
+| Estado | version 4, serial 4, `terraform_version` 1.16.2, lineage presente |
+| Recursos administrados | **exactamente** rol + proveedor |
+| `deposed` | ninguno |
+| Binding de cuenta | coincide con la sesion viva |
+| `provider.lock.hcl` | **identico** al del repositorio |
+
+El archivo original se conserva en `snapshots/` como **copia de referencia preservada
+con SHA256 verificado**: no se ha implementado ninguna propiedad de inmutabilidad —ni
+WORM, ni versionado, ni ACL de solo lectura—, y afirmarlo seria inexacto. La copia operativa
+pasa a `%LOCALAPPDATA%/PersonalBlog/bootstrap/github-oidc/`.
+
+**Esto es una transferencia de custodia bajo EX-028-C7, no un segundo estado activo.**
+La copia que permanece fisicamente en CloudShell queda como **backup inactivo** y no
+debe volver a usarse para plan ni apply: el unico escritor es ahora el local.
+
+### 16.2 Perfil explicito tambien para Terraform
+
+Los helpers reciben `--aws-profile personal-blog`. El proveedor de Terraform no lee
+ese argumento y fallo con *No valid credential sources found*, intentando incluso el
+IMDS de EC2. Se resolvio pasando el perfil **acotado a cada invocacion** de Terraform,
+nunca fijado en la sesion: sigue apareciendo en el comando que se revisa, que es la
+propiedad que la guarda `IMPLICIT_PROFILE` protege. `allowed_account_ids` mantiene el
+binding de cuenta con independencia de eso.
+
+### 16.3 Transicion aplicada
+
+| Evidencia | Resultado |
+| --- | --- |
+| Plan de transicion | `007559b22220b9632e7f5edcda56f0d27b9b983cf5bd1d400aa420d2dc8072a5` |
+| Cambios | proveedor `no-op`, rol `update`, drift 0 |
+| `plan-check` | `PLAN_OK json_sha256=6a7b7e2b…065965` |
+| Compuerta de transicion | `TRANSITION_OK=true`, unico atributo `assume_role_policy` |
+| Revalidacion previa al apply | digest sin cambios, ambas compuertas repetidas |
+| Apply | `APPLY_MAIN_RC=0` |
+| Readback `--verify-target` | `INVENTORY_OK case=B ownership=owned-A` |
+
+Lectura directa de IAM despues del apply:
+
+```text
+STATEMENT_COUNT=1          HAS_DATELESSTHAN=False
+AUD=sts.amazonaws.com      SUB_ENDS_WITH=refs/heads/main
+MAX_SESSION_DURATION=3600  PATH=/   PERMISSIONS_BOUNDARY=None
+MANAGED_POLICIES=0         INLINE_POLICIES=0
+```
+
+### 16.4 Convergencia
+
+```text
+CONVERGE_MAIN_RC=0
+RESOURCE_DRIFT_COUNT=0
+aws_iam_openid_connect_provider.github[0]  no-op
+aws_iam_role.validation                    no-op
+```
+
+No hubo drift de `tags`, asi que **no se ejecuto refresh-only**.
+
+## 17. Segunda publicacion DENIED y estado de los gates (2026-09-25)
+
+### 17.1 Rechazo demostrado
+
+`security/oidc-validation.json` paso a `DENIED` y la rama se publico en `49fed29`.
+`Verify AWS OIDC` run `36177780350`: **success**, ambos jobs en verde.
+
+```text
+GitHub job without id-token: token request unavailable (GitHub-side evidence)
+Task fresh-token STS: AccessDenied (expected)
+```
+
+La segunda linea solo se imprime si STS devolvio **exactamente** `AccessDenied` con
+un JWT **nuevo** pedido en esa misma ejecucion: `InvalidIdentityToken`, un token
+caducado, un fallo de red o una variable ausente habrian detenido el job con
+`TASK_REJECTION_REQUIRED`. GitHub sigue emitiendo token para la rama Task; quien
+rechaza es STS, porque la trust ya solo acepta `refs/heads/main`.
+
+Barrido del log: **0 JWT**, **0 access keys**, **0 campos de credencial**, **0 STOP**.
+
+### 17.2 H-028-1 — CI Infra bloqueado por un cambio externo del registro
+
+`CI Infra` run `36177780346` termino en **failure**, y no por Task/028.
+
+**Los 23 gates anteriores pasaron**, incluidos todos los que esta tarea toca:
+Terraform `fmt`/`init`/`validate`, validacion estatica OIDC y planes mock, compilacion
+Python, Compose, comparador de baseline y **Gitleaks sobre el historial completo**.
+
+El unico paso fallido es *Build the project images*:
+
+```text
+ERROR: failed to build: unexpected status from HEAD request to
+https://quay.io/v2/minio/minio/manifests/sha256:a1a8bd4a…cbaba2: 401 Unauthorized
+```
+
+Los seis pasos siguientes quedaron **skipped**, no fallidos.
+
+Diagnostico, con evidencia:
+
+- `git diff --name-only 9afb469..HEAD -- docker/ docker-compose.yml .github/workflows/ci-infra.yml`
+  esta **vacio**: ningun commit de esta fase toca imagenes, Compose ni el workflow.
+- El mismo paso paso en verde el 2026-09-24 con el mismo digest fijado.
+- Sonda directa al registro: el endpoint de autenticacion responde 200 pero **no
+  entrega token**, y el manifiesto devuelve `401 UNAUTHORIZED`. quay.io dejo de
+  permitir el acceso anonimo a `minio/minio`.
+- Un reintento de los jobs fallidos reprodujo el mismo error: **no es transitorio**.
+
+**Fuera del alcance de Task/028.** Corregirlo exigiria cambiar el origen de la imagen
+de MinIO o introducir credenciales de registro: lo primero invalidaria la procedencia
+verificada de Task/027.1 y su baseline S-09, lo segundo esta prohibido. Queda
+registrado como **H-028-1, abierto**, con propietario en el area de imagenes.
+
+### 17.3 Custodia externa pendiente
+
+Tres copias locales esperan cifrado y custodia externa con recuperacion verificada:
+
+| Snapshot | Rol |
+| --- | --- |
+| `pre-main-20260925T145118Z.tar` | estado previo a la mutacion, transferido desde CloudShell |
+| `local-pre-main-20260925T190328Z.tar` | copia local inmediatamente anterior al apply |
+| `post-main-20260925T190328Z.tar` | **copia final autoritativa**, posterior a la transicion |
+
+El cifrado simetrico exige una frase que el agente no debe conocer ni manejar, y el
+destino externo exige una sesion de navegador. Ambas cosas son del operador.
+
+## 18. Cierre de EX-028-C7: custodia externa con recuperacion verificada (2026-09-25)
+
+### 18.1 Defecto propio corregido en el camino
+
+El primer cifrado se ejecuto con `--batch`, que **suprime la confirmacion por
+repeticion** de la frase simetrica. Un error de tecleo quedaba grabado sin aviso, y el
+descifrado de verificacion fallo con `Bad session key`. Los tres ciphertexts quedaron
+**preservados** con sufijo `.UNVERIFIABLE-20260925T2151Z` —no se borraron— y el cifrado
+se repitio sin `--batch`, de modo que GnuPG exige la frase dos veces y rechaza cualquier
+discrepancia. Los tres `.tar` originales se comprobaron **sin cambios** antes y despues.
+
+Leccion aplicada: la verificacion por descifrado se hizo **en local, antes** de la
+custodia externa, para no descubrir un fallo de frase despues de un viaje completo.
+
+### 18.2 Cadena de custodia completa
+
+| Artefacto | Rol | SHA256 del ciphertext |
+| --- | --- | --- |
+| `pre-main-20260925T145118Z.tar.gpg` | estado previo a la mutacion | `d08a51b3…6f2d7c1d` |
+| `local-pre-main-20260925T190328Z.tar.gpg` | copia local anterior al apply | `2694da95…f8c1e923` |
+| `post-main-20260925T190328Z.tar.gpg` | **copia final autoritativa** | `e6cdc1a0…101c8ec5` |
+
+Cifrado simetrico **AES256** con frase confirmada, sin cache de clave. Los tres
+descifraron en local devolviendo su `.tar` **byte a byte**. Los tres viajaron al
+almacenamiento externo del operador.
+
+### 18.3 Recuperacion real de la copia autoritativa
+
+Descargada de vuelta desde el destino externo y verificada de extremo a extremo:
+
+| Comprobacion | Resultado |
+| --- | --- |
+| SHA256 del ciphertext recuperado | **identico** a `e6cdc1a0…101c8ec5` |
+| Descifrado GnuPG | correcto |
+| SHA256 del tar recuperado | **identico** a `cd4a735d…c169ab23` |
+| `SHA256SUMS` interno | **6/6** |
+| Estado | version 4, serial 6, lineage **coincide** con el operativo |
+| Recursos administrados | **exactamente** rol + proveedor |
+| `deposed` | ninguno |
+| Binding de cuenta | correcto |
+| Trust del estado recuperado | **main-only, sin `DateLessThan`** |
+
+El plaintext temporal de verificacion se retiro; los `.tar` locales se conservan.
+
+**EX-028-C7 queda satisfecha en su exigencia de custodia:** copias antes y despues de
+cada mutacion, cifradas, fuera del equipo y con recuperacion **demostrada**, no
+supuesta. Su revision sigue fijada al **2026-10-24** y su extincion sigue siendo de
+Task/030, antes del primer apply de infraestructura de aplicacion.
+
+### 18.4 Estado de la tarea
+
+**Task/028 — Lista para validacion.**
+**Bloqueo externo para integracion/merge: H-028-1.**
+
+La implementacion esta completa y verificada contra AWS y GitHub reales. `CI Infra`
+sigue en rojo por el cambio de politica de quay.io sobre la imagen de MinIO: **no se
+oculta ni se minimiza**, y debera resolverse fuera del alcance de Task/028 antes de
+considerar sano el pipeline de integracion. No se ha creado pull request, no se ha
+fusionado nada y `dev` no se ha tocado.
+
+## 19. H-028-1: causa raiz del fallo de `CI Infra` (2026-09-26)
+
+Por decision del usuario, H-028-1 se resuelve **dentro de Task/028**. La tarea vuelve a
+**En progreso** hasta recuperar `CI Infra` en verde. Nada de AWS, OIDC, estado o
+custodia se reabre.
+
+### 19.1 Evidencia recogida
+
+| Sonda | Resultado |
+| --- | --- |
+| `quay.io` token anonimo para `minio/minio` | **emitido** (200) |
+| `quay.io` manifiesto por tag y por digest | **401 UNAUTHORIZED** en ambos |
+| `quay.io` API del repositorio `minio/minio` | **401** *Requires authentication* |
+| `quay.io` API del namespace `minio`, repos publicos | **69 publicos**, y `minio/minio` **no esta** entre ellos |
+| Namespace `minio` hoy | publica la linea comercial `aistor/*` (28 repos) |
+| Docker Hub `minio/minio` | **404** *object not found* |
+| `registry.min.io/minio/minio` | 401 |
+| `quay.io/minio/aistor/minio` por ese digest | 404 |
+| `public.ecr.aws`, `mirror.gcr.io` | 404 |
+| Cache Docker local | conserva la base: **los 9 `diff_ids` coinciden** con `build-manifest.json` |
+| `ghcr.io` derivado propio, anonimo | **401**, el paquete sigue privado |
+| Token `gh` disponible | `gist, read:org, repo, workflow` — **sin** `read:packages` ni `write:packages` |
+
+### 19.2 Causa
+
+**Caso A: la imagen upstream dejo de estar publicamente accesible.**
+`minio/minio` requiere autenticacion en quay.io y no existe en Docker Hub. Como contexto
+observado, el namespace `minio` publica hoy repositorios `aistor/*`; **no se atribuye
+intencion ni causa** a esa coincidencia, porque no hay fuente oficial que la establezca.
+
+Queda descartado:
+
+- **B, cambio de autenticacion de quay.io:** otros **69** repositorios del mismo
+  namespace siguen siendo publicos y anonimamente accesibles.
+- **C, cambio de repositorio oficial:** ninguna ubicacion oficial sirve ese digest.
+  `aistor/minio` es **otro producto**, con otra licencia, y no responde a ese digest.
+- **D, ruta incorrecta en CI:** una sonda limpia contra el mismo digest reproduce el
+  401 exacto, sin intervencion del workflow.
+
+No es un fallo transitorio: dos reintentos de CI y varias sondas directas lo reproducen.
+
+### 19.3 Lo que si conservamos
+
+El artefacto exacto **no se ha perdido**. La cache local conserva la base con sus nueve
+`diff_ids` identicos a los registrados, y el derivado completo sigue publicado en GHCR
+con el digest que `Task/027.1` verifico. El problema no es de integridad ni de
+procedencia: es de **accesibilidad anonima** desde el runner.
+
+### 19.4 Por que la correccion no puede aplicarse sin una decision
+
+Toda ruta que conserve la garantia de `Task/027.1` —imagen identificada de forma
+reproducible y verificable, mismo producto, pin por digest, sin tags moviles— pasa por
+servir esa base desde una ubicacion que el runner pueda leer. La unica que controlamos
+es GHCR, y hoy:
+
+- el paquete es **privado** y el token disponible **no tiene** `read:packages`;
+- publicar un espejo exige `write:packages`, es decir una credencial nueva;
+- hacerlo **publico** redistribuiria una imagen que hoy no esta publicamente accesible
+  en sus ubicaciones oficiales. La AGPL lo permite, pero es una decision con
+  consecuencias externas que no corresponde tomar por iniciativa propia.
+
+## 20. H-028-1 resuelto: espejo privado que preserva el digest (2026-09-26)
+
+### 20.1 Solucion elegida
+
+Opcion A del abanico evaluado: **espejo privado en el GHCR del proyecto**, sin
+redistribucion publica de una imagen que hoy no esta publicamente accesible en sus
+ubicaciones oficiales comprobadas.
+
+Los bytes del manifiesto `linux/amd64` se republicaron **sin alterarlos**, subiendo los
+blobs y el manifiesto originales mediante la API de distribucion OCI. El resultado no es
+una imagen equivalente: es **el mismo artefacto**.
+
+### 20.2 Identidad conservada, comprobada contra el registro
+
+Descargado de vuelta desde el espejo y comparado con lo que registro `Task/027.1`:
+
+| Propiedad | Resultado |
+| --- | --- |
+| Platform manifest digest, cabecera del registro | `sha256:a1a8bd4a…cbaba2` |
+| Platform manifest digest, **recalculado** sobre los bytes servidos | **identico** |
+| Bytes del manifiesto frente al original local | **identicos** |
+| Media type | `application/vnd.docker.distribution.manifest.v2+json`, sin cambio |
+| Config digest | identico, y su blob recalcula correcto |
+| Numero de layers | 9 = 9 |
+| Layer digests, en orden | identicos |
+| `diff_ids`, en orden | identicos |
+| `runtime_config_sha256` | identico, calculado con `canonical()` del propio verificador |
+| Platform del config | `linux/amd64` |
+
+**El digest no cambio**, de modo que no hubo que tocar baseline, provenance ni
+identidades para que CI pasara. Eso habria sido falsificar continuidad; aqui la
+continuidad es demostrable.
+
+### 20.3 Cambios minimos aplicados
+
+- `docker/minio/Dockerfile`: el `FROM` cambia **solo de registry/repository**,
+  conservando el mismo digest, con la razon escrita en el propio archivo.
+- `docker/minio/build-manifest.json`: `runtime_base.platform_manifest` apunta al espejo
+  con el mismo digest; `recipe.dockerfile_sha256` se actualiza porque el Dockerfile
+  cambio. **`runtime_base.upstream_index` queda intacto**: documenta el origen
+  historico, que sigue siendo cierto.
+- `.github/workflows/ci-infra.yml`: `packages: read` y un login a GHCR con el
+  `${{ github.token }}` **efimero** del run. Sin PAT, sin secreto almacenado, sin
+  credencial personal.
+
+### 20.4 Lo que esto no cambia
+
+El espejo es **privado**. No se publica ninguna imagen de MinIO al mundo. El producto es
+el mismo, el pin por digest sigue vigente, no hay tags moviles, S-09 y el gate de
+vulnerabilidades siguen intactos y el build se sigue ejecutando y verificando desde
+cero: nada se ha saltado ni degradado a aviso.
+
+### 20.5 Validacion local: el mismo artefacto final, reconstruido
+
+Build desde cero con `--no-cache --pull`, contra el espejo privado, con el mismo BuildKit
+fijado y el mismo `SOURCE_DATE_EPOCH`:
+
+```text
+manifest_digest      sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129
+config_digest        sha256:25c832aa396d4de7eb2d202529ee8055280633f0ef270687e565bd376d1882a2
+binary_sha256        9437671add14972349f023a780c1d873f4d8993d3a6cd7448b1b8a962e89983f
+binary_size          111145144
+layers               10
+only_minio_replaced  true
+VERIFY_RC            0
+```
+
+Ese `manifest_digest` es **exactamente** el que `Task/027.1` produjo y publico desde
+quay.io. Reconstruir contra el espejo devuelve **el mismo artefacto final bit a bit**:
+la prueba de que el espejo no es una base parecida, sino la misma, y de que la
+reproducibilidad se conserva intacta.
+
+Trivy 0.74.0 —la version fijada en CI— sobre la imagen reconstruida:
+
+```text
+accionables en la imagen   99
+aceptadas en la baseline   99
+CVE-2026-79921             ausente
+github.com/rabbitmq/amqp091-go  ausente
+```
+
+### 20.6 El unico cambio en la baseline, y por que es legitimo
+
+`security/vulnerability-baseline.json` solo cambia en
+`identity_attestation.build_manifest_sha256`, porque el archivo de receta cambio de
+contenido al nombrar el espejo. **No cambian** `reference`, `expected_digest` ni las 99
+`accepted_findings`: la identidad de la imagen es la misma y esta demostrada.
+
+El test `test_baseline_is_bound_to_exact_build_manifest` hizo exactamente su trabajo al
+bloquear el cambio hasta revalidar. No se toco para que CI pasara: se revalido primero
+—rebuild, verificador, Trivy— y despues se actualizo la unica ligadura afectada.
+
+## 21. Modelo de acceso al espejo privado y exposicion a forks (2026-09-26)
+
+### 21.1 Por que no se usa el GITHUB_TOKEN
+
+La primera version de la correccion leia el espejo con el `GITHUB_TOKEN` del run y
+requeria conceder a `personal-blog-infra` acceso al paquete mediante *Manage Actions
+access*. **Se descarto por inseguro**, y la razon esta documentada por GitHub:
+
+> *If you grant a public repository access to private packages, forks of the repository
+> may be able to access the private packages.*
+
+`personal-blog-infra` es **publico**. La cadena de exposicion, con documentacion oficial:
+
+1. La concesion es **por repositorio** y no distingue quien origino la ejecucion.
+2. El `GITHUB_TOKEN` de un `pull_request` desde fork es de solo lectura, pero `packages`
+   es uno de sus scopes y para forks la escritura se degrada a **lectura**, no se elimina.
+3. Ese evento **ejecuta el workflow del merge commit**, y GitHub advierte que *«for a pull
+   request opened from a fork, that commit is controlled by someone without write access
+   to the base repository»*.
+
+De 3 se sigue lo decisivo: un `if:`, una separacion de jobs o un `permissions:` reducido
+**no son frontera de seguridad** frente a un fork, porque el autor del PR puede editarlos.
+
+### 21.2 La frontera que si existe
+
+Los **secretos del repositorio** no se entregan a workflows de `pull_request` desde fork:
+*«with the exception of GITHUB_TOKEN, secrets are not passed to the runner when a workflow
+is triggered from a forked repository»*. Esa es la frontera, y la aplica GitHub, no
+nuestro YAML.
+
+Por eso el acceso al espejo usa un secreto dedicado, `GHCR_MINIO_READ_TOKEN`, con un PAT
+classic limitado a `read:packages` y con caducidad. GHCR no admite otra cosa para
+autenticacion fuera de Actions: *«GitHub Packages only supports authentication using a
+personal access token (classic)»*.
+
+### 21.3 Estado resultante
+
+| Propiedad | Estado |
+| --- | --- |
+| Visibilidad del paquete espejo | **privada**, sin cambios |
+| *Manage Actions access* para `personal-blog-infra` | **no concedido** |
+| `packages` en `permissions` del workflow | **no concedido**; queda solo `contents: read` |
+| GITHUB_TOKEN de un fork | **no puede** leer el espejo por esta via |
+| PAT | en un secreto del repositorio, **no entregado** a workflows de fork |
+| Scopes del PAT | unicamente `read:packages`, con caducidad |
+
+**Precision deliberada:** la aprobacion de workflows de colaboradores externos, si se
+activa, **no entrega secretos a un fork** — no los entrega en ningun caso. Es defensa
+adicional contra ejecuciones no revisadas, **no** la frontera que protege el PAT.
+
+### 21.4 Limitacion declarada, no disimulada
+
+Un pull request **externo** que dependa del espejo privado **no puede** ejecutar esa parte
+del CI con credenciales privadas: el paso de login falla con un mensaje explicito, no se
+silencia ni se degrada a aviso. Separar un CI apto para forks de un CI completo de
+confianza es un diseño que deberá abordarse **si** ese flujo se habilita. Task/028 recupera
+primero el pipeline de `push` y de pull requests internos, que es el que la tarea necesita.
+
+## 22. H-028-1 resuelto y H-028-2 abierto (2026-09-26)
+
+### 22.1 H-028-1: RESUELTO
+
+Con el secreto `GHCR_MINIO_READ_TOKEN` en su sitio, `CI Infra` ejecuto **32 de 33 pasos
+en verde**, entre ellos todos los que H-028-1 bloqueaba:
+
+| Paso | Resultado |
+| --- | --- |
+| Login a GHCR con el secreto dedicado | correcto |
+| `Pinned artifact identity is coherent (S-09)` | `RESULTADO: CORRECTO` |
+| `Build the project images` | correcto, desde cero y contra el espejo privado |
+| Verificador OCI | correcto |
+| `MinIO SBOM and deterministic provenance` | correcto |
+| Escaneos Trivy de las 6 imagenes | correctos |
+
+**La base de MinIO vuelve a ser accesible para CI sin redistribuirla publicamente y sin
+conceder acceso al repositorio publico.** H-028-1 queda cerrado.
+
+### 22.2 H-028-2: el baseline de riesgo aceptado ha envejecido
+
+El unico paso que falla es el ultimo, `Image vulnerability gate (S-09)`, y **no por este
+cambio**. Tres hallazgos accionables quedan fuera del baseline, y los tres son **el mismo
+aviso**:
+
+| Imagen | Componente | Identidad |
+| --- | --- | --- |
+| MinIO, `usr/bin/mc` | `google.golang.org/grpc` v1.71.0 | `CVE-2026-84445`, HIGH |
+| MinIO, `usr/bin/minio` | `google.golang.org/grpc` v1.72.0 | `CVE-2026-84445`, HIGH |
+| Portainer | `google.golang.org/grpc` v1.82.1 | `CVE-2026-84445`, HIGH |
+
+Corregido en `grpc` 1.82.2 y posteriores.
+
+**Por que no lo causa el cambio de Task/028**, con evidencia:
+
+1. El **2026-09-24**, en el commit `9afb469`, este mismo gate termino en **success** con la
+   misma baseline y los mismos digests.
+2. La imagen de MinIO es **bit a bit la misma** que se acepto: su `manifest_digest` sigue
+   siendo `sha256:84c67632…059129`, comprobado dos veces.
+3. **Portainer se fija por digest y Task/028 no lo toca**, y aun asi recibe el mismo
+   hallazgo nuevo.
+
+Lo unico probado es que **Trivy empezo a reportarlo entre esas dos ejecuciones**. El
+aviso se publico el 2026-09-15, antes del run verde del 24, asi que no se afirma cuando
+entro en su base de datos: solo se constata el cambio de comportamiento observado. El
+contenido de las imagenes no cambio.
+
+### 22.3 Por que no lo resuelvo por iniciativa propia
+
+El baseline es el registro del riesgo que **el usuario acepto** el 2026-09-14. Ampliarlo es
+aceptar riesgo nuevo, y eso no es una correccion tecnica: es una decision suya. Las
+alternativas, con su coste real:
+
+- **Aceptar las tres identidades** en el baseline, fechadas y con su version de correccion,
+  como ya se hizo con H-025-6, H-025-7 y R-018-3. Es el mecanismo para el que el baseline
+  existe.
+- **Subir Portainer** a una version cuyo `grpc` sea >= 1.82.2. Esta a **un solo parche** del
+  arreglo, asi que es plausible; pertenece al area de imagenes, no a Task/028.
+- **Subir `grpc` en el derivado de MinIO** exigiria un segundo parche al codigo fuente, lo
+  que **cambiaria el artefacto**, invalidaria el digest que acabamos de demostrar y obligaria
+  a repetir la procedencia de Task/027.1. Contradice justo lo que esta tarea acaba de
+  preservar.
+
+Task/028 permanece **En progreso** hasta que esa decision se tome: declararla lista con el
+gate en rojo seria ocultar el estado real.
+
+## 23. Aplicabilidad real de CVE-2026-84445 (2026-09-26)
+
+Antes de aceptar riesgo o mover versiones se comprobo si el camino vulnerable existe.
+
+### 23.1 Que exige el aviso
+
+El advisory oficial acota la vulnerabilidad a servidores creados con
+**`xds.NewGRPCServer()`**: esos instalan un interceptor de enrutado xDS en cada RPC que,
+ante una peticion sin `:authority` ni `Host`, indexa una lista vacia y provoca panico. Una
+dependencia de `google.golang.org/grpc` presente **no** implica ese camino.
+
+### 23.2 Metodo, y su validacion
+
+Para cada binario real —extraidos del artefacto, no de una suposicion— se busco el nombre
+de funcion `NewGRPCServer` en la tabla de simbolos, y se distinguio el lado cliente del
+lado servidor. **El metodo se valido antes en cada binario con controles positivos**
+(`main.main`, `grpc.Dial`, `grpc.NewClient`, `grpc.NewServer`): los tres dieron
+coincidencias, de modo que una ausencia no puede atribuirse a un fallo de deteccion. En Go,
+una funcion que no esta en el binario no puede ejecutarse.
+
+### 23.3 Evidencia por producto
+
+**`/usr/bin/minio`** (grpc v1.72.0). En el `go.mod` del commit fijado
+`07c3a429bfed433e49018cb0f78a52145d4bedeb`, grpc figura como **`// indirect`**: el codigo de
+MinIO no lo importa, llega por OpenTelemetry. En el binario aparecen 31 rutas del arbol
+`grpc/xds` —incluida `xds/googledirectpath`, que enlazan las bibliotecas de Google Cloud
+para enrutado **del cliente**—, pero **no existe ninguna funcion `NewGRPCServer`**, y
+tampoco `grpc.NewServer`: el binario no crea ningun servidor gRPC. Si aparecen `grpc.Dial`
+y `grpc.NewClient`, es decir uso de cliente.
+
+**`/usr/bin/mc`** (grpc v1.71.0). **Cero** rutas del arbol `grpc/xds` en el binario, sin
+`grpc.NewServer` y sin otelgrpc. grpc aparece solo como cliente.
+
+**Portainer** (grpc v1.82.1). En su `go.mod` de 2.39.7 grpc tambien es **`// indirect`**, via
+otelgrpc, y no hay referencia alguna a `grpc/xds`. El binario **si** enlaza
+`grpc.NewServer` —crea servidores gRPC **planos**— pero **cero** rutas `grpc/xds` y ningun
+`NewGRPCServer`. El contraste es justamente la prueba de que el detector distingue un
+servidor gRPC normal de uno xDS.
+
+### 23.4 El upgrade de Portainer no es remedio
+
+| Version | `google.golang.org/grpc` |
+| --- | --- |
+| 2.39.7 (fijada) | v1.82.1 |
+| 2.39.8 LTS | v1.82.1 |
+| 2.40.0 / 2.41.0 / 2.42.0 | **v1.79.3** |
+| `develop` | v1.82.1 |
+
+Ninguna publica `grpc` >= 1.82.2, y las de la serie 2.4x **retroceden** la version. Subir
+no corrige el hallazgo y empeoraria otras identidades.
+
+### 23.5 Matriz
+
+> **Esta matriz quedo REFUTADA el 2026-09-26.** Se conserva como registro del error.
+> Ver §24: `govulncheck` demuestra que los simbolos vulnerables **si** son alcanzables en
+> los tres binarios, porque el registro oficial GO-2026-6443 no se limita a
+> `xds.NewGRPCServer`. Buscar solo ese constructor fue un metodo insuficiente.
+
+| Producto | grpc | Usa `xds.NewGRPCServer` | Alcanzable | CVE aplicable | Accion propuesta |
+| --- | --- | --- | --- | --- | --- |
+| MinIO `/usr/bin/minio` | v1.72.0, indirecta | No, simbolo ausente | ~~No~~ **SI** | ~~No aplicable~~ | *refutada* |
+| MinIO `/usr/bin/mc` | v1.71.0, indirecta | No, arbol xds no enlazado | ~~No~~ **SI** | ~~No aplicable~~ | *refutada* |
+| Portainer | v1.82.1, indirecta | No, solo `grpc.NewServer` plano | ~~No~~ **SI** | ~~No aplicable~~ | *refutada* |
+
+**Limite declarado:** esto demuestra que el constructor vulnerable **no esta en los
+binarios**, lo que en Go basta para descartar su ejecucion. No es un analisis formal de
+grafo de llamadas de todo el arbol de dependencias, y si una version futura de cualquiera
+de los tres empezara a crear servidores xDS, la conclusion tendria que revisarse. Por eso
+la accion propuesta es **declarar no-aplicable con su justificacion y su fecha**, no borrar
+el hallazgo del radar.
+
+## 24. govulncheck oficial: el hallazgo SI es alcanzable (2026-09-26)
+
+### 24.1 El error de metodo, y su correccion
+
+El analisis de §23 busco el simbolo `xds.NewGRPCServer` en la tabla de simbolos y, al no
+encontrarlo en ninguno de los tres binarios, concluyo **no aplicable**. Era insuficiente:
+el registro oficial **GO-2026-6443** no lista solo ese constructor, sino tambien
+
+- `google.golang.org/grpc/internal/transport.http2Server.HandleStreams`
+- `google.golang.org/grpc/internal/transport.http2Server.operateHeaders`
+- `google.golang.org/grpc/internal/xds/server.RouteAndProcess`
+
+Los dos primeros viven en el **transporte HTTP/2 del nucleo de gRPC**, que se enlaza con
+practicamente cualquier uso de la biblioteca. La ausencia de un constructor no acota la
+superficie cuando el camino vulnerable esta en el transporte.
+
+### 24.2 Herramienta y resultado
+
+`govulncheck@v1.1.4` sobre Go 1.24.6, base `https://vuln.go.dev` actualizada el
+2026-09-24, en **modo binario** sobre los binarios reales extraidos del artefacto.
+
+`GO-2026-6443` aparece en el inventario OSV de los tres informes —con sus alias
+`CVE-2026-84445` y `GHSA-2v4p-qf9q-27wj`— **y como finding alcanzable**:
+
+| Binario | grpc | Simbolos reportados | Corregido en |
+| --- | --- | --- | --- |
+| `minio` | v1.72.0 | `internal/transport.HandleStreams`, `internal/xds/server.RouteAndProcess` | v1.82.2 |
+| `mc` | v1.71.0 | idem | v1.82.2 |
+| `portainer` 2.39.7 | v1.82.1 | idem | v1.82.2 |
+
+No es un falso negativo por base desactualizada: el aviso **esta** en la base consultada.
+
+### 24.3 Alcanzable no es explotable: lo que si y lo que no esta demostrado
+
+| Pregunta | minio | mc | portainer 2.39.7 |
+| --- | --- | --- | --- |
+| Modulo `grpc` presente | si, **indirecta** | si, indirecta | si, **indirecta** |
+| Simbolos vulnerables alcanzables (`govulncheck`) | **si** | **si** | **si** |
+| Evidencia de que el runtime configure `xds.NewGRPCServer` | **ninguna**: el simbolo no esta en el binario y el codigo propio no importa grpc | **ninguna**: el arbol `xds` no esta enlazado | **ninguna**: enlaza `grpc.NewServer` plano, sin rutas `xds` |
+| Servidor gRPC expuesto en nuestro despliegue | no: MinIO sirve S3 en 9000 y consola en 9001, no gRPC | no: es una CLI, no escucha | Portainer escucha 9443 HTTPS en loopback |
+
+**No se afirma explotabilidad efectiva**: no hay evidencia de que nuestro runtime configure
+un servidor xDS. **Tampoco se declara no aplicable**, porque los simbolos son alcanzables y
+eso es lo que el registro oficial mide. Las dos cosas se documentan por separado a
+proposito.
+
+## 25. Portainer corregido a 2.45.1 LTS (2026-09-26)
+
+### 25.1 Correccion de una afirmacion previa mia
+
+En §22.3 afirme que «ninguna version publicada de Portainer alcanza la correccion». **Era
+falso, y el fallo fue de metodo**: adivine nombres de tag —`2.39.8`, `2.40.0`, `2.41.0`,
+`2.42.0`, `develop`— en lugar de listar los releases publicados, y nunca mire la serie 2.45.
+
+### 25.2 Evidencia de que 2.45.1 corrige
+
+**Portainer 2.45.1 LTS**, publicada el **2026-09-17**, declara en sus notas *«Updated
+google.golang.org/grpc to 1.83.2»*, y GO-2026-6443 esta corregido en 1.82.2 **y** en 1.83.2.
+
+| Comprobacion | Resultado |
+| --- | --- |
+| `grpc` embebido en el binario de 2.45.1 | `google.golang.org/grpc@v1.83.2` |
+| `govulncheck -mode binary` | `GO-2026-6443` **no** es finding alcanzable |
+| Trivy 0.74.0, accionables | **4**, frente a 16 en 2.39.7 |
+| Identidades nuevas respecto al baseline | **0** |
+| Identidades resueltas | **12** |
+| `CVE-2026-84445` | **ausente** |
+
+### 25.3 Compatibilidad con nuestro contrato
+
+| Propiedad que usa nuestro Compose | 2.39.7 | 2.45.1 |
+| --- | --- | --- |
+| Entrypoint | `["/portainer"]` | **igual** |
+| Puertos expuestos | 8000, 9000, 9443 | **iguales** |
+| Volumen | `/data` | **igual** |
+| Imagen distroless de un solo binario | si | si |
+
+El unico *breaking change* documentado en el tramo que nos saltamos afecta a la proteccion
+CSRF y al flag `legacy-csrf`, introducido en 2.41 como ayuda temporal y retirado en 2.42.
+**Nuestro Compose no pasa ningun flag a Portainer** y el acceso es HTTPS directo en
+loopback, sin proxy intermedio, asi que no nos aplica.
+
+**Consecuencia declarada:** Portainer migra `portainer_data` al arrancar y **no admite
+downgrade**. El paso es de un solo sentido; la mitigacion es el procedimiento de respaldo
+local ya existente.
+
+### 25.4 Cambios aplicados
+
+- `.env.example`: `PORTAINER_VERSION` pasa a `2.45.1@sha256:4d616db1…3bd8b0e`, el digest del
+  indice oficial, como ya se fijaba antes.
+- `security/vulnerability-baseline.json`: `reference`, `expected_digest` y
+  `accepted_findings` de 16 a **4**, con la razon en su `rationale`.
+- `tests/security/test_pinned_artifact_policy.py`: el recuento pasa de 16 a 4 **y el test se
+  refuerza**: fija el conjunto exacto de las 4 identidades y prohibe que `CVE-2026-84445`
+  reaparezca en el baseline.
+
+**Portainer no entra en ninguna aceptacion temporal de riesgo:** el hallazgo esta corregido,
+no aceptado.
+
+## 26. CASO D-1: H-028-2 corregido en MinIO y mc (2026-09-26)
+
+### 26.1 Qué se decidió y por qué
+
+§24 demostró con govulncheck oficial que `GO-2026-6443` (`CVE-2026-84445`) **es alcanzable**
+en los tres binarios, no solo presente. §25 corrigió Portainer subiendo de versión. Para
+MinIO y `mc` no existe una versión publicada de upstream que traiga `grpc` corregido, así que
+la alternativa era aceptar riesgo temporalmente o **corregirlo nosotros**.
+
+Se eligió corregirlo: **el CASO D-1**. El derivado ya reconstruía `/usr/bin/minio`; ahora
+reconstruye **también** `/usr/bin/mc`, y los dos con `google.golang.org/grpc v1.83.2`.
+
+**No es una aceptación de riesgo.** `CVE-2026-84445` queda **corregido** en los dos binarios,
+no aceptado.
+
+### 26.2 El build no resuelve nada: dependencias congeladas en parches
+
+El experimento usó `go get` + `go mod tidy`, que consultan la red y pueden resolver algo
+distinto en otra fecha. Eso no puede vivir en una receta reproducible. Los resultados del
+experimento se **congelaron** en dos parches nuevos de `go.mod` y `go.sum`:
+
+| Parche | Objetivo | `sha256` | Tamaño |
+| --- | --- | --- | --- |
+| `minio-amqp091-go-1.13.0.patch` | minio | `16b199bbdf3565d0…f7a902c` | (de Task/027.1) |
+| `minio-deps-grpc-1.83.2.patch` | minio | `161867bbdcb1db49…3f535d` | 43 256 B |
+| `mc-deps-grpc-1.83.2.patch` | mc | `ff61358cc625873f…1429d6e` | 12 387 B |
+
+El `Dockerfile` **no ejecuta `go get` ni `go mod tidy`**. Aplica los parches, comprueba que
+el diff toca **solo** `go.mod` y `go.sum`, y verifica los módulos con `go mod verify`.
+
+Subidas acompañantes, exigidas por el propio grafo de módulos: `otel v1.46.0`,
+`golang.org/x/net v0.59.0`, `golang.org/x/crypto v0.57.0`, `golang.org/x/text v0.42.0`.
+
+### 26.3 Los metadatos de versión de `mc` salen del mecanismo real de upstream
+
+`mc --version` no imprime nada útil si se compila sin `ldflags`. En lugar de inventar una
+cadena, la receta usa **el mecanismo propio de upstream**:
+
+```
+LDFLAGS="$(MC_RELEASE=RELEASE go run buildscripts/gen-ldflags.go)"
+go build -tags kqueue -trimpath --ldflags "$LDFLAGS" -o /out/mc .
+```
+
+`gen-ldflags.go` deriva `ReleaseTag`, `CommitID` y `ShortCommitID` del propio repositorio. El
+build **falla** si la salida de `mc --version` no declara `RELEASE.2025-08-13T08-35-41Z` y
+`7394ce0dd2a8`. Lo mismo para `minio` con `MINIO_RELEASE`.
+
+### 26.4 Identidad nueva, no un incremento
+
+Cambia el constructor, cambian los dos binarios y cambia el número de archivos sustituidos.
+Por eso **la referencia de salida es nueva** y la anterior **no se toca**:
+
+| | Task/027.1 | Task/028 (D-1) |
+| --- | --- | --- |
+| Etiqueta | `…:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0` | `…:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0-grpc1.83.2-mc-RELEASE.2025-08-13T08-35-41Z` |
+| `manifest_digest` | `sha256:84c67632…059129` | `sha256:247a1cd3…f80702` |
+| `config_digest` | `sha256:25c832aa…` | `sha256:9712173f…a5ce64` |
+| Layers | 10 (9 heredados + 1) | **11** (9 heredados + 2) |
+| Constructor | `golang:1.24.6-bookworm` | `golang:1.27.1-bookworm` |
+| `GOTOOLCHAIN` | por defecto | `local`, con aserción de `go1.27.1` en el build |
+| Archivos sustituidos | `usr/bin/minio` | `usr/bin/minio`, `usr/bin/mc` |
+
+La identidad anterior queda conservada en `supersedes` de `build-manifest.json` y en
+`superseded_identity` del baseline. **No se movió la etiqueta, no se sobrescribió el
+manifiesto y no se borró el paquete.** El digest es la autoridad, no la etiqueta.
+
+| Reemplazo | Layer | `diff_id` | `sha256` del binario | Tamaño |
+| --- | --- | --- | --- | --- |
+| `usr/bin/minio` | `sha256:15068620…c000cea` | `sha256:1d570ac2…dff3aca` | `067d5d80…a42f028` | 110 301 344 |
+| `usr/bin/mc` | `sha256:ebd1c5bb…641a4c` | `sha256:801e8f53…1b221e5` | `0878407c…37af0921` | 31 555 744 |
+
+### 26.5 Orden de sellado
+
+Los hashes se calcularon **después** de congelar los archivos, no durante la edición. En
+Task/028 ya se había cometido el error inverso —recalcular `dockerfile_sha256` antes de tocar
+un comentario del `Dockerfile`, lo que dejó el gate de coherencia en rojo—, así que el orden
+se siguió explícitamente:
+
+1. `Dockerfile` y parches terminados y **congelados**.
+2. `sha256` de los tres parches.
+3. `sha256` del `Dockerfile` → `7ae5e4c241820fc5…d670c04`.
+4. `build-manifest.json` final escrito.
+5. `sha256` del manifiesto → `3792c2d5357633a1…6a18f3215`.
+6. **Rebuild desde cero** (`--no-cache --pull`), con la invocación exacta de `CI Infra`.
+7. El artefacto producido se comparó con la identidad ya registrada: **coincide**.
+8. Trivy sobre ese artefacto y recálculo del baseline con prueba de subconjunto.
+9. Atestado nominal y baseline ligados al hash del manifiesto.
+10. Gate de coherencia del repositorio: **CORRECTO**.
+
+**Desviación declarada respecto del orden pedido.** El guion situaba el gate de coherencia
+**antes** del rebuild; aquí corre **después**, y el rebuild se lanzó en paralelo al trabajo
+sobre el verificador. El orden real es el de arriba y no se reordena la narrativa para que
+parezca otro. Lo que la exigencia protegía sí se cumple, y es comprobable: los archivos de la
+receta quedaron congelados en el paso 1, **antes** de lanzar el build, y no se tocaron
+después, de modo que el veredicto del gate se refiere exactamente a la receta que se
+construyó. Los hashes del paso 2 al 5 siguen siendo los que verifica el gate del paso 10, y
+el `build_manifest_sha256` que devuelve el verificador del artefacto (paso 7) es el mismo
+`3792c2d5…6a18f3215`.
+
+El rebuild desde cero reprodujo **exactamente** la identidad registrada:
+
+```
+manifest_digest              sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702
+config_digest                sha256:9712173f8f150d2926c2a75d1a0a8e04836eca4390d106416e7b4b3b76a5ce64
+replaced_paths               ["usr/bin/minio", "usr/bin/mc"]
+layers                       11
+inherited_layers             9
+build_manifest_sha256        3792c2d5357633a160ebf778e4ea53081ed47bbb69f9294fd995b3a6a18f3215
+only_declared_paths_replaced true
+IDENTIDAD_REPRODUCIDA        SI
+```
+
+### 26.6 El verificador OCI evoluciona en lugar de relajarse
+
+`inspect_oci` ya no comprueba «solo cambió `usr/bin/minio`». Ahora **la receta declara cada
+reemplazo** y el verificador exige que sean exactamente esos, en ese orden, cada uno en su
+propio layer:
+
+- número total de layers = heredados + reemplazos declarados;
+- los 9 layers y `diff_id` heredados, intactos;
+- por reemplazo: `layer_digest`, `diff_id`, lista de miembros **exacta**
+  (`["usr", "usr/bin", "usr/bin/<nombre>"]`), `(modo, uid, gid)`, `sha256` y tamaño;
+- ningún path declarado dos veces; la lista observada igual a la declarada.
+
+`verify_recipe` comprueba además que **cada parche declarado existe, coincide byte a byte y
+el `Dockerfile` lo aplica**, y que **no hay ningún `.patch` en el directorio de la receta que
+la receta no declare**: un parche opaco es procedencia falsa.
+
+`tests/security/test_minio_oci_verifier.py` añade **21 pruebas**, construyendo un OCI
+sintético coherente y rompiendo **una sola cosa** cada vez:
+
+| Negativo | Rechazo esperado |
+| --- | --- |
+| Un tercer archivo dentro del layer | `modifica algo distinto de ese path` |
+| Un tercer layer no declarado | `no agrega exactamente los layers declarados` |
+| Falta `minio` | `no agrega exactamente los layers declarados` |
+| Falta `mc` | `no agrega exactamente los layers declarados` |
+| `mc` sustituido por otro path | `modifica algo distinto de ese path` |
+| `sha256` del binario discrepante | `hash del binario … inesperado` |
+| Tamaño del binario discrepante | `tamano del binario … inesperado` |
+| Modo `0777` en lugar de `0755` | `modo o propietario … inesperado` |
+| Propietario `1000:1000` | `modo o propietario … inesperado` |
+| Path declarado dos veces | `path de reemplazo duplicado` |
+| Receta sin reemplazos | `no declara ningun reemplazo` |
+| Layer heredado alterado | `los layers heredados no son los de la base fijada` |
+| Entrypoint alterado | `entrypoint/cmd/env/labels del runtime cambiaron` |
+| Parche con hash incorrecto | `hash de parche no coincide` |
+| `Dockerfile` con hash incorrecto | `hash de dockerfile no coincide` |
+| Parche presente sin declarar | `los parches presentes no son los declarados` |
+| Parche declarado que la receta no aplica | `la receta no aplica el parche declarado` |
+| Esquema `version: 1` | `schema de build desconocido` |
+
+El atestado del gate S-09 sigue **escrito en el código** con los dos commits y los dos
+`sha256` de binario: si el gate los leyera del manifiesto, el manifiesto se estaría validando
+contra sí mismo.
+
+### 26.7 Resultado de seguridad sobre el artefacto definitivo
+
+`govulncheck -mode binary` sobre los binarios **extraídos de los layers ya verificados**, no
+recompilados para la medición:
+
+| Binario | `grpc` embebido | Alcanzables antes | Alcanzables después | `GO-2026-6443` |
+| --- | --- | --- | --- | --- |
+| `minio` | `v1.83.2` | 102 | **21** | **NO alcanzable** |
+| `mc` | `v1.83.2` | 85 | **7** | **NO alcanzable** |
+
+Trivy 0.74.0 sobre la imagen ensamblada, con el comparador **real** del gate
+(`IDENTITY_FIELDS` + `LOCATION_FIELDS`):
+
+| Medición | Valor |
+| --- | --- |
+| Inventario completo | 106 |
+| Accionables antes | 99 |
+| Accionables ahora | **10** |
+| Resueltos | **89** |
+| **Identidades nuevas** | **0** |
+| `CVE-2026-84445` antes → ahora | **2 → 0** |
+
+Las 10 que quedan son **subconjunto exacto** de las 99 ya revisadas bajo R-018-3. La
+condición era detenerse si aparecía **una sola** identidad nueva; no apareció ninguna.
+
+Gate S-09 real ejecutado contra el informe del artefacto definitivo:
+`Accionables 10 · Aprobados 10 · Nuevos 0 · Coincidencias exactas 10 · RESULTADO: CORRECTO`.
+
+El S-09 **íntegro** exige los seis informes de imagen y es fail-closed, así que la ejecución
+local se acotó a la entrada `minio`; las seis imágenes se comparan en `CI Infra`.
+
+### 26.8 Validación funcional de la imagen ensamblada
+
+El artefacto exacto se cargó en el daemon (`docker load` devolvió
+`sha256:247a1cd3…f80702`) y se arrancó con **las mismas restricciones del Compose local**:
+`--read-only`, `--cap-drop ALL`, `no-new-privileges`, `tmpfs` en `/tmp` y
+`MC_CONFIG_DIR=/tmp/mc`.
+
+| Comprobación | Resultado |
+| --- | --- |
+| `Entrypoint` / `Cmd` heredados | `["/usr/bin/docker-entrypoint.sh"]` / `["minio"]` |
+| `minio --version` | `RELEASE.2025-09-07T16-13-09Z (commit-id=07c3a429bfed…)`, `go1.27.1` |
+| `mc --version` | `RELEASE.2025-08-13T08-35-41Z (commit-id=7394ce0dd2a8…)`, `go1.27.1` |
+| Modo y propiedad de los dos binarios | `-rwxr-xr-x  0 0` |
+| Servidor listo | `mc ready` → `The cluster 'local' is ready` |
+| `mc alias set` con la raíz de solo lectura | escribe en `/tmp/mc`, correcto |
+| `mc mb` | bucket creado |
+| `mc mirror` ida y vuelta | `sha256` de los dos archivos **idénticos** en ambos sentidos |
+| `mc cp` + `mc stat` | objeto copiado, `ETag` devuelto |
+| `mc admin info` | `Network 1/1 OK`, `Drives 1/1 OK` |
+| Escritura en `/usr/bin` | rechazada (`rc=1`) |
+| Líneas de pánico o error en el log | **0** |
+
+**Corrección de método durante esta validación.** La primera versión de la comprobación de
+`mc mirror` usaba `diff -r` y luego `find … -exec sha256sum`. La imagen mínima **no trae
+`diff` ni `find`**, de modo que las dos listas de hashes salían **vacías** y la comparación
+pasaba comparando nada con nada: un paso vacuo que habría quedado registrado como validado.
+Se detectó porque las líneas de hash no aparecieron en la salida. La comprobación se rehízo
+con `sha256sum` sobre los dos archivos por nombre exacto, más la verificación del listado de
+cada nivel, y ahora **imprime los hashes que compara**.
+
+### 26.9 Cambios aplicados
+
+| Archivo | Cambio |
+| --- | --- |
+| `docker/minio/Dockerfile` | Dos etapas constructoras, `golang:1.27.1` por digest, `GOTOOLCHAIN=local` con aserción, tres parches con hash, `ldflags` de upstream, dos `COPY --chown=0:0 --chmod=0755` |
+| `docker/minio/minio-deps-grpc-1.83.2.patch` | **nuevo** |
+| `docker/minio/mc-deps-grpc-1.83.2.patch` | **nuevo** |
+| `docker/minio/build-manifest.json` | esquema `version: 2`: `sources` (dos), `changes` (tres), `output.replacements` (dos), `supersedes` con la identidad de Task/027.1 |
+| `docker/minio/README.md` | reescrito: dos binarios, dos identidades, brecha de publicación declarada |
+| `scripts/minio/artifact.py` | `inspect_oci` por reemplazos declarados; `verify_recipe` con lista de parches y comprobación de sobrantes; `attest` y `provenance` con las dos procedencias |
+| `scripts/security/vulnerability_gate.py` | coherencia sobre `changes`; atestado nominal de los dos binarios |
+| `security/vulnerability-baseline.json` | `reference`, `expected_digest`, `build_manifest_sha256`, `accepted_findings` 99 → **10**, `superseded_identity` |
+| `tests/security/test_minio_oci_verifier.py` | **nuevo**, 21 pruebas |
+| `tests/security/test_minio_derivative.py` | conjunto exacto de las 10; los dos CVE corregidos no pueden reaparecer; identidad anterior conservada |
+| `tests/security/test_pinned_artifact_policy.py` | recuento de MinIO 99 → 10 |
+| `tests/security/test_vulnerability_gate.py` | atestado sintético con el esquema v2 |
+| `.gitleaks.toml` | **nuevo**: las líneas `go.sum` de los parches no son secretos (ver §26.9.1) |
+| `.env.example` | `MINIO_VERSION` pasa a la identidad **nueva**, por etiqueta **y** digest (§26.11.4) |
+| `.env` (no versionado) | una sola línea corregida: estaba apuntando a un MinIO upstream que ni resolvía |
+
+Suites: `tests/oidc` **60 OK**, `tests/laboratorio` **176 OK**, `tests/security` **88 OK**.
+Gate de coherencia: **CORRECTO**. Compilación de los 17 scripts Python: **0 fallos**. CRLF en
+los archivos tocados: **0**.
+
+#### 26.9.1 Por qué hubo que configurar Gitleaks, y por qué no se relajó
+
+Los parches de dependencias llevan líneas de `go.sum`, y `generic-api-key` marcó **5** cuya
+ruta de módulo contiene `auth`, `oauth2` o `api`. Son hashes dirhash del árbol de cada
+módulo, **publicados en `sum.golang.org`**: su propósito es el contrario al de un secreto, y
+sin ellos el build no podría ejecutar `go mod verify`.
+
+La primera versión de `.gitleaks.toml` **no suprimía nada** —seguía dando los mismos 5— y eso
+se detectó porque se volvió a ejecutar el escáner, no porque se supusiera. Con un caso mínimo
+reproducible en Gitleaks 8.30.1 se estableció por qué:
+
+| Intento | Resultado |
+| --- | --- |
+| `regexes` sobre el `match` | no suprime: el hallazgo no expone la línea completa |
+| `regexTarget = "line"` | no suprime, por lo mismo |
+| `regexTarget = "secret"` sola | suprime, pero **repo entero**: demasiado amplia |
+| `paths` sola | suprimiría los archivos **completos** |
+| `paths` + `secret` sin `condition` | **OR** por defecto: equivale a exceptuar los archivos |
+| `paths` + `secret` + `matchCondition = "AND"` | la clave **se ignora en silencio**; degrada a OR |
+| `paths` + `secret` + `condition = "AND"` | **correcto** |
+
+La excepción final exige **las dos** condiciones: ruta de parche de dependencias **y** valor
+que sea exactamente un Base64 de 32 bytes. Se validó con un **control positivo**: el *mismo*
+Base64 colocado en otro archivo **sigue apareciendo** como hallazgo. No se desactivó ninguna
+regla, no se exceptuó ningún archivo completo y no se usó `.gitleaksignore` con huellas,
+porque una huella lleva dentro el SHA del commit y deja de aplicar en cuanto el commit cambia.
+
+Escaneo del historial completo con la invocación exacta de `CI Infra`, y también por
+autodetección del archivo sin `--config`: **`no leaks found`** en ambos casos.
+
+### 26.10 `CI Infra` en verde y reproducibilidad entre máquinas
+
+`CI Infra` **success** en `490c6c0`, los 32 pasos en verde, incluidos los que antes fallaban:
+*Log in to GHCR for the private MinIO base*, *Build the project images* y *No secrets in the
+full history*. `Verify AWS OIDC` **success**, con `Task fresh-token STS: AccessDenied
+(expected)`: la trust sigue aceptando solo `main`.
+
+Esto añade una evidencia que el rebuild local **no** podía dar por sí solo. El runner de
+GitHub construyó el derivado desde cero, en otra máquina y otro sistema, y produjo
+**exactamente la misma identidad**:
+
+| Valor | Local | `CI Infra` |
+| --- | --- | --- |
+| `manifest_digest` | `sha256:247a1cd3…f80702` | **idéntico** |
+| `config_digest` | `sha256:9712173f…a5ce64` | **idéntico** |
+| `sha256` de `usr/bin/minio` | `067d5d80…a42f028` | **idéntico** |
+| `sha256` de `usr/bin/mc` | `0878407c…37af0921` | **idéntico** |
+| Layers / heredados | 11 / 9 | **idéntico** |
+| `build_manifest_sha256` | `3792c2d5…6a18f3215` | **idéntico** |
+| `canonical_sbom_sha256` | `ff59cec7…8e52278d` | **idéntico** |
+| `provenance_sha256` | `35cdf0a1…ef50caadd` | **idéntico** |
+
+La afirmación exacta sigue siendo la de §26.2 —construcción reproducible con identidades
+fijadas y verificadas, **no** hermética ni offline—, pero ahora está comprobada en **dos
+máquinas independientes** y no solo en una.
+
+Gate S-09 sobre las **seis** imágenes declaradas: `Hallazgos accionables comparados en total:
+25`, `RESULTADO: CORRECTO`. La entrada MinIO: `Identidad: derivado MinIO reproducible,
+atestado exacto de 2 binarios`, `Accionables 10 · Aprobados 10 · Nuevos 0 · Coincidencias
+exactas 10`.
+
+### 26.11 Publicación del derivado D-1 y consumo real (2026-09-27)
+
+Bajo autorización humana acotada —que **no** equivale a aprobar la tarea—, la identidad D-1
+queda **publicada en el GHCR privado** y el entorno local **la consume**. Con esto desaparece
+la brecha que este reporte declaraba: ya no existe una identidad corregida sin publicar ni un
+entorno ejecutando la vulnerable.
+
+#### 26.11.1 Cómo se publicó: bytes originales, no una reconstrucción
+
+No se reconstruyó nada ni se usó `docker push`. Los blobs y el manifiesto del artefacto **ya
+verificado** se subieron con sus **bytes originales** por la API de distribución OCI, de modo
+que el digest se preserva **por construcción** y no por coincidencia.
+
+```
+MEDIA_TYPE=application/vnd.oci.image.manifest.v1+json
+BLOBS_REFERENCIADOS=12
+  9 ya presentes  <- los layers heredados de la base: no cambian
+  3 subidos       <- config (8 942 B) + usr/bin/minio + usr/bin/mc
+PUT_MANIFEST_STATUS=201
+DIGEST_DEVUELTO_POR_EL_REGISTRO=sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702
+DIGEST_PRESERVADO=True
+```
+
+Que **9 de los 12 blobs ya estuvieran en el repositorio** es evidencia adicional y gratuita:
+los layers heredados son byte a byte los mismos que los de la identidad de Task/027.1.
+
+#### 26.11.2 La identidad de Task/027.1 no se tocó
+
+Antes de escribir, el propio publicador comprobó que la etiqueta histórica seguía en su
+digest, y **se habría detenido sin escribir nada** si no hubiera coincidido. Se volvió a
+comprobar después de publicar y al releer:
+
+| Momento | `RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0` |
+| --- | --- |
+| Inventario previo | `sha256:84c67632…059129` |
+| Justo antes del `PUT` | `sha256:84c67632…059129` |
+| Justo después del `PUT` | `sha256:84c67632…059129` |
+| En la relectura final | `sha256:84c67632…059129` |
+
+Son **dos etiquetas distintas en el mismo repositorio**. Ninguna se movió, ninguna se
+sobrescribió y ninguna se reutilizó. El repositorio pasó de 1 a 2 etiquetas.
+
+#### 26.11.3 Verificación leyendo de vuelta desde GHCR
+
+No se dio por buena la respuesta del `PUT`: se descargó todo otra vez y se recalculó.
+
+| Comprobación | Resultado |
+| --- | --- |
+| Manifiesto en crudo | 2 567 bytes; `sha256` recalculado = `sha256:247a1cd3…f80702` |
+| Coincide con `build-manifest.json` | **sí** |
+| `mediaType` | `application/vnd.oci.image.manifest.v1+json` |
+| `config_digest` | `sha256:9712173f…a5ce64`, coincide |
+| Layers | **11**, de los cuales **9 heredados** con sus `diff_ids` intactos |
+| `Entrypoint` / `Cmd` | `["/usr/bin/docker-entrypoint.sh"]` / `["minio"]`, heredados |
+| Layer de `usr/bin/minio` | miembros exactos, `sha256 067d5d80…a42f028`, 110 301 344 B, `0755`, `0:0` |
+| Layer de `usr/bin/mc` | miembros exactos, `sha256 0878407c…37af0921`, 31 555 744 B, `0755`, `0:0` |
+| `IDENTIDAD_REMOTA_COMPLETA` | **True** |
+
+#### 26.11.4 El entorno local ya no ejecuta la identidad vulnerable
+
+`.env.example` y `.env` apuntan a la referencia nueva **por etiqueta y digest**. El digest es
+lo que manda, así que la referencia es **inmutable** aunque alguien moviera la etiqueta; no se
+usa en ningún caso una etiqueta móvil desnuda.
+
+`.env` estaba además **desactualizado de antes**: apuntaba a
+`RELEASE.2025-09-07T16-13-09Z@sha256:14cea493…`, sin prefijo de registro y con el digest del
+MinIO **upstream** anterior al derivado, una referencia que ni siquiera resolvía. Se corrigió
+**una sola línea**, comprobando que ninguna otra cambiaba.
+
+Con las copias locales borradas primero, para que el `pull` fuese real:
+
+| Comprobación | Resultado |
+| --- | --- |
+| `docker pull` de la referencia nueva | `RepoDigests = [ …@sha256:247a1cd3…f80702 ]`, 11 layers |
+| `docker compose config --images` | resuelve a la identidad **nueva**; **no** aparece la anterior |
+| `Image` del contenedor en marcha | `sha256:247a1cd3…f80702` |
+| ¿Es el digest anterior? | **no** |
+| `sha256sum /usr/bin/minio` **dentro del contenedor** | `067d5d80…a42f028` |
+| `sha256sum /usr/bin/mc` **dentro del contenedor** | `0878407c…37af0921` |
+| `minio --version` | `RELEASE.2025-09-07T16-13-09Z (commit-id=07c3a429bfed…)`, `go1.27.1` |
+| `mc --version` | `RELEASE.2025-08-13T08-35-41Z (commit-id=7394ce0dd2a8…)`, `go1.27.1` |
+
+Que ya **no** se ejecuta la anterior no se afirma: se demuestra comparando contra ella, leída
+del registro sin descargarla ni ejecutarla.
+
+| Binario | Identidad anterior (`84c67632…`) | Identidad en ejecución | Cambia |
+| --- | --- | --- | --- |
+| `usr/bin/minio` | `9437671add14…89983f` | `067d5d80…a42f028` | **sí** |
+| `usr/bin/mc` | `01f866e9c5f9…12e891` | `0878407c…37af0921` | **sí** |
+
+`usr/bin/mc` cambia porque Task/027.1 **no** lo reconstruía: heredaba el de la base. Es
+exactamente la mitad de H-028-2 que faltaba por corregir.
+
+#### 26.11.5 Flujo real contra el almacenamiento, y una corrección de método
+
+El servicio se levantó con el Compose del proyecto —con sus restricciones reales— y se
+ejercitó el flujo de los runbooks.
+
+**Aviso y corrección.** La primera pasada usó el bucket `personal-blog-media`, que **no está
+vacío: contiene 6 objetos de medios reales**. La prueba escribió en él `a.txt` y `sub/b.txt`.
+Se detectó de inmediato, porque el `mirror` de vuelta trajo también los medios reales y la
+comprobación de recuento falló en lugar de pasar por alto el desvío. Los dos objetos se
+**borraron**, y se comprobó que los 6 de medios quedaban **idénticos en nombre, tamaño y
+fecha**. El bucket volvió a su estado exacto: 1 bucket, 6 objetos, sin residuo.
+
+La prueba se rehízo separando lectura de escritura:
+
+| Prueba | Resultado |
+| --- | --- |
+| **Solo lectura** sobre los medios reales: `mc mirror` del bucket a un directorio | los **6** objetos se descargan; `sha256` de cada `original.png` y cada `thumbnail.webp` calculados. Cero escrituras |
+| **Escritura** en un bucket desechable `task028-d1-verificacion` | `mb`, `mirror` de ida, `mirror` de vuelta: `sha256` de los dos archivos **idénticos**; recuentos exactos por nivel |
+| `mc cp` + `mc stat` | objeto copiado, metadatos devueltos |
+| Bucket desechable | **eliminado** al terminar |
+| Estado final del almacenamiento | idéntico al inicial |
+
+La comprobación del `mirror` exige que existan **exactamente** los archivos esperados, de modo
+que no puede pasar comparando dos conjuntos vacíos —el fallo vacuo que §26.8 documenta.
+
+#### 26.11.6 Revisión del resto de consumidores operativos: un hallazgo
+
+La revisión pedida de «cualquier otro lugar operativo que siga apuntando a la identidad
+anterior» no encontró ninguno más para el derivado: ni los runbooks ni el laboratorio fijan la
+imagen de MinIO, y las únicas referencias al digest anterior que quedan en el repositorio son
+las **exigidas** —`supersedes`, `superseded_identity`, el test que comprueba que la identidad
+histórica se conserva— y la documentación histórica, que no se reescribe.
+
+Pero la revisión sí destapó algo **adyacente y relevante**, que se declara aquí porque es de
+seguridad y no lo detecta ningún gate:
+
+| | Fijado en `.env` y `.env.example` | **Contenedor realmente en marcha** |
+| --- | --- | --- |
+| MinIO | `…@sha256:247a1cd3…f80702` | **coincide** (recreado en esta verificación) |
+| Portainer | `2.45.1@sha256:4d616db1…3bd8b0e` | era **`2.39.7@sha256:0e3c8bc8…`** — **corregido**, §26.11.7 |
+| PostgreSQL, Traefik | coinciden entre sí | contenedores de hace 3 días |
+
+**La configuración de Portainer es correcta**: `.env` y `.env.example` ya fijan 2.45.1. Lo
+obsoleto es el **contenedor**, levantado antes de ese cambio y nunca recreado. En la práctica,
+el Portainer que se está ejecutando **sigue siendo el 2.39.7 con `CVE-2026-84445` alcanzable**,
+que es justo lo que §25 corrigió en la configuración.
+
+En el momento de redactar esto **no se recreó**, y fue deliberado: §25.3 dejó constancia de que
+Portainer **migra `portainer_data` al arrancar y no admite downgrade**, así que recrear el
+contenedor es un paso de un solo sentido sobre datos del usuario, fuera de la autorización de
+entonces —limitada al derivado de MinIO—.
+
+**El usuario autorizó después cerrar este punto**, con razón: dar H-028-2 por cerrada con el
+runtime todavía en 2.39.7 era una contradicción. El cierre real está en **§26.11.7**.
+
+Lo mismo valía, sin componente de seguridad conocido, para PostgreSQL y Traefik: sus
+contenedores siguen siendo los de hace días y se recrearán cuando el usuario decida.
+
+#### 26.11.7 El runtime de Portainer, corregido de verdad (2026-09-27)
+
+**Corrección de una declaración prematura mía.** Este reporte dio H-028-2 por cerrada cuando
+`.env` y `.env.example` ya fijaban Portainer 2.45.1. **No era suficiente, y el usuario lo
+señaló:** mi propio hallazgo de §26.11.6 demostraba que el contenedor **realmente en ejecución**
+seguía siendo `2.39.7`, con `CVE-2026-84445` alcanzable. Configuración corregida no es runtime
+corregido. La incidencia **no podía darse por cerrada** hasta que el proceso en marcha dejase de
+ser el vulnerable.
+
+Bajo autorización acotada se cerró ese último punto operativo, **fail-closed**: nada se recreó
+hasta tener un respaldo **probado restaurable**, porque Portainer migra `portainer_data` al
+arrancar y **no admite downgrade**.
+
+##### Identidad antes
+
+| | Valor |
+| --- | --- |
+| Contenedor | `494638918c12`, creado el 2026-09-13 |
+| `Config.Image` | `portainer/portainer-ce:2.39.7@sha256:0e3c8bc8…` |
+| Versión según su propia API (`/api/status`) | **`2.39.7`** |
+| `InstanceID` | `8221eaf1-6f98-4152-88a6-c0900a606fb0` |
+| Volumen | `personal-blog-local_portainer_data` → `/data` |
+| `/data` | 6 archivos, 58 733 B; `portainer.db` = `39744d78…6981040` |
+
+La configuración de destino **no se tocó**: `2.45.1@sha256:4d616db1…3bd8b0e`, el mismo valor en
+`.env`, en `.env.example` y en la entrada `portainer` del baseline. No se cambió ninguna versión
+ni ninguna decisión de diseño.
+
+##### Respaldo con el procedimiento del propio proyecto
+
+Se usó el procedimiento existente de `Task/004`, sin inventar nada: `New-LocalBackup.ps1`,
+`Test-LocalBackup.ps1` y `Restore-LocalBackupTest.ps1`.
+
+| Paso | Resultado |
+| --- | --- |
+| Conjunto creado | `20260927-020353`, 8 archivos, 76,62 KB, en `local-backups/` (ignorado por Git) |
+| Portainer | detenido para obtener una copia coherente y reiniciado; PostgreSQL y MinIO **no** se detienen |
+| Integridad SHA-256 | **8/8 correctos** |
+| **Restauración probada** | instancia temporal en `127.0.0.1:9445`, **sin** el socket de Docker: `/api/status` HTTP 200 y **`InstanceID` idéntico** al del entorno principal |
+| PostgreSQL y MinIO en la prueba | 17 tablas restauradas; 6 objetos con `SHA-256` y `Content-Type` coincidentes |
+| Recursos temporales | eliminados; los tres volúmenes principales **intactos** |
+
+Un respaldo no está validado hasta haberse restaurado. Aquí se restauró **antes** de migrar.
+
+##### La recreación tocó solo Portainer
+
+`docker compose pull portainer` y `docker compose up -d --no-deps portainer`. Los identificadores
+de contenedor lo demuestran: **cinco de los seis no cambiaron**.
+
+```
+solo cambia:  personal-blog-local-portainer  494638918c12 -> 4964d7fcbe46
+sin cambios:  backend, frontend, minio, postgres, traefik  (mismo container Id)
+```
+
+##### Identidad después
+
+| Comprobación | Resultado |
+| --- | --- |
+| `Config.Image` | `portainer/portainer-ce:2.45.1@sha256:4d616db1…3bd8b0e` |
+| `Image` (id) == digest aprobado | **sí** |
+| Versión según su propia API | **`2.45.1`** |
+| ¿Sigue siendo `2.39.7`? | **no** |
+| Contenedores con la imagen 2.39.7 | **0** |
+| `InstanceID` | `8221eaf1-…-c0900a606fb0`, **preservado** |
+| Migración en el log | `2.43.0` → `2.44.0` → `2.45.0` → **`db migrated to 2.45.1`** |
+| Líneas de `ERR`, `FTL` o `panic` tras migrar | **0** |
+| `GET /` (UI) | **HTTP 200**, HTML de la aplicación (recién arrancada; ver el hallazgo de más abajo) |
+| `GET /api/status` y `/api/system/status` | **HTTP 200**, `Version 2.45.1` |
+| Endurecimiento preservado | `read_only`, `cap_drop: ALL`, `no-new-privileges`, puerto solo en loopback `127.0.0.1:9444` |
+| Socket de Docker | sigue montado `:ro`, como lo declara el Compose, que **no se modificó** |
+
+El `InstanceID` es el mismo identificador **no sensible** que el runbook usa para comprobar una
+restauración: que sobreviva a la migración es la evidencia de que los datos y la configuración
+—usuarios, endpoints, ajustes— son los de antes y no una instalación nueva.
+
+##### Por qué el hash de la base cambia, medido y no supuesto
+
+`portainer.db` **no** es byte a byte el mismo, y conviene decir por qué en lugar de presentarlo
+como si coincidiera:
+
+| Momento | `sha256` de `portainer.db` |
+| --- | --- |
+| 2.39.7 en marcha, antes de todo | `39744d78…6981040` |
+| **Dentro del respaldo del proyecto** (tomado con el contenedor detenido) | **`39744d78…6981040` — idéntico** |
+| `backups/portainer.db.bak`, la copia previa que deja 2.45.1 al migrar | `2d075b55…5311890f` |
+| Tras migrar a 2.45.1 | `51beb2a3…4ca0d245` |
+
+La copia interna de Portainer difiere porque el procedimiento de respaldo **detuvo y volvió a
+arrancar** el 2.39.7 entre las dos mediciones, y BoltDB reescribe su archivo **al abrirlo**. Eso
+se comprobó de forma directa sobre el propio 2.45.1:
+
+```
+en marcha                : 51beb2a3…4ca0d245
+tras detenerlo           : 51beb2a3…4ca0d245   (detener NO cambia el archivo)
+tras volver a arrancarlo : c1b8d295…4a0b01a7   (arrancar SI lo cambia)
+```
+
+Por eso la copia recuperable **autoritativa** es la del respaldo del proyecto, que sí coincide
+exactamente con el estado registrado antes de migrar. La integridad lógica se acredita con el
+`InstanceID` y con la restauración probada, no con el hash de un fichero que su motor reescribe
+en cada arranque.
+
+##### Hallazgo: esta instancia nunca tuvo cuenta de administrador
+
+Al verificar la UI apareció algo que obliga a matizar la afirmación «operativa». Pasados cinco
+minutos del arranque, `GET /` responde `307 → /timeout.html` y el log dice:
+
+```
+the Portainer instance timed out for security purposes, to re-enable your
+Portainer instance, you will need to restart Portainer
+```
+
+Es el temporizador de seguridad de Portainer para instancias **sin inicializar**. La pregunta
+importante era si eso lo había causado la migración, y **no se supuso: se midió**. Se restauró el
+respaldo **previo** en un volumen temporal, se arrancó con la imagen **2.39.7** en un puerto
+aparte y sin el socket de Docker, y se consultó el endpoint que no exige autenticación:
+
+| Instancia | `GET /api/users/admin/check` |
+| --- | --- |
+| **2.39.7 restaurada del respaldo, antes de migrar** | `404 — No administrator account found inside the database` |
+| **2.45.1 real, después de migrar** | `404 — No administrator account found inside the database` |
+
+**La instalación nunca se inicializó.** No había usuario administrador ni, por tanto, entornos
+ni ajustes que preservar: `portainer.db` son 32 KB y el respaldo completo del volumen pesa
+2,67 KB. El contenedor 2.39.7 que llevaba tres días «en marcha» estaba en ese mismo estado
+bloqueado. La instancia de sondeo se eliminó al terminar, junto con su volumen.
+
+Consecuencias, dichas con precisión:
+
+- **La migración no perdió nada**, y ahora hay evidencia de los dos lados, no solo del de
+  después. Lo que existía —`InstanceID`, certificados TLS, clave de Chisel, par de claves— está
+  preservado.
+- **El bloqueo a los cinco minutos es preexistente**, no una regresión de esta tarea: 2.39.7 se
+  comportaba igual.
+- «Servicio operativo» significa aquí, exactamente: el servidor arranca, sirve la aplicación con
+  `HTTP 200`, responde `/api/status` y `/api/system/status` con `2.45.1`, y migró la base sin un
+  solo error. **No** significa que haya una sesión utilizable, porque no hay cuenta que usar.
+
+##### Configuración inicial de Portainer: fuera del cierre de Task/028
+
+Falta **crear la cuenta de administrador**, que esta instalación nunca tuvo. Eso es **anterior** a
+Task/028 y ajeno a ella: no lo creó esta tarea, **no la bloquea** y **no es condición de cierre de
+H-028-2**, cuyo criterio era que el runtime dejara de ser 2.39.7 —y ya lo dejó.
+
+Cuando el usuario decida hacerlo, el reparto es: **el agente reinicia Portainer** —porque la
+instancia se bloquea a los cinco minutos del arranque y hay que abrir la ventana— y **el usuario
+completa únicamente la interfaz web**. No se deja aquí ningún comando como deber del usuario.
+
+Portainer imprime un *setup token* en el log de su contenedor al arrancar. Ese valor **no se ha
+leído, ni copiado, ni registrado**, y nada de lo verificado en esta sección necesitó ninguna
+credencial del usuario.
+
+**Los contenedores de PostgreSQL y Traefik siguen siendo los de hace tres días.** No tienen
+ningún hallazgo de seguridad conocido pendiente —sus entradas de baseline son `zero-tolerance`
+con cero aceptados— y recrearlos no formaba parte de esta autorización, que se limitó a
+Portainer. Queda como tarea de mantenimiento del usuario, no como pendiente de Task/028.
+
+#### 26.11.8 SBOM y procedencia: qué se hizo y qué sigue pendiente
+
+`CI Infra` genera el SBOM CycloneDX canónico y la procedencia in-toto del artefacto, con
+hashes **deterministas** que el runner reprodujo idénticos a los locales
+(`ff59cec7…8e52278d` y `35cdf0a1…ef50caadd`, §26.10). Quedan **ligados por hash** a esta
+identidad en este reporte.
+
+Lo que **no** se ha hecho, y se declara: **no se publican como artefactos junto a la imagen**
+en el registro. El proyecto **no tiene definido** un mecanismo para eso —la condición de
+salida del README de Task/027.1 sigue vigente—, y no se ha inventado uno aquí, porque
+adjuntarlos por *referrers* OCI sería una decisión de diseño nueva que requiere su propio
+registro y aprobación.
+
+Esto **no es una brecha de H-028-2** ni del consumo de la imagen corregida:
+
+- el paquete es **privado**, así que no hay distribución pública que active la obligación de
+  la AGPL;
+- el **código correspondiente sí está publicado**: receta, los tres parches, manifiesto de
+  construcción y verificador viven en un repositorio **público**;
+- la condición está atada a **hacer público el paquete**, que está expresamente prohibido en
+  esta autorización.
+
+Sigue, por tanto, como pendiente **acotado y heredado de Task/027.1**, no como consecuencia de
+Task/028.
+
+### 26.12 Estado de las incidencias
+
+| Incidencia | Estado |
+| --- | --- |
+| **H-028-1** — `minio/minio` dejó de estar públicamente accesible en las ubicaciones oficiales comprobadas | **Cerrada** (§20): espejo privado byte a byte que preserva el digest, más secreto de repositorio como único límite que GitHub impone frente a forks (§21) |
+| **H-028-2** — `CVE-2026-84445` alcanzable en `minio`, `mc` y Portainer | **Cerrada**, y solo ahora: `minio` y `mc` por corrección técnica en el derivado (§26), **publicado y en consumo** (§26.11); Portainer por actualización a 2.45.1 LTS en la configuración (§25) **y en el runtime** (§26.11.7) |
+
+Esta incidencia estuvo declarada como cerrada **antes de tiempo**: la configuración de Portainer
+apuntaba a 2.45.1 mientras el contenedor en ejecución seguía siendo 2.39.7. El criterio de
+cierre es explícito y ya se cumple: **el runtime de Portainer no es 2.39.7**, ningún contenedor
+usa esa imagen, y su propia API declara `2.45.1`.
+
+No queda ninguna identidad corregida sin publicar, ningún consumidor apuntando a la identidad
+vulnerable, ni ningún proceso en marcha con `CVE-2026-84445` alcanzable.
+
+## 27. Aprobación y cierre (2026-09-27)
+
+El usuario aprobó la tarea con la expresión exacta:
+
+```
+approved: Task/028-GitHub-OIDC-AWS
+```
+
+### 27.1 Qué pasa a Aceptado y Vigente
+
+| Elemento | Antes | Ahora |
+| --- | --- | --- |
+| **D-028-A**, **D-028-B**, **D-028-C** | aceptadas por el usuario durante la ejecución | **Aceptadas y Vigentes** |
+| **EX-028-C7** | cerrada con recuperación verificada | **Cerrada y registrada** |
+| `docs/runbooks/github-oidc-bootstrap.md` | producido en la tarea | **Vigente** |
+| **H-028-1** | resuelta | **Cerrada** |
+| **H-028-2** | resuelta | **Cerrada** |
+| Avance global | 27/41 ≈ 66 % | **28/41 ≈ 68 %** |
+| ETAPA 09 | 1/3 ≈ 33 % | **2/3 ≈ 67 %** |
+
+**No se crea ni se reemplaza ningún ADR.** Esta tarea no modificó ninguno: los ADR que la
+gobiernan —**ADR-006** y **ADR-007**— ya estaban Aceptados y siguen intactos.
+
+### 27.2 Criterios de salida de la ETAPA 09
+
+Se marcan **tres** de los cuatro que corresponden a esta tarea: federación OIDC sin claves de
+larga vida, rol con cero políticas gestionadas y cero inline con trust exacta, y operaciones
+negativas devolviendo `AccessDenied`.
+
+El cuarto —trust exclusiva de `main` **con** reconfirmación postmerge— **no se marca**. Su
+primera mitad está demostrada: la trust main-only está aplicada y verificada contra IAM, y el
+rechazo desde la rama Task con un JWT nuevo quedó registrado. Falta la reconfirmación postmerge,
+que por definición exige que el merge humano ya exista. Marcar la casilla con esa mitad sin
+evidencia sería falso, así que se deja abierta y se dice por qué.
+
+### 27.3 Lo que la aprobación no convierte en hecho
+
+- La **reconfirmación postmerge** desde `main` no existe todavía. **Nunca fue prerrequisito** de
+  la aprobación; el criterio 8 de la ficha se corrigió precisamente para no exigir algo
+  imposible antes del merge.
+- El rol `PersonalBlogGitHubOidcValidation` **no acredita despliegue**: cero políticas
+  gestionadas y cero inline. Los permisos mínimos son de `Task/038` y `Task/039`, y la
+  validación integral de `Task/040`.
+- **`main` sigue sin protección de rama.** Debe existir antes de habilitar roles de despliegue
+  efectivos.
+- Lo observado en **Floci** sigue siendo hipótesis hasta la ETAPA 10 (ADR-006, límite 5).
+- **D-06** está resuelta en el modelo; el bucket lo materializa `Task/030`.
+- **SBOM y procedencia** siguen sin publicarse junto a la imagen: pendiente heredado de
+  Task/027.1, atado a hacer público el paquete, que no está autorizado.
+- **`GHCR_MINIO_READ_TOKEN`** caduca el **2027-09-25** y requiere rotación antes.
+- La **configuración inicial de Portainer** —crear la cuenta de administrador, que esta
+  instalación nunca tuvo— es anterior a Task/028 y ajena a su cierre.
+
+### 27.4 Flujo de cierre ejecutado
+
+Según [`WORKFLOW.md`](../project-management/WORKFLOW.md) y las instrucciones del proyecto, en el
+único repositorio afectado —`personal-blog-infra`—: se registró la aprobación, se promovieron las
+decisiones, se actualizaron STATUS, ROADMAP, ficha, etapa y avance, se reejecutaron las
+validaciones, se integró la rama Task en `dev` mediante `merge --no-ff`, se publicó `dev`, se
+creó el pull request **`Task/028-GitHub-OIDC-AWS → main`** y se eliminó la rama Task **local**
+con `git branch -d`.
+
+**El pull request no se acepta ni se fusiona:** es responsabilidad exclusiva del usuario. La
+rama Task **remota no se elimina**. No se inicia la tarea siguiente.

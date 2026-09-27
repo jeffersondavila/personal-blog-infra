@@ -32,6 +32,7 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 
 | Runbook | Entorno | Estado |
 | --- | --- | --- |
+| [github-oidc-bootstrap.md](github-oidc-bootstrap.md) | AWS real futuro; bootstrap OIDC aislado | **Borrador operativo Task/028, no ejecutado**; solo diseño/local autorizado |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |
 | [local-backup-and-recovery.md](local-backup-and-recovery.md) | Local (backup y recuperación) | **Vigente** — aprobado en `Task/004` (2026-07-31) |
 | [deployment-create.md](deployment-create.md) | Laboratorio AWS local; transición AWS preparada | **Vigente** — aprobado en `Task/026` (2026-09-15) |
@@ -44,6 +45,7 @@ La operación contra AWS real sigue pendiente según el roadmap:
 
 | Alcance pendiente | Tarea |
 | --- | --- |
+| Bootstrap de identidad OIDC, separado de los contratos de aplicación | Task/028, previa autorización específica; runbook sin ejecución real |
 | Ejecutar y validar estos contratos contra AWS real | ETAPA 10 (`Task/030`–`Task/033`) |
 
 > Los cinco runbooks de `Task/026` son **Vigentes** desde el 2026-09-15 y están

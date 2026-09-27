@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verifica, atesta y compara el derivado reproducible de MinIO de Task/027.1."""
+"""Verifica, atesta y compara el derivado reproducible de MinIO (Task/027.1, ampliado por Task/028)."""
 
 from __future__ import annotations
 
@@ -9,11 +9,12 @@ import hashlib
 import io
 import json
 import tarfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 ATTESTATION_SCHEMA = "personal-blog-infra/minio-derivative-attestation"
 BUILD_SCHEMA = "personal-blog-infra/minio-reproducible-build"
+BUILD_VERSION = 2
 
 
 class VerificationError(Exception):
@@ -71,51 +72,108 @@ def inspect_oci(oci: Path, build: dict[str, Any]) -> dict[str, Any]:
         if checks["runtime_config_sha256"] != build["runtime_base"]["runtime_config_sha256"]:
             raise VerificationError("entrypoint/cmd/env/labels del runtime cambiaron")
 
+        # Task/028 (H-028-2): el derivado sustituye DOS binarios, no uno. El
+        # contrato evoluciona en lugar de relajarse: la receta declara cada
+        # reemplazo y aqui se exige que sean EXACTAMENTE esos, en ese orden, cada
+        # uno en su propio layer y sin tocar ningun otro archivo.
+        replacements = expected.get("replacements")
+        if not isinstance(replacements, list) or not replacements:
+            raise VerificationError("la receta no declara ningun reemplazo")
+        heredados = len(build["runtime_base"]["layer_digests"])
+        total = heredados + len(replacements)
+
         layers = [item["digest"] for item in manifest.get("layers") or []]
         diff_ids = config.get("rootfs", {}).get("diff_ids") or []
-        if layers[:-1] != build["runtime_base"]["layer_digests"]:
+        if len(layers) != total or len(diff_ids) != total:
+            raise VerificationError("el derivado no agrega exactamente los layers declarados")
+        if layers[:heredados] != build["runtime_base"]["layer_digests"]:
             raise VerificationError("los layers heredados no son los de la base fijada")
-        if diff_ids[:-1] != build["runtime_base"]["diff_ids"]:
+        if diff_ids[:heredados] != build["runtime_base"]["diff_ids"]:
             raise VerificationError("los diff IDs heredados no son los de la base fijada")
-        if len(layers) != 10 or len(diff_ids) != 10:
-            raise VerificationError("el derivado no agrega exactamente un layer")
-        if layers[-1] != expected["replacement_layer_digest"]:
-            raise VerificationError("layer de reemplazo inesperado")
-        if diff_ids[-1] != expected["replacement_diff_id"]:
-            raise VerificationError("diff ID de reemplazo inesperado")
 
-        layer_bytes = archive.extractfile(blob_name(layers[-1])).read()
-        with tarfile.open(fileobj=io.BytesIO(layer_bytes), mode="r:*") as layer:
-            members = layer.getmembers()
-            if [m.name for m in members] != ["usr", "usr/bin", "usr/bin/minio"]:
-                raise VerificationError("el ultimo layer modifica algo distinto de /usr/bin/minio")
-            member = layer.getmember("usr/bin/minio")
-            binary = layer.extractfile(member).read()
-            if (member.mode, member.uid, member.gid) != (0o755, 0, 0):
-                raise VerificationError("modo o propietario de /usr/bin/minio inesperado")
-            if sha256(binary) != expected["binary_sha256"] or len(binary) != expected["binary_size"]:
-                raise VerificationError("binario MinIO inesperado")
+        declarados = [item["path"] for item in replacements]
+        if len(set(declarados)) != len(declarados):
+            raise VerificationError("la receta declara un path de reemplazo duplicado")
+
+        vistos = []
+        for posicion, item in enumerate(replacements):
+            indice = heredados + posicion
+            if layers[indice] != item["layer_digest"]:
+                raise VerificationError(f"layer de reemplazo inesperado para {item['path']}")
+            if diff_ids[indice] != item["diff_id"]:
+                raise VerificationError(f"diff ID de reemplazo inesperado para {item['path']}")
+
+            ruta = item["path"]
+            partes = ruta.split("/")
+            esperados = ["/".join(partes[:n + 1]) for n in range(len(partes))]
+            layer_bytes = archive.extractfile(blob_name(layers[indice])).read()
+            with tarfile.open(fileobj=io.BytesIO(layer_bytes), mode="r:*") as layer:
+                if [m.name for m in layer.getmembers()] != esperados:
+                    raise VerificationError(f"el layer de {ruta} modifica algo distinto de ese path")
+                member = layer.getmember(ruta)
+                if not member.isfile():
+                    raise VerificationError(f"{ruta} no es un archivo regular")
+                binary = layer.extractfile(member).read()
+                if (member.mode, member.uid, member.gid) != (item["mode"], item["uid"], item["gid"]):
+                    raise VerificationError(f"modo o propietario de {ruta} inesperado")
+                if sha256(binary) != item["binary_sha256"]:
+                    raise VerificationError(f"hash del binario {ruta} inesperado")
+                if len(binary) != item["binary_size"]:
+                    raise VerificationError(f"tamano del binario {ruta} inesperado")
+            vistos.append(ruta)
+
+        if vistos != declarados:
+            raise VerificationError("los reemplazos observados no son los declarados")
 
     return {
         "manifest_digest": checks["manifest_digest"],
         "config_digest": checks["config_digest"],
-        "binary_sha256": expected["binary_sha256"],
-        "binary_size": expected["binary_size"],
+        "replaced_paths": vistos,
+        "replacements": {
+            item["path"]: {"sha256": item["binary_sha256"], "size": item["binary_size"]}
+            for item in replacements
+        },
         "layers": len(layers),
-        "only_minio_replaced": True,
+        "inherited_layers": heredados,
+        "only_declared_paths_replaced": True,
     }
 
 
 def verify_recipe(root: Path, manifest_path: Path, build: dict[str, Any]) -> str:
-    if build.get("schema") != BUILD_SCHEMA or build.get("version") != 1:
+    if build.get("schema") != BUILD_SCHEMA or build.get("version") != BUILD_VERSION:
         raise VerificationError("schema de build desconocido")
-    for section, path_key, hash_key in (
-        ("recipe", "dockerfile", "dockerfile_sha256"),
-        ("change", "patch", "patch_sha256"),
-    ):
-        data = (root / build[section][path_key]).read_bytes()
-        if sha256(data) != build[section][hash_key]:
-            raise VerificationError(f"hash de {path_key} no coincide")
+
+    dockerfile = (root / build["recipe"]["dockerfile"]).read_bytes()
+    if sha256(dockerfile) != build["recipe"]["dockerfile_sha256"]:
+        raise VerificationError("hash de dockerfile no coincide")
+
+    # Cada parche declarado debe existir y coincidir byte a byte. Y el Dockerfile
+    # debe aplicar exactamente esos parches y ninguno mas: si un parche vive en el
+    # arbol pero la receta no lo usa, o al reves, la identidad no es verificable.
+    cambios = build["changes"]
+    if not cambios:
+        raise VerificationError("el build no declara ningun cambio")
+    declarados: list[str] = []
+    for cambio in cambios:
+        ruta = cambio["patch"]
+        if ruta in declarados:
+            raise VerificationError(f"parche duplicado en changes: {ruta}")
+        declarados.append(ruta)
+        data = (root / ruta).read_bytes()
+        if sha256(data) != cambio["patch_sha256"]:
+            raise VerificationError(f"hash de parche no coincide: {ruta}")
+        nombre = PurePosixPath(ruta).name
+        if nombre.encode() not in dockerfile:
+            raise VerificationError(f"la receta no aplica el parche declarado: {ruta}")
+
+    receta_dir = PurePosixPath(build["recipe"]["dockerfile"]).parent
+    presentes = sorted(
+        str(receta_dir / item.name) for item in (root / receta_dir).iterdir()
+        if item.is_file() and item.name.endswith(".patch")
+    )
+    if presentes != sorted(declarados):
+        raise VerificationError("los parches presentes no son los declarados")
+
     return sha256(manifest_path.read_bytes())
 
 
@@ -204,9 +262,11 @@ def main() -> int:
             metadata["PersonalBlogDerivative"] = {
                 "schema": ATTESTATION_SCHEMA,
                 "build_manifest_sha256": manifest_sha,
-                "source_commit": build["source"]["commit"],
-                "binary_sha256": result["binary_sha256"],
-                "only_minio_replaced": True,
+                "source_commits": {
+                    nombre: datos["commit"] for nombre, datos in sorted(build["sources"].items())
+                },
+                "replacements": result["replacements"],
+                "only_declared_paths_replaced": True,
             }
             args.report.write_bytes(canonical(report) + b"\n")
             print("attestation_ok=true")
@@ -231,7 +291,13 @@ def main() -> int:
                             "source_date_epoch": build["source_date_epoch"],
                         },
                         "resolvedDependencies": [
-                            {"uri": build["source"]["repository"], "digest": {"gitCommit": build["source"]["commit"]}},
+                            {
+                                "name": nombre,
+                                "uri": datos["repository"],
+                                "digest": {"gitCommit": datos["commit"]},
+                            }
+                            for nombre, datos in sorted(build["sources"].items())
+                        ] + [
                             {"uri": build["recipe"]["builder_platform_manifest"]},
                             {"uri": build["runtime_base"]["platform_manifest"]},
                         ],
