@@ -154,6 +154,21 @@ Queda **crear la cuenta de administrador**, anterior a Task/028 y ajeno al
 criterio de cierre de H-028-2: no la bloquea. Cuando se decida, el agente reinicia Portainer y el
 usuario completa únicamente la interfaz web. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
 
+**2026-09-27 — `Task/028-GitHub-OIDC-AWS` APROBADA** por el usuario mediante
+`approved: Task/028-GitHub-OIDC-AWS`. **D-028-A**, **D-028-B** y **D-028-C** pasan a
+**Aceptadas y Vigentes** sin ADR nuevo —la tarea no crea ni reemplaza ninguno—, la excepción
+**EX-028-C7** queda **cerrada** con custodia externa cifrada y recuperación verificada, y el
+runbook `github-oidc-bootstrap.md` pasa a **Vigente**. **H-028-1** y **H-028-2** quedan
+**cerradas**, resueltas dentro de esta misma tarea por decisión del usuario. El avance pasa de
+**27/41 ≈ 66 %** a **28/41 ≈ 68 %** y la **ETAPA 09** de **1/3 ≈ 33 %** a **2/3 ≈ 67 %**.
+
+Lo que la aprobación **no** convierte en hecho: la **reconfirmación postmerge** desde `main` no
+existe todavía —requiere el merge humano y nunca fue prerrequisito—, el rol **no acredita
+despliegue** —cero políticas gestionadas y cero inline—, y lo observado en Floci sigue siendo
+hipótesis hasta la ETAPA 10. La configuración inicial de Portainer es anterior a la tarea y
+ajena a su cierre. [Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
+[Reporte](../task-reports/TASK-028-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 
@@ -165,9 +180,10 @@ el estado vivo de Git/GitHub.
 > start, parser API y aislamiento DNS desde Lambda real. **240 pruebas**, S-09 **126
 > exactas, 0 nuevas**; MinIO **99/99** y BuildKit intactos.
 >
-> **Task/027 Aprobada; avance vigente 27/41 ≈ 66 %; Stage09 / ETAPA 09 1/3 ≈ 33 %.**
+> **Task/028 Aprobada el 2026-09-27; avance vigente 28/41 ≈ 68 %; Stage09 / ETAPA 09 2/3 ≈ 67 %.**
 > Task/027.1 es mantenimiento: **no cuenta entre las 41 y no altera el avance**.
-> Task/028 permanece **Pendiente, no iniciada**.
+> *(Este bloque decía «Task/027 Aprobada; 27/41 ≈ 66 %; ETAPA 09 1/3 ≈ 33 %» y «Task/028 permanece
+> Pendiente, no iniciada». Era cierto hasta el 2026-09-27.)*
 > La aprobación humana determina el avance, independientemente de la rama y del PR.
 >
 > Observado el **2026-09-21**: el usuario cerró sin merge #47 y #48 el
@@ -289,11 +305,11 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 06 | Integración Continua | 3 | **3** | **100 %** | **Completada** | 05 ✔ |
 | 07 | Validación Local | 1 | **1** | **100 %** | **Completada** | 06 ✔ |
 | 08 | Preparación Cloud + AWS Local Parity | 4 | **4** | **100 %** | **Completada** | 07 ✔ |
-| 09 | Cuentas y Seguridad Cloud | 3 | **1** | **≈ 33 %** | **En progreso** | 08 ✔ |
+| 09 | Cuentas y Seguridad Cloud | 3 | **2** | **≈ 67 %** | **En progreso** | 08 ✔ |
 | 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **27** | **≈ 66 %** | | |
+| | **Total** | **41** | **28** | **≈ 68 %** | | |
 
 ---
 
@@ -690,7 +706,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: **27/41 ≈ 66 %**. ETAPA 09: **1/3 ≈ 33 %**.
+Actualmente: **28/41 ≈ 68 %**. ETAPA 09: **2/3 ≈ 67 %**.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de

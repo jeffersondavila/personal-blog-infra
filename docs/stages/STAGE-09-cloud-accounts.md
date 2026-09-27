@@ -76,7 +76,7 @@ Git, enlaces y patrones de secretos pasó; el usuario aprobó Task/027 el 2026-0
 [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) ·
 [Reporte](../task-reports/TASK-027-report.md)
 
-### `Task/028-GitHub-OIDC-AWS` — *Lista para validación*
+### `Task/028-GitHub-OIDC-AWS` — *Aprobada el 2026-09-27*
 
 Federación OIDC real GitHub Actions → AWS, **sin access keys permanentes**.
 Rol exclusivo `PersonalBlogGitHubOidcValidation`, cero managed/inline policies:
@@ -99,8 +99,11 @@ nueva —digest preservado por construcción, verificado releyéndolo del regist
 Task/027.1 intacta— y **consumido** por el entorno local, que ya no ejecuta la identidad
 vulnerable. Ese mismo día se corrigió el **runtime** de Portainer, que seguía ejecutando 2.39.7
 aunque la configuración ya fijara 2.45.1 —respaldo restaurado y verificado antes de migrar—, con
-lo que H-028-2 cierra de verdad. Los criterios de salida de abajo **no se marcan**: por
-convención de esta etapa, una casilla se marca cuando la respalda una tarea **aprobada**.
+lo que H-028-2 cierra de verdad. **Aprobada** el 2026-09-27 mediante
+`approved: Task/028-GitHub-OIDC-AWS`: sus decisiones pasan a **Aceptadas y Vigentes** sin ADR
+nuevo, **EX-028-C7** queda **cerrada** y el runbook pasa a **Vigente**. Con ella se marcan tres
+de los cuatro criterios de salida que le corresponden; el cuarto sigue abierto porque **la
+reconfirmación postmerge requiere el merge humano** y nunca fue prerrequisito de la aprobación.
 [Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
 [Reporte §12-§26](../task-reports/TASK-028-report.md).
 
@@ -169,15 +172,22 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
       verificado en Gate C; Task/027 aprobada.
 - [x] Presupuesto mensual definido con alertas por umbral — configuración y cuatro
       destinatarios verificados en Gate E; Task/027 aprobada.
-- [ ] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
-      **en GitHub**. Esta afirmación se limita a GitHub Actions: **no** describe todavía
+- [x] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
+      **en GitHub** — federación real demostrada, cero access keys permanentes; Task/028
+      aprobada. Esta afirmación se limita a GitHub Actions: **no** describe todavía
       cómo el VPS accederá a AWS (**D-16**).
-- [ ] El rol de validación tiene **cero managed policies y cero inline policies**,
-      trust exacta y GetCallerIdentity correcto, con evidencia real saneada.
-- [ ] Las operaciones negativas elegidas devuelven **AccessDenied**; no se deduce
-      ausencia universal de permisos por resource-based policies de toda la cuenta.
+- [x] El rol de validación tiene **cero managed policies y cero inline policies**,
+      trust exacta y GetCallerIdentity correcto, con evidencia real saneada — verificado
+      contra IAM tras el apply y en la convergencia posterior; Task/028 aprobada.
+- [x] Las operaciones negativas elegidas devuelven **AccessDenied**; no se deduce
+      ausencia universal de permisos por resource-based policies de toda la cuenta —
+      `AccessDenied` e `InvalidIdentityToken` exactos; Task/028 aprobada.
 - [ ] La trust final acepta exclusivamente main; el rechazo desde Task con token
-      nuevo y la reconfirmación postmerge main quedan demostrados.
+      nuevo y la reconfirmación postmerge main quedan demostrados. **Mitad cumplida:** la
+      trust main-only está aplicada y verificada contra IAM, y el rechazo desde la rama Task
+      con un JWT nuevo quedó demostrado el 2026-09-25. Falta **solo** la reconfirmación
+      postmerge, que por definición exige que el merge humano ya exista; no se marca la
+      casilla mientras esa mitad no tenga evidencia.
 
 Permisos de despliegue: fuera de este criterio, propietarios Task/038 y Task/039,
 validación integral Task/040. Inspección de resource policies: limitada al inventario

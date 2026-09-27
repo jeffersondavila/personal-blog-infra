@@ -4,7 +4,7 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **Lista para validación** — H-028-1 y H-028-2 **cerradas**, incluido el runtime de Portainer; `CI Infra` y `Verify AWS OIDC` en verde |
+| Estado | **Aprobada** el 2026-09-27 |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
@@ -37,17 +37,24 @@ trabajo; no constituye aprobación de la tarea ni autorización de operaciones c
 - [x] Root aislado `bootstrap/github-oidc/`, guardas y pruebas locales.
 - [x] Workflow de verificación sin publicación ni ejecución en este checkpoint.
 - [x] Runbook, reconciliación documental y evidencia local.
-- [ ] Tras autorización independiente: inventario, bootstrap, federación real y
+- [x] Tras autorización independiente: inventario, bootstrap, federación real y
   dos publicaciones premerge autorizadas individualmente.
 - [x] Trust final exclusiva de main, aplicada y verificada contra IAM el 2026-09-25.
 - [x] Segunda publicación premerge: `AccessDenied` con JWT nuevo desde Task, 2026-09-25.
 - [x] Custodia EX-028-C7 cerrada con recuperación externa verificada, 2026-09-25.
 - [ ] Reconfirmación postmerge desde main, posterior al merge humano (criterio 8).
 
-El 2026-09-24, con autorización acotada a **solo lectura AWS y plan**, se ejecutó
-una parte del tercer punto: inventario real (caso A, ownership A), recuperación
-cifrada verificada y plan revisado. Apply, federación real y publicaciones siguen
-sin autorizar y sin ejecutar, de modo que el punto permanece abierto.
+El tercer punto se completó por tramos, cada uno con su propia autorización
+acotada: el 2026-09-24 inventario real (caso A, ownership A), recuperación cifrada
+verificada y plan revisado, primero en **solo lectura** y después con apply y
+**federación real**; el 2026-09-25 la transición a trust exclusiva de `main` y la
+**segunda publicación premerge** con `AccessDenied` desde un JWT nuevo de la rama
+Task. Ninguna se ejecutó sin autorización previa y ninguna se dio por hecha sin
+evidencia.
+
+La **reconfirmación postmerge** sigue abierta y **no es prerrequisito de la
+aprobación**: por definición requiere que el merge humano ya exista. Es trabajo
+posterior al cierre, no un pendiente de implementación.
 
 ## 4. Fuera del alcance
 
@@ -241,13 +248,33 @@ Task/028 según WORKFLOW. Este checkpoint no cambia 27/41 ni ETAPA 09 1/3.
 
 ## 20. Aprobación
 
-Pendiente, exclusivamente del usuario. Estado **Lista para validación**: la
-implementación está completa y verificada contra AWS y GitHub reales, la custodia
-EX-028-C7 quedó cerrada con recuperación demostrada, y **H-028-1 y H-028-2 están
-resueltas dentro de esta misma tarea**, por decisión del usuario, en lugar de delegarlas.
-El derivado corregido quedó **publicado el 2026-09-27** en el GHCR privado con etiqueta nueva,
-verificado releyéndolo del registro, y **consumido** por `.env.example` y `.env`; la identidad
-de Task/027.1 no se tocó. La autorización
-local del 2026-09-21 no autoriza cierre, publicaciones ni recursos externos. La
-autorización del 2026-09-24 cubrió únicamente lectura AWS y plan: no autoriza
-apply, publicaciones, cierre ni aprobación.
+**APROBADA** el **2026-09-27** por el usuario mediante la expresión exacta:
+
+```
+approved: Task/028-GitHub-OIDC-AWS
+```
+
+Con la aprobación:
+
+- **D-028-A**, **D-028-B** y **D-028-C** pasan a **Aceptadas y Vigentes**, sin ADR nuevo:
+  esta tarea no crea ni reemplaza ningún ADR.
+- La **excepción EX-028-C7** queda **cerrada**, con custodia externa cifrada y recuperación
+  verificada de extremo a extremo.
+- El **runbook** `github-oidc-bootstrap.md` pasa a **Vigente**.
+- **H-028-1** y **H-028-2** quedan **cerradas**, resueltas dentro de esta misma tarea por
+  decisión del usuario en lugar de delegarlas a otra.
+- El avance pasa de **27/41 ≈ 66 %** a **28/41 ≈ 68 %**, y la **ETAPA 09** de **1/3 ≈ 33 %**
+  a **2/3 ≈ 67 %**.
+
+Lo que la aprobación **no** convierte en hecho, y sigue declarado tal cual:
+
+- La **reconfirmación postmerge** desde `main` no existe todavía; requiere el merge humano.
+- El **rol de validación no acredita despliegue**: cero políticas gestionadas y cero inline.
+- Lo observado en Floci sigue siendo hipótesis hasta la ETAPA 10.
+- La **configuración inicial de Portainer** —crear la cuenta de administrador, que esta
+  instalación nunca tuvo— es anterior a Task/028, no la bloqueó y queda fuera de su cierre.
+
+Las autorizaciones previas siguen siendo lo que fueron y no se reinterpretan: la del
+2026-09-21 cubría implementación local; la del 2026-09-24, lectura AWS y plan, y después
+apply y federación real; las posteriores, la transición de trust, la publicación del derivado
+corregido y la corrección del runtime de Portainer. Ninguna equivalía a aprobar la tarea.

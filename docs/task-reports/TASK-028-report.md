@@ -1924,3 +1924,68 @@ usa esa imagen, y su propia API declara `2.45.1`.
 
 No queda ninguna identidad corregida sin publicar, ningún consumidor apuntando a la identidad
 vulnerable, ni ningún proceso en marcha con `CVE-2026-84445` alcanzable.
+
+## 27. Aprobación y cierre (2026-09-27)
+
+El usuario aprobó la tarea con la expresión exacta:
+
+```
+approved: Task/028-GitHub-OIDC-AWS
+```
+
+### 27.1 Qué pasa a Aceptado y Vigente
+
+| Elemento | Antes | Ahora |
+| --- | --- | --- |
+| **D-028-A**, **D-028-B**, **D-028-C** | aceptadas por el usuario durante la ejecución | **Aceptadas y Vigentes** |
+| **EX-028-C7** | cerrada con recuperación verificada | **Cerrada y registrada** |
+| `docs/runbooks/github-oidc-bootstrap.md` | producido en la tarea | **Vigente** |
+| **H-028-1** | resuelta | **Cerrada** |
+| **H-028-2** | resuelta | **Cerrada** |
+| Avance global | 27/41 ≈ 66 % | **28/41 ≈ 68 %** |
+| ETAPA 09 | 1/3 ≈ 33 % | **2/3 ≈ 67 %** |
+
+**No se crea ni se reemplaza ningún ADR.** Esta tarea no modificó ninguno: los ADR que la
+gobiernan —**ADR-006** y **ADR-007**— ya estaban Aceptados y siguen intactos.
+
+### 27.2 Criterios de salida de la ETAPA 09
+
+Se marcan **tres** de los cuatro que corresponden a esta tarea: federación OIDC sin claves de
+larga vida, rol con cero políticas gestionadas y cero inline con trust exacta, y operaciones
+negativas devolviendo `AccessDenied`.
+
+El cuarto —trust exclusiva de `main` **con** reconfirmación postmerge— **no se marca**. Su
+primera mitad está demostrada: la trust main-only está aplicada y verificada contra IAM, y el
+rechazo desde la rama Task con un JWT nuevo quedó registrado. Falta la reconfirmación postmerge,
+que por definición exige que el merge humano ya exista. Marcar la casilla con esa mitad sin
+evidencia sería falso, así que se deja abierta y se dice por qué.
+
+### 27.3 Lo que la aprobación no convierte en hecho
+
+- La **reconfirmación postmerge** desde `main` no existe todavía. **Nunca fue prerrequisito** de
+  la aprobación; el criterio 8 de la ficha se corrigió precisamente para no exigir algo
+  imposible antes del merge.
+- El rol `PersonalBlogGitHubOidcValidation` **no acredita despliegue**: cero políticas
+  gestionadas y cero inline. Los permisos mínimos son de `Task/038` y `Task/039`, y la
+  validación integral de `Task/040`.
+- **`main` sigue sin protección de rama.** Debe existir antes de habilitar roles de despliegue
+  efectivos.
+- Lo observado en **Floci** sigue siendo hipótesis hasta la ETAPA 10 (ADR-006, límite 5).
+- **D-06** está resuelta en el modelo; el bucket lo materializa `Task/030`.
+- **SBOM y procedencia** siguen sin publicarse junto a la imagen: pendiente heredado de
+  Task/027.1, atado a hacer público el paquete, que no está autorizado.
+- **`GHCR_MINIO_READ_TOKEN`** caduca el **2027-09-25** y requiere rotación antes.
+- La **configuración inicial de Portainer** —crear la cuenta de administrador, que esta
+  instalación nunca tuvo— es anterior a Task/028 y ajena a su cierre.
+
+### 27.4 Flujo de cierre ejecutado
+
+Según [`WORKFLOW.md`](../project-management/WORKFLOW.md) y las instrucciones del proyecto, en el
+único repositorio afectado —`personal-blog-infra`—: se registró la aprobación, se promovieron las
+decisiones, se actualizaron STATUS, ROADMAP, ficha, etapa y avance, se reejecutaron las
+validaciones, se integró la rama Task en `dev` mediante `merge --no-ff`, se publicó `dev`, se
+creó el pull request **`Task/028-GitHub-OIDC-AWS → main`** y se eliminó la rama Task **local**
+con `git branch -d`.
+
+**El pull request no se acepta ni se fusiona:** es responsabilidad exclusiva del usuario. La
+rama Task **remota no se elimina**. No se inicia la tarea siguiente.
