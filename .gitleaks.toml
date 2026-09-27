@@ -4,11 +4,10 @@
 # Gitleaks siguen activas.
 #
 # Unica excepcion, anadida en Task/028: las lineas de `go.sum` que viajan dentro
-# de los parches del derivado reproducible de MinIO
-# (`docker/minio/*-deps-*.patch`). Esas lineas son **sumas de comprobacion de
-# modulos Go** en formato dirhash —`h1:` seguido del Base64 de 32 bytes—, y
-# `generic-api-key` las marca cuando la ruta del modulo contiene `auth`,
-# `oauth2` o `api`:
+# de los parches de dependencias del derivado reproducible de MinIO. Son **sumas
+# de comprobacion de modulos Go** en formato dirhash —`h1:` seguido del Base64
+# de 32 bytes—, y `generic-api-key` marca aquellas cuya ruta de modulo contiene
+# `auth`, `oauth2` o `api`:
 #
 #   cloud.google.com/go/auth v0.16.0 h1:...=
 #   golang.org/x/oauth2 v0.36.0 h1:...=
@@ -19,27 +18,41 @@
 # contrario al de un secreto —permitir que cualquiera verifique el modulo—. Sin
 # ellos el build no podria ejecutar `go mod verify`.
 #
+# La excepcion exige DOS condiciones a la vez, y de ahi `condition = "AND"`:
+#
+#   1. el hallazgo esta en uno de los parches de dependencias del derivado, y
+#   2. el valor detectado es EXACTAMENTE un Base64 de 32 bytes.
+#
+# Se comprobo empiricamente, con un control positivo, que asi queda acotada: el
+# **mismo** Base64 colocado en otro archivo **sigue apareciendo** como hallazgo.
+#
 # Por que asi y no de otra forma:
 #
 #   - NO se desactiva `generic-api-key` ni ninguna otra regla.
-#   - NO se exceptua ninguna ruta ni ningun archivo completo: la excepcion es
-#     por FORMA DE LINEA, de modo que cualquier otro contenido de esos mismos
-#     parches sigue analizandose.
+#   - NO se exceptua ningun archivo completo: dentro de esos mismos parches,
+#     cualquier valor que no sea un Base64 de 32 bytes sigue analizandose.
 #   - NO se usa `.gitleaksignore` con huellas: una huella lleva dentro el SHA
 #     del commit y deja de aplicar en cuanto el commit cambia, asi que oculta
 #     mas de lo que declara.
 #
-# El patron exige la gramatica completa de una entrada de `go.sum`: ruta de
-# modulo, version semantica, el sufijo opcional `/go.mod`, y un Base64 de
-# longitud exacta. Un secreto no puede pasar por aqui sin adoptar esa forma
-# entera.
+# Dos trampas de esta configuracion, comprobadas en Gitleaks 8.30.1:
+#
+#   - `condition` es la clave correcta. `matchCondition` **se ignora en
+#     silencio** y la lista degrada a OR, que permitiria el Base64 en cualquier
+#     ruta. Si alguien la renombra, la excepcion se vuelve amplia sin avisar.
+#   - Los patrones van en cadenas literales `'''...'''`. Con `"""..."""` TOML
+#     interpreta los escapes y `\.` o `\-` abortan la carga del archivo.
 
 [extend]
 useDefault = true
 
 [[allowlists]]
-description = "Sumas de comprobacion de modulos Go (go.sum), publicas por diseno"
-regexTarget = "line"
+description = "Sumas de comprobacion de modulos Go (go.sum) en los parches del derivado de MinIO"
+condition = "AND"
+paths = [
+  '''^docker/minio/[a-z0-9\-]+-deps-[a-z0-9.\-]+\.patch$''',
+]
+regexTarget = "secret"
 regexes = [
-  '''^[+\- ]?[a-z0-9.\-]+\.[a-z]{2,}(/[^\s@]+)* v[0-9]+\.[0-9]+\.[0-9]+[^\s]*(/go\.mod)? h1:[A-Za-z0-9+/]{43}=$''',
+  '''^[A-Za-z0-9+/]{43}=$''',
 ]
