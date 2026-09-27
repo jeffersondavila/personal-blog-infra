@@ -275,6 +275,11 @@ observado en Floci sigue siendo hipótesis hasta la ETAPA 10.
   Que el emulador soporte RDS **no** decide nada: desde
   [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) (**Aceptada**) **RDS ya no es
   el destino de producción**, y `Task/025` **no debe crear recursos RDS**.
+  *(Enmienda propuesta por `Task/028.2`, pendiente de aprobación:
+  [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone RDS privado **por
+  créditos AWS y prioridad de aprendizaje, no porque el emulador lo soporte**: la regla
+  sigue siendo cierta. `Task/025`, aprobada, **no** contiene RDS y no se reabre. `Task/029`
+  diseña, y `Task/031` amplía el grafo **después** del backend de estado de `Task/030`.)*
 - Verificar el **mínimo privilegio** de las políticas IAM: es **AWS-only**, porque el
   emulador no aplica políticas por omisión.
 - Dimensionar la Lambda a partir de mediciones locales: el arranque en frío del laboratorio

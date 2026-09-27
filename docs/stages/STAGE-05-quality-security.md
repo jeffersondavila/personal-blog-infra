@@ -112,6 +112,11 @@ local, verifica **O-03** y aporta el correlation ID a **O-05**. **No** cubre **O
 > propietaria del monitoreo del VPS de producción**: ese *baseline* lo construye
 > `Task/029` y lo valida `Task/040`. `Task/031` cubre **solo** AWS. Ningún documento
 > vigente debe apuntar el monitoreo del VPS a esta tarea.
+>
+> *(Enmienda propuesta por `Task/028.2`, pendiente de aprobación: sin VPS, el monitoreo
+> productivo de la capa de datos pasa a `Task/031` —señales de RDS en CloudWatch e
+> integración **D-20**—; `Task/032`/`Task/033` añaden Lambda y API, y `Task/040` valida.
+> La regla no cambia: `Task/017` es local y no acredita observabilidad productiva.)*
 
 **Depende de:** `Task/014`, `Task/015`.
 **Repositorios:** `personal-blog-backend`, `personal-blog-infra`.
@@ -183,8 +188,10 @@ aceptados en el [reporte](../task-reports/TASK-018-report.md).
 
 - Automatización de estas verificaciones en CI (Etapa 06).
 - Observabilidad cloud con CloudWatch (Etapa 10) y con **Grafana Cloud** (`Task/029`,
-  `Task/031`). **`Task/017` es local y no observa el VPS de producción.**
-- **Monitoreo del VPS de producción** (`Task/029`, validado en `Task/040`).
+  `Task/031`). **`Task/017` es local y no observa el VPS de producción.** *(Enmienda
+  propuesta por `Task/028.2`: Grafana Cloud recibe datos solo por **D-20**, en `Task/031`.)*
+- **Monitoreo del VPS de producción** (`Task/029`, validado en `Task/040`). *(Enmienda
+  propuesta por `Task/028.2`: monitoreo de RDS en `Task/031`, validado en `Task/040`.)*
 - **Cambiar la estrategia de *rendering*** del frontend: `Task/016` solo puede **abrir** la
   reconsideración con evidencia; resolverla exige un ADR propio.
 - Protección de costos (Etapa 12).

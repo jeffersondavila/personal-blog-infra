@@ -560,6 +560,7 @@ nadie lo decida es más peligroso que acumular unos megabytes.
 | Backup del esquema de la aplicación | No hay esquema hasta `Task/008`; el procedimiento ya lo cubrirá automáticamente. |
 | Restauración a un punto en el tiempo | Requeriría WAL archiving; desproporcionado para un entorno local. |
 | Backups de PostgreSQL de producción en el VPS, **fuera del host** y con restore probado | `Task/029`, decisión D-10. Ver [production-postgresql-vps.md](../architecture/production-postgresql-vps.md) §15. |
+| *(Propuesta `Task/028.2`)* Backups administrados, PITR y restore de **RDS**, separados de estos respaldos locales | **D-10**: `Task/029` decide; `Task/031` demuestra un restore sintético; `Task/040` un restore reciente. [Canónico RDS](../architecture/production-postgresql-rds.md) §4. Estos respaldos **locales** siguen sin cifrar (**R-12**). |
 
 Nada de esto se ignora en silencio: el script **detecta** las configuraciones que no sabe
 restaurar y **aborta** salvo que se le pase `-AllowPartial`, en cuyo caso marca el

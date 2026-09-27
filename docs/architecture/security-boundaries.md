@@ -3,7 +3,14 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** — aprobado en `Task/002-Definir-MVP-y-Arquitectura` (2026-07-26) |
-| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) · §11 añadida por `Task/011` (2026-09-01) · §12 añadida por `Task/012` (2026-09-01) · **B-08 enmendada y B-08b añadida** por `Task/012.1` (2026-09-05) |
+| **Fecha** | 2026-07-26 · §8 añadida y **aprobada** el 2026-08-15 (`Task/005.2`) · §9 añadida y **aprobada** el 2026-08-15 (`Task/005.3`) · §10 añadida y **aprobada** el 2026-08-23 (`Task/006.2`) · §11 añadida por `Task/011` (2026-09-01) · §12 añadida por `Task/012` (2026-09-01) · **B-08 enmendada y B-08b añadida** por `Task/012.1` (2026-09-05) · **§9.5 y §10.5 propuestas** por `Task/028.2` (2026-09-27, **pendientes de aprobación**) |
+
+> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.**
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone sustituir el VPS
+> (C-13), PgBouncer (C-14) y Alloy (C-16) por **RDS privado** (C-15 reformulado). Los IDs
+> se conservan y **no se reutilizan**. Las reglas V-01–V-13 y G-01–G-11 se mantienen como
+> estaban aprobadas; §9.5 y §10.5 indican cuáles se trasladan, cuáles pierden objeto y qué
+> reglas nuevas —**DB-01 a DB-10**— se proponen. Este documento no autoriza operación cloud.
 
 Identifica los **componentes** del sistema, qué comunicaciones entre ellos están
 permitidas y cuáles están explícitamente prohibidas.
@@ -35,6 +42,17 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-15 | **PostgreSQL de producción** | Datos, **privado en el VPS** | **Nunca alcanzable desde Internet.** Solo acepta conexiones internas del VPS. |
 | C-16 | **Grafana Alloy** (`Task/006.2`) | En el VPS, **solo salida** | Agente de telemetría. **No abre puertos de entrada.** Lee logs y métricas del host y de sus servicios: **ve datos sensibles por diseño**. Ver §10. |
 | C-17 | **Grafana Cloud** (`Task/006.2`) | Internet, **tercero** | Destino externo de telemetría. **Los datos que le llegan salen del perímetro del proyecto.** No tiene acceso a AWS ni al VPS mientras **D-20** siga abierta. Ver §10. |
+
+**Enmienda propuesta por `Task/028.2`** —pendiente de aprobación; la tabla anterior
+conserva el texto aprobado—:
+
+| # | Componente propuesto | Zona | Nivel de confianza |
+| --- | --- | --- | --- |
+| C-13 | *VPS de producción* — **retirado** | — | ID conservado, no reutilizable. Sin host propio |
+| C-14 | *PgBouncer* — **retirado** | — | ID conservado. El *pooling* y RDS Proxy son **D-12**, no un componente adoptado |
+| C-15 | **PostgreSQL de producción — Amazon RDS privado** | Datos, **subnets privadas de una VPC de AWS** | **Nunca alcanzable desde Internet.** Solo acepta conexiones del security group de la Lambda y del canal privado **D-24**, con TLS. Su compromiso, el de sus credenciales, sus snapshots o su clave KMS **equivale a exponer todos los datos del blog**. Ver §9.5 |
+| C-16 | *Grafana Alloy* — **retirado** | — | ID conservado. RDS no admite agente; sus métricas nativas van a CloudWatch |
+| C-17 | **Grafana Cloud** | Internet, **tercero** | Sin cambios de confianza. Recibe datos **solo** por **D-20**, con un principal dedicado de solo lectura; **nunca** acceso SQL, de despliegue ni Terraform. Ver §10.5 |
 
 > **C-03 y C-04 no son límites de seguridad.** Ocultar un botón no protege nada: la
 > autorización se decide siempre en C-06.
@@ -70,6 +88,17 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | C-16 Grafana Alloy | C-13 / C-14 / C-15 en el VPS | Sí, **solo lectura** | Lee logs, métricas y estado **dentro del host**. No modifica servicios ni datos. |
 | C-17 Grafana Cloud | C-11 CloudWatch | **Todavía no** | Contemplado en la arquitectura, **no implementado**. Exigirá permisos **mínimos y de solo lectura** (**D-20**, `Task/031`). |
 
+**Enmienda propuesta por `Task/028.2`**, pendiente de aprobación. Las filas de C-14, del
+backup del VPS, de SSH al VPS y de C-16 **pierden objeto**. Se proponen:
+
+| Origen | Destino | Permitido | Condición |
+| --- | --- | --- | --- |
+| C-11 Lambda (en VPC) | C-15 RDS | Sí | Solo de security group a security group; **TLS con validación de CA y *hostname***; usuario SQL de la aplicación, nunca el *master* (**D-23**) |
+| Canal privado de administración y migraciones (**D-24**) | C-15 RDS | Sí, **acotado** | Identidad propia, duración limitada, ejecuciones serializadas, salida saneada; para restore, migraciones y recuperación (`Task/031`, `Task/036`, `Task/038`) |
+| C-11 Lambda (en VPC) | C-08 Amazon S3 y C-11 SSM | Sí | Por las rutas decididas en **D-22** —*gateway endpoint* de S3 candidato, *interface endpoint* de SSM si se lee en *runtime*—, con políticas mínimas |
+| C-15 RDS | C-11 CloudWatch | Sí | Métricas nativas y logs seleccionados (**D-11**) |
+| C-17 Grafana Cloud | C-11 CloudWatch | **Sí, en `Task/031`** | Principal dedicado, **solo lectura** y alcance mínimo (**D-20**) |
+
 ---
 
 ## 3. Comunicaciones prohibidas
@@ -101,6 +130,21 @@ Relacionados: [non-functional-requirements.md](non-functional-requirements.md) �
 | Secretos, credenciales o datos personales innecesarios | C-17 Grafana Cloud | La telemetría **sale del perímetro del proyecto**. Regla **O-08** y **O-09**: no viaja lo que no debe salir (§10). |
 | C-17 Grafana Cloud | C-13 VPS o C-11 AWS con permisos amplios | Ningún destino de telemetría recibe acceso administrativo. Cuando **D-20** se resuelva, será **solo lectura** y de **permiso mínimo** (§10). |
 | **Stack de observabilidad autohospedado** (Grafana, Prometheus, Loki) | C-13 VPS | Prohibido por [ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md): compite por los recursos reservados a PostgreSQL y cae con el host que debía vigilar. |
+
+**Enmienda propuesta por `Task/028.2`**, pendiente de aprobación. Las filas que nombran
+C-14 o el VPS pierden objeto **en su forma**, no en su fondo. Se proponen:
+
+| Origen | Destino | Motivo |
+| --- | --- | --- |
+| Internet, `0.0.0.0/0` o `::/0` | C-15 RDS | **La base de datos nunca se publica**: sin acceso público y sin reglas abiertas en su security group |
+| C-01 / C-02 Navegador | C-15 RDS | El cliente **nunca** habla con la capa de datos |
+| C-11 Lambda | C-15 RDS **sin TLS verificado** | Prohibido: TLS sin validar no protege frente a un intermediario |
+| Credencial *master* de RDS | Runtime de la aplicación | La aplicación usa su propio usuario SQL; la *master* solo por el canal administrativo |
+| *Runner* público de C-10 GitHub Actions | C-15 RDS | **OIDC acredita identidad, no conectividad SQL**: las migraciones van por **D-24** |
+| Rol de validación OIDC de `Task/028` | Despliegue, Terraform o SQL | Sigue **sin políticas**; los roles de despliegue, Terraform, ejecución y migración son **otros** |
+| C-17 Grafana Cloud | Acceso SQL, de despliegue o Terraform | Solo lectura de CloudWatch, por **D-20** |
+| C-10 GitHub Actions | Borrado de RDS, de sus snapshots o de su clave KMS | Ningún workflow borra datos reales; *deletion protection* y snapshot final |
+| Credenciales de la base de datos | Git, `.tfvars`, *outputs*, planes publicados o logs | `sensitive` no elimina el valor del *state*: su custodia se define antes del `apply` |
 
 ---
 
@@ -146,6 +190,14 @@ de **nivel host**, no de nivel aplicación.
 | **SSH del VPS** | Fuerza bruta, credenciales robadas | Solo llave, sin contraseña, servicios mínimos (§9) | `Task/029`, `Task/018` |
 | **Host del VPS sin parchear** | Vulnerabilidades acumuladas en SO, PostgreSQL y PgBouncer | Política de actualizaciones y parcheo definida en `Task/029` | `Task/029`, `Task/018` |
 | **Backups del VPS** | Fuga de datos si se almacenan sin cifrar; pérdida total si no salen del host | Cifrado y destino externo con credenciales de mínimo privilegio (§9) | `Task/029`, `Task/026` |
+| *(Propuesta `Task/028.2`)* **RDS y su security group** | Exposición pública accidental; regla demasiado amplia | Sin acceso público, subnets privadas, SG de SG a SG y casos negativos (§9.5, DB-01) | `Task/029` decide · `Task/031` · `Task/040` |
+| *(Propuesta)* **Credenciales de la base de datos y KMS** | Fuga, rotación fallida o pérdida de la clave | **D-23**, custodia del *state* y *master* fuera del runtime (DB-03, DB-04) | `Task/029` · `Task/031`/`Task/032` · `Task/040` |
+| *(Propuesta)* **Snapshots y backups de RDS** | Compartición pública accidental; borrado; backup que no restaura | Cifrado, *deletion protection*, snapshot final y restore probado (DB-06, DB-07) | `Task/031`, `Task/040` |
+| *(Propuesta)* **Canal privado de migraciones (D-24)** | Ejecución accidental o concurrente contra producción | Identidad propia, serialización, entorno protegido y backup previo (DB-05) | `Task/031`, `Task/036`, `Task/038` |
+| *(Propuesta)* **Rutas de salida de la Lambda en VPC** | NAT innecesario o política de *endpoint* que rompe las URLs prefirmadas | Inventario de tráfico y rutas específicas (DB-09) | `Task/029`, `Task/030`, `Task/032` |
+
+*(Enmienda propuesta: las filas de PgBouncer, SSH, parcheo del host y backups del VPS
+pierden objeto; las cinco filas anteriores las sustituyen.)*
 
 ---
 
@@ -163,7 +215,9 @@ de **nivel host**, no de nivel aplicación.
    llame como se llame. Su compromiso es un incidente de host, no de aplicación.
 10. **La base de datos nunca se expone a Internet**, en ningún entorno. Si hay que
     alcanzarla desde fuera, se hace a través de un *boundary* explícito y cifrado
-    (`Task/005.3`).
+    (`Task/005.3`). *(Enmienda propuesta por `Task/028.2`: con RDS privado **no** hay
+    alcance desde fuera de la VPC; el *boundary* son las subnets privadas, los security
+    groups y TLS.)*
 
 ---
 
@@ -192,6 +246,19 @@ de **nivel host**, no de nivel aplicación.
 | **Credenciales de CI hacia Cloudflare y el proveedor del VPS**, con *scopes* y rotación | `Task/039`. `Task/028` cubre **solo** GitHub → AWS |
 | **Guardas de destino multi-provider** antes de un `apply` real | `Task/039`, sobre las guardas de `Task/025` |
 | **Canal de migraciones en producción**: credencial, orden y protección contra ejecución accidental | `Task/038` |
+
+**Enmienda propuesta por `Task/028.2`**, pendiente de aprobación. Las filas de
+*hardening* del VPS, TLS/SCRAM/mTLS en PgBouncer, certificado de PgBouncer, **D-16**,
+*baseline* del VPS y credenciales del proveedor del VPS **pierden objeto**. Las sustituyen:
+
+| Elemento | Tarea |
+| --- | --- |
+| Red, subnets, security groups, rutas y *endpoints* (**D-22**) | Decide `Task/029` · implementa `Task/031` · prueba `Task/032` · valida `Task/040` |
+| TLS hacia RDS, KMS, credenciales SQL y rotación (**D-23**) | Decide `Task/029` · implementa `Task/031`/`Task/032` · valida `Task/040` |
+| Canal privado de administración y migraciones (**D-24**) | Decide `Task/029` · habilita `Task/031` · estrena `Task/036` · automatiza `Task/038` |
+| Backups, PITR, snapshots y restore (**D-10**) | Decide `Task/029` · demuestra `Task/031` (sintético) · valida `Task/040` (reciente) |
+| Señales y alarmas de RDS, incluido el fallo de backup | `Task/031`; validado en `Task/040` |
+| Credenciales de CI hacia **Cloudflare** | `Task/039` |
 
 ---
 
@@ -326,6 +393,53 @@ Se evalúa en `Task/029`.
 - **El entorno local no cambia.** PostgreSQL en Docker sigue siendo el destino de desarrollo.
 - **No relaja** ninguna regla existente de este documento; añade las suyas.
 
+### 9.5 Enmienda propuesta — RDS privado (C-15), `Task/028.2`
+
+> **Propuesta — pendiente de aprobación.** Solo `approved:
+> Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` la hace vigente. Las reglas
+> V-01–V-13 de arriba se conservan como estaban aprobadas.
+
+Con [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), la capa de datos es un
+**RDS privado dentro de una VPC de AWS**. Desaparecen el host, SSH y PgBouncer. **No
+desaparece** que su compromiso equivale a exponer todos los datos del blog.
+
+| # | Regla propuesta | Owner / evidencia |
+| --- | --- | --- |
+| DB-01 | **RDS sin acceso público**, en subnets privadas. Su security group admite el puerto SQL **solo** desde los security groups autorizados —Lambda y canal **D-24**—; nunca desde `0.0.0.0/0` ni `::/0` | **D-22** · `Task/031` · casos negativos en `Task/040` |
+| DB-02 | **TLS obligatorio con validación de CA y *hostname*** (equivalente a `verify-full`), TLS forzado en el *parameter group* y rotación de la CA planificada | **D-23** · `Task/031`/`Task/032` · `Task/040` |
+| DB-03 | **Cifrado en reposo con la clave KMS decidida antes de crear la instancia**: custodia y recuperación definidas; snapshots nunca públicos; la clave nunca se deshabilita ni se programa para borrado como parte de una prueba | **D-23** · `Task/031` |
+| DB-04 | **Credenciales separadas**: el usuario de la aplicación no es *master* ni tiene DDL; migración y administración tienen identidades propias. Ningún secreto en Git, `.tfvars`, *outputs*, planes publicados ni logs; custodia del *state* definida antes del `apply`. IAM DB authentication **evaluable, no adoptada** | **D-23**/**D-24** · `Task/031`/`Task/032`/`Task/036`/`Task/038` |
+| DB-05 | **Acceso operativo solo por el canal privado D-24**, con identidad propia, duración limitada y ejecuciones serializadas. **OIDC acredita identidad, no conectividad SQL** | **D-24** · `Task/031`/`Task/036`/`Task/038` |
+| DB-06 | **Backups automáticos con retención no nula, PITR y snapshots** no sustituyen al **restore demostrado** ni a RPO/RTO medidos | **D-10** · `Task/031` (sintético) · `Task/040` (reciente) |
+| DB-07 | ***Deletion protection*, snapshot final** y **ningún `destroy` automático** contra la base real | `Task/031` · `Task/039` |
+| DB-08 | **Conexiones con presupuesto derivado y medido**, reserva para administración, migraciones y sondas, *timeouts* y pruebas de saturación. RDS Proxy solo con evidencia | **D-12** · `Task/032` · `Task/040` |
+| DB-09 | **Tráfico de salida inventariado**: rutas específicas a S3 y SSM, políticas de *endpoint* compatibles con las URLs prefirmadas, **sin NAT implícito** | **D-22** · `Task/029`/`Task/031`/`Task/032` |
+| DB-10 | **Monitoreo** de almacenamiento, IOPS, CPU, memoria, conexiones y eventos —incluido el fallo de backup—, con alarmas **disparadas en prueba segura** | **D-11** · `Task/031` · `Task/040` |
+
+**Qué pasa con cada regla V:**
+
+| V | Con la enmienda propuesta |
+| --- | --- |
+| V-01 PostgreSQL no expuesto | → **DB-01** |
+| V-02 PgBouncer único endpoint | **Sin objeto**: el *endpoint* privado de RDS solo es alcanzable desde los security groups de DB-01 |
+| V-03 TLS con validación | → **DB-02** |
+| V-04 Autenticación fuerte (SCRAM) | → **DB-04**; el mecanismo concreto lo decide **D-23** |
+| V-05 Firewall *deny-by-default* | → **DB-01**: security group con reglas mínimas |
+| V-06 SSH solo por llave | **Sin objeto**: no hay SSH. El acceso operativo es **DB-05** |
+| V-07 Servicios mínimos en el host | **Sin objeto**: AWS opera el host |
+| V-08 Ningún secreto versionado | → **DB-04** |
+| V-09 Actualizaciones y parcheo | AWS parchea el host; **versión, ventana de mantenimiento y actualizaciones menores** las decide el proyecto (**D-22**) |
+| V-10 Runtime con mínimo privilegio | **Sin objeto** |
+| V-11 Monitoreo de disco y recursos | → **DB-10** |
+| V-12 Backups cifrados fuera del host | → **DB-03** y **DB-06**; **D-16** pierde objeto |
+| V-13 Compromiso = exposición de datos | Se mantiene para C-15, sus credenciales, sus snapshots y su clave KMS |
+
+**§9.2 sigue en pie:** cambiar el puerto de RDS, confiar en que nadie conozca el
+*endpoint* o en que la VPC «no se ve» **no son controles**. La frontera son las subnets
+privadas, los security groups, TLS y la autenticación. **§9.3 pierde objeto:** mTLS con
+certificado de cliente no forma parte de este diseño; la alternativa evaluable es IAM DB
+authentication (**D-23**).
+
 ---
 
 ## 10. Observabilidad de producción (C-16, C-17) — reglas explícitas
@@ -400,6 +514,29 @@ Un **agente** que empuja hacia fuera no tiene ninguno de los dos.
 - **La aplicación no cambia.** Emite logs JSON con correlation ID por `stdout`; quién los
   recoge es decisión de infraestructura.
 - **No relaja** ninguna regla existente de este documento; añade las suyas.
+
+### 10.5 Enmienda propuesta — observabilidad sin agente de host, `Task/028.2`
+
+> **Propuesta — pendiente de aprobación.** Las reglas G-01–G-11 de arriba se conservan
+> como estaban aprobadas.
+
+Sin VPS no hay Alloy (C-16 retirado). **Grafana Cloud sigue siendo el plano central**
+([ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md)) y recibe datos
+**solo** desde CloudWatch por **D-20**, que `Task/031` decide e implementa.
+
+| G | Con la enmienda propuesta |
+| --- | --- |
+| G-01 Alloy no abre puertos | **Sin objeto** |
+| G-02 La telemetría no lleva secretos | **Se mantiene**: aplica a **D-20** y a los logs de PostgreSQL que se exporten |
+| G-03 Sin datos personales innecesarios | **Se mantiene**, igual que G-02 |
+| G-04 Credencial de Alloy como secreto del VPS | **Sin objeto**. El principal de **D-20** no usa credenciales de larga vida versionadas |
+| G-05 Alloy con mínimo privilegio en el host | **Sin objeto** |
+| G-06 Ningún secreto de Grafana versionado | **Se mantiene** |
+| G-07 Grafana Cloud sin acceso a AWS todavía | **Cambia**: en `Task/031`, acceso de **solo lectura** a CloudWatch con alcance mínimo; **nunca** SQL, despliegue ni Terraform |
+| G-08 El compromiso de Grafana no implica el de AWS | **Se mantiene** |
+| G-09 Sin *stack* autohospedado en el VPS | **Se generaliza**: sin *stack* autohospedado en ninguna parte |
+| G-10 Retención corta y explícita | **Se mantiene** (**D-11**) |
+| G-11 Cifras comerciales no permanentes | **Se mantiene** (**D-19**, verificada antes de integrar) |
 
 ---
 
@@ -602,7 +739,9 @@ incorrecto. El borde con TLS real es `Task/033`–`Task/035`.
 - **No afirma que los respaldos locales estén cifrados.** No lo están. Contienen datos
   sensibles —incluidos los *hashes* de autenticación de Portainer— y siguen protegidos
   solo por estar ignorados por Git y no salir de la máquina (**R-12**, `Task/029` /
-  **D-17**).
+  **D-17**). *(Enmienda propuesta por `Task/028.2`: el cierre por no aplicabilidad de D-17
+  **no** cifra estos respaldos. **R-12** sigue abierto: `Task/029` prepara su contrato de
+  custodia y `Task/031` su revisión, separada de los backups de RDS.)*
 - **No afirma «cero vulnerabilidades»** en las imágenes. Quedan hallazgos aceptados y
   diferidos, con su recuento y su motivo en el reporte de la tarea.
 - **No sustituye a `Task/019`–`Task/021`.** Las auditorías fueron **puntuales y
@@ -611,7 +750,10 @@ incorrecto. El borde con TLS real es `Task/033`–`Task/035`.
 ## Bootstrap OIDC Task/028 — límite de identidad
 
 Diseño de trabajo aceptado el 2026-09-21; implementación local En progreso, sin
-evidencia AWS real. El rol humano PersonalBlogAdministrator no es el rol de CI.
+evidencia AWS real. *(Corrección de drift de `Task/028.2`: `Task/028` quedó **Aprobada** el
+2026-09-26 con federación real demostrada contra AWS; la evidencia está en su
+[reporte](../task-reports/TASK-028-report.md). Nada de este apartado cambia con la enmienda
+RDS: el rol de validación **sigue sin políticas** y no se amplía.)* El rol humano PersonalBlogAdministrator no es el rol de CI.
 PersonalBlogGitHubOidcValidation no lleva managed ni inline policies; trust exacta
 Task caducable y posteriormente main exclusiva. Provider compartido: solo data;
 discrepante/indeterminado: detener sin modificar/importar. EX-028-C7 acota el estado

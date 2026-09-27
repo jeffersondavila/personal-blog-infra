@@ -3,12 +3,12 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 09 |
-| **Estado** | **En progreso** — `Task/027` Aprobada, 1/3 tareas aprobadas |
+| **Estado** | **En progreso** — `Task/027` y `Task/028` Aprobadas, 2/3 tareas aprobadas. *(Corregido en `Task/028.2`: decía «`Task/027` Aprobada, 1/3».)* |
 | **Dependencias** | [ETAPA 08](STAGE-08-cloud-ready.md) |
 | **Tareas** | 3 |
-| **Aprobadas** | 1 |
-| **Avance** | ≈ 33 % |
-| **Hito que completa** | Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a AWS sin credenciales permanentes** (OIDC, `Task/028`). El modelo de identidad del **VPS hacia AWS** se decide en `Task/029` (**D-16**, abierta) y **Cloudflare y el proveedor del VPS pueden exigir otro mecanismo** (`Task/039`). *(Acotado en `Task/005.6`: el hito afirmaba «acceso sin credenciales permanentes» sin restringir el sujeto, lo que prejuzgaba decisiones todavía abiertas.)* |
+| **Aprobadas** | 2 |
+| **Avance** | ≈ 67 % |
+| **Hito que completa** | Cuentas cloud seguras, con presupuesto y **acceso de GitHub Actions a AWS sin credenciales permanentes** (OIDC, `Task/028`). El modelo de identidad del **VPS hacia AWS** se decide en `Task/029` (**D-16**, abierta) y **Cloudflare y el proveedor del VPS pueden exigir otro mecanismo** (`Task/039`). *(Acotado en `Task/005.6`: el hito afirmaba «acceso sin credenciales permanentes» sin restringir el sujeto, lo que prejuzgaba decisiones todavía abiertas.)* *(Enmienda propuesta por `Task/028.2`: el hito incluye además el **diseño RDS preparado** por `Task/029`, **sin provisión**; D-16 tiene cierre por no aplicabilidad propuesto, y Cloudflare sigue pudiendo exigir otro mecanismo en `Task/039`.)* |
 
 ---
 
@@ -104,6 +104,9 @@ lo que H-028-2 cierra de verdad. **Aprobada** el 2026-09-26 mediante
 nuevo, **EX-028-C7** queda **cerrada** y el runbook pasa a **Vigente**. Con ella se marcan tres
 de los cuatro criterios de salida que le corresponden; el cuarto sigue abierto porque **la
 reconfirmación postmerge requiere el merge humano** y nunca fue prerrequisito de la aprobación.
+*(Actualizado en `Task/028.2`: el cuarto criterio quedó demostrado el 2026-09-26 —`Verify
+AWS OIDC` **success** sobre `main` en `e0fa95b`— y lo registró `Task/028.1`; ver los
+criterios de salida. Este párrafo había quedado sin actualizar.)*
 [Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
 [Reporte §12-§26](../task-reports/TASK-028-report.md).
 
@@ -113,7 +116,40 @@ antes de habilitar roles de despliegue efectivos. No promover el rol de validaci
 
 **Depende de:** `Task/027`.
 
-### `Task/029-Preparar-PostgreSQL-Produccion-en-VPS` — *Pendiente*
+### `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — *Pendiente*
+
+> **Alcance redefinido de nuevo el 2026-09-27** por `Task/028.2` (mantenimiento):
+> **propuesta pendiente de aprobación**. El **identificador `029` no cambia**; cambian el
+> nombre y el alcance. Antes se llamaba `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`,
+> y antes aún `Task/029-Seleccionar-PostgreSQL-Administrado`. Estrategia propuesta:
+> [production-postgresql-rds.md](../architecture/production-postgresql-rds.md) ·
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Propuesta**. Ficha:
+> [TASK-029](../tasks/TASK-029-prepare-production-postgresql-rds.md).
+
+**Decide y prepara el PostgreSQL de producción en Amazon RDS privado. No provisiona
+nada.** Se conserva el principio de `Task/005.5`: *una tarea no exige como evidencia
+recursos que crea una tarea posterior*.
+
+| Qué | Contenido | Dónde se demuestra |
+| --- | --- | --- |
+| **Decide** | **D-22** (región, versión, clase, almacenamiento, disponibilidad, VPC, subnets, security groups, rutas y *endpoints*) · **D-23** (TLS, KMS, credenciales, SSM frente a Secrets Manager, IAM DB auth evaluable) · **D-24** (canal privado de administración y migraciones) · **D-10** (backups, PITR, snapshots, RPO/RTO, *deletion protection*) · si se evalúa RDS Proxy | Decisiones fechadas, con alternativas, precios y fuentes |
+| **Prepara** | Inventario de tráfico de la Lambda sobre el código vigente, con el candidato **sin NAT** · presupuesto preliminar de conexiones (**D-12**) · modelo de **costo bruto, créditos, desembolso, vencimiento y poscrédito** frente a **D-13** · contratos de módulos, *state* e identidades · planes de prueba y runbooks de `Task/030`–`Task/040` · diseño de **R-12**, **R-43** y **R-44** | Documentos y cálculos reproducibles, sin secretos |
+| **Puede provisionar** | **Nada.** El primer `apply` de aplicación exige el backend de estado **D-06**, que crea `Task/030`, y **EX-028-C7 no se extiende** a recursos de aplicación | — |
+| **Se valida después** | Red y RDS privados, restore sintético y PITR | `Task/031` |
+| | Conexión real, secretos, tráfico sin NAT, pool y latencia medidos | `Task/032` |
+| | Primeras migraciones por el canal privado, con backup previo | `Task/036` · `Task/038` |
+| | Carga, casos negativos, restore reciente, DR y alertas | `Task/040` |
+| | Costo real frente a la estimación | `Task/041` |
+
+**Gate económico:** si el costo bruto no cabe en **D-13** (USD 5 AWS / USD 20 global), la
+tarea **se detiene** y pide una decisión explícita al usuario. No se sube el presupuesto
+ni se cuenta con los créditos como costo cero.
+
+**Depende de:** `Task/027`, `Task/028` y del cierre de `Task/028.2`.
+**Repositorio:** `personal-blog-infra`.
+
+<details>
+<summary>Historia — definición de Task/029 para el modelo VPS, vigente del 2026-08-15 hasta la propuesta de Task/028.2</summary>
 
 > **Alcance redefinido el 2026-08-15** por `Task/005.3` (mantenimiento). El **identificador
 > `029` no cambia**; cambian el nombre y el alcance. Antes se llamaba
@@ -164,6 +200,8 @@ Resultado registrado como ADR o como actualización del ADR vigente.
 Anywhere u otro—: **D-16** sigue **abierta** hasta `Task/029`. Y **`Task/028` no la
 resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un host externo.
 
+</details>
+
 ## Criterios de salida de la etapa
 
 - [x] MFA activo en la cuenta raíz de AWS y en Cloudflare — evidencia humana saneada de
@@ -175,7 +213,9 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 - [x] **GitHub Actions** asume un rol AWS vía OIDC; no hay claves de acceso de larga vida
       **en GitHub** — federación real demostrada, cero access keys permanentes; Task/028
       aprobada. Esta afirmación se limita a GitHub Actions: **no** describe todavía
-      cómo el VPS accederá a AWS (**D-16**).
+      cómo el VPS accederá a AWS (**D-16**). *(D-16 tiene cierre por no aplicabilidad
+      propuesto por `Task/028.2`. La afirmación sigue sin acreditar permisos de despliegue
+      ni conectividad SQL privada.)*
 - [x] El rol de validación tiene **cero managed policies y cero inline policies**,
       trust exacta y GetCallerIdentity correcto, con evidencia real saneada — verificado
       contra IAM tras el apply y en la convergencia posterior; Task/028 aprobada.
@@ -192,6 +232,28 @@ resuelve**: OIDC de GitHub Actions hacia AWS **no** entrega credenciales a un ho
 Permisos de despliegue: fuera de este criterio, propietarios Task/038 y Task/039,
 validación integral Task/040. Inspección de resource policies: limitada al inventario
 efectivamente comprobado.
+
+Criterios de `Task/029` **propuestos por `Task/028.2`**, pendientes de aprobación. Todos se
+satisfacen con decisiones y documentos, **sin recursos AWS**:
+
+- [ ] **D-22**, **D-23**, **D-24** y **D-10** decididas con precios y fuentes de la fecha
+      de ejecución, sin valores arbitrarios.
+- [ ] Inventario de tráfico de la Lambda repetido sobre el código vigente; candidato **sin
+      NAT** viable o, si no lo es, necesidad real explicada y decisión explícita pedida.
+- [ ] TLS con validación de CA y *hostname*, KMS, credenciales separadas y rotación
+      definidos, **sin generar ni leer secretos**.
+- [ ] Presupuesto preliminar de conexiones (**D-12**) y decisión sobre evaluar RDS Proxy,
+      con la medición asignada a `Task/032` y `Task/040`.
+- [ ] **Costo bruto** por escenarios, créditos, desembolso, vencimiento y escenario
+      poscrédito frente a **D-13**; si no cabe, **decisión explícita** antes de cualquier
+      `apply` de aplicación.
+- [ ] Contratos de *state* (**D-06** en `Task/030`, **EX-028-C7 no extendida**), módulos e
+      identidades separadas.
+- [ ] Planes de restore, carga, seguridad y DR con owner y criterio medible posterior.
+- [ ] Ninguna credencial de producción versionada.
+
+<details>
+<summary>Historia — criterios de Task/029 para el modelo VPS, vigentes hasta la propuesta de Task/028.2</summary>
 
 - [ ] **Proveedor de VPS seleccionado**, con costo, región y límites documentados, usando
       **precios verificados en el momento de la selección**.
@@ -222,7 +284,17 @@ efectivamente comprobado.
       innecesarios** (**O-09**).
 - [ ] Ninguna credencial de producción está versionada.
 
+</details>
+
 ## Fuera del alcance de la etapa
+
+*(Enmienda propuesta por `Task/028.2`: **crear red, RDS, *endpoints*, claves KMS, secretos o
+roles** es de `Task/031`/`Task/032`; **medir la latencia y los límites desde la Lambda
+real**, de `Task/032`; **demostrar restore**, de `Task/031` y `Task/040`. Conectar la Lambda
+a la VPC es parte de la propuesta; **introducir NAT Gateway** sigue excluido sin decisión
+explícita. La disponibilidad Single-AZ o Multi-AZ la decide **D-22**. Las viñetas siguientes
+son las del modelo VPS y se conservan como historia.)*
+
 
 - **Crear el bucket S3 de backups, su política y el principal de acceso del VPS**: es de
   `Task/030`. Aquí solo se **decide** el mecanismo (**D-16**).
@@ -250,6 +322,12 @@ efectivamente comprobado.
 | **Los secretos del host acaban en claro o sin rotación** (**R-40**). | Cifrado obligatorio, clave fuera del repositorio, permisos mínimos y rotación definida (**D-17**). |
 | **El agente de observabilidad compite con PostgreSQL** por RAM, CPU y disco (**R-41**). | **Agente, no *stack***: Alloy en lugar de Grafana + Prometheus + Loki autohospedados. El dimensionamiento lo contempla. |
 | ***Drift* de configuración del host**, que Terraform no ve (**R-42**). | Mecanismo idempotente y reproducible (**D-18**), runbooks (`Task/026`) y verificación en `Task/040`. |
+
+*(Enmienda propuesta por `Task/028.2`. Las filas de R-30, R-34, R-40, R-41 y R-42 describen
+el host y pierden objeto literal. Su reformulación está en la
+[reconciliación de riesgos de STATUS](../project-management/STATUS.md). Siguen vigentes:
+**conexiones** (R-03/R-33, ahora con pool derivado y RDS Proxy evaluable), **backup no
+restaurable** (R-31) y **costo** (R-02, con créditos que caducan).)*
 
 ## Siguiente etapa
 

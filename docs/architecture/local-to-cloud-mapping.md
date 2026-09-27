@@ -2,7 +2,8 @@
 
 **Última actualización:** 2026-08-23 (`Task/006.2` — observabilidad de producción y papel
 de Docker, **aprobada** y **vigente**. La capa de datos en VPS de `Task/005.3` sigue
-**aprobada** y **vigente**)
+**aprobada** y **vigente**). **Enmienda propuesta:** 2026-09-27 (`Task/028.2` — capa de
+datos en RDS privado, **pendiente de aprobación**)
 
 > Consistente con la arquitectura definida en `Task/002`. Ver
 > [software-architecture.md](software-architecture.md) para la organización interna del
@@ -27,6 +28,14 @@ con PgBouncer delante**, mientras el backend permanece en AWS Lambda. **Aprobada
 [production-postgresql-vps.md](production-postgresql-vps.md) ·
 [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md).
 
+> **Enmienda propuesta por `Task/028.2` (2026-09-27), pendiente de aprobación.**
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone que la capa de datos
+> de producción vuelva a ser **administrada**: **Amazon RDS for PostgreSQL privado**, con la
+> Lambda conectada a la VPC y **sin NAT Gateway** por defecto. La aplicación **sigue sin
+> enterarse**: solo conoce `DATABASE_URL`. Canónico propuesto:
+> [production-postgresql-rds.md](production-postgresql-rds.md). Las filas y notas afectadas
+> se marcan abajo; el texto del modelo VPS se conserva como historia.
+
 ---
 
 ## Tabla de correspondencia
@@ -36,18 +45,19 @@ con PgBouncer delante**, mientras el backend permanece en AWS Lambda. **Aprobada
 | Frontend | React + Vite | No aplica | Cloudflare Pages |
 | Backend | FastAPI local/Docker | Lambda emulada ejecutando el mismo FastAPI | AWS Lambda |
 | Entrada HTTP | Reverse proxy | API Gateway v2 emulado | API Gateway HTTP API |
-| Base de datos | PostgreSQL Docker | **Local**, cuando la prueba lo requiera — no pertenece al grafo AWS | **PgBouncer → PostgreSQL en VPS externo** |
+| Base de datos | PostgreSQL Docker | **Local**, cuando la prueba lo requiera — no pertenece al grafo AWS. *(Propuesta: RDS entraría en el grafo en `Task/031`, **No evaluado** en el laboratorio)* | **PgBouncer → PostgreSQL en VPS externo**. *(Propuesta: **Amazon RDS for PostgreSQL privado**)* |
+| Red *(fila añadida por la enmienda propuesta)* | Red de Docker local | **No evaluada** | **VPC, subnets privadas, security groups** y rutas a S3/SSM (**D-22**) |
 | Archivos | MinIO | S3 emulado | Amazon S3 |
 | Administración Docker | Portainer | No aplica | No se despliega |
 | Configuración | `.env` | SSM emulado (**sin cifrado real**) | SSM Parameter Store |
-| Logs | Docker y Portainer | CloudWatch Logs emulado | **CloudWatch mínimo** (AWS) + **Grafana Cloud** (VPS, vía Alloy) |
+| Logs | Docker y Portainer | CloudWatch Logs emulado | **CloudWatch mínimo** (AWS) + **Grafana Cloud** (VPS, vía Alloy). *(Propuesta: CloudWatch —Lambda, API y RDS— + Grafana Cloud vía **D-20**)* |
 | Métricas y alertas | No aplica | No aplica | **CloudWatch mínimo** (AWS) + **Grafana Cloud** como plano central |
-| Agente de telemetría | No aplica | No aplica | **Grafana Alloy** en el VPS |
+| Agente de telemetría | No aplica | No aplica | **Grafana Alloy** en el VPS. *(Propuesta: **ninguno**; métricas nativas de RDS)* |
 | Supervisión operativa | **Portainer** | No aplica | **Grafana Cloud.** Portainer **no se despliega** |
 | Permisos | No aplica | IAM emulado — **crea, no autoriza** | IAM |
-| Ejecución | Docker Compose | Emulador AWS local | Serverless + VPS acotado a la capa de datos |
+| Ejecución | Docker Compose | Emulador AWS local | Serverless + VPS acotado a la capa de datos. *(Propuesta: serverless + **RDS administrado**, con costo fijo)* |
 | Papel de Docker | **Runtime del entorno de desarrollo** | Runtime del emulador y de la Lambda emulada | **No es runtime de producción.** Solo *build*/test si hace falta |
-| Secretos del host | No aplica | No aplica | **Cifrados en el VPS**, clave fuera del repositorio (**D-17**) |
+| Secretos del host | No aplica | No aplica | **Cifrados en el VPS**, clave fuera del repositorio (**D-17**). *(Propuesta: sin host; credenciales de la base de datos y KMS según **D-23**)* |
 | Infraestructura | Docker Compose | **Terraform** (misma definición) | **Terraform** (misma definición) |
 | Integración continua | GitHub Actions | GitHub Actions + emulador efímero (`Task/039`) | GitHub Actions |
 | Despliegue | No aplica todavía | `apply`/`destroy` local (`Task/025`) | GitHub Actions + Terraform |
@@ -55,6 +65,11 @@ con PgBouncer delante**, mientras el backend permanece en AWS Lambda. **Aprobada
 > La estrategia del laboratorio está **aprobada**, pero **nada de esa columna está probado
 > todavía**: se implementa en `Task/025`. El grado real de paridad de cada fila se registra
 > en la [matriz de paridad](aws-local-parity.md) §7, que hoy está entera en `No evaluada`.
+>
+> *(Corrección de drift de `Task/028.2`, 2026-09-27: esta nota quedó escrita antes de
+> `Task/025`. Desde su aprobación, el 2026-09-14, el grafo de 21 recursos **tiene evidencia
+> local** en la matriz de paridad, siempre como hipótesis hasta la ETAPA 10. Las filas nuevas
+> de red y RDS de la enmienda propuesta están **No evaluadas**.)*
 
 ---
 
@@ -90,6 +105,21 @@ AWS Lambda ──TLS──► PgBouncer ──red interna del VPS──► Postg
 La aplicación **no se entera**: sigue dependiendo únicamente de `DATABASE_URL`. El proveedor,
 la región y el dimensionamiento se deciden en `Task/029`. Detalle completo:
 [production-postgresql-vps.md](production-postgresql-vps.md).
+
+**Enmienda propuesta en `Task/028.2` (2026-09-27), pendiente de aprobación:** la base de
+datos de producción pasa a **Amazon RDS for PostgreSQL privado**. La Lambda **se conecta a
+la VPC** y llega a RDS con TLS verificado, solo de security group a security group.
+
+```
+AWS Lambda (en VPC) ──TLS verificado · SG → SG──► RDS for PostgreSQL (subnets privadas)
+```
+
+La aplicación sigue sin enterarse: `DATABASE_URL` y nada más. Lo que la enmienda **no**
+cambia es la diferencia crítica de arriba: las conexiones siguen siendo efímeras y
+numerosas; el pool por proceso y la concurrencia se derivan y se miden (**D-12**), y RDS
+Proxy es evaluable, no obligatorio. Región, clase, disponibilidad y red se deciden en
+`Task/029` (**D-22**). Detalle:
+[production-postgresql-rds.md](production-postgresql-rds.md).
 
 ### Archivos
 MinIO expone la API de S3, así que el mismo cliente sirve para ambos. Todo acceso pasa
@@ -134,6 +164,11 @@ adopta CloudWatch Agent por omisión**. **No se autohospedan Grafana, Prometheus
 el VPS**: sus recursos son de PostgreSQL. La integración `CloudWatch → Grafana Cloud` está
 **contemplada y no implementada** (**D-20**, `Task/031`).
 
+*(Enmienda propuesta por `Task/028.2`: con RDS, **toda** la producción observada vive en
+AWS. CloudWatch recibe las métricas nativas de RDS y los logs que se seleccionen, y
+Grafana Cloud recibe datos **solo** por la integración **D-20**, que `Task/031` decide **e
+implementa**. Sin agente de host.)*
+
 **La aplicación no se acopla a ningún destino** (**O-09**): emite JSON por `stdout` y quien
 lo recoge es una decisión de infraestructura. Detalle:
 [target-production-architecture.md](target-production-architecture.md) §10–§13 ·
@@ -149,6 +184,8 @@ laboratorio de paridad. Lo que **no** es, es **runtime obligatorio de producció
 frontend son estáticos en Cloudflare Pages, el backend es un **ZIP** en Lambda —**ECR sigue
 excluido**— y en el VPS solo vive la capa de datos, que puede usar Docker o no (decisión de
 `Task/029`, con el mínimo privilegio razonable). **Portainer no llega a producción.**
+*(Con la enmienda propuesta no hay VPS: RDS es administrado y la pregunta sobre Docker en
+el host pierde objeto.)*
 
 ### Infraestructura
 Docker Compose describe el entorno local de aplicación; Terraform describe el cloud. No se
@@ -164,6 +201,10 @@ dominios y capacidad ([aws-local-parity.md](aws-local-parity.md) §4).
 conceptualmente **multi-provider** —AWS + Cloudflare + VPS— sin dejar de ser una sola fuente
 de verdad. Estructura y límites:
 [production-postgresql-vps.md](production-postgresql-vps.md) §13.
+
+**Enmienda propuesta en `Task/028.2`:** sin VPS, los providers vuelven a ser **AWS y
+Cloudflare**. Red y RDS entran en el **mismo grafo** en `Task/031`, sin duplicar módulos
+local/cloud.
 
 ### Integración continua
 GitHub Actions en ambos casos, con los mismos workflows de calidad. El despliegue se
@@ -191,6 +232,21 @@ añade en la Etapa 11, usando OIDC para acceder a AWS sin credenciales permanent
 | 14 | **La base de datos deja de estar en la misma región que el cómputo**: cada consulta paga el RTT `Lambda ↔ VPS`. | `Task/029` — RTT **medido**, no estimado |
 | 15 | En producción, **la operación del host es del proyecto**: parcheo, backups y restore ya no los resuelve un proveedor. | `Task/029`, `Task/026` |
 
+**Enmienda propuesta por `Task/028.2`, pendiente de aprobación.** Las filas **7**, **8**,
+**13**, **14** y **15** describen el VPS. Con RDS quedan así, y se añaden tres diferencias
+nuevas:
+
+| # | Diferencia propuesta | Dónde se aborda |
+| --- | --- | --- |
+| 7 | El límite de conexiones de RDS es finito y depende de la clase: el pool por proceso, la concurrencia reservada y, **si la evidencia lo justifica**, RDS Proxy lo acotan | `Task/029` (**D-12** preliminar), `Task/032` (medición), `Task/040` (carga) |
+| 8 | No hay equivalente de Portainer en producción | **CloudWatch mínimo** con señales de Lambda, API y RDS (`Task/031`–`Task/033`) y **Grafana Cloud** vía **D-20** (`Task/031`) |
+| 13 | La base de datos **sí** está en AWS, pero el laboratorio **no acredita** su red, IAM, KMS, backups ni *failover*: son **AWS-only** a efectos de evidencia | `Task/031` · `Task/040` |
+| 14 | La latencia `Lambda ↔ RDS` es intra-región, pero **se mide**, no se supone | `Task/032`, `Task/040` |
+| 15 | AWS opera el host de RDS; el proyecto sigue operando versión, *parameter group*, capacidad, usuarios SQL, KMS, restore y DR | `Task/029` (decide), `Task/031` (runbooks), `Task/040` |
+| 16 | **Una Lambda en VPC no tiene salida a Internet por defecto**: S3 y SSM necesitan rutas específicas; NAT solo con necesidad demostrada y decisión explícita | `Task/029` (**D-22**), `Task/032` (tráfico real) |
+| 17 | **RDS tiene costo fijo** aunque no haya tráfico; los créditos AWS reducen el desembolso, no el costo bruto | `Task/029` (frente a **D-13**), `Task/041` |
+| 18 | **PITR restaura en una instancia nueva**: el *endpoint* cambia y hay que revisar security groups, *parameter group* y KMS | `Task/031` (restore sintético), `Task/040` |
+
 ---
 
 ## Servicios excluidos de la arquitectura cloud
@@ -204,3 +260,10 @@ la base de datos de producción, por el mismo motivo —costo fijo desproporcion
 tráfico esperado—. La exclusión de **NAT Gateway** se refuerza: no se introduce para
 conectar Lambda con PostgreSQL. Ver
 [ADR-007](../adr/ADR-007-production-postgresql-on-vps.md).
+
+**Enmienda propuesta en `Task/028.2` (2026-09-27), pendiente de aprobación:**
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone **retirar RDS de esta
+lista**. La premisa cambió —créditos AWS disponibles y prioridad de aprender servicios
+administrados—, pero **el costo fijo no desaparece** y se evalúa frente a **D-13**. **NAT
+Gateway sigue excluido**: la Lambda llega a RDS por la VPC, y S3/SSM por rutas específicas.
+El resto de la lista no cambia.

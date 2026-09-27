@@ -141,6 +141,12 @@ de entorno y `GET /health` sirven sin cambios. Toda la integración es configura
 > nunca una reescritura del dominio. Detalle:
 > [target-production-architecture.md](../architecture/target-production-architecture.md)
 > §24.
+>
+> *(Guardrail histórico de `Task/007`, aprobada. La enmienda propuesta por `Task/028.2`
+> —[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), pendiente de aprobación—
+> cambia el destino productivo de PostgreSQL a **RDS privado**, con la Lambda conectada a
+> la VPC. El criterio no cambia: sustituir PostgreSQL local por RDS es configuración y
+> despliegue, nunca dominio.)*
 
 > **Límite con `Task/010`** (aclarado en `Task/005.5`). `Task/007` integra MinIO **a nivel
 > de infraestructura**: contenedor, red, nombre de servicio, healthcheck y configuración

@@ -253,5 +253,8 @@ El MVP está completo cuando, en local y luego en producción:
 - El editor Markdown concreto → `Task/015`.
 - El proveedor de VPS de la base de datos de producción → `Task/029`. El **modelo**
   —autogestionado en VPS, no administrado— lo propone `Task/005.3`.
+  *(Propuesta `Task/028.2`, pendiente de aprobación: con
+  [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), el diseño de un **RDS privado**
+  —**D-22** a **D-24**— → `Task/029`, sin provisión.)*
 
 Registro completo: [open-decisions.md](../architecture/open-decisions.md).

@@ -1,5 +1,16 @@
 ﻿# PostgreSQL de producción en VPS externo
 
+> **Reemplazo propuesto — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
+> [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone sustituir este modelo
+> por **Amazon RDS for PostgreSQL privado**; canónico propuesto:
+> [production-postgresql-rds.md](production-postgresql-rds.md). Hasta la aprobación, este
+> documento conserva su estado, pero la instrucción actual del usuario **suspende nuevas
+> ejecuciones** del modelo VPS: **no es una instrucción para ejecutarlo**. Si se aprueba,
+> todo el texto siguiente queda como **historia**, sin borrarse. Sus principios no ligados
+> al host —`DATABASE_URL`, base de datos nunca pública, TLS verificado, restore probado,
+> conexiones como riesgo principal— continúan en el canónico RDS.
+
+
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Vigente** ✔ — aprobado en `Task/005.3-Definir-PostgreSQL-Produccion-en-VPS` (2026-08-15) |

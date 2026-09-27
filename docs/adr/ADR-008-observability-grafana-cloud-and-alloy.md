@@ -1,5 +1,18 @@
 # ADR-008 — Observabilidad: CloudWatch mínimo y Grafana Cloud con Alloy
 
+> **Modificación parcial propuesta — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
+> Si el usuario aprueba [ADR-010](ADR-010-production-postgresql-on-rds.md), sin VPS pierde
+> objeto **solo** lo que dependía del host: la decisión **K** —Alloy como agente del VPS—,
+> su credencial como secreto del host y las reglas G-01, G-04 y G-05. **Se conservan**
+> CloudWatch mínimo con retención corta (**I**), **Grafana Cloud como plano central**
+> (**J**) —no se elimina por inferencia—, la privacidad de la telemetría (O-08, O-09) y el
+> control de costo (**D-19**). La integración `CloudWatch → Grafana Cloud` (**L**, **D-20**)
+> pasa de «contemplada» a **decidida e implementada** en `Task/031`, porque sin agente de
+> host es la única vía de datos hacia Grafana; `Task/040` verifica señales y alertas. No se
+> añade emisión directa desde el backend hacia Grafana. El texto de abajo queda intacto
+> como registro aprobado.
+
+
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Aceptada** ✔ |

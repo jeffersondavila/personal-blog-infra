@@ -1,8 +1,11 @@
 ﻿# Arquitectura — Visión general
 
 **Última actualización:** 2026-08-23 (`Task/006.2` — formalización de la arquitectura
-objetivo de producción, **aprobada**)
-**Estado:** vigente. Detallada en `Task/002-Definir-MVP-y-Arquitectura`.
+objetivo de producción, **aprobada**) · enmienda propuesta 2026-09-27 (`Task/028.2`,
+**pendiente de aprobación**)
+**Estado:** vigente. Detallada en `Task/002-Definir-MVP-y-Arquitectura`. La capa de datos
+de producción tiene una **enmienda propuesta** —[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md):
+**Amazon RDS for PostgreSQL privado**—; §4 y los principios 3, 5 y 10 la señalan.
 
 > Este documento es la **vista de conjunto**. El detalle vive en:
 > [target-production-architecture.md](target-production-architecture.md) (**arquitectura
@@ -47,8 +50,8 @@ Secciones previstas del blog:
 | **Almacenamiento de objetos** | Imágenes y archivos. MinIO en local, S3 en la nube. |
 | **Entrada HTTP** | Enrutado y TLS. Reverse proxy en local, API Gateway en la nube. |
 | **Supervisión** | Portainer CE en local. En producción, **CloudWatch mínimo** (AWS) y **Grafana Cloud** como plano central (`Task/006.2`). |
-| **Pool de conexiones** | No aplica en local. **PgBouncer** delante de PostgreSQL en producción (`Task/005.3`). |
-| **Agente de telemetría** | No aplica en local. **Grafana Alloy** en el VPS de producción, enviando a Grafana Cloud (`Task/006.2`). |
+| **Pool de conexiones** | No aplica en local. **PgBouncer** delante de PostgreSQL en producción (`Task/005.3`). *(Propuesta `Task/028.2`: pool por proceso derivado y medido, **D-12**; RDS Proxy evaluable, no adoptado.)* |
+| **Agente de telemetría** | No aplica en local. **Grafana Alloy** en el VPS de producción, enviando a Grafana Cloud (`Task/006.2`). *(Propuesta `Task/028.2`: **ninguno**; métricas nativas de RDS en CloudWatch y Grafana vía **D-20**.)* |
 
 ---
 
@@ -81,6 +84,28 @@ de Docker (contenedores, logs, healthchecks, volúmenes, redes).
 ---
 
 ## 4. Arquitectura cloud objetivo
+
+**Propuesta de `Task/028.2` —[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md),
+pendiente de aprobación—:**
+
+```mermaid
+flowchart TD
+    NAV["navegador"] --> CF["Cloudflare<br/>DNS · CDN · WAF"]
+    CF --> PAGES["Cloudflare Pages<br/>React estático"]
+    PAGES --> AGW["API Gateway HTTP API"]
+    AGW --> LMB["AWS Lambda · FastAPI<br/>conectada a la VPC"]
+    LMB -->|"ruta segun D-22"| S3[("Amazon S3")]
+    LMB -->|"ruta segun D-22 · entrega segun D-23"| SSM[("SSM Parameter Store<br/>SecureString")]
+    LMB -.-> CW[("CloudWatch minimo")]
+    LMB -->|"TLS verificado · SG a SG"| RDS[("Amazon RDS for PostgreSQL<br/>privado")]
+    RDS -.->|"metricas nativas"| CW
+    CW -.->|"integracion segura/IAM<br/>D-20 · Task/031"| GC[("Grafana Cloud")]
+```
+
+Sin NAT Gateway por defecto: la Lambda llega a RDS por la VPC y a S3/SSM por rutas
+específicas. Canónico propuesto: [production-postgresql-rds.md](production-postgresql-rds.md).
+
+**Vigente hasta la aprobación —modelo VPS de ADR-007—:**
 
 ```mermaid
 flowchart TD
@@ -115,6 +140,11 @@ datos en VPS externo — y [ADR-008](../adr/ADR-008-observability-grafana-cloud-
 > *Hasta `Task/006.2` esta nota decía que la PNG representaba «la arquitectura objetivo
 > inicial, anterior a `Task/005.3`» y se conservaba como registro histórico. Fue cierto
 > hasta que el usuario la actualizó; dejó de serlo entonces.*
+>
+> *Enmienda propuesta por `Task/028.2`: la PNG muestra el modelo VPS. Mientras el usuario no
+> la actualice —solo él la cambia—, **diverge en la capa de datos**, y para esa capa mandan el
+> texto y el Mermaid propuestos
+> ([target-production-architecture.md](target-production-architecture.md) §2).*
 
 ---
 
@@ -135,7 +165,10 @@ costo.
 **No sustituye a ninguno de los otros dos**, y **no reemplaza** el diagrama
 `images/Infraestructura.png`: añade una vista lógica distinta. **Nada de este entorno está
 probado todavía**: se implementa en `Task/025` y el grado real de paridad vive en la
-[matriz de paridad](aws-local-parity.md) §7, hoy entera en `No evaluada`.
+[matriz de paridad](aws-local-parity.md) §7, hoy entera en `No evaluada`. *(Corrección de
+drift de `Task/028.2`: desde la aprobación de `Task/025`, el 2026-09-14, el grafo de 21
+recursos tiene evidencia **local** en la matriz, siempre como hipótesis hasta la ETAPA 10.
+La red y RDS de la enmienda propuesta están **No evaluadas**.)*
 
 Estrategia completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente** ·
 [ADR-006](../adr/ADR-006-local-aws-parity-with-floci.md) — **Aceptada**.
@@ -153,12 +186,19 @@ Estrategia completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente** 
    ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md), **Aceptada**), cuyo costo se
    asume a cambio de control operativo y de un gasto más predecible que el de una base
    administrada. *(Corregido en `Task/005.7`: aquí se leía «Sin servicios de costo fijo
-   mensual», un absoluto que ADR-007 dejó de cumplir.)*
+   mensual», un absoluto que ADR-007 dejó de cumplir.)* *(Enmienda propuesta por
+   `Task/028.2`: la excepción consciente pasa a ser **RDS**, junto con los *interface
+   endpoints* que se adopten. El sistema completo **no** escala a costo cero. Los créditos
+   AWS reducen el desembolso, **no** el costo bruto, que se evalúa frente a **D-13** en
+   `Task/029`.)*
 4. **Configuración fuera del código.** `.env` en local, SSM Parameter Store en la nube.
 5. **Sin credenciales permanentes donde esté demostrado.** GitHub Actions accede a AWS
    mediante OIDC (`Task/028`). **No es todavía una propiedad global**: cómo se autentica el
    **VPS** hacia AWS para sus backups sigue abierto (**D-16**, `Task/029`), y Cloudflare y
-   el proveedor del VPS pueden exigir otro mecanismo (`Task/039`).
+   el proveedor del VPS pueden exigir otro mecanismo (`Task/039`). *(Enmienda propuesta:
+   sin VPS, **D-16** tiene cierre por no aplicabilidad propuesto. Sigue sin ser propiedad
+   global: Cloudflare puede exigir otro mecanismo, y los roles de despliegue, Terraform y
+   migración son distintos del rol de validación de `Task/028`.)*
 6. **Contenido primero.** El modelo de datos y la API pública se diseñan para el
    contenido que el blog realmente publicará.
 7. **Reproducibilidad.** El entorno completo se reconstruye desde cero siguiendo un
@@ -174,7 +214,10 @@ Estrategia completa: [aws-local-parity.md](aws-local-parity.md) — **Vigente** 
    ([ADR-008](../adr/ADR-008-observability-grafana-cloud-and-alloy.md)).
 10. **Terraform no configura el sistema operativo** (`Task/006.2`, **aprobada** el 2026-08-23). Provisiona
     recursos; lo que ocurre **dentro** de un host tiene otro ciclo de vida y otra
-    herramienta (**D-18**, `Task/029`).
+    herramienta (**D-18**, `Task/029`). *(Enmienda propuesta: con RDS no hay sistema
+    operativo propio que configurar; **D-18** tiene cierre por no aplicabilidad propuesto.
+    El principio sigue en pie, y la operación administrada —*parameter group*, versión,
+    ventana, restore— se gobierna con Terraform y runbooks.)*
 
 ---
 
@@ -238,3 +281,12 @@ necesaria y las partes del sistema afectadas. Entre las principales:
 - **Mecanismo de integración `CloudWatch → Grafana Cloud`** (**D-20**, `Task/031`).
 - Emulador AWS local para la estrategia de IaC (**D-14**) — **Resuelta** el 2026-08-15 con
   **Floci**, en `Task/005.2`.
+
+> *Corrección de `Task/028.2`, 2026-09-27.* La lista anterior es una **instantánea del
+> 2026-08-23**: su recuento y varios estados quedaron atrás —D-15, D-02, D-03, D-04, D-06 y
+> D-13 se resolvieron después—. **El estado vigente está solo en el
+> [índice](open-decisions.md)**; aquí no se duplican contadores. Además, la **enmienda
+> propuesta** deja sin objeto el proveedor de VPS de D-01, D-16, D-17 y D-18 —con cierre
+> por no aplicabilidad propuesto— y abre **D-22** (red y capacidad de RDS), **D-23**
+> (seguridad y secretos) y **D-24** (canal privado de administración y migraciones), todas
+> de `Task/029`.

@@ -485,48 +485,41 @@ Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
 **D-06 está Resuelta y Vigente desde Task/025 (2026-09-14)**: local protegido
 para laboratorio y S3 con lock nativo para AWS. Bucket pendiente de Task/030;
 EX-028-C7 acota el estado local temporal del bootstrap OIDC ([runbook](../runbooks/github-oidc-bootstrap.md)).
-**D-01** quedó **resuelta** por `Task/005.3` en cuanto al **modelo** (sección
-16); el **proveedor** sigue en `Task/029`.
+**D-01** conserva su resolución histórica; ADR-010 propone sustituir el modelo
+(sección 16). Task/029 prepara las decisiones RDS; Task/031 amplía el grafo.
 
 
 ## 16. PRODUCTION DATABASE LAW
 
-Regla de la capa de datos de producción. **Vigente** desde el 2026-08-15
-(`Task/005.3`).
+**Transición propuesta por Task/028.2 (2026-09-27), pendiente de aprobación.**
+La instrucción actual del usuario suspende nuevas ejecuciones del modelo VPS.
+[ADR-007](../adr/ADR-007-production-postgresql-on-vps.md) conserva su historia;
+[ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) propone reemplazarlo.
+Canónico futuro: [PostgreSQL RDS](../architecture/production-postgresql-rds.md).
 
-Fuente completa y única:
-[`docs/architecture/production-postgresql-vps.md`](../architecture/production-postgresql-vps.md).
-Decisión: [`ADR-007`](../adr/ADR-007-production-postgresql-on-vps.md) —
-**Aceptada**. Vigente y de cumplimiento obligatorio.
+1. PostgreSQL productivo propuesto: **RDS privado**, nunca accesible públicamente;
+   Lambda conectada a VPC.
+2. SG restrictivos, TLS verificado, KMS/secretos y acceso SQL de mínimo privilegio.
+3. Task/029 decide/prepara sin provisionar ni exigir evidencia de recursos futuros.
+4. Task/030 materializa D-06 antes del primer apply de aplicación. EX-028-C7 no
+   se extiende a RDS. Task/031 provisiona red/RDS/config/observabilidad.
+5. Task/032 demuestra conectividad, S3, secretos y conexiones; Task/036 migra;
+   Task/038 automatiza ese canal; Task/040 valida carga, recuperación y seguridad.
+6. **NAT Gateway sigue excluido** (sección 17): RDS no lo exige, y solo una necesidad
+   demostrada de salida pública, con decisión explícita, podría introducirlo. Ningún
+   endpoint, RDS Proxy, Multi-AZ, Secrets Manager, IAM DB auth ni tamaño se adopta por
+   inercia: se decide con inventario, precios y mediciones en su tarea propietaria.
+7. Backups administrados requieren restore probado: Task/031 y Task/040.
+8. D-13 no cambia: USD 5 AWS / USD 20 global; créditos separados del costo bruto.
+9. Aplicación neutral mediante DATABASE_URL; PostgreSQL local permanece. Floci no
+   prueba RDS real. No alterar Task/028 ni ampliar su rol de validación.
+10. No crear recursos ni secretos con esta propuesta. Task/029 sigue Pendiente
+    hasta cerrar Task/028.2. Solo el usuario puede aceptar ADR-010.
 
-1. **PostgreSQL productivo vive en un VPS externo**, autogestionado. **No RDS.**
-2. **FastAPI permanece en AWS Lambda.** API Gateway, IAM, S3, SSM y CloudWatch
-   permanecen en AWS.
-3. **PostgreSQL nunca se expone directamente a Internet.**
-4. **PgBouncer es el punto de entrada** de la capa de datos: el único
-   endpoint de esa capa alcanzable desde fuera del VPS. El SSH
-   administrativo es un canal separado, ajeno a la capa de datos.
-5. **`Lambda → PgBouncer` exige TLS** con validación del certificado del
-   servidor. **SCRAM-SHA-256** es el mecanismo de autenticación preferente;
-   **mTLS** es opcional y todavía no obligatorio.
-6. **El código de aplicación solo depende de `DATABASE_URL`.** No conoce
-   proveedor, IP, Docker, Floci ni PgBouncer.
-7. **Proveedor, región y tamaño se deciden en `Task/029`**, con precios
-   actuales — nunca con cifras heredadas.
-8. **Los backups deben salir del VPS.** Una copia que solo vive en el host no
-   protege de perder el host.
-9. **El restore debe probarse.** Un backup no está validado hasta haberse
-   restaurado.
-10. **No introducir NAT Gateway ni VPC** únicamente por PostgreSQL sin una
-    decisión explícita basada en un requisito real.
-11. **AWS y Floci no simulan la base de datos productiva.** `Task/025` no debe
-    crear recursos RDS.
-12. **PostgreSQL local sigue siendo el destino normal de desarrollo.**
-
-Esta regla no selecciona proveedor VPS, tamaños de pool, `max_connections` ni
-frecuencia de backups: eso es de Task/029. **D-06 ya fue resuelta por Task/025**;
-Task/030 materializa el backend y migra el bootstrap, con la excepción de ETAPA 10.
-
+Las doce reglas del modelo VPS (vigentes desde `Task/005.3`) se conservan como historia
+en ADR-007 y en `production-postgresql-vps.md`; siguen vigentes en su fondo las que no
+dependen del host: `DATABASE_URL` como único contrato, base de datos nunca pública, restore
+probado y PostgreSQL local como destino de desarrollo.
 
 ## 17. Restricciones del proyecto
 
@@ -552,9 +545,8 @@ Arquitectura acordada y vigente:
 - Floci como laboratorio AWS **local** para validar la IaC (sección 15).
   **Vigente** desde 2026-08-15 (ADR-006). No es un servicio de producción ni
   altera la arquitectura cloud objetivo.
-- PostgreSQL de producción **autogestionado en un VPS externo**, con PgBouncer
-  delante (sección 16). **Vigente** desde 2026-08-15 (ADR-007). **RDS no es el
-  destino de producción.**
+- PostgreSQL productivo propuesto en **RDS privado**, según ADR-010 y sección 16.
+  Aceptación pendiente; no ejecutar la alternativa histórica sustituida.
 
 Consultar siempre los ADR y documentos vigentes antes de cambiar estas
 decisiones.

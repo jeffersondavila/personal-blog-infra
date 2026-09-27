@@ -297,8 +297,8 @@ Objetivo de referencia: **WCAG 2.1 nivel AA**.
 | O-06 | **CloudWatch mínimo con retención limitada y explícita** en producción, para contener el costo. Nunca retención infinita. | `Task/031`, `Task/041` |
 | O-07 | **Logs locales visibles mediante Docker y Portainer**. | `Task/003`, `Task/017` |
 | O-08 | Los logs **no contienen** contraseñas, tokens, secretos ni datos personales innecesarios. | `Task/017`, `Task/018` |
-| O-09 | **La telemetría enviada fuera del proyecto** —logs, métricas y trazas hacia un destino de terceros— **no contiene secretos ni datos personales innecesarios**. Enviar a un tercero es **exportar**: qué se recolecta es parte del diseño, no configuración. | `Task/029`, `Task/018`, `Task/040` |
-| O-10 | **La observabilidad del VPS de producción sale del host.** Un plano de observabilidad alojado en la máquina que vigila cae con ella; el *baseline* —uptime, CPU, RAM, disco, PostgreSQL, PgBouncer, fallo de backup y caducidad del certificado— se envía a un destino externo. | `Task/029`, `Task/040` |
+| O-09 | **La telemetría enviada fuera del proyecto** —logs, métricas y trazas hacia un destino de terceros— **no contiene secretos ni datos personales innecesarios**. Enviar a un tercero es **exportar**: qué se recolecta es parte del diseño, no configuración. *(Propuesta `Task/028.2`: sin agente de host, lo exportado sale por **D-20**.)* | `Task/029`, `Task/018`, `Task/040` · *propuesta: `Task/031` en lugar de `Task/029`* |
+| O-10 | **La observabilidad del VPS de producción sale del host.** Un plano de observabilidad alojado en la máquina que vigila cae con ella; el *baseline* —uptime, CPU, RAM, disco, PostgreSQL, PgBouncer, fallo de backup y caducidad del certificado— se envía a un destino externo. *(Propuesta `Task/028.2`: sin VPS, el requisito de fondo se mantiene —la observabilidad de la capa de datos **no depende de la propia base de datos**—; se cumple con las métricas nativas y eventos de RDS en CloudWatch y Grafana vía **D-20**, sin agente de host.)* | `Task/029`, `Task/040` · *propuesta: `Task/031`–`Task/033`, `Task/040`* |
 
 ### 5.1 Estado tras `Task/017` — **plano local**
 
@@ -322,8 +322,8 @@ sentido estricto: **nada de esto afirma nada sobre la observabilidad en la nube.
 | --- | --- | --- |
 | **O-06** | CloudWatch y su retención son de producción. `Task/017` no crea ningún recurso cloud | `Task/031`, `Task/041` |
 | **O-08** *(endurecimiento)* | La redacción local existe y está probada; **ampliar la política** —más patrones, cabeceras y superficies— sigue siendo endurecimiento de seguridad | `Task/018` |
-| **O-09** | **Exportar** telemetría a un tercero es un problema distinto del de redactar el log propio. Que el log local no filtre **no** demuestra que lo enviado fuera tampoco lo haga | `Task/029`, `Task/018`, `Task/040` |
-| **O-10** | Observabilidad del VPS, que aún no existe | `Task/029`, `Task/040` |
+| **O-09** | **Exportar** telemetría a un tercero es un problema distinto del de redactar el log propio. Que el log local no filtre **no** demuestra que lo enviado fuera tampoco lo haga | `Task/029`, `Task/018`, `Task/040` · *propuesta: `Task/031`* |
+| **O-10** | Observabilidad del VPS, que aún no existe | `Task/029`, `Task/040` · *propuesta: RDS en `Task/031`–`Task/033`, `Task/040`* |
 
 > **Estado:** **Vigente** desde el 2026-09-06, con la aprobación de `Task/017`.
 
@@ -391,3 +391,13 @@ dice nada de AWS, y esa validación sigue siendo de la ETAPA 10.
 4. `Task/022` y `Task/040` los comprueban de extremo a extremo.
 5. Un requisito que no pueda cumplirse se registra como **deuda técnica explícita**, con
    su justificación — nunca se ignora en silencio.
+
+## Aplicación propuesta a RDS — Task/028.2
+
+Los requisitos existentes de seguridad, disponibilidad, rendimiento y recuperación
+siguen vigentes; cambian sus controles de infraestructura bajo ADR-010 propuesta.
+TLS/SG/KMS/SQL mínimo se prueban en Task/031/032/040; conexiones/cold start/carga
+en 032/040. D-10 fija RPO/RTO/retención en 029, restore sintético/PITR en 031 y
+restore reciente con esquema de app en 040. D-13 conserva límites sobre costo bruto;
+créditos, vencimiento y continuidad se evalúan en 029/041. No se declara cumplido
+ningún requisito AWS por la evidencia local ni por este mantenimiento documental.

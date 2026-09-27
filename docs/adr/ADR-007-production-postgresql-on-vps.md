@@ -1,5 +1,23 @@
 # ADR-007 — PostgreSQL de producción en VPS externo
 
+> **Reemplazo propuesto — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
+> [ADR-010](ADR-010-production-postgresql-on-rds.md) propone sustituir este ADR por
+> **Amazon RDS for PostgreSQL privado**. Hasta que el usuario apruebe `Task/028.2`, este ADR
+> sigue **Aceptado**. La instrucción actual del usuario **suspende nuevas ejecuciones** del
+> modelo VPS, así que su texto no es una instrucción para ejecutarlo. Si se aprueba, pasará
+> a **Reemplazada** y su contenido quedará como **historia**: nada se borra.
+>
+> **Por qué:** la premisa de costo y aprendizaje cambió —créditos AWS disponibles,
+> prioridad de aprender RDS, VPC, KMS y backups administrados, y menor interés en operar un
+> host—. **No se califica esta decisión como error.**
+>
+> **Qué sobrevive en ADR-010:** `DATABASE_URL` como único contrato de la aplicación,
+> PostgreSQL nunca público, TLS con validación, credenciales de mínimo privilegio, restore
+> probado y PostgreSQL local como destino de desarrollo. **Qué pierde objeto:** host, SSH,
+> PgBouncer, secretos y configuración del host (D-16 a D-18) y backups desde el host.
+> Canónico propuesto: [PostgreSQL RDS](../architecture/production-postgresql-rds.md).
+
+
 | Campo | Valor |
 | --- | --- |
 | **Estado** | **Aceptada** ✔ |

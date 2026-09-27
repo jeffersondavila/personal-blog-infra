@@ -409,7 +409,7 @@ El backend debe funcionar igual como proceso local y como función Lambda:
 | --- | --- |
 | Sin estado entre invocaciones | Ningún **estado de negocio** en memoria de proceso: ni sesiones de usuario en RAM, ni datos de contenido cacheados, ni nada cuya pérdida al terminar la invocación cambie el comportamiento observable. |
 | Sin procesos residentes | Ninguna tarea de fondo de larga duración ni scheduler interno. |
-| Conexiones efímeras a la base de datos | Conexiones cortas y **pooling externo con PgBouncer** delante de PostgreSQL (`Task/029`). El código solo conoce `DATABASE_URL`. |
+| Conexiones efímeras a la base de datos | Conexiones cortas y **pooling externo con PgBouncer** delante de PostgreSQL (`Task/029`). El código solo conoce `DATABASE_URL`. *(Propuesta `Task/028.2`: con RDS privado, el *engine* y su pool pueden sobrevivir entre invocaciones de un mismo entorno, sin garantía; el presupuesto por proceso y la concurrencia se derivan en `Task/029` y se miden en `Task/032` (**D-12**). RDS Proxy es evaluable, no obligatorio.)* |
 | Arranque en frío | Artefacto ligero, importaciones perezosas donde ayude. |
 | Sistema de archivos efímero | Ningún dato persistente en disco local. |
 

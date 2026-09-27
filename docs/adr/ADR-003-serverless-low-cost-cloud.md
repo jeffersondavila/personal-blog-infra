@@ -1,5 +1,30 @@
 ﻿# ADR-003 — Nube serverless de bajo costo
 
+> **Modificación parcial propuesta — 2026-09-27 (`Task/028.2`), pendiente de aprobación.**
+> [ADR-010](ADR-010-production-postgresql-on-rds.md) —**Propuesta**— modificaría este ADR
+> **solo** en lo siguiente, y solo si el usuario aprueba `Task/028.2`. El texto de abajo
+> queda **intacto** como registro aprobado:
+>
+> - **Fila «Base de datos»:** vuelve a ser PostgreSQL **administrado**, concretado en
+>   **Amazon RDS for PostgreSQL privado**, y sustituye la modificación de ADR-007.
+> - **Alternativa «Lambda dentro de VPC con base de datos privada»** y **fila «NAT
+>   Gateway»:** esa alternativa pasa a ser la propuesta, **sin NAT Gateway**. La frase «exige
+>   NAT Gateway para salida a internet» solo es cierta si la función necesita salida
+>   pública, y **VPC no implica NAT**: el inventario del backend solo encuentra PostgreSQL
+>   —dentro de la VPC— y S3/SSM —cubribles con *VPC endpoints*—. **NAT Gateway sigue
+>   excluido**; introducirlo exige una decisión explícita.
+> - **Consecuencias de costo:** RDS es costo fijo aunque no haya tráfico, y los *interface
+>   endpoints* se cobran por AZ y hora. «Costo cercano a cero sin tráfico» y «pausar sin
+>   gasto» dejan de describir el sistema completo. Los créditos AWS no cambian el costo
+>   bruto ni **D-13**.
+> - **Conexiones a PostgreSQL** sigue siendo el riesgo técnico principal: pool derivado y
+>   medido (**D-12**); RDS Proxy evaluable, no adoptado.
+>
+> **No cambian:** Cloudflare Pages, API Gateway HTTP API, Lambda por **ZIP**, S3, SSM,
+> GitHub Actions, Terraform y el resto de exclusiones —EC2, ECR, ECS, EKS, ALB, NAT Gateway
+> y Portainer en producción—.
+
+
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Aceptada |
