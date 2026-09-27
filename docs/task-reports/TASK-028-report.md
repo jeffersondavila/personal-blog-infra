@@ -1695,7 +1695,38 @@ La prueba se rehízo separando lectura de escritura:
 La comprobación del `mirror` exige que existan **exactamente** los archivos esperados, de modo
 que no puede pasar comparando dos conjuntos vacíos —el fallo vacuo que §26.8 documenta.
 
-#### 26.11.6 SBOM y procedencia: qué se hizo y qué sigue pendiente
+#### 26.11.6 Revisión del resto de consumidores operativos: un hallazgo
+
+La revisión pedida de «cualquier otro lugar operativo que siga apuntando a la identidad
+anterior» no encontró ninguno más para el derivado: ni los runbooks ni el laboratorio fijan la
+imagen de MinIO, y las únicas referencias al digest anterior que quedan en el repositorio son
+las **exigidas** —`supersedes`, `superseded_identity`, el test que comprueba que la identidad
+histórica se conserva— y la documentación histórica, que no se reescribe.
+
+Pero la revisión sí destapó algo **adyacente y relevante**, que se declara aquí porque es de
+seguridad y no lo detecta ningún gate:
+
+| | Fijado en `.env` y `.env.example` | **Contenedor realmente en marcha** |
+| --- | --- | --- |
+| MinIO | `…@sha256:247a1cd3…f80702` | **coincide** (recreado en esta verificación) |
+| Portainer | `2.45.1@sha256:4d616db1…3bd8b0e` | **`2.39.7@sha256:0e3c8bc8…`** — obsoleto |
+| PostgreSQL, Traefik | coinciden entre sí | contenedores de hace 3 días |
+
+**La configuración de Portainer es correcta**: `.env` y `.env.example` ya fijan 2.45.1. Lo
+obsoleto es el **contenedor**, levantado antes de ese cambio y nunca recreado. En la práctica,
+el Portainer que se está ejecutando **sigue siendo el 2.39.7 con `CVE-2026-84445` alcanzable**,
+que es justo lo que §25 corrigió en la configuración.
+
+**No se recreó, y es deliberado.** §25.3 dejó constancia de que Portainer **migra
+`portainer_data` al arrancar y no admite downgrade**: recrear el contenedor es un paso de un
+solo sentido sobre datos del usuario. Eso queda **fuera** de esta autorización, que cubre el
+derivado de MinIO, y es una decisión del usuario, no del agente. La mitigación previa es el
+procedimiento de respaldo local ya existente.
+
+Lo mismo vale, sin componente de seguridad conocido, para PostgreSQL y Traefik: sus
+contenedores llevan tres días en marcha y se recrearán cuando el usuario decida.
+
+#### 26.11.7 SBOM y procedencia: qué se hizo y qué sigue pendiente
 
 `CI Infra` genera el SBOM CycloneDX canónico y la procedencia in-toto del artefacto, con
 hashes **deterministas** que el runner reprodujo idénticos a los locales

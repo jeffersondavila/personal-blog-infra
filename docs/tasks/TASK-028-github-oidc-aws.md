@@ -220,7 +220,11 @@ futuras se limitan a operaciones concretas revisadas, sin pedir secretos al agen
 **Rotación de `GHCR_MINIO_READ_TOKEN`** antes del **2027-09-25**. **Publicar SBOM y
 procedencia junto a la imagen** antes de hacer público el paquete: pendiente **heredado de
 Task/027.1**, atado a hacer público el paquete —que no está autorizado—, y no consecuencia de
-Task/028; el proyecto no tiene definido aún el mecanismo. Federación real y cierre Task/028;
+Task/028; el proyecto no tiene definido aún el mecanismo. **Recrear los contenedores locales de
+Portainer, PostgreSQL y Traefik**, que llevan días en marcha y son anteriores a la última
+configuración: el de Portainer sigue siendo 2.39.7 con `CVE-2026-84445` alcanzable aunque `.env`
+ya fije 2.45.1, y recrearlo migra `portainer_data` **sin downgrade posible**, así que es
+decisión del usuario ([reporte §26.11.6](../task-reports/TASK-028-report.md)). Federación real y cierre Task/028;
 materialización/migración D-06 en Task/030,
 incluido estado del propio bucket; protección de main antes de despliegue;
 permisos mínimos separados en Task/038 y Task/039; validación Task/040.
