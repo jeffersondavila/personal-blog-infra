@@ -1577,7 +1577,7 @@ Gate S-09 sobre las **seis** imágenes declaradas: `Hallazgos accionables compar
 atestado exacto de 2 binarios`, `Accionables 10 · Aprobados 10 · Nuevos 0 · Coincidencias
 exactas 10`.
 
-### 26.11 Publicación del derivado D-1 y consumo real (2026-09-27)
+### 26.11 Publicación del derivado D-1 y consumo real (2026-09-26)
 
 Bajo autorización humana acotada —que **no** equivale a aprobar la tarea—, la identidad D-1
 queda **publicada en el GHCR privado** y el entorno local **la consume**. Con esto desaparece
@@ -1728,7 +1728,7 @@ runtime todavía en 2.39.7 era una contradicción. El cierre real está en **§2
 Lo mismo valía, sin componente de seguridad conocido, para PostgreSQL y Traefik: sus
 contenedores siguen siendo los de hace días y se recrearán cuando el usuario decida.
 
-#### 26.11.7 El runtime de Portainer, corregido de verdad (2026-09-27)
+#### 26.11.7 El runtime de Portainer, corregido de verdad (2026-09-26)
 
 **Corrección de una declaración prematura mía.** Este reporte dio H-028-2 por cerrada cuando
 `.env` y `.env.example` ya fijaban Portainer 2.45.1. **No era suficiente, y el usuario lo
@@ -1925,7 +1925,7 @@ usa esa imagen, y su propia API declara `2.45.1`.
 No queda ninguna identidad corregida sin publicar, ningún consumidor apuntando a la identidad
 vulnerable, ni ningún proceso en marcha con `CVE-2026-84445` alcanzable.
 
-## 27. Aprobación y cierre (2026-09-27)
+## 27. Aprobación y cierre (2026-09-26)
 
 El usuario aprobó la tarea con la expresión exacta:
 
@@ -1950,21 +1950,30 @@ gobiernan —**ADR-006** y **ADR-007**— ya estaban Aceptados y siguen intactos
 
 ### 27.2 Criterios de salida de la ETAPA 09
 
-Se marcan **tres** de los cuatro que corresponden a esta tarea: federación OIDC sin claves de
+Se marcan **tres** de los **cuatro criterios asociados a esta tarea** —que en la lista
+global de la etapa son el cuarto, el quinto, el sexto y el séptimo—: federación OIDC sin claves de
 larga vida, rol con cero políticas gestionadas y cero inline con trust exacta, y operaciones
 negativas devolviendo `AccessDenied`.
 
-El cuarto —trust exclusiva de `main` **con** reconfirmación postmerge— **no se marca**. Su
-primera mitad está demostrada: la trust main-only está aplicada y verificada contra IAM, y el
-rechazo desde la rama Task con un JWT nuevo quedó registrado. Falta la reconfirmación postmerge,
-que por definición exige que el merge humano ya exista. Marcar la casilla con esa mitad sin
-evidencia sería falso, así que se deja abierta y se dice por qué.
+El cuarto —trust exclusiva de `main` **con** reconfirmación postmerge— **no se marca en este
+momento**. Su primera mitad está demostrada: la trust main-only está aplicada y verificada
+contra IAM, y el rechazo desde la rama Task con un JWT nuevo quedó registrado. Falta la
+reconfirmación postmerge, que por definición exige que el merge humano ya exista. Marcar la
+casilla con esa mitad sin evidencia sería falso, así que se deja abierta y se dice por qué.
+
+> **Addendum posterior.** Ese criterio —el **cuarto asociado a esta tarea**, y el **séptimo** de
+> la lista global de criterios de salida de la etapa— quedó **cumplido y marcado** el
+> **2026-09-26**, después de que el usuario fusionara el PR #50: `Verify AWS OIDC` **success**
+> por `workflow_dispatch` sobre `main` en `e0fa95b`. Lo registra
+> [`Task/028.1`](TASK-028.1-report.md); el párrafo de arriba **se conserva** porque describía con
+> exactitud el estado en el momento de la aprobación.
 
 ### 27.3 Lo que la aprobación no convierte en hecho
 
 - La **reconfirmación postmerge** desde `main` no existe todavía. **Nunca fue prerrequisito** de
   la aprobación; el criterio 8 de la ficha se corrigió precisamente para no exigir algo
-  imposible antes del merge.
+  imposible antes del merge. *(Addendum: se ejecutó el **2026-09-26** tras el merge del PR #50 y
+  resultó **success**. Lo registra [`Task/028.1`](TASK-028.1-report.md).)*
 - El rol `PersonalBlogGitHubOidcValidation` **no acredita despliegue**: cero políticas
   gestionadas y cero inline. Los permisos mínimos son de `Task/038` y `Task/039`, y la
   validación integral de `Task/040`.

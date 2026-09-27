@@ -95,7 +95,7 @@ pasa de 102 a 21 hallazgos alcanzables en `minio` y de 85 a 7 en `mc`, y deja de
 `GO-2026-6443` en ambos. Validación funcional de la imagen ensamblada con las restricciones
 reales del Compose local, incluido `mc mirror` de ida y vuelta comparado por `sha256`.
 
-**2026-09-27 — el derivado corregido queda publicado y en consumo.** Bajo autorización humana
+**2026-09-26 — el derivado corregido queda publicado y en consumo.** Bajo autorización humana
 acotada —que **no** aprueba la tarea—, la identidad D-1 se publicó en el GHCR **privado** con
 una etiqueta **nueva**, subiendo los **bytes** del artefacto ya validado por la API de
 distribución: el digest se preserva **por construcción**. De 12 blobs, **9 ya estaban** en el
@@ -126,7 +126,7 @@ Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** hasta la aprobació
 **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 [Reporte §20-§26](../task-reports/TASK-028-report.md).
 
-**2026-09-27 — el runtime de Portainer, corregido: H-028-2 cierra de verdad.** La declaración
+**2026-09-26 — el runtime de Portainer, corregido: H-028-2 cierra de verdad.** La declaración
 anterior de cierre era **prematura** y el usuario lo señaló: `.env` y `.env.example` ya fijaban
 Portainer 2.45.1, pero el **contenedor en ejecución** seguía siendo `2.39.7` con
 `CVE-2026-84445` alcanzable. Configuración corregida no es runtime corregido.
@@ -154,7 +154,7 @@ Queda **crear la cuenta de administrador**, anterior a Task/028 y ajeno al
 criterio de cierre de H-028-2: no la bloquea. Cuando se decida, el agente reinicia Portainer y el
 usuario completa únicamente la interfaz web. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
 
-**2026-09-27 — `Task/028-GitHub-OIDC-AWS` APROBADA** por el usuario mediante
+**2026-09-26 — `Task/028-GitHub-OIDC-AWS` APROBADA** por el usuario mediante
 `approved: Task/028-GitHub-OIDC-AWS`. **D-028-A**, **D-028-B** y **D-028-C** pasan a
 **Aceptadas y Vigentes** sin ADR nuevo —la tarea no crea ni reemplaza ninguno—, la excepción
 **EX-028-C7** queda **cerrada** con custodia externa cifrada y recuperación verificada, y el
@@ -180,10 +180,10 @@ el estado vivo de Git/GitHub.
 > start, parser API y aislamiento DNS desde Lambda real. **240 pruebas**, S-09 **126
 > exactas, 0 nuevas**; MinIO **99/99** y BuildKit intactos.
 >
-> **Task/028 Aprobada el 2026-09-27; avance vigente 28/41 ≈ 68 %; Stage09 / ETAPA 09 2/3 ≈ 67 %.**
+> **Task/028 Aprobada el 2026-09-26; avance vigente 28/41 ≈ 68 %; Stage09 / ETAPA 09 2/3 ≈ 67 %.**
 > Task/027.1 es mantenimiento: **no cuenta entre las 41 y no altera el avance**.
 > *(Este bloque decía «Task/027 Aprobada; 27/41 ≈ 66 %; ETAPA 09 1/3 ≈ 33 %» y «Task/028 permanece
-> Pendiente, no iniciada». Era cierto hasta el 2026-09-27.)*
+> Pendiente, no iniciada». Era cierto hasta el 2026-09-26.)*
 > La aprobación humana determina el avance, independientemente de la rama y del PR.
 >
 > Observado el **2026-09-21**: el usuario cerró sin merge #47 y #48 el
