@@ -4,7 +4,7 @@
 | --- | --- |
 | Identificador / rama de trabajo | `Task/028-GitHub-OIDC-AWS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud |
-| Estado | **En progreso** — resolver H-028-1 y recuperar `CI Infra` verde |
+| Estado | **Lista para validación** — H-028-1 y H-028-2 resueltas |
 | Repositorio | **personal-blog-infra**, exclusivamente |
 | Dependencias | Task/025, Task/026 y Task/027 aprobadas; cierre de Task/027 + Task/027.1 comunicado por el usuario |
 | Rama base | **main**, nunca dev |
@@ -190,13 +190,24 @@ transición de trust y la segunda publicación.
 Drift vigente de D-06 y contradicción de propiedad del backend reconciliados.
 Las incidencias de implementación y gates se registran en el reporte.
 
-**H-028-1, abierto (2026-09-25):** `CI Infra` falla en *Build the project images*
-porque quay.io dejó de permitir el acceso anónimo a `minio/minio`; el digest fijado
-devuelve `401 UNAUTHORIZED`. Los 23 gates anteriores pasan, incluidos todos los de
-esta tarea. Ningún commit de Task/028 toca imágenes, Compose ni el workflow, y el
-reintento reprodujo el error. Corregirlo exigiría cambiar el origen de la imagen o
-añadir credenciales de registro: queda **fuera del alcance** de Task/028, con
-propietario en el área de imágenes ([reporte §17.2](../task-reports/TASK-028-report.md)).
+**H-028-1 — resuelta (2026-09-26).** `CI Infra` fallaba en *Build the project images*
+porque `minio/minio` **dejó de estar públicamente accesible en las ubicaciones oficiales
+comprobadas**: el digest fijado devuelve `401` en quay.io y no existe en Docker Hub,
+mientras 69 repositorios hermanos siguen públicos. Por decisión del usuario se resolvió
+**dentro** de esta tarea, con un **espejo privado** que republicó los bytes del manifiesto
+sin alterarlos y conserva por tanto el mismo digest. El acceso de CI usa un **secreto de
+repositorio** (`GHCR_MINIO_READ_TOKEN`, PAT classic, solo `read:packages`, caduca el
+**2027-09-25**), porque en un repositorio público es **el único límite que GitHub impone**
+frente a un PR desde un fork. El paquete sigue **privado**; no se concedió *Manage Actions
+access* ([reporte §20-§21](../task-reports/TASK-028-report.md)).
+
+**H-028-2 — resuelta (2026-09-26).** Al revalidar, `CVE-2026-84445` (`GO-2026-6443`)
+resultó **alcanzable** —no solo presente— en `minio`, `mc` y Portainer, demostrado con
+`govulncheck -mode binary`. Se corrigió **sin aceptar riesgo nuevo**: Portainer a **2.45.1
+LTS** y MinIO y `mc` **reconstruidos** con `grpc v1.83.2` en el derivado, desde
+dependencias congeladas en parches versionados y hasheados. Baseline de MinIO **99 → 10
+accionables, 89 resueltos, 0 nuevas**; `CVE-2026-84445` **2 → 0**
+([reporte §24-§26](../task-reports/TASK-028-report.md)).
 
 ## 17. Pasos de validación para el usuario
 
@@ -206,8 +217,12 @@ futuras se limitan a operaciones concretas revisadas, sin pedir secretos al agen
 
 ## 18. Deuda técnica pendiente
 
-**H-028-1** (acceso anónimo a la imagen de MinIO en quay.io) y la custodia externa
-cifrada de los tres snapshots locales. Federación real y cierre Task/028;
+**Publicación del derivado D-1**: la identidad nueva `sha256:247a1cd3…f80702` **no está
+publicada**, y `.env.example` sigue apuntando a la de Task/027.1, la única publicada, así
+que el entorno local todavía ejecuta la anterior. Publicarla es una acción externa que
+requiere autorización humana explícita. **Rotación de `GHCR_MINIO_READ_TOKEN`** antes del
+**2027-09-25**. **Publicar SBOM y procedencia junto a la imagen** antes de hacer público el
+paquete. Federación real y cierre Task/028;
 materialización/migración D-06 en Task/030,
 incluido estado del propio bucket; protección de main antes de despliegue;
 permisos mínimos separados en Task/038 y Task/039; validación Task/040.
@@ -219,13 +234,12 @@ Task/028 según WORKFLOW. Este checkpoint no cambia 27/41 ni ETAPA 09 1/3.
 
 ## 20. Aprobación
 
-Pendiente, exclusivamente del usuario. Estado **En progreso**: por decisión del
-usuario, H-028-1 se resuelve **dentro de esta tarea** en lugar de abrir otra, de modo
-que la tarea vuelve a En progreso hasta recuperar `CI Infra` en verde. La
-implementación está completa y verificada contra AWS y GitHub reales, y la custodia
-EX-028-C7 quedó cerrada con recuperación demostrada. **`CI Infra` sigue en rojo por
-H-028-1**, ajeno a esta tarea: es un bloqueo externo para la integración, no un
-pendiente de la implementación. La autorización
+Pendiente, exclusivamente del usuario. Estado **Lista para validación**: la
+implementación está completa y verificada contra AWS y GitHub reales, la custodia
+EX-028-C7 quedó cerrada con recuperación demostrada, y **H-028-1 y H-028-2 están
+resueltas dentro de esta misma tarea**, por decisión del usuario, en lugar de delegarlas.
+Queda declarada una brecha que **no** es un pendiente de implementación: el derivado D-1 no
+está publicado, y publicarlo exige autorización humana explícita. La autorización
 local del 2026-09-21 no autoriza cierre, publicaciones ni recursos externos. La
 autorización del 2026-09-24 cubrió únicamente lectura AWS y plan: no autoriza
 apply, publicaciones, cierre ni aprobación.

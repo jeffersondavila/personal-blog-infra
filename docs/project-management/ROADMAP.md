@@ -53,8 +53,8 @@ EX-028-C7 quedó **cerrada**: tres copias cifradas con AES256, custodiadas fuera
 equipo, y la copia final autoritativa recuperada y verificada de extremo a extremo
 —ciphertext, descifrado, tar, `SHA256SUMS` 6/6, estado v4 con lineage coincidente,
 exactamente rol + proveedor, sin `deposed`, trust main-only—. **`CI Infra` sigue en
-rojo por H-028-1**, un cambio de política de quay.io sobre la imagen de MinIO, ajeno a
-Task/028 y con propietario en el área de imágenes: es bloqueo de integración, no de
+rojo por H-028-1**: la imagen de MinIO dejó de estar públicamente accesible en las
+ubicaciones oficiales comprobadas, ajeno a Task/028 y con propietario en el área de imágenes: es bloqueo de integración, no de
 implementación. Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** hasta la
 aprobación: sigue en **27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
 [Reporte §17-§18](../task-reports/TASK-028-report.md).
@@ -69,6 +69,41 @@ oficial sirve ese digest; `aistor/minio` es otro producto con otra licencia. El 
 `build-manifest.json`. El problema es de **accesibilidad anónima** desde el runner, no de
 integridad ni de procedencia. La parte AWS/OIDC/estado/custodia queda terminada y no se
 reabre. [Reporte §19](../task-reports/TASK-028-report.md).
+
+**2026-09-26 — H-028-1 y H-028-2 resueltas; Task/028 Lista para validación.** H-028-1 se
+resolvió con un **espejo privado** que republicó los bytes del manifiesto sin alterarlos y
+conserva por tanto el mismo digest `sha256:a1a8bd4a…cbaba2`; la reconstrucción reprodujo el
+digest de salida idéntico. El acceso de `CI Infra` a ese paquete privado usa un **secreto de
+repositorio** (`GHCR_MINIO_READ_TOKEN`, PAT classic, **solo `read:packages`**, caduca el
+**2027-09-25**), porque en un repositorio público el secreto es **el único límite que GitHub
+impone** frente a un PR desde un fork: `packages: read` del `GITHUB_TOKEN` habría expuesto el
+paquete, y una condición dentro del workflow no es una frontera. El paquete sigue **privado**
+y no se concedió *Manage Actions access*. El valor del PAT no se leyó, ni se registró, ni se
+imprimió; **requiere rotación antes de su caducidad**.
+
+Al revalidar apareció **H-028-2**: `CVE-2026-84445` (`GO-2026-6443`) **alcanzable** —no solo
+presente— en `minio`, `mc` y Portainer, demostrado con `govulncheck -mode binary`. Se resolvió
+**corrigiendo, sin aceptar riesgo nuevo**: Portainer por actualización a **2.45.1 LTS**
+(16 → 4 accionables) y MinIO y `mc` por **corrección técnica en el derivado**, que ahora
+reconstruye **los dos binarios** con `grpc v1.83.2` desde dependencias congeladas en parches
+versionados y hasheados. Identidad de recipe **nueva** `sha256:247a1cd3…f80702` —11 layers, 9
+heredados, constructor `golang:1.27.1` fijado con `GOTOOLCHAIN=local`—; la identidad de
+Task/027.1 se **conserva** por digest, sin mover etiquetas ni sobrescribir nada. El rebuild
+desde cero reprodujo exactamente la identidad registrada. Resultado: baseline de MinIO **99 →
+10 accionables, 89 resueltos, 0 identidades nuevas**, `CVE-2026-84445` **2 → 0**; govulncheck
+pasa de 102 a 21 hallazgos alcanzables en `minio` y de 85 a 7 en `mc`, y deja de reportar
+`GO-2026-6443` en ambos. Validación funcional de la imagen ensamblada con las restricciones
+reales del Compose local, incluido `mc mirror` de ida y vuelta comparado por `sha256`.
+
+**Brecha declarada:** el derivado D-1 **no está publicado**. `.env.example` sigue apuntando a
+la identidad de Task/027.1, la única publicada, así que el entorno local todavía ejecuta la
+anterior. Publicarlo es una acción externa que requiere autorización humana explícita y no se
+ha ejecutado. Ningún gate ata `.env.example` al baseline, de modo que esta brecha no la
+detecta ninguna automatización: consta aquí por eso.
+
+Sin PR, sin merge y sin tocar `dev`. El avance **no cambia** hasta la aprobación: sigue en
+**27/41 ≈ 66 %** y ETAPA 09 en **1/3 ≈ 33 %**.
+[Reporte §20-§26](../task-reports/TASK-028-report.md).
 
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.

@@ -1274,3 +1274,252 @@ local ya existente.
 
 **Portainer no entra en ninguna aceptacion temporal de riesgo:** el hallazgo esta corregido,
 no aceptado.
+
+## 26. CASO D-1: H-028-2 corregido en MinIO y mc (2026-09-26)
+
+### 26.1 Qué se decidió y por qué
+
+§24 demostró con govulncheck oficial que `GO-2026-6443` (`CVE-2026-84445`) **es alcanzable**
+en los tres binarios, no solo presente. §25 corrigió Portainer subiendo de versión. Para
+MinIO y `mc` no existe una versión publicada de upstream que traiga `grpc` corregido, así que
+la alternativa era aceptar riesgo temporalmente o **corregirlo nosotros**.
+
+Se eligió corregirlo: **el CASO D-1**. El derivado ya reconstruía `/usr/bin/minio`; ahora
+reconstruye **también** `/usr/bin/mc`, y los dos con `google.golang.org/grpc v1.83.2`.
+
+**No es una aceptación de riesgo.** `CVE-2026-84445` queda **corregido** en los dos binarios,
+no aceptado.
+
+### 26.2 El build no resuelve nada: dependencias congeladas en parches
+
+El experimento usó `go get` + `go mod tidy`, que consultan la red y pueden resolver algo
+distinto en otra fecha. Eso no puede vivir en una receta reproducible. Los resultados del
+experimento se **congelaron** en dos parches nuevos de `go.mod` y `go.sum`:
+
+| Parche | Objetivo | `sha256` | Tamaño |
+| --- | --- | --- | --- |
+| `minio-amqp091-go-1.13.0.patch` | minio | `16b199bbdf3565d0…f7a902c` | (de Task/027.1) |
+| `minio-deps-grpc-1.83.2.patch` | minio | `161867bbdcb1db49…3f535d` | 43 256 B |
+| `mc-deps-grpc-1.83.2.patch` | mc | `ff61358cc625873f…1429d6e` | 12 387 B |
+
+El `Dockerfile` **no ejecuta `go get` ni `go mod tidy`**. Aplica los parches, comprueba que
+el diff toca **solo** `go.mod` y `go.sum`, y verifica los módulos con `go mod verify`.
+
+Subidas acompañantes, exigidas por el propio grafo de módulos: `otel v1.46.0`,
+`golang.org/x/net v0.59.0`, `golang.org/x/crypto v0.57.0`, `golang.org/x/text v0.42.0`.
+
+### 26.3 Los metadatos de versión de `mc` salen del mecanismo real de upstream
+
+`mc --version` no imprime nada útil si se compila sin `ldflags`. En lugar de inventar una
+cadena, la receta usa **el mecanismo propio de upstream**:
+
+```
+LDFLAGS="$(MC_RELEASE=RELEASE go run buildscripts/gen-ldflags.go)"
+go build -tags kqueue -trimpath --ldflags "$LDFLAGS" -o /out/mc .
+```
+
+`gen-ldflags.go` deriva `ReleaseTag`, `CommitID` y `ShortCommitID` del propio repositorio. El
+build **falla** si la salida de `mc --version` no declara `RELEASE.2025-08-13T08-35-41Z` y
+`7394ce0dd2a8`. Lo mismo para `minio` con `MINIO_RELEASE`.
+
+### 26.4 Identidad nueva, no un incremento
+
+Cambia el constructor, cambian los dos binarios y cambia el número de archivos sustituidos.
+Por eso **la referencia de salida es nueva** y la anterior **no se toca**:
+
+| | Task/027.1 | Task/028 (D-1) |
+| --- | --- | --- |
+| Etiqueta | `…:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0` | `…:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0-grpc1.83.2-mc-RELEASE.2025-08-13T08-35-41Z` |
+| `manifest_digest` | `sha256:84c67632…059129` | `sha256:247a1cd3…f80702` |
+| `config_digest` | `sha256:25c832aa…` | `sha256:9712173f…a5ce64` |
+| Layers | 10 (9 heredados + 1) | **11** (9 heredados + 2) |
+| Constructor | `golang:1.24.6-bookworm` | `golang:1.27.1-bookworm` |
+| `GOTOOLCHAIN` | por defecto | `local`, con aserción de `go1.27.1` en el build |
+| Archivos sustituidos | `usr/bin/minio` | `usr/bin/minio`, `usr/bin/mc` |
+
+La identidad anterior queda conservada en `supersedes` de `build-manifest.json` y en
+`superseded_identity` del baseline. **No se movió la etiqueta, no se sobrescribió el
+manifiesto y no se borró el paquete.** El digest es la autoridad, no la etiqueta.
+
+| Reemplazo | Layer | `diff_id` | `sha256` del binario | Tamaño |
+| --- | --- | --- | --- | --- |
+| `usr/bin/minio` | `sha256:15068620…c000cea` | `sha256:1d570ac2…dff3aca` | `067d5d80…a42f028` | 110 301 344 |
+| `usr/bin/mc` | `sha256:ebd1c5bb…641a4c` | `sha256:801e8f53…1b221e5` | `0878407c…37af0921` | 31 555 744 |
+
+### 26.5 Orden de sellado
+
+Los hashes se calcularon **después** de congelar los archivos, no durante la edición. En
+Task/028 ya se había cometido el error inverso —recalcular `dockerfile_sha256` antes de tocar
+un comentario del `Dockerfile`, lo que dejó el gate de coherencia en rojo—, así que el orden
+se siguió explícitamente:
+
+1. `Dockerfile` y parches terminados y congelados.
+2. `sha256` de los tres parches.
+3. `sha256` del `Dockerfile` → `7ae5e4c241820fc5…d670c04`.
+4. `build-manifest.json` final escrito.
+5. `sha256` del manifiesto → `3792c2d5357633a1…6a18f3215`.
+6. Atestado y baseline ligados a ese hash.
+7. Gate de coherencia del repositorio: **CORRECTO**.
+8. **Rebuild desde cero** (`--no-cache --pull`), con la invocación exacta de `CI Infra`.
+9. El artefacto producido se comparó con la identidad ya registrada.
+
+El rebuild desde cero reprodujo **exactamente** la identidad registrada:
+
+```
+manifest_digest              sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702
+config_digest                sha256:9712173f8f150d2926c2a75d1a0a8e04836eca4390d106416e7b4b3b76a5ce64
+replaced_paths               ["usr/bin/minio", "usr/bin/mc"]
+layers                       11
+inherited_layers             9
+build_manifest_sha256        3792c2d5357633a160ebf778e4ea53081ed47bbb69f9294fd995b3a6a18f3215
+only_declared_paths_replaced true
+IDENTIDAD_REPRODUCIDA        SI
+```
+
+### 26.6 El verificador OCI evoluciona en lugar de relajarse
+
+`inspect_oci` ya no comprueba «solo cambió `usr/bin/minio`». Ahora **la receta declara cada
+reemplazo** y el verificador exige que sean exactamente esos, en ese orden, cada uno en su
+propio layer:
+
+- número total de layers = heredados + reemplazos declarados;
+- los 9 layers y `diff_id` heredados, intactos;
+- por reemplazo: `layer_digest`, `diff_id`, lista de miembros **exacta**
+  (`["usr", "usr/bin", "usr/bin/<nombre>"]`), `(modo, uid, gid)`, `sha256` y tamaño;
+- ningún path declarado dos veces; la lista observada igual a la declarada.
+
+`verify_recipe` comprueba además que **cada parche declarado existe, coincide byte a byte y
+el `Dockerfile` lo aplica**, y que **no hay ningún `.patch` en el directorio de la receta que
+la receta no declare**: un parche opaco es procedencia falsa.
+
+`tests/security/test_minio_oci_verifier.py` añade **21 pruebas**, construyendo un OCI
+sintético coherente y rompiendo **una sola cosa** cada vez:
+
+| Negativo | Rechazo esperado |
+| --- | --- |
+| Un tercer archivo dentro del layer | `modifica algo distinto de ese path` |
+| Un tercer layer no declarado | `no agrega exactamente los layers declarados` |
+| Falta `minio` | `no agrega exactamente los layers declarados` |
+| Falta `mc` | `no agrega exactamente los layers declarados` |
+| `mc` sustituido por otro path | `modifica algo distinto de ese path` |
+| `sha256` del binario discrepante | `hash del binario … inesperado` |
+| Tamaño del binario discrepante | `tamano del binario … inesperado` |
+| Modo `0777` en lugar de `0755` | `modo o propietario … inesperado` |
+| Propietario `1000:1000` | `modo o propietario … inesperado` |
+| Path declarado dos veces | `path de reemplazo duplicado` |
+| Receta sin reemplazos | `no declara ningun reemplazo` |
+| Layer heredado alterado | `los layers heredados no son los de la base fijada` |
+| Entrypoint alterado | `entrypoint/cmd/env/labels del runtime cambiaron` |
+| Parche con hash incorrecto | `hash de parche no coincide` |
+| `Dockerfile` con hash incorrecto | `hash de dockerfile no coincide` |
+| Parche presente sin declarar | `los parches presentes no son los declarados` |
+| Parche declarado que la receta no aplica | `la receta no aplica el parche declarado` |
+| Esquema `version: 1` | `schema de build desconocido` |
+
+El atestado del gate S-09 sigue **escrito en el código** con los dos commits y los dos
+`sha256` de binario: si el gate los leyera del manifiesto, el manifiesto se estaría validando
+contra sí mismo.
+
+### 26.7 Resultado de seguridad sobre el artefacto definitivo
+
+`govulncheck -mode binary` sobre los binarios **extraídos de los layers ya verificados**, no
+recompilados para la medición:
+
+| Binario | `grpc` embebido | Alcanzables antes | Alcanzables después | `GO-2026-6443` |
+| --- | --- | --- | --- | --- |
+| `minio` | `v1.83.2` | 102 | **21** | **NO alcanzable** |
+| `mc` | `v1.83.2` | 85 | **7** | **NO alcanzable** |
+
+Trivy 0.74.0 sobre la imagen ensamblada, con el comparador **real** del gate
+(`IDENTITY_FIELDS` + `LOCATION_FIELDS`):
+
+| Medición | Valor |
+| --- | --- |
+| Inventario completo | 106 |
+| Accionables antes | 99 |
+| Accionables ahora | **10** |
+| Resueltos | **89** |
+| **Identidades nuevas** | **0** |
+| `CVE-2026-84445` antes → ahora | **2 → 0** |
+
+Las 10 que quedan son **subconjunto exacto** de las 99 ya revisadas bajo R-018-3. La
+condición era detenerse si aparecía **una sola** identidad nueva; no apareció ninguna.
+
+Gate S-09 real ejecutado contra el informe del artefacto definitivo:
+`Accionables 10 · Aprobados 10 · Nuevos 0 · Coincidencias exactas 10 · RESULTADO: CORRECTO`.
+
+El S-09 **íntegro** exige los seis informes de imagen y es fail-closed, así que la ejecución
+local se acotó a la entrada `minio`; las seis imágenes se comparan en `CI Infra`.
+
+### 26.8 Validación funcional de la imagen ensamblada
+
+El artefacto exacto se cargó en el daemon (`docker load` devolvió
+`sha256:247a1cd3…f80702`) y se arrancó con **las mismas restricciones del Compose local**:
+`--read-only`, `--cap-drop ALL`, `no-new-privileges`, `tmpfs` en `/tmp` y
+`MC_CONFIG_DIR=/tmp/mc`.
+
+| Comprobación | Resultado |
+| --- | --- |
+| `Entrypoint` / `Cmd` heredados | `["/usr/bin/docker-entrypoint.sh"]` / `["minio"]` |
+| `minio --version` | `RELEASE.2025-09-07T16-13-09Z (commit-id=07c3a429bfed…)`, `go1.27.1` |
+| `mc --version` | `RELEASE.2025-08-13T08-35-41Z (commit-id=7394ce0dd2a8…)`, `go1.27.1` |
+| Modo y propiedad de los dos binarios | `-rwxr-xr-x  0 0` |
+| Servidor listo | `mc ready` → `The cluster 'local' is ready` |
+| `mc alias set` con la raíz de solo lectura | escribe en `/tmp/mc`, correcto |
+| `mc mb` | bucket creado |
+| `mc mirror` ida y vuelta | `sha256` de los dos archivos **idénticos** en ambos sentidos |
+| `mc cp` + `mc stat` | objeto copiado, `ETag` devuelto |
+| `mc admin info` | `Network 1/1 OK`, `Drives 1/1 OK` |
+| Escritura en `/usr/bin` | rechazada (`rc=1`) |
+| Líneas de pánico o error en el log | **0** |
+
+**Corrección de método durante esta validación.** La primera versión de la comprobación de
+`mc mirror` usaba `diff -r` y luego `find … -exec sha256sum`. La imagen mínima **no trae
+`diff` ni `find`**, de modo que las dos listas de hashes salían **vacías** y la comparación
+pasaba comparando nada con nada: un paso vacuo que habría quedado registrado como validado.
+Se detectó porque las líneas de hash no aparecieron en la salida. La comprobación se rehízo
+con `sha256sum` sobre los dos archivos por nombre exacto, más la verificación del listado de
+cada nivel, y ahora **imprime los hashes que compara**.
+
+### 26.9 Cambios aplicados
+
+| Archivo | Cambio |
+| --- | --- |
+| `docker/minio/Dockerfile` | Dos etapas constructoras, `golang:1.27.1` por digest, `GOTOOLCHAIN=local` con aserción, tres parches con hash, `ldflags` de upstream, dos `COPY --chown=0:0 --chmod=0755` |
+| `docker/minio/minio-deps-grpc-1.83.2.patch` | **nuevo** |
+| `docker/minio/mc-deps-grpc-1.83.2.patch` | **nuevo** |
+| `docker/minio/build-manifest.json` | esquema `version: 2`: `sources` (dos), `changes` (tres), `output.replacements` (dos), `supersedes` con la identidad de Task/027.1 |
+| `docker/minio/README.md` | reescrito: dos binarios, dos identidades, brecha de publicación declarada |
+| `scripts/minio/artifact.py` | `inspect_oci` por reemplazos declarados; `verify_recipe` con lista de parches y comprobación de sobrantes; `attest` y `provenance` con las dos procedencias |
+| `scripts/security/vulnerability_gate.py` | coherencia sobre `changes`; atestado nominal de los dos binarios |
+| `security/vulnerability-baseline.json` | `reference`, `expected_digest`, `build_manifest_sha256`, `accepted_findings` 99 → **10**, `superseded_identity` |
+| `tests/security/test_minio_oci_verifier.py` | **nuevo**, 21 pruebas |
+| `tests/security/test_minio_derivative.py` | conjunto exacto de las 10; los dos CVE corregidos no pueden reaparecer; identidad anterior conservada |
+| `tests/security/test_pinned_artifact_policy.py` | recuento de MinIO 99 → 10 |
+| `tests/security/test_vulnerability_gate.py` | atestado sintético con el esquema v2 |
+
+Suites: `tests/oidc` **60 OK**, `tests/laboratorio` **176 OK**, `tests/security` **88 OK**.
+Gate de coherencia: **CORRECTO**. Compilación de los 17 scripts Python: **0 fallos**. CRLF en
+los archivos tocados: **0**.
+
+### 26.10 Brecha declarada: el derivado D-1 no está publicado
+
+`.env.example` sigue apuntando a `sha256:84c67632…059129`, la identidad de Task/027.1, que es
+**la única publicada en GHCR**. Publicar el derivado D-1 es una **acción externa que requiere
+autorización humana explícita** y **no se ha ejecutado**.
+
+Consecuencia exacta, sin adornos:
+
+- `CI Infra` construye, verifica, escanea y compara la identidad **nueva** desde la receta, y
+  el baseline está ligado a ella;
+- el **entorno local** sigue ejecutando la identidad **anterior**, que conserva
+  `CVE-2026-84445` alcanzable;
+- ningún gate ata `.env.example` al baseline, así que esta brecha **no** enrojece `CI Infra`.
+  Está declarada aquí precisamente porque no la detecta ninguna automatización.
+
+### 26.11 Estado de las incidencias
+
+| Incidencia | Estado |
+| --- | --- |
+| **H-028-1** — `minio/minio` dejó de estar públicamente accesible en las ubicaciones oficiales comprobadas | **Resuelta** (§20): espejo privado byte a byte que preserva el digest, más secreto de repositorio como único límite que GitHub impone frente a forks (§21) |
+| **H-028-2** — `CVE-2026-84445` alcanzable en `minio`, `mc` y Portainer | **Resuelta**: Portainer por actualización a 2.45.1 LTS (§25); `minio` y `mc` por corrección técnica en el derivado (§26) |

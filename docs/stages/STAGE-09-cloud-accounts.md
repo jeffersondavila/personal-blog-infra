@@ -76,7 +76,7 @@ Git, enlaces y patrones de secretos pasó; el usuario aprobó Task/027 el 2026-0
 [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) ·
 [Reporte](../task-reports/TASK-027-report.md)
 
-### `Task/028-GitHub-OIDC-AWS` — *En progreso — resolviendo H-028-1*
+### `Task/028-GitHub-OIDC-AWS` — *Lista para validación*
 
 Federación OIDC real GitHub Actions → AWS, **sin access keys permanentes**.
 Rol exclusivo `PersonalBlogGitHubOidcValidation`, cero managed/inline policies:
@@ -89,9 +89,16 @@ creaciones administradas, con **cero mutaciones AWS** y **sin apply**. La federa
 las publicaciones y la reconfirmación postmerge siguen pendientes de autorización.
 Checkpoint del 2026-09-24: **federación real demostrada** —dos recursos creados, trust
 exacta, cero políticas, `AccessDenied` e `InvalidIdentityToken` exactos en la primera
-ejecución premerge—. Los criterios de salida de abajo **no se marcan**: por convención
-de esta etapa, una casilla se marca cuando la respalda una tarea **aprobada**.
-[Ficha](../tasks/TASK-028-github-oidc-aws.md) · [Reporte §12](../task-reports/TASK-028-report.md).
+ejecución premerge—. Cierre del 2026-09-26: transición a trust `main`, segunda publicación
+con el `AccessDenied` esperado, custodia EX-028-C7 cerrada con recuperación verificada, y
+**H-028-1 y H-028-2 resueltas dentro de esta misma tarea** —espejo privado que preserva el
+digest, y `CVE-2026-84445` **corregido** en Portainer, `minio` y `mc`, con el residual
+aceptado de MinIO de **99 a 10** y **cero identidades nuevas**—. Queda declarada una brecha
+que no es pendiente de implementación: el derivado corregido **no está publicado** y hacerlo
+exige autorización humana explícita. Los criterios de salida de abajo **no se marcan**: por
+convención de esta etapa, una casilla se marca cuando la respalda una tarea **aprobada**.
+[Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
+[Reporte §12-§26](../task-reports/TASK-028-report.md).
 
 Task/038 define permisos mínimos backend; Task/039 los de Terraform; Task/040
 valida integralmente. Branch protection queda fuera de Task/028, pero debe existir
