@@ -1866,20 +1866,19 @@ Consecuencias, dichas con precisión:
   `HTTP 200`, responde `/api/status` y `/api/system/status` con `2.45.1`, y migró la base sin un
   solo error. **No** significa que haya una sesión utilizable, porque no hay cuenta que usar.
 
-##### Lo que queda para el usuario
+##### Configuración inicial de Portainer: fuera del cierre de Task/028
 
-**Completar la configuración inicial de Portainer**: crear la cuenta de administrador. Portainer
-imprime un *setup token* en el log de su contenedor al arrancar; ese valor **no se ha leído, ni
-copiado, ni registrado aquí**, y no se necesita ninguna credencial del usuario para nada de lo
-anterior. Como la instancia se bloquea a los cinco minutos, conviene reiniciarla justo antes:
+Falta **crear la cuenta de administrador**, que esta instalación nunca tuvo. Eso es **anterior** a
+Task/028 y ajeno a ella: no lo creó esta tarea, **no la bloquea** y **no es condición de cierre de
+H-028-2**, cuyo criterio era que el runtime dejara de ser 2.39.7 —y ya lo dejó.
 
-```powershell
-docker compose restart portainer
-# y a continuacion abrir https://127.0.0.1:9444 y crear la cuenta
-```
+Cuando el usuario decida hacerlo, el reparto es: **el agente reinicia Portainer** —porque la
+instancia se bloquea a los cinco minutos del arranque y hay que abrir la ventana— y **el usuario
+completa únicamente la interfaz web**. No se deja aquí ningún comando como deber del usuario.
 
-Esto es **anterior** a Task/028 y ajeno a ella: no es un pendiente que esta tarea haya creado ni
-una condición para cerrar H-028-2, cuyo criterio era que el runtime dejara de ser 2.39.7.
+Portainer imprime un *setup token* en el log de su contenedor al arrancar. Ese valor **no se ha
+leído, ni copiado, ni registrado**, y nada de lo verificado en esta sección necesitó ninguna
+credencial del usuario.
 
 **Los contenedores de PostgreSQL y Traefik siguen siendo los de hace tres días.** No tienen
 ningún hallazgo de seguridad conocido pendiente —sus entradas de baseline son `zero-tolerance`

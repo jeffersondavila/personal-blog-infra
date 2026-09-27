@@ -150,8 +150,9 @@ bloquea con «timed out for security purposes». **No lo causó la migración.**
 el respaldo **previo** con la imagen 2.39.7 en un puerto aparte: responde
 `404 — No administrator account found`, igual que la instancia migrada. **La instalación nunca se
 inicializó**, así que no había usuarios ni entornos que preservar y el bloqueo es preexistente.
-Queda para el usuario **crear la cuenta de administrador**, algo anterior a Task/028 y ajeno al
-criterio de cierre de H-028-2. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
+Queda **crear la cuenta de administrador**, anterior a Task/028 y ajeno al
+criterio de cierre de H-028-2: no la bloquea. Cuando se decida, el agente reinicia Portainer y el
+usuario completa únicamente la interfaz web. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
 
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
