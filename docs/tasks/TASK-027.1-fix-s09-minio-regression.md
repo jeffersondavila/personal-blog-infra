@@ -17,6 +17,21 @@
 | **Expresión de la primera aprobación (2026-09-20)** | `approved: Task/027.1-Corregir-Regresion-S09-MinIO` |
 | **Reporte** | [TASK-027.1-report.md](../task-reports/TASK-027.1-report.md) |
 | **Publicación de la imagen** | **Publicada** en GHCR el 2026-09-19, bajo autorización humana acotada que **no** equivale a aprobar la tarea. RepoDigest remoto verificado: `sha256:84c67632…059129`. Paquete **PRIVADO**; visibilidad **no modificada** |
+---
+
+> **Nota posterior (2026-09-26, `Task/028`).** El derivado descrito aquí fue **ampliado** por
+> Task/028 al resolver H-028-2: ahora reconstruye también `/usr/bin/mc` y sube
+> `google.golang.org/grpc` a `v1.83.2` en los dos binarios, porque `CVE-2026-84445` resultó
+> **alcanzable** en ambos. Eso produce una **identidad de recipe nueva**,
+> `sha256:247a1cd3…f80702`, con 11 layers y residual accionable de **10** en lugar de 99.
+>
+> **Nada de este documento se reescribe y nada se mueve.** La identidad de Task/027.1,
+> `sha256:84c67632…059129`, sigue siendo la **publicada** en GHCR y la que usa
+> `.env.example`; su etiqueta no se reutilizó ni se sobrescribió. La correspondencia entre
+> ambas queda declarada en `supersedes` de `docker/minio/build-manifest.json` y en
+> `superseded_identity` del baseline. Detalle en
+> [TASK-028-report.md §26](../task-reports/TASK-028-report.md).
+
 
 ---
 

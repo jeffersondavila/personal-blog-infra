@@ -492,7 +492,9 @@ Reglas heredadas y vigentes:
   el laboratorio **no puede acabar hablando con AWS real**.
 - **Ninguna automatización ejecuta `terraform destroy` contra infraestructura real** — AWS,
   Cloudflare ni VPS. Contra el emulador **efímero** de un job de CI sí es legítimo.
-- El **backend de estado** de Terraform es **D-06**, abierta, en `Task/025`.
+- **D-06 Resuelta y Vigente desde Task/025**: S3 privado con lock nativo, sin
+  DynamoDB. Task/030 materializa el bucket y migra el estado bootstrap OIDC;
+  EX-028-C7 permite temporalmente estado local protegido solo para ese root.
 - Credenciales, rotación, *scopes* y guardas de destino **para los tres providers** son de
   `Task/039`. **`Task/028` solo resuelve GitHub Actions → AWS.**
 
@@ -686,7 +688,6 @@ Registro vivo completo: [open-decisions.md](open-decisions.md).
 | # | Decisión abierta | Owner |
 | --- | --- | --- |
 | **D-01** (resto) | **Proveedor, región y tamaño del VPS** | `Task/029` |
-| **D-06** | Backend de estado de Terraform | `Task/025` |
 | **D-07** | Dominio concreto y DNS | `Task/035` |
 | **D-08** | CDN y acceso a medios públicos | `Task/030` |
 | **D-10** | Estrategia exacta de backup: frecuencia, retención, RPO/RTO, PITR | `Task/029` |

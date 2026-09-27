@@ -372,12 +372,33 @@ class CoexistenciaTests(unittest.TestCase):
         )
 
     def test_el_baseline_real_sigue_conservando_las_aceptaciones_historicas(self):
+        # Las dos entradas third-party bajaron el 2026-09-26 CORRIGIENDO, no
+        # relajando. En los dos casos las que quedan son subconjunto exacto de las
+        # ya aprobadas y no aparece ninguna identidad nueva. Se comprobo con Trivy
+        # 0.74.0 y con govulncheck en modo binario, que deja de reportar
+        # GO-2026-6443.
+        #
+        #   portainer: 16 -> 4   al subir de 2.39.7 a 2.45.1 LTS.
+        #   minio:     99 -> 10  al reconstruir los DOS binarios del derivado con
+        #                        grpc v1.83.2 (Task/028, H-028-2).
         datos = json.loads(
             (ROOT / "security/vulnerability-baseline.json").read_text(encoding="utf-8")
         )
         por_clave = {i["key"]: i for i in datos["images"]}
-        self.assertEqual(len(por_clave["minio"]["accepted_findings"]), 99)
-        self.assertEqual(len(por_clave["portainer"]["accepted_findings"]), 16)
+        self.assertEqual(len(por_clave["minio"]["accepted_findings"]), 10)
+        self.assertNotIn("CVE-2026-84445", {f["id"] for f in por_clave["minio"]["accepted_findings"]})
+        self.assertEqual(len(por_clave["portainer"]["accepted_findings"]), 4)
+        aceptadas = {(f["id"], f["package"]) for f in por_clave["portainer"]["accepted_findings"]}
+        # Ninguna de las 4 puede ser una identidad nueva respecto de las historicas.
+        historicas = {
+            ("CVE-2025-15558", "github.com/docker/cli"),
+            ("CVE-2026-17106", "github.com/moby/go-archive"),
+            ("CVE-2026-33747", "github.com/moby/buildkit"),
+            ("CVE-2026-33748", "github.com/moby/buildkit"),
+        }
+        self.assertEqual(aceptadas, historicas)
+        # El hallazgo que motivo la subida no puede reaparecer en el baseline.
+        self.assertNotIn("CVE-2026-84445", {f["id"] for f in por_clave["portainer"]["accepted_findings"]})
         for clave in ("postgres", "traefik"):
             self.assertEqual(por_clave[clave]["policy"], "zero-tolerance")
             self.assertEqual(por_clave[clave]["accepted_findings"], [])

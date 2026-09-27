@@ -1,36 +1,94 @@
 {
   "schema": "personal-blog-infra/minio-reproducible-build",
-  "version": 1,
+  "version": 2,
   "platform": "linux/amd64",
   "source_date_epoch": 1757261589,
-  "source": {
-    "repository": "https://github.com/minio/minio.git",
-    "release": "RELEASE.2025-09-07T16-13-09Z",
-    "tag_object": "01ce918d8279a20e4706b96a64396146894adee4",
-    "commit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
-    "git_archive_sha256_in_builder": "3fd74f9e3123e8d112141b9764e583b263c711b9ce87661bfa3afda586f92091"
+  "sources": {
+    "minio": {
+      "repository": "https://github.com/minio/minio.git",
+      "release": "RELEASE.2025-09-07T16-13-09Z",
+      "tag_object": "01ce918d8279a20e4706b96a64396146894adee4",
+      "commit": "07c3a429bfed433e49018cb0f78a52145d4bedeb",
+      "git_archive_sha256_in_builder": "3fd74f9e3123e8d112141b9764e583b263c711b9ce87661bfa3afda586f92091",
+      "target_path": "usr/bin/minio"
+    },
+    "mc": {
+      "repository": "https://github.com/minio/mc.git",
+      "release": "RELEASE.2025-08-13T08-35-41Z",
+      "tag_object": "d6541ea280b73a834b64d4097e21f2be77676104",
+      "commit": "7394ce0dd2a80935aded936b09fa12cbb3cb8096",
+      "git_archive_sha256_in_builder": "3a4e9b4b48ad0cd5ce87e6d0a2e67959e44e47f576a52c2837179ddff9e814e2",
+      "target_path": "usr/bin/mc"
+    }
   },
-  "change": {
-    "module": "github.com/rabbitmq/amqp091-go",
-    "from": "v1.10.0",
-    "to": "v1.13.0",
-    "only_changed_source_files": [
-      "go.mod",
-      "go.sum"
-    ],
-    "patch": "docker/minio/minio-amqp091-go-1.13.0.patch",
-    "patch_sha256": "16b199bbdf3565d0a8455dad5cc6762d81e4f58be5210daf4221d8852f7a902c"
-  },
+  "changes": [
+    {
+      "target": "minio",
+      "reason": "Task/027.1: CVE-2026-79921 en amqp091-go",
+      "module": "github.com/rabbitmq/amqp091-go",
+      "from": "v1.10.0",
+      "to": "v1.13.0",
+      "only_changed_source_files": [
+        "go.mod",
+        "go.sum"
+      ],
+      "patch": "docker/minio/minio-amqp091-go-1.13.0.patch",
+      "patch_sha256": "16b199bbdf3565d0a8455dad5cc6762d81e4f58be5210daf4221d8852f7a902c"
+    },
+    {
+      "target": "minio",
+      "reason": "Task/028 H-028-2: GO-2026-6443 (CVE-2026-84445) alcanzable en el binario",
+      "module": "google.golang.org/grpc",
+      "from": "v1.72.0",
+      "to": "v1.83.2",
+      "companion_bumps": {
+        "go.opentelemetry.io/otel": "v1.46.0",
+        "golang.org/x/net": "v0.59.0",
+        "golang.org/x/crypto": "v0.57.0",
+        "golang.org/x/text": "v0.42.0"
+      },
+      "only_changed_source_files": [
+        "go.mod",
+        "go.sum"
+      ],
+      "patch": "docker/minio/minio-deps-grpc-1.83.2.patch",
+      "patch_sha256": "161867bbdcb1db4927e5416279ec5d1a5515fc95df5eaf5ce433e14e423f535d"
+    },
+    {
+      "target": "mc",
+      "reason": "Task/028 H-028-2: GO-2026-6443 (CVE-2026-84445) alcanzable en el binario",
+      "module": "google.golang.org/grpc",
+      "from": "v1.71.0",
+      "to": "v1.83.2",
+      "companion_bumps": {
+        "golang.org/x/net": "v0.59.0",
+        "golang.org/x/crypto": "v0.57.0",
+        "golang.org/x/text": "v0.42.0"
+      },
+      "only_changed_source_files": [
+        "go.mod",
+        "go.sum"
+      ],
+      "patch": "docker/minio/mc-deps-grpc-1.83.2.patch",
+      "patch_sha256": "ff61358cc625873fad0ac0fceb0f6b17ec2d7aefad820fb27cc9d6bde1429d6e"
+    }
+  ],
   "recipe": {
     "dockerfile": "docker/minio/Dockerfile",
-    "dockerfile_sha256": "72683e763d193412096e271664d003a7faa946046ffd7773b9c3be03230f6bb7",
+    "dockerfile_sha256": "7ae5e4c241820fc588cd511ea4a56b10455dcdb36e964f7161cdd54fad670c04",
     "frontend": "docker/dockerfile:1.19@sha256:b6afd42430b15f2d2a4c5a02b919e98a525b785b1aaff16747d2f623364e39b6",
-    "builder_index": "docker.io/library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
-    "builder_platform_manifest": "docker.io/library/golang:1.24.6-bookworm@sha256:4f8589362626cfa081fdab2b474cda87c3b51d74b1e227c110d2ffde56daad5c"
+    "builder_index": "docker.io/library/golang:1.27.1-bookworm@sha256:69a7b9788769bec032d238959b61854e9ae87f57be9029ec04e9885fabf99195",
+    "builder_platform_manifest": "docker.io/library/golang@sha256:966278043a40889499db9b0cd196fc789c37c385d41bd9a10cb1e7764af60cdc",
+    "gotoolchain": "local",
+    "go_version_asserted_in_build": "go1.27.1",
+    "ldflags_source": {
+      "minio": "MINIO_RELEASE=RELEASE go run buildscripts/gen-ldflags.go",
+      "mc": "MC_RELEASE=RELEASE go run buildscripts/gen-ldflags.go"
+    }
   },
   "runtime_base": {
     "upstream_index": "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
-    "platform_manifest": "quay.io/minio/minio@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2",
+    "platform_manifest": "ghcr.io/jeffersondavila/personal-blog-minio-base@sha256:a1a8bd4ac40ad7881a245bab97323e18f971e4d4cba2c2007ec1bedd21cbaba2",
     "config_digest": "sha256:69b2ec208575b69597784255eec6fa6a2985ee9e1a47f4411a51f7f5fdd193a9",
     "runtime_config_sha256": "b6e997f1b66b15567d7929dc94f45b406adb6a4bba3b36c8880a0534906db244",
     "layer_digests": [
@@ -57,13 +115,41 @@
     ]
   },
   "output": {
+    "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0-grpc1.83.2-mc-RELEASE.2025-08-13T08-35-41Z",
+    "manifest_digest": "sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702",
+    "config_digest": "sha256:9712173f8f150d2926c2a75d1a0a8e04836eca4390d106416e7b4b3b76a5ce64",
+    "replacements": [
+      {
+        "path": "usr/bin/minio",
+        "mode": 493,
+        "uid": 0,
+        "gid": 0,
+        "layer_digest": "sha256:150686205081a27201832a3b3059ed61cdbb9c25ff372bd22703905b0c000cea",
+        "diff_id": "sha256:1d570ac2b3473277e278dd5b360ae7b53f2e71e13efb50706419f7c2adff3aca",
+        "binary_sha256": "067d5d8015fe1f4fe3c40638967f479d9eee818cca08cadbb5646d0d9a42f028",
+        "binary_size": 110301344
+      },
+      {
+        "path": "usr/bin/mc",
+        "mode": 493,
+        "uid": 0,
+        "gid": 0,
+        "layer_digest": "sha256:ebd1c5bb68360a904916bc4f8c0799bd15b855d9286cf310f3511b2c48641a4c",
+        "diff_id": "sha256:801e8f53fba5af50f900c3052c958d091f5fcb795cbbe2f4b52946daa1b221e5",
+        "binary_sha256": "0878407cff302dcceaf4088201e6945bb0d12143823f9d407d7add4137af0921",
+        "binary_size": 31555744
+      }
+    ]
+  },
+  "supersedes": {
+    "note": "Identidad historica de Task/027.1, conservada como evidencia. No se mueve, no se sobrescribe y no se borra. El digest es la autoridad.",
     "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0",
     "manifest_digest": "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129",
     "config_digest": "sha256:25c832aa396d4de7eb2d202529ee8055280633f0ef270687e565bd376d1882a2",
-    "binary_sha256": "9437671add14972349f023a780c1d873f4d8993d3a6cd7448b1b8a962e89983f",
-    "binary_size": 111145144,
-    "replacement_layer_digest": "sha256:e93c72cb27643b783e540a685000349814e734f4a7f217a12db734485d7d1df0",
-    "replacement_diff_id": "sha256:c16127ace11f7861973325cda721e99ac83758c7b913b2528750215db336088a"
+    "builder_index": "docker.io/library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
+    "replaced_paths": [
+      "usr/bin/minio"
+    ]
   },
   "license": {
     "upstream": "GNU AGPL-3.0",

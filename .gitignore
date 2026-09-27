@@ -25,6 +25,7 @@ credentials.json
 # que el proyecto evita fijando digests en todo lo demas. CI lo usa con
 # `init -lockfile=readonly` y falla ante cualquier discrepancia.
 !terraform/.terraform.lock.hcl
+!bootstrap/github-oidc/.terraform.lock.hcl
 
 # Providers descargados y metadatos de trabajo: se reconstruyen con `init`.
 .terraform/
@@ -38,6 +39,10 @@ credentials.json
 # Valores de destino con datos propios de una maquina. Los .example si se
 # versionan: no contienen secretos.
 *.tfvars
+*.tfvars.json
+*.tfbackend
+*.private.json
+*.gpg
 !*.tfvars.example
 !terraform/entornos/local/local.tfvars
 

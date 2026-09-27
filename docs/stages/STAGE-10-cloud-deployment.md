@@ -25,10 +25,23 @@ arbitrario: cada una habilita a la siguiente.
 
 ## Relación con la ETAPA 08 — reutilizar, no reinventar
 
-`Task/030`–`Task/033` **no crean recursos Terraform nuevos**. La expectativa explícita es:
+`Task/030`–`Task/033` **reutilizan los módulos Task/025 para infraestructura
+de aplicación**. La expectativa explícita es:
 
 > **Utilizar los módulos construidos y validados localmente en `Task/025` y materializarlos
 > contra AWS real.**
+
+**Excepción explícita Task/030 — bootstrap D-06.** Puede crear mediante Terraform
+exclusivamente el bucket dedicado al estado y su protección: privado, versionado,
+cifrado, public access block, bloqueo nativo `use_lockfile=true`, sin DynamoDB y
+separado de medios/backups. Debe migrar `bootstrap/github-oidc/terraform.tfstate`
+con `terraform init -migrate-state` y resolver la custodia/migración del estado del
+propio bootstrap del bucket, con recuperación probada. La ficha Task/030 recogerá
+estos entregables al abrirse. EX-028-C7 termina antes del primer apply de aplicación.
+
+No duplica el grafo Task/025: **el backend debe existir antes de inicializar el grafo
+que depende de él**. Por eso se materializa desde un root bootstrap independiente,
+con su propio ciclo de estado. [Runbook OIDC](../runbooks/github-oidc-bootstrap.md).
 
 Esta etapa es, además, donde el proyecto descubre **qué era realmente cierto** del
 laboratorio local. Por cada recurso se documenta y se clasifica:
@@ -57,7 +70,7 @@ laboratorio se corrige.
 
 | Tarea | Contenido | Depende de |
 | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. **Destino y retención de los backups del VPS**, **materialización de la identidad decidida en D-16** y **validación de `S3Storage` contra S3 real**. Resuelve **D-08**. | `Task/029` |
+| `Task/030-Desplegar-Amazon-S3` | Bucket, CORS, políticas, URLs prefirmadas, lifecycle. **Destino y retención de los backups del VPS**, **materialización de la identidad decidida en D-16** y **validación de `S3Storage` contra S3 real**. Resuelve **D-08**. **Excepción D-06:** bucket de estado y protección, migración OIDC y custodia/migración del estado del propio bootstrap. | `Task/029` |
 | `Task/031-Desplegar-SSM-y-CloudWatch` | Parámetros **`SecureString`** y permisos IAM mínimos. **CloudWatch mínimo**: grupos de logs, **retención corta y explícita** (**D-11**), alarmas mínimas. **Base de la integración `CloudWatch → Grafana Cloud`: decide D-20** y su modelo IAM de **solo lectura**. **Alcance exclusivamente AWS: no observa el VPS.** | `Task/029` |
 | `Task/032-Desplegar-AWS-Lambda` | Función, rol IAM, configuración, memoria y timeout. ***Reserved Concurrency*** coherente con el pool de PgBouncer, **RTT real `Lambda → PgBouncer` medido** y *wiring* de `S3Storage`. | `Task/030`, `Task/031` |
 | `Task/033-Desplegar-API-Gateway` | HTTP API, rutas, CORS, throttling. | `Task/032` |
@@ -89,7 +102,12 @@ laboratorio se corrige.
 - [ ] `S3Storage` —cuyo código entrega `Task/010`— **funciona contra S3 real**.
 - [ ] La **`Reserved Concurrency`** de la Lambda es coherente con el pool de PgBouncer y con
       `max_connections`, según los números derivados en `Task/029`.
-- [ ] Los módulos aplicados son los **validados en `Task/025`**, no módulos nuevos.
+- [ ] Los módulos de **aplicación** son los validados en Task/025; solo se añade
+      el bootstrap independiente de D-06 bajo la excepción Task/030.
+- [ ] Bucket de estado dedicado protegido, `use_lockfile=true`, sin DynamoDB.
+- [ ] Estados OIDC y del bootstrap del bucket bajo custodia definida y recuperable;
+      migración verificada por lineage/serial/recursos y plan sin cambios.
+- [ ] EX-028-C7 extinguida antes del primer apply de infraestructura de aplicación.
 - [ ] La **matriz de paridad** queda actualizada con evidencia real de AWS, recurso a
       recurso y con la clasificación de diferencias.
 

@@ -32,11 +32,77 @@ class MinioDerivativeGovernanceTests(unittest.TestCase):
         )
         self.assertEqual(self.minio["expected_digest"], output["manifest_digest"])
 
-    def test_only_previously_accepted_99_risks_remain(self):
+    def test_the_accepted_residual_is_the_exact_corrected_set(self):
+        """Task/028 lo reduce de 99 a 10 corrigiendo, no ampliando aceptaciones.
+
+        El conjunto se comprueba entero y no por su tamano: un cambio de
+        severidad, de version corregida o de binario produce una identidad
+        distinta y debe notarse aqui, no en produccion.
+        """
         findings = self.minio["accepted_findings"]
-        self.assertEqual(len(findings), 99)
-        self.assertNotIn("CVE-2026-79921", {item["id"] for item in findings})
-        self.assertFalse(any(item["package"] == "github.com/rabbitmq/amqp091-go" for item in findings))
+        self.assertEqual(len(findings), 10)
+        observado = {
+            (item["id"], item["package"], item["severity"],
+             item["installed_version"], item["fixed_version"], item["scope"])
+            for item in findings
+        }
+        self.assertEqual(observado, {
+            ("CVE-2025-62506", "github.com/minio/minio", "HIGH",
+             "v0.0.0-20250907161309-07c3a429bfed+dirty",
+             "0.0.0-20251015170045-c1a49490c78e", "usr/bin/minio"),
+            ("CVE-2026-32285", "github.com/buger/jsonparser", "HIGH", "v1.1.1", "1.1.2",
+             "usr/bin/minio"),
+            ("CVE-2026-41602", "github.com/apache/thrift", "HIGH", "v0.21.0", "0.23.0",
+             "usr/bin/minio"),
+            ("CVE-2026-43871", "github.com/apache/thrift", "HIGH", "v0.21.0", "0.24.0",
+             "usr/bin/minio"),
+            ("CVE-2026-42151", "github.com/prometheus/prometheus", "HIGH", "v0.303.0",
+             "0.311.3", "usr/bin/minio"),
+            ("CVE-2026-42151", "github.com/prometheus/prometheus", "HIGH", "v0.303.0",
+             "0.311.3", "usr/bin/mc"),
+            ("CVE-2026-42154", "github.com/prometheus/prometheus", "HIGH", "v0.303.0",
+             "0.311.3, 0.305.2", "usr/bin/minio"),
+            ("CVE-2026-42154", "github.com/prometheus/prometheus", "HIGH", "v0.303.0",
+             "0.311.3, 0.305.2", "usr/bin/mc"),
+            ("CVE-2026-4878", "libcap", "HIGH", "2.48-9.el9_2", "2.48-10.el9_8.1",
+             "os-pkgs:redhat"),
+            ("CVE-2026-54369", "libacl", "HIGH", "2.3.1-4.el9", "2.4.0-1.el9_8",
+             "os-pkgs:redhat"),
+        })
+
+    def test_the_two_corrected_vulnerabilities_are_gone(self):
+        """Lo que cada tarea corrigio no puede volver a estar aceptado."""
+        findings = self.minio["accepted_findings"]
+        identificadores = {item["id"] for item in findings}
+        paquetes = {item["package"] for item in findings}
+        # Task/027.1: amqp091-go v1.10.0 -> v1.13.0.
+        self.assertNotIn("CVE-2026-79921", identificadores)
+        self.assertNotIn("github.com/rabbitmq/amqp091-go", paquetes)
+        # Task/028 (H-028-2): grpc v1.72.0 / v1.71.0 -> v1.83.2 en ambos binarios.
+        self.assertNotIn("CVE-2026-84445", identificadores)
+        self.assertNotIn("google.golang.org/grpc", paquetes)
+
+    def test_the_superseded_identity_is_preserved_not_overwritten(self):
+        """La identidad de Task/027.1 sigue documentada por digest."""
+        anterior = self.minio["superseded_identity"]
+        self.assertEqual(anterior["accepted_findings_count"], 99)
+        self.assertIn(
+            "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129",
+            anterior["reference"],
+        )
+        self.assertNotEqual(anterior["reference"], self.minio["reference"])
+        supersedes = self.manifest["supersedes"]
+        self.assertEqual(supersedes["replaced_paths"], ["usr/bin/minio"])
+        self.assertNotEqual(supersedes["manifest_digest"],
+                            self.manifest["output"]["manifest_digest"])
+        self.assertNotEqual(supersedes["reference"],
+                            self.manifest["output"]["reference"])
+
+    def test_the_recipe_replaces_exactly_the_two_declared_binaries(self):
+        rutas = [item["path"] for item in self.manifest["output"]["replacements"]]
+        self.assertEqual(rutas, ["usr/bin/minio", "usr/bin/mc"])
+        for item in self.manifest["output"]["replacements"]:
+            self.assertEqual((item["mode"], item["uid"], item["gid"]), (0o755, 0, 0))
 
     def test_project_images_still_have_zero_tolerance(self):
         entries = {item["key"]: item for item in self.baseline["images"]}
