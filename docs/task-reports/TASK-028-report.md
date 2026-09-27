@@ -1353,15 +1353,26 @@ Task/028 ya se había cometido el error inverso —recalcular `dockerfile_sha256
 un comentario del `Dockerfile`, lo que dejó el gate de coherencia en rojo—, así que el orden
 se siguió explícitamente:
 
-1. `Dockerfile` y parches terminados y congelados.
+1. `Dockerfile` y parches terminados y **congelados**.
 2. `sha256` de los tres parches.
 3. `sha256` del `Dockerfile` → `7ae5e4c241820fc5…d670c04`.
 4. `build-manifest.json` final escrito.
 5. `sha256` del manifiesto → `3792c2d5357633a1…6a18f3215`.
-6. Atestado y baseline ligados a ese hash.
-7. Gate de coherencia del repositorio: **CORRECTO**.
-8. **Rebuild desde cero** (`--no-cache --pull`), con la invocación exacta de `CI Infra`.
-9. El artefacto producido se comparó con la identidad ya registrada.
+6. **Rebuild desde cero** (`--no-cache --pull`), con la invocación exacta de `CI Infra`.
+7. El artefacto producido se comparó con la identidad ya registrada: **coincide**.
+8. Trivy sobre ese artefacto y recálculo del baseline con prueba de subconjunto.
+9. Atestado nominal y baseline ligados al hash del manifiesto.
+10. Gate de coherencia del repositorio: **CORRECTO**.
+
+**Desviación declarada respecto del orden pedido.** El guion situaba el gate de coherencia
+**antes** del rebuild; aquí corre **después**, y el rebuild se lanzó en paralelo al trabajo
+sobre el verificador. El orden real es el de arriba y no se reordena la narrativa para que
+parezca otro. Lo que la exigencia protegía sí se cumple, y es comprobable: los archivos de la
+receta quedaron congelados en el paso 1, **antes** de lanzar el build, y no se tocaron
+después, de modo que el veredicto del gate se refiere exactamente a la receta que se
+construyó. Los hashes del paso 2 al 5 siguen siendo los que verifica el gate del paso 10, y
+el `build_manifest_sha256` que devuelve el verificador del artefacto (paso 7) es el mismo
+`3792c2d5…6a18f3215`.
 
 El rebuild desde cero reprodujo **exactamente** la identidad registrada:
 
