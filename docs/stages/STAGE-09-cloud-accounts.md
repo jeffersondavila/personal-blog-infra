@@ -93,9 +93,11 @@ ejecución premerge—. Cierre del 2026-09-26: transición a trust `main`, segun
 con el `AccessDenied` esperado, custodia EX-028-C7 cerrada con recuperación verificada, y
 **H-028-1 y H-028-2 resueltas dentro de esta misma tarea** —espejo privado que preserva el
 digest, y `CVE-2026-84445` **corregido** en Portainer, `minio` y `mc`, con el residual
-aceptado de MinIO de **99 a 10** y **cero identidades nuevas**—. Queda declarada una brecha
-que no es pendiente de implementación: el derivado corregido **no está publicado** y hacerlo
-exige autorización humana explícita. Los criterios de salida de abajo **no se marcan**: por
+aceptado de MinIO de **99 a 10** y **cero identidades nuevas**—. El 2026-09-27, bajo
+autorización acotada, el derivado corregido queda **publicado** en el GHCR privado con etiqueta
+nueva —digest preservado por construcción, verificado releyéndolo del registro, identidad de
+Task/027.1 intacta— y **consumido** por el entorno local, que ya no ejecuta la identidad
+vulnerable. Los criterios de salida de abajo **no se marcan**: por
 convención de esta etapa, una casilla se marca cuando la respalda una tarea **aprobada**.
 [Ficha](../tasks/TASK-028-github-oidc-aws.md) ·
 [Reporte §12-§26](../task-reports/TASK-028-report.md).

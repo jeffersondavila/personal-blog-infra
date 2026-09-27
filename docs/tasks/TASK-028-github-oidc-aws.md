@@ -217,12 +217,10 @@ futuras se limitan a operaciones concretas revisadas, sin pedir secretos al agen
 
 ## 18. Deuda técnica pendiente
 
-**Publicación del derivado D-1**: la identidad nueva `sha256:247a1cd3…f80702` **no está
-publicada**, y `.env.example` sigue apuntando a la de Task/027.1, la única publicada, así
-que el entorno local todavía ejecuta la anterior. Publicarla es una acción externa que
-requiere autorización humana explícita. **Rotación de `GHCR_MINIO_READ_TOKEN`** antes del
-**2027-09-25**. **Publicar SBOM y procedencia junto a la imagen** antes de hacer público el
-paquete. Federación real y cierre Task/028;
+**Rotación de `GHCR_MINIO_READ_TOKEN`** antes del **2027-09-25**. **Publicar SBOM y
+procedencia junto a la imagen** antes de hacer público el paquete: pendiente **heredado de
+Task/027.1**, atado a hacer público el paquete —que no está autorizado—, y no consecuencia de
+Task/028; el proyecto no tiene definido aún el mecanismo. Federación real y cierre Task/028;
 materialización/migración D-06 en Task/030,
 incluido estado del propio bucket; protección de main antes de despliegue;
 permisos mínimos separados en Task/038 y Task/039; validación Task/040.
@@ -238,8 +236,9 @@ Pendiente, exclusivamente del usuario. Estado **Lista para validación**: la
 implementación está completa y verificada contra AWS y GitHub reales, la custodia
 EX-028-C7 quedó cerrada con recuperación demostrada, y **H-028-1 y H-028-2 están
 resueltas dentro de esta misma tarea**, por decisión del usuario, en lugar de delegarlas.
-Queda declarada una brecha que **no** es un pendiente de implementación: el derivado D-1 no
-está publicado, y publicarlo exige autorización humana explícita. La autorización
+El derivado corregido quedó **publicado el 2026-09-27** en el GHCR privado con etiqueta nueva,
+verificado releyéndolo del registro, y **consumido** por `.env.example` y `.env`; la identidad
+de Task/027.1 no se tocó. La autorización
 local del 2026-09-21 no autoriza cierre, publicaciones ni recursos externos. La
 autorización del 2026-09-24 cubrió únicamente lectura AWS y plan: no autoriza
 apply, publicaciones, cierre ni aprobación.

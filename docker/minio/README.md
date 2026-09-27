@@ -83,18 +83,38 @@ etiqueta.**
 | Layers | 10 | 11 |
 | Constructor | `golang:1.24.6-bookworm` | `golang:1.27.1-bookworm` |
 | Residual accionable aceptado | 99 | **10** |
-| Estado en GHCR | **Publicado** el 2026-09-19 | **NO publicado** |
+| Estado en GHCR | **Publicado** el 2026-09-19 | **Publicado** el 2026-09-27 |
+| Consumido por `.env.example` y `.env` | ya no | **sí** |
 
 La identidad de Task/027.1 **se conserva tal cual**: no se mueve la etiqueta, no se
 sobrescribe el manifiesto y no se borra el paquete. Su verificación remota quedó registrada
 en `docs/task-reports/TASK-027.1-report.md`.
 
-> **Brecha declarada, no resuelta.** `.env.example` sigue apuntando al digest
-> `sha256:84c67632…059129`, que es el **único publicado**. El entorno local, por tanto, sigue
-> ejecutando la identidad anterior. Publicar el derivado D-1 es una **acción externa que
-> requiere autorización humana explícita**, igual que la de Task/027.1, y **no** se ha hecho
-> en Task/028. Hasta entonces: `CI Infra` construye, verifica y escanea la identidad nueva
-> desde la receta, y el baseline está ligado a ella; el entorno local no la usa.
+**Publicación de D-1: hecha el 2026-09-27**, bajo autorización humana acotada que **no**
+equivale a aprobar la tarea. Se publicaron **los bytes del artefacto ya validado**, sin
+reconstruir: los blobs y el manifiesto se subieron tal cual por la API de distribución, así
+que el digest se preserva **por construcción** y no por coincidencia. De los 12 blobs
+referenciados, **9 ya estaban en el repositorio** —son los layers heredados de la base, que no
+cambian—; solo se subieron el `config` y los **dos** layers de binario.
+
+La correspondencia local ↔ remota se **verificó leyendo de vuelta**, no se supuso:
+
+- el manifiesto se descargó **en crudo** (2567 bytes) y su `sha256` reproduce
+  `sha256:247a1cd3…f80702`;
+- `config_digest`, los **11** layers y los **9** heredados con sus `diff_ids` coinciden;
+- los dos layers de reemplazo se descargaron y se abrieron: cada uno contiene **solo** su
+  propio archivo, con `sha256`, tamaño, modo `0755` y propietario `0:0` exactos;
+- `Entrypoint` y `Cmd` siguen siendo los heredados de la base;
+- `docker pull` de la referencia nueva, con las copias locales borradas antes, devuelve ese
+  `RepoDigest`.
+
+**La identidad de Task/027.1 no se tocó.** Antes de escribir se comprobó que seguía en
+`sha256:84c67632…059129`, y después también. Son dos etiquetas distintas en el mismo
+repositorio; ninguna se movió ni se sobrescribió.
+
+`.env.example` y `.env` apuntan ya a la identidad nueva **por etiqueta y digest**: el digest
+es lo que manda, así que la referencia es inmutable aunque alguien moviera la etiqueta. Nunca
+una etiqueta móvil desnuda.
 
 ## Visibilidad y distribución — leer antes de hacer público el paquete
 

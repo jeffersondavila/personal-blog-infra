@@ -95,11 +95,25 @@ pasa de 102 a 21 hallazgos alcanzables en `minio` y de 85 a 7 en `mc`, y deja de
 `GO-2026-6443` en ambos. Validación funcional de la imagen ensamblada con las restricciones
 reales del Compose local, incluido `mc mirror` de ida y vuelta comparado por `sha256`.
 
-**Brecha declarada:** el derivado D-1 **no está publicado**. `.env.example` sigue apuntando a
-la identidad de Task/027.1, la única publicada, así que el entorno local todavía ejecuta la
-anterior. Publicarlo es una acción externa que requiere autorización humana explícita y no se
-ha ejecutado. Ningún gate ata `.env.example` al baseline, de modo que esta brecha no la
-detecta ninguna automatización: consta aquí por eso.
+**2026-09-27 — el derivado corregido queda publicado y en consumo.** Bajo autorización humana
+acotada —que **no** aprueba la tarea—, la identidad D-1 se publicó en el GHCR **privado** con
+una etiqueta **nueva**, subiendo los **bytes** del artefacto ya validado por la API de
+distribución: el digest se preserva **por construcción**. De 12 blobs, **9 ya estaban** en el
+repositorio —los layers heredados— y solo se subieron el `config` y los dos de binario. La
+identidad de Task/027.1 se comprobó **antes, después y en la relectura**: sigue en
+`sha256:84c67632…059129`; dos etiquetas distintas, ninguna movida ni sobrescrita.
+
+Verificado **releyendo desde el registro**: manifiesto en crudo cuyo `sha256` reproduce
+`sha256:247a1cd3…f80702`, `config_digest`, 11 layers con los 9 heredados intactos, y los dos
+layers de reemplazo abiertos uno a uno con `sha256`, tamaño, modo `0755` y propietario `0:0`
+exactos. `.env.example` y `.env` apuntan ya a esa identidad **por etiqueta y digest**, nunca a
+una etiqueta móvil. Con las copias locales borradas antes, el `pull` es real y el contenedor en
+marcha ejecuta `sha256:247a1cd3…f80702`; dentro de él, `sha256sum` de los dos binarios da los
+valores corregidos y **ninguno** coincide con los de la identidad anterior. Flujo de los
+runbooks ejercitado: lectura de los medios reales sin escribir nada, y escritura de ida y
+vuelta en un bucket desechable que se eliminó al terminar. **Ya no existe identidad corregida
+sin publicar ni consumidor apuntando a la vulnerable.** H-028-1 y H-028-2 quedan **cerradas**.
+[Reporte §26.11](../task-reports/TASK-028-report.md).
 
 **`CI Infra` vuelve a verde**: `success` en `490c6c0`, los 32 pasos, incluidos *Log in to GHCR
 for the private MinIO base*, *Build the project images* y *No secrets in the full history*.

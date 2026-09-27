@@ -1509,6 +1509,8 @@ cada nivel, y ahora **imprime los hashes que compara**.
 | `tests/security/test_pinned_artifact_policy.py` | recuento de MinIO 99 → 10 |
 | `tests/security/test_vulnerability_gate.py` | atestado sintético con el esquema v2 |
 | `.gitleaks.toml` | **nuevo**: las líneas `go.sum` de los parches no son secretos (ver §26.9.1) |
+| `.env.example` | `MINIO_VERSION` pasa a la identidad **nueva**, por etiqueta **y** digest (§26.11.4) |
+| `.env` (no versionado) | una sola línea corregida: estaba apuntando a un MinIO upstream que ni resolvía |
 
 Suites: `tests/oidc` **60 OK**, `tests/laboratorio` **176 OK**, `tests/security` **88 OK**.
 Gate de coherencia: **CORRECTO**. Compilación de los 17 scripts Python: **0 fallos**. CRLF en
@@ -1575,24 +1577,155 @@ Gate S-09 sobre las **seis** imágenes declaradas: `Hallazgos accionables compar
 atestado exacto de 2 binarios`, `Accionables 10 · Aprobados 10 · Nuevos 0 · Coincidencias
 exactas 10`.
 
-### 26.11 Brecha declarada: el derivado D-1 no está publicado
+### 26.11 Publicación del derivado D-1 y consumo real (2026-09-27)
 
-`.env.example` sigue apuntando a `sha256:84c67632…059129`, la identidad de Task/027.1, que es
-**la única publicada en GHCR**. Publicar el derivado D-1 es una **acción externa que requiere
-autorización humana explícita** y **no se ha ejecutado**.
+Bajo autorización humana acotada —que **no** equivale a aprobar la tarea—, la identidad D-1
+queda **publicada en el GHCR privado** y el entorno local **la consume**. Con esto desaparece
+la brecha que este reporte declaraba: ya no existe una identidad corregida sin publicar ni un
+entorno ejecutando la vulnerable.
 
-Consecuencia exacta, sin adornos:
+#### 26.11.1 Cómo se publicó: bytes originales, no una reconstrucción
 
-- `CI Infra` construye, verifica, escanea y compara la identidad **nueva** desde la receta, y
-  el baseline está ligado a ella;
-- el **entorno local** sigue ejecutando la identidad **anterior**, que conserva
-  `CVE-2026-84445` alcanzable;
-- ningún gate ata `.env.example` al baseline, así que esta brecha **no** enrojece `CI Infra`.
-  Está declarada aquí precisamente porque no la detecta ninguna automatización.
+No se reconstruyó nada ni se usó `docker push`. Los blobs y el manifiesto del artefacto **ya
+verificado** se subieron con sus **bytes originales** por la API de distribución OCI, de modo
+que el digest se preserva **por construcción** y no por coincidencia.
+
+```
+MEDIA_TYPE=application/vnd.oci.image.manifest.v1+json
+BLOBS_REFERENCIADOS=12
+  9 ya presentes  <- los layers heredados de la base: no cambian
+  3 subidos       <- config (8 942 B) + usr/bin/minio + usr/bin/mc
+PUT_MANIFEST_STATUS=201
+DIGEST_DEVUELTO_POR_EL_REGISTRO=sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702
+DIGEST_PRESERVADO=True
+```
+
+Que **9 de los 12 blobs ya estuvieran en el repositorio** es evidencia adicional y gratuita:
+los layers heredados son byte a byte los mismos que los de la identidad de Task/027.1.
+
+#### 26.11.2 La identidad de Task/027.1 no se tocó
+
+Antes de escribir, el propio publicador comprobó que la etiqueta histórica seguía en su
+digest, y **se habría detenido sin escribir nada** si no hubiera coincidido. Se volvió a
+comprobar después de publicar y al releer:
+
+| Momento | `RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0` |
+| --- | --- |
+| Inventario previo | `sha256:84c67632…059129` |
+| Justo antes del `PUT` | `sha256:84c67632…059129` |
+| Justo después del `PUT` | `sha256:84c67632…059129` |
+| En la relectura final | `sha256:84c67632…059129` |
+
+Son **dos etiquetas distintas en el mismo repositorio**. Ninguna se movió, ninguna se
+sobrescribió y ninguna se reutilizó. El repositorio pasó de 1 a 2 etiquetas.
+
+#### 26.11.3 Verificación leyendo de vuelta desde GHCR
+
+No se dio por buena la respuesta del `PUT`: se descargó todo otra vez y se recalculó.
+
+| Comprobación | Resultado |
+| --- | --- |
+| Manifiesto en crudo | 2 567 bytes; `sha256` recalculado = `sha256:247a1cd3…f80702` |
+| Coincide con `build-manifest.json` | **sí** |
+| `mediaType` | `application/vnd.oci.image.manifest.v1+json` |
+| `config_digest` | `sha256:9712173f…a5ce64`, coincide |
+| Layers | **11**, de los cuales **9 heredados** con sus `diff_ids` intactos |
+| `Entrypoint` / `Cmd` | `["/usr/bin/docker-entrypoint.sh"]` / `["minio"]`, heredados |
+| Layer de `usr/bin/minio` | miembros exactos, `sha256 067d5d80…a42f028`, 110 301 344 B, `0755`, `0:0` |
+| Layer de `usr/bin/mc` | miembros exactos, `sha256 0878407c…37af0921`, 31 555 744 B, `0755`, `0:0` |
+| `IDENTIDAD_REMOTA_COMPLETA` | **True** |
+
+#### 26.11.4 El entorno local ya no ejecuta la identidad vulnerable
+
+`.env.example` y `.env` apuntan a la referencia nueva **por etiqueta y digest**. El digest es
+lo que manda, así que la referencia es **inmutable** aunque alguien moviera la etiqueta; no se
+usa en ningún caso una etiqueta móvil desnuda.
+
+`.env` estaba además **desactualizado de antes**: apuntaba a
+`RELEASE.2025-09-07T16-13-09Z@sha256:14cea493…`, sin prefijo de registro y con el digest del
+MinIO **upstream** anterior al derivado, una referencia que ni siquiera resolvía. Se corrigió
+**una sola línea**, comprobando que ninguna otra cambiaba.
+
+Con las copias locales borradas primero, para que el `pull` fuese real:
+
+| Comprobación | Resultado |
+| --- | --- |
+| `docker pull` de la referencia nueva | `RepoDigests = [ …@sha256:247a1cd3…f80702 ]`, 11 layers |
+| `docker compose config --images` | resuelve a la identidad **nueva**; **no** aparece la anterior |
+| `Image` del contenedor en marcha | `sha256:247a1cd3…f80702` |
+| ¿Es el digest anterior? | **no** |
+| `sha256sum /usr/bin/minio` **dentro del contenedor** | `067d5d80…a42f028` |
+| `sha256sum /usr/bin/mc` **dentro del contenedor** | `0878407c…37af0921` |
+| `minio --version` | `RELEASE.2025-09-07T16-13-09Z (commit-id=07c3a429bfed…)`, `go1.27.1` |
+| `mc --version` | `RELEASE.2025-08-13T08-35-41Z (commit-id=7394ce0dd2a8…)`, `go1.27.1` |
+
+Que ya **no** se ejecuta la anterior no se afirma: se demuestra comparando contra ella, leída
+del registro sin descargarla ni ejecutarla.
+
+| Binario | Identidad anterior (`84c67632…`) | Identidad en ejecución | Cambia |
+| --- | --- | --- | --- |
+| `usr/bin/minio` | `9437671add14…89983f` | `067d5d80…a42f028` | **sí** |
+| `usr/bin/mc` | `01f866e9c5f9…12e891` | `0878407c…37af0921` | **sí** |
+
+`usr/bin/mc` cambia porque Task/027.1 **no** lo reconstruía: heredaba el de la base. Es
+exactamente la mitad de H-028-2 que faltaba por corregir.
+
+#### 26.11.5 Flujo real contra el almacenamiento, y una corrección de método
+
+El servicio se levantó con el Compose del proyecto —con sus restricciones reales— y se
+ejercitó el flujo de los runbooks.
+
+**Aviso y corrección.** La primera pasada usó el bucket `personal-blog-media`, que **no está
+vacío: contiene 6 objetos de medios reales**. La prueba escribió en él `a.txt` y `sub/b.txt`.
+Se detectó de inmediato, porque el `mirror` de vuelta trajo también los medios reales y la
+comprobación de recuento falló en lugar de pasar por alto el desvío. Los dos objetos se
+**borraron**, y se comprobó que los 6 de medios quedaban **idénticos en nombre, tamaño y
+fecha**. El bucket volvió a su estado exacto: 1 bucket, 6 objetos, sin residuo.
+
+La prueba se rehízo separando lectura de escritura:
+
+| Prueba | Resultado |
+| --- | --- |
+| **Solo lectura** sobre los medios reales: `mc mirror` del bucket a un directorio | los **6** objetos se descargan; `sha256` de cada `original.png` y cada `thumbnail.webp` calculados. Cero escrituras |
+| **Escritura** en un bucket desechable `task028-d1-verificacion` | `mb`, `mirror` de ida, `mirror` de vuelta: `sha256` de los dos archivos **idénticos**; recuentos exactos por nivel |
+| `mc cp` + `mc stat` | objeto copiado, metadatos devueltos |
+| Bucket desechable | **eliminado** al terminar |
+| Estado final del almacenamiento | idéntico al inicial |
+
+La comprobación del `mirror` exige que existan **exactamente** los archivos esperados, de modo
+que no puede pasar comparando dos conjuntos vacíos —el fallo vacuo que §26.8 documenta.
+
+#### 26.11.6 SBOM y procedencia: qué se hizo y qué sigue pendiente
+
+`CI Infra` genera el SBOM CycloneDX canónico y la procedencia in-toto del artefacto, con
+hashes **deterministas** que el runner reprodujo idénticos a los locales
+(`ff59cec7…8e52278d` y `35cdf0a1…ef50caadd`, §26.10). Quedan **ligados por hash** a esta
+identidad en este reporte.
+
+Lo que **no** se ha hecho, y se declara: **no se publican como artefactos junto a la imagen**
+en el registro. El proyecto **no tiene definido** un mecanismo para eso —la condición de
+salida del README de Task/027.1 sigue vigente—, y no se ha inventado uno aquí, porque
+adjuntarlos por *referrers* OCI sería una decisión de diseño nueva que requiere su propio
+registro y aprobación.
+
+Esto **no es una brecha de H-028-2** ni del consumo de la imagen corregida:
+
+- el paquete es **privado**, así que no hay distribución pública que active la obligación de
+  la AGPL;
+- el **código correspondiente sí está publicado**: receta, los tres parches, manifiesto de
+  construcción y verificador viven en un repositorio **público**;
+- la condición está atada a **hacer público el paquete**, que está expresamente prohibido en
+  esta autorización.
+
+Sigue, por tanto, como pendiente **acotado y heredado de Task/027.1**, no como consecuencia de
+Task/028.
 
 ### 26.12 Estado de las incidencias
 
 | Incidencia | Estado |
 | --- | --- |
-| **H-028-1** — `minio/minio` dejó de estar públicamente accesible en las ubicaciones oficiales comprobadas | **Resuelta** (§20): espejo privado byte a byte que preserva el digest, más secreto de repositorio como único límite que GitHub impone frente a forks (§21) |
-| **H-028-2** — `CVE-2026-84445` alcanzable en `minio`, `mc` y Portainer | **Resuelta**: Portainer por actualización a 2.45.1 LTS (§25); `minio` y `mc` por corrección técnica en el derivado (§26) |
+| **H-028-1** — `minio/minio` dejó de estar públicamente accesible en las ubicaciones oficiales comprobadas | **Cerrada** (§20): espejo privado byte a byte que preserva el digest, más secreto de repositorio como único límite que GitHub impone frente a forks (§21) |
+| **H-028-2** — `CVE-2026-84445` alcanzable en `minio`, `mc` y Portainer | **Cerrada**: Portainer por actualización a 2.45.1 LTS (§25); `minio` y `mc` por corrección técnica en el derivado (§26), **publicada y en consumo** (§26.11) |
+
+No queda ninguna identidad corregida sin publicar, ni ningún consumidor apuntando a la
+identidad vulnerable.
