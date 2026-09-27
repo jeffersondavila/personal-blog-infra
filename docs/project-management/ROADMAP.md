@@ -143,8 +143,15 @@ contenedores con la imagen 2.39.7, `InstanceID` **preservado**, migración `2.43
 endurecimiento intacto —`read_only`, `cap_drop: ALL`, `no-new-privileges`, puerto solo en
 loopback—. El `portainer.db` cambia de hash y se explica **midiéndolo**: BoltDB reescribe el
 archivo al arrancar, no al detenerse; la copia del respaldo sí es byte a byte la registrada
-antes de migrar. Queda para el usuario lo único que exige credenciales: **iniciar sesión en la
-UI**. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
+antes de migrar.
+
+Verificando la UI apareció un matiz que conviene no maquillar: pasados cinco minutos Portainer se
+bloquea con «timed out for security purposes». **No lo causó la migración.** Se midió arrancando
+el respaldo **previo** con la imagen 2.39.7 en un puerto aparte: responde
+`404 — No administrator account found`, igual que la instancia migrada. **La instalación nunca se
+inicializó**, así que no había usuarios ni entornos que preservar y el bloqueo es preexistente.
+Queda para el usuario **crear la cuenta de administrador**, algo anterior a Task/028 y ajeno al
+criterio de cierre de H-028-2. [Reporte §26.11.7](../task-reports/TASK-028-report.md).
 
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.

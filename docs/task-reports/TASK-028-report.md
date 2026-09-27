@@ -1794,7 +1794,7 @@ sin cambios:  backend, frontend, minio, postgres, traefik  (mismo container Id)
 | `InstanceID` | `8221eaf1-…-c0900a606fb0`, **preservado** |
 | Migración en el log | `2.43.0` → `2.44.0` → `2.45.0` → **`db migrated to 2.45.1`** |
 | Líneas de `ERR`, `FTL` o `panic` tras migrar | **0** |
-| `GET /` (UI) | **HTTP 200**, HTML de la aplicación |
+| `GET /` (UI) | **HTTP 200**, HTML de la aplicación (recién arrancada; ver el hallazgo de más abajo) |
 | `GET /api/status` y `/api/system/status` | **HTTP 200**, `Version 2.45.1` |
 | Endurecimiento preservado | `read_only`, `cap_drop: ALL`, `no-new-privileges`, puerto solo en loopback `127.0.0.1:9444` |
 | Socket de Docker | sigue montado `:ro`, como lo declara el Compose, que **no se modificó** |
@@ -1830,12 +1830,56 @@ exactamente con el estado registrado antes de migrar. La integridad lógica se a
 `InstanceID` y con la restauración probada, no con el hash de un fichero que su motor reescribe
 en cada arranque.
 
+##### Hallazgo: esta instancia nunca tuvo cuenta de administrador
+
+Al verificar la UI apareció algo que obliga a matizar la afirmación «operativa». Pasados cinco
+minutos del arranque, `GET /` responde `307 → /timeout.html` y el log dice:
+
+```
+the Portainer instance timed out for security purposes, to re-enable your
+Portainer instance, you will need to restart Portainer
+```
+
+Es el temporizador de seguridad de Portainer para instancias **sin inicializar**. La pregunta
+importante era si eso lo había causado la migración, y **no se supuso: se midió**. Se restauró el
+respaldo **previo** en un volumen temporal, se arrancó con la imagen **2.39.7** en un puerto
+aparte y sin el socket de Docker, y se consultó el endpoint que no exige autenticación:
+
+| Instancia | `GET /api/users/admin/check` |
+| --- | --- |
+| **2.39.7 restaurada del respaldo, antes de migrar** | `404 — No administrator account found inside the database` |
+| **2.45.1 real, después de migrar** | `404 — No administrator account found inside the database` |
+
+**La instalación nunca se inicializó.** No había usuario administrador ni, por tanto, entornos
+ni ajustes que preservar: `portainer.db` son 32 KB y el respaldo completo del volumen pesa
+2,67 KB. El contenedor 2.39.7 que llevaba tres días «en marcha» estaba en ese mismo estado
+bloqueado. La instancia de sondeo se eliminó al terminar, junto con su volumen.
+
+Consecuencias, dichas con precisión:
+
+- **La migración no perdió nada**, y ahora hay evidencia de los dos lados, no solo del de
+  después. Lo que existía —`InstanceID`, certificados TLS, clave de Chisel, par de claves— está
+  preservado.
+- **El bloqueo a los cinco minutos es preexistente**, no una regresión de esta tarea: 2.39.7 se
+  comportaba igual.
+- «Servicio operativo» significa aquí, exactamente: el servidor arranca, sirve la aplicación con
+  `HTTP 200`, responde `/api/status` y `/api/system/status` con `2.45.1`, y migró la base sin un
+  solo error. **No** significa que haya una sesión utilizable, porque no hay cuenta que usar.
+
 ##### Lo que queda para el usuario
 
-La única comprobación que **no** puede hacerse sin credenciales es **iniciar sesión en la UI**.
-El servidor responde `HTTP 200` y sirve la aplicación, y no se pidió ni se usó ninguna
-credencial. Iniciar sesión y confirmar que los entornos y ajustes se ven como antes es la parte
-que le corresponde al usuario.
+**Completar la configuración inicial de Portainer**: crear la cuenta de administrador. Portainer
+imprime un *setup token* en el log de su contenedor al arrancar; ese valor **no se ha leído, ni
+copiado, ni registrado aquí**, y no se necesita ninguna credencial del usuario para nada de lo
+anterior. Como la instancia se bloquea a los cinco minutos, conviene reiniciarla justo antes:
+
+```powershell
+docker compose restart portainer
+# y a continuacion abrir https://127.0.0.1:9444 y crear la cuenta
+```
+
+Esto es **anterior** a Task/028 y ajeno a ella: no es un pendiente que esta tarea haya creado ni
+una condición para cerrar H-028-2, cuyo criterio era que el runtime dejara de ser 2.39.7.
 
 **Los contenedores de PostgreSQL y Traefik siguen siendo los de hace tres días.** No tienen
 ningún hallazgo de seguridad conocido pendiente —sus entradas de baseline son `zero-tolerance`

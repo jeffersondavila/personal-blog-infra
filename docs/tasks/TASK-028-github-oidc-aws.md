@@ -223,9 +223,10 @@ futuras se limitan a operaciones concretas revisadas, sin pedir secretos al agen
 **Rotación de `GHCR_MINIO_READ_TOKEN`** antes del **2027-09-25**. **Publicar SBOM y
 procedencia junto a la imagen** antes de hacer público el paquete: pendiente **heredado de
 Task/027.1**, atado a hacer público el paquete —que no está autorizado—, y no consecuencia de
-Task/028; el proyecto no tiene definido aún el mecanismo. **Iniciar sesión en la UI de Portainer** y
-confirmar que entornos y ajustes se ven como antes: es la única comprobación que exige
-credenciales del usuario, y no se pidieron. **Recrear los contenedores locales de PostgreSQL y
+Task/028; el proyecto no tiene definido aún el mecanismo. **Completar la configuración inicial de Portainer**:
+se comprobó que la instalación **nunca tuvo cuenta de administrador** —el respaldo previo a
+migrar responde igual que la instancia migrada—, así que se bloquea a los cinco minutos por el
+temporizador de seguridad. Es **anterior** a Task/028 y no una condición de cierre de H-028-2. **Recrear los contenedores locales de PostgreSQL y
 Traefik**, anteriores a la última configuración y sin hallazgo de seguridad pendiente: es
 mantenimiento del usuario ([reporte §26.11.7](../task-reports/TASK-028-report.md)). Federación real y cierre Task/028;
 materialización/migración D-06 en Task/030,
