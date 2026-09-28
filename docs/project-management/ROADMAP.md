@@ -595,8 +595,9 @@ cero y con datos reales de prueba.
 
 ## ETAPA 09 — Cuentas y Seguridad Cloud
 
-**Estado: En progreso, 2/3 ≈ 67 %.** Task/027 aprobada el 2026-09-17; Task/028 aprobada el 2026-09-26; Task/029 Pendiente.
+**Estado: COMPLETADA, 3/3 = 100 %.** Task/027 aprobada el 2026-09-17; Task/028 aprobada el 2026-09-26; **Task/029 aprobada el 2026-09-27**.
 *(Corregido en `Task/028.2`: esta línea seguía diciendo «1/3 ≈ 33 %» y «Task/028 En progreso».)*
+*(`Task/029`, 2026-09-27: la etapa se cierra con su aprobación; el avance global pasa a 29/41.)*
 
 **Objetivo:** crear las cuentas cloud con controles de costo y acceso **antes** de
 desplegar nada.
@@ -648,7 +649,7 @@ otro modelo en `Task/039`. El hito añade «diseño RDS preparado», sin provisi
 | --- | --- | --- | --- | --- |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | AWS. Cloudflare. MFA. Presupuestos. Alertas. | infra | 026 | **Aprobada** (2026-09-17) — Gates A–E y DoD completos; D-13 resuelta: USD 20 global/USD 5 AWS. Free Plan/créditos preservados; cero access keys, Organizations, Identity Center, SNS y Budget Actions; CAD 1/1 conservado sin cambios. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) **Historia del 2026-09-21: su rama fue la entrega consolidada:** integra además el mantenimiento `Task/027.1-Corregir-Regresion-S09-MinIO` mediante `merge --no-ff`, que **no cuenta entre las 41** y **no altera el avance**. [Ficha 027.1](../tasks/TASK-027.1-fix-s09-minio-regression.md) · [Reporte 027.1](../task-reports/TASK-027.1-report.md) |
 | `Task/028-GitHub-OIDC-AWS` | Federación **GitHub Actions → AWS**, rol de validación sin políticas; no despliegue ni identidad VPS (D-16). EX-028-C7 y transición Task → main. | infra | 027 | **Aprobada** (2026-09-26) — reconfirmación postmerge demostrada el 2026-09-26 y registrada por `Task/028.1`. [Ficha](../tasks/TASK-028-github-oidc-aws.md) · [Reporte](../task-reports/TASK-028-report.md). *(Corregido en `Task/028.2`: la columna seguía en «En progreso».)* |
-| `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` | **Redefinida por `Task/028.2`, aprobada el 2026-09-27** *(antes `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`: selección del VPS por costo, región y RTT medido; PgBouncer; TLS, certificado y SCRAM; firewall y SSH; backup fuera del host; Alloy; D-16, D-17 y D-18)*. **Decide y prepara; no provisiona.** Decide **D-22** (red, topología y capacidad), **D-23** (TLS, KMS, secretos y autenticación SQL), **D-24** (canal privado de administración y migraciones) y **D-10** (backups, PITR, RPO/RTO). Deriva el presupuesto preliminar de conexiones y decide si se evalúa RDS Proxy (**D-12**). Repite el inventario de tráfico de la Lambda, con el candidato **sin NAT** como preferido. Modelo de **costo bruto, créditos, desembolso y escenario poscrédito** frente a **D-13**, con decisión explícita si no cabe. Contratos de módulos, *state* e identidades, y planes de prueba y runbooks para `Task/030`–`Task/040`. Diseño de **R-12**, **R-43** y **R-44**. **Cero recursos**: ningún criterio exige RDS, Lambda, restore ni RTT reales. `Task/028.2` quedó aprobada el 2026-09-27; al iniciar rige `main` actualizado tras la normalización del WORKFLOW. [Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) | infra | 027, 028 | Pendiente |
+| `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` | **Redefinida por `Task/028.2`, aprobada el 2026-09-27** *(antes `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`: selección del VPS por costo, región y RTT medido; PgBouncer; TLS, certificado y SCRAM; firewall y SSH; backup fuera del host; Alloy; D-16, D-17 y D-18)*. **Decide y prepara; no provisiona.** Decide **D-22** (red, topología y capacidad), **D-23** (TLS, KMS, secretos y autenticación SQL), **D-24** (canal privado de administración y migraciones) y **D-10** (backups, PITR, RPO/RTO). Deriva el presupuesto preliminar de conexiones y decide si se evalúa RDS Proxy (**D-12**). Repite el inventario de tráfico de la Lambda, con el candidato **sin NAT** como preferido. Modelo de **costo bruto, créditos, desembolso y escenario poscrédito** frente a **D-13**, con decisión explícita si no cabe. Contratos de módulos, *state* e identidades, y planes de prueba y runbooks para `Task/030`–`Task/040`. Diseño de **R-12**, **R-43** y **R-44**. **Cero recursos**: ningún criterio exige RDS, Lambda, restore ni RTT reales. `Task/028.2` quedó aprobada el 2026-09-27; al iniciar rige `main` actualizado tras la normalización del WORKFLOW. [Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) | infra | 027, 028 | **Aprobada** (2026-09-27) — ejecutada solo en infra desde `main` limpio en `d96d5d5`. **Cero recursos AWS, cero `apply`, cero secretos**; backend y frontend intactos. **D-22**, **D-23**, **D-24** y **D-10** entregadas como **Propuesta**, con presupuesto preliminar de **D-12** y estimaciones de **D-11**/**D-19**. **Aprobada** (2026-09-27) mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. **D-22**, **D-23**, **D-24** y **D-10** quedan **Resueltas** y **EX-029-D13** **Aceptada y Vigente**; **D-12 sigue abierta** con su presupuesto preliminar aprobado y cierre en `Task/032`. **Cierra la ETAPA 09 (3/3)** y el avance pasa a **29/41 ≈ 71 %**. Inventario A–E repetido: **clase D vacía**, candidato **sin NAT** viable. **Las cuatro decisiones humanas quedaron resueltas por el usuario el 2026-09-27:** región **us-east-2**; **EX-029-D13**, excepción acotada y fechada al sublímite AWS con el **techo global de USD 20/mes intacto**; créditos verificados **USD 120** con límite **2027-03-15** —y el hallazgo de que **manda la fecha, no el saldo**: caducarían ≈ 34 sin usar—; y **se conserva el plan gratuito**, con la continuidad diferida a una decisión fechada A/B. Consecuencia obligatoria: **D-10 incorpora una vía de salida fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre (**R-47** reformulado). **No queda ninguna decisión humana pendiente en su alcance.** [Decisiones](../architecture/production-postgresql-rds-decisions.md) · [Runbook](../runbooks/rds-private-administration.md) · [Reporte](../task-reports/TASK-029-report.md) |
 
 ---
 
@@ -803,6 +804,39 @@ Las reglas anteriores se mantienen con dos precisiones de `Task/028.2`: **el bac
 `Task/030`/`Task/031`/`Task/032` materializan; `Task/040` verifica**. Ninguna tarea exige
 evidencia de un recurso que crea una tarea posterior, y el grafo no tiene ciclos.
 
+> **Estado de la columna «Define / construye» tras `Task/029`, aprobada el 2026-09-27.** Todas las filas cuyo propietario de definición es `Task/029`
+> están **entregadas**: *backup* productivo (**D-10**), TLS hacia la base de datos
+> (**D-23**), red/VPC/SG/*endpoints*/RDS (**D-22**), credenciales/KMS/secretos (**D-23**),
+> canal privado y migraciones (**D-24**), conexiones y RDS Proxy (**D-12** preliminar),
+> operación administrada, costo de la telemetría (**D-19**), respaldos locales (**R-12**) y
+> recuperación del administrador y purga (**R-43**, **R-44**). El reparto **no cambia** y el
+> grafo sigue sin ciclos: `Task/029` no exigió evidencia de ningún recurso futuro.
+>
+> **Las dos condiciones previas que `Task/029` planteó quedaron resueltas por el usuario el
+> 2026-09-27**, el mismo día:
+>
+> 1. **Gate de D-13: resuelto con excepción acotada.** El costo bruto mínimo de RDS es **≈
+>    15.48 USD/mes** de AWS frente al sublímite de **5.00**. El usuario aceptó el exceso para
+>    la etapa experimental financiada con créditos: **EX-029-D13** suspende **solo** el
+>    sublímite AWS, **conserva íntegro el techo global de USD 20/mes**, vence con los créditos
+>    o el **2027-03-15** y **no autoriza ningún recurso**.
+> 2. **Paid Plan: descartado como prerrequisito.** El usuario decidió conservar el plan
+>    gratuito. `Task/031` **no** depende de un cambio de plan.
+>
+> **Lo que sí se añade a la cadena** es una fila nueva, consecuencia de la segunda decisión:
+>
+> | Cadena | Define / construye | Materializa | Valida antes del lanzamiento |
+> | --- | --- | --- | --- |
+> | **Vía de salida fuera de la cuenta** *(nueva, 2026-09-27)* | `Task/029` — **D-10**: exportación lógica por el canal privado, sin NAT ni servicio nuevo | `Task/031` — modo `export` del ejecutor y permisos mínimos | `Task/040` — **restaurar desde ella** en un PostgreSQL 17.11 local · `Task/041` — gate fechado del **2027-03-15** |
+>
+> Existe porque los *backups* administrados, los *snapshots* y el bucket **viven dentro de la
+> cuenta y desaparecen con ella**: sin esta vía, la opción «no continuar» no sería ejecutable
+> (**R-47**).
+>
+> Nada de esto sustituye al gate de **D-06**, que sigue siendo de `Task/030` y sigue siendo el
+> primero. Contenido:
+> [paquete de decisiones](../architecture/production-postgresql-rds-decisions.md).
+
 ---
 
 ## Cálculo del avance
@@ -812,7 +846,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: **28/41 ≈ 68 %**. ETAPA 09: **2/3 ≈ 67 %**.
+Actualmente: **29/41 ≈ 71 %**. ETAPA 09: **3/3 = 100 %**, completada el 2026-09-27 con la aprobación de `Task/029`. Siguiente: **ETAPA 10**, desde `Task/030`.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de

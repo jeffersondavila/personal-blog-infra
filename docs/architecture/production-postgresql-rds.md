@@ -6,7 +6,32 @@
 | Fecha | 2026-09-27 |
 | ADR | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), **Aceptada** |
 | Historia | [Modelo VPS](production-postgresql-vps.md), conservado; sustitución pendiente |
-| Próxima tarea | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Pendiente** |
+| Próxima tarea | `Task/030-Desplegar-Amazon-S3` — **Pendiente**. `Task/029` quedó **aprobada** el 2026-09-27 y cierra la ETAPA 09 |
+| Instancia concreta | [Paquete de decisiones de `Task/029`](production-postgresql-rds-decisions.md) — **Vigente** ✔, aprobado el 2026-09-27. Resuelve **D-22**, **D-23**, **D-24** y **D-10** con precios y capacidades de esa fecha |
+
+> **Enmienda de `Task/029`, aprobada el 2026-09-27.** Este documento sigue
+> siendo el canónico y **no cambia de fondo**: `Task/029` lo **instancia**. Las decisiones
+> concretas —región, versión, clase, almacenamiento, red, TLS, KMS, secretos, canal
+> privado, recuperación, conexiones y costo— viven en
+> [production-postgresql-rds-decisions.md](production-postgresql-rds-decisions.md) para no
+> duplicar la fuente de verdad. Dos resultados de esa tarea afectan al fondo de este
+> documento y están marcados abajo: el **gate de D-13 no se cumple** (§6.1) y el **plan de la
+> cuenta la cierra sola y pierde los datos** (§6.2). **Cero recursos creados.**
+>
+> **Ronda del usuario del 2026-09-27, en la misma tarea.** Región **us-east-2**, excepción
+> acotada **EX-029-D13** al sublímite AWS —techo global intacto—, créditos verificados
+> (**USD 120**, límite **2027-03-15**) y **el plan gratuito se conserva**: el Paid Plan **no**
+> es prerrequisito de `Task/031`. Consecuencia obligatoria: **D-10 incorpora una vía de salida
+> fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre. Todo en
+> §6.2.
+>
+> **Aprobación del 2026-09-27.** `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`.
+> **D-22**, **D-23**, **D-24** y **D-10** pasan a **Resueltas**; **EX-029-D13**, a **Aceptada
+> y Vigente**; el paquete de decisiones, a **Vigente**. **D-12 sigue abierta** con su
+> presupuesto preliminar aprobado, y la cierra `Task/032` **con medición**. ETAPA 09 queda
+> **completa (3/3)** y el avance pasa a **29/41 ≈ 71 %**. **La aprobación no crea recursos**:
+> cada uno exige su tarea propietaria y la autorización explícita del usuario, y **el gate de
+> D-06 (`Task/030`) sigue siendo el primero**.
 
 ## 1. Alcance y topología
 
@@ -71,6 +96,25 @@ un Deny global por `SourceVpce` podría bloquearlo. Validar D-08 en Task/030.
 
 Cada decisión incluye alternativas, fuente/fecha, costo bruto, resultado y prueba
 posterior. D-22 a D-24 son nuevas, abiertas el 2026-09-27; D-10/11/12 mantienen sus IDs.
+
+> **Estado de entrega tras `Task/029`, aprobada el 2026-09-27.**
+> Las cuatro decisiones **están resueltas con datos de la fecha** en el
+> [paquete de decisiones](production-postgresql-rds-decisions.md), que es donde viven los
+> valores concretos. Resumen de lo elegido, sin duplicar la argumentación:
+>
+> | Decisión | Resultado propuesto | Detalle |
+> | --- | --- | --- |
+> | **D-22** | Región **us-east-2** *(requiere confirmación del usuario)* · PostgreSQL **17.11**, la misma que local y el CI del backend · **db.t4g.micro** · **gp3 20 GiB** con *autoscaling* a 50 · IOPS y *throughput* **no aprovisionables** bajo 400 GiB · **Single-AZ**, con **R-29** aceptado por escrito · VPC `10.40.0.0/16`, **2 subnets privadas en 2 AZ**, sin IGW · 3 security groups por **referencia de grupo** · *parameter group* propio con `rds.force_ssl = 1` explícito | [§3](production-postgresql-rds-decisions.md#3-d-22--red-topología-y-capacidad--resuelta) |
+> | **D-23** | **`verify-full`** con bundle de CA **dentro del ZIP** · CA `rds-ca-rsa2048-g1` con rotación automática · cifrado en reposo con **clave gestionada por AWS** · **tres identidades SQL** separadas, `blog_app` **sin DDL** · **SSM `SecureString`**, sin migrar a Secrets Manager · entrega del secreto **en despliegue** · **IAM DB auth descartada**: exige 300–1000 MiB extra sobre 1 GiB de instancia | [§5](production-postgresql-rds-decisions.md#5-d-23--tls-kms-secretos-y-autenticación-sql--resuelta) |
+> | **D-24** | **Lambda ejecutora dedicada** en subnets privadas, invocada por el plano de control, concurrencia reservada **= 1**. Alternativas descartadas con motivo: *runner* público **no alcanza** la VPC; EC2 y SSM Session Manager **exigen un servicio excluido**; Client VPN ≈ **73 USD/mes**. Techo de **900 s** reconocido, no disfrazado | [§8](production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--resuelta) · [runbook](../runbooks/rds-private-administration.md) |
+> | **D-10** | Retención **7 días**, PITR activo, *snapshot* manual antes de cada migración, `deletion_protection = true`, *snapshot* final obligatorio · **RPO ≤ 15 min**, **RTO ≤ 4 h** · copia entre regiones **no** se adopta ahora | [§10](production-postgresql-rds-decisions.md#10-d-10--recuperación-backups-pitr-rpo-y-rto--resuelta) |
+> | **D-12** preliminar | `max_connections` derivado **112**; presupuesto de aplicación **89**; candidato **`pool_size=1`, `max_overflow=1`, RC=20** → 40 conexiones. **RDS Proxy descartado** (+22.70/mes y exige Secrets Manager) con criterio objetivo de reincorporación | [§6](production-postgresql-rds-decisions.md#6-d-12--presupuesto-preliminar-de-conexiones--aprobado-d-12-sigue-abierta) |
+>
+> El **inventario A–E se repitió** sobre el commit base `d96d5d5` y confirma que **la clase
+> D está vacía**: el candidato **sin NAT** es viable con el código vigente. Hallazgo nuevo,
+> no previsto en este canónico: **Lambda reclama la Hyperplane ENI tras 14 días de
+> inactividad** y la siguiente invocación falla — relevante para un blog de tráfico bajo,
+> con owner `Task/032`.
 
 | Decisión | Entrega de Task/029 | Implementación / evidencia real |
 | --- | --- | --- |
@@ -176,6 +220,65 @@ no pasar al primer apply de aplicación con esa incompatibilidad. Parar RDS no e
 una garantía de costo cero: conserva almacenamiento/backups y tiene reinicio
 automático; no basar el presupuesto en apagado indefinido.
 
+### 6.1 Resultado del gate — `Task/029`, 2026-09-27
+
+**El gate previsto se activó: no cabe.** Con la lista de precios de AWS publicada el
+**2026-09-24**, el mínimo absoluto —la instancia más pequeña de generación actual, en la
+región más barata, con el almacenamiento mínimo y **todas** las opciones de pago
+descartadas— es:
+
+| Concepto | USD/mes |
+| --- | --- |
+| `db.t4g.micro` Single-AZ en us-east-2 · 0.016 × 730 | 11.68 |
+| gp3 20 GiB · 20 × 0.115 | 2.30 |
+| IOPS, *throughput*, *backup*, KMS, secretos, *endpoints*, NAT, CloudWatch | 0.00 |
+| **RDS bruto** | **13.98** |
+| Resto de AWS estimado | ≈ 1.50 |
+| **Subtotal AWS** frente al **sublímite de 5.00** | **≈ 15.48 — 3,1×** |
+| **Total del proyecto** frente al **techo global de 20.00** | **≈ 16.48 — cabe, margen ≈ 3.52** |
+
+> **No existe configuración de RDS que quepa en el sublímite AWS de USD 5/mes.** El techo
+> global de USD 20 **sí** se sostiene. `Task/029` **no cambió D-13 por su cuenta**: registró
+> la incompatibilidad y la elevó al usuario, que es exactamente lo que esta sección preveía.
+
+### 6.2 Decisión del usuario del 2026-09-27 y excepción EX-029-D13
+
+El usuario resolvió el gate el mismo día. **Aceptada y Vigente** desde la aprobación de
+`Task/029`, el 2026-09-27.
+
+| Punto | Decisión |
+| --- | --- |
+| **Región** | **us-east-2** aceptada como región objetivo |
+| **Presupuesto** | Se acepta que el **costo bruto de AWS supere los USD 5/mes** durante la etapa experimental financiada con créditos, **sin maquillar** la estimación de ≈ 15.48/mes. Se formaliza como **EX-029-D13**: suspende **solo** el sublímite AWS, **conserva íntegro el techo global de USD 20/mes**, vence con los créditos o el **2027-03-15** —lo que ocurra primero— y **no autoriza ningún recurso** |
+| **Créditos** | Verificados por el usuario: **USD 120.00**, límite **2027-03-15**, sin restricciones de servicio observadas. El agente **no lee facturación** |
+| **Plan de la cuenta** | **No** se pasa a Paid Plan y **no** es prerrequisito de `Task/031`. Se conserva el plan gratuito mientras existan créditos y dentro del periodo mostrado por AWS |
+
+**Hallazgo del cálculo: manda la fecha, no el saldo.** USD 120 a 15.48/mes durarían 7,75
+meses, pero solo quedan 5,55 hasta el límite: **caducarían ≈ USD 34 sin usar**. No hay que
+optimizar para estirar el saldo; el recurso escaso es el tiempo. Eso **no** justifica acelerar
+`Task/030` ni saltarse el gate de **D-06**.
+
+**Desembolso de AWS durante el periodo: 0.00**, porque el Free Plan no genera cargos — y el
+mecanismo que lo garantiza es precisamente el que **cierra la cuenta** al terminar.
+
+**El escenario poscrédito deja de ser un costo y pasa a ser una decisión fechada.** Antes del
+agotamiento o del 2027-03-15: **A** pagar y continuar, o **B** desmontar, migrar o preservar.
+Ninguna se presume, y si nadie decide el resultado por defecto es **perder la cuenta y sus
+datos**.
+
+**Consecuencia de diseño obligatoria.** La opción B no era ejecutable: los *backups*
+administrados, los *snapshots* y el bucket **viven dentro de la cuenta**. `Task/029` añade por
+eso una **vía de salida** a **D-10** —exportación lógica por el canal privado a S3 y descarga
+a la estación del autor, **sin NAT, sin servicio nuevo y sin binario añadido**—, cuyo criterio
+de salida es que `Task/040` **restaure desde ella**. **R-47** queda reformulado: ya no exige
+cambiar de plan, sino que la decisión se tome **a tiempo y con la salida probada**.
+
+Detalle:
+[§7.5](production-postgresql-rds-decisions.md#75-ex-029-d13--excepción-acotada-al-sublímite-aws),
+[§7.7](production-postgresql-rds-decisions.md#77-la-decisión-fechada-que-sustituye-al-escenario-poscrédito),
+[§10.1](production-postgresql-rds-decisions.md#101-vía-de-salida-exportación-fuera-de-la-cuenta)
+y [§11](production-postgresql-rds-decisions.md#11-decisiones-del-usuario--h-1-a-h-4-resueltas).
+
 ## 7. Propietarios, dependencias y evidencia
 
 Se amplía **explícitamente** Task/031: antes SSM/CloudWatch, ahora red/RDS además de
@@ -228,6 +331,23 @@ existente; Task/031 los extiende antes de operar recursos nuevos.
 ## 9. Fuentes primarias
 
 Consulta documental: 2026-09-27. Task/029 vuelve a verificar compatibilidad y precios.
+
+> **Verificación de `Task/029`, 2026-09-27.** Compatibilidad y precios **re-verificados**
+> contra fuentes primarias, no heredados de esta lista. Los precios unitarios provienen de
+> la **AWS Price List API** (`pricing.us-east-1.amazonaws.com`, publicación
+> **2026-09-24T21:10:11Z** para RDS) y no de las páginas comerciales, que se renderizan por
+> JavaScript y no exponen cifras al recuperarlas. Fuentes añadidas que este canónico no
+> listaba y que resultaron decisivas:
+> [calendario de versiones](https://docs.aws.amazon.com/AmazonRDS/latest/PostgreSQLReleaseNotes/postgresql-release-calendar.html)
+> —versiones `NO_CREATE` y fin de soporte—,
+> [almacenamiento RDS](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Storage.html)
+> —línea base gp3 y umbral de 400 GiB—,
+> [CA y rotación](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.SSL.html),
+> [planes del Free Tier](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html)
+> —cierre automático de la cuenta— y
+> [precios de Systems Manager](https://aws.amazon.com/systems-manager/pricing/)
+> —parámetros estándar sin cargo—. Tabla completa con fechas de publicación:
+> [paquete de decisiones §1](production-postgresql-rds-decisions.md#1-fuentes-primarias-y-trazabilidad-de-los-números).
 
 - [Lambda en VPC e IPv6](https://docs.aws.amazon.com/lambda/latest/dg/configuration-vpc.html).
 - [Operaciones Lambda fuera del entorno de ejecución](https://docs.aws.amazon.com/lambda/latest/dg/permissions-source-function-arn.html).
