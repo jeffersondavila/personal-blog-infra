@@ -379,7 +379,7 @@ que fija el CI—.
 | --- | --- | --- |
 | Espacios y conflictos | `git diff --check` | **OK** — sin hallazgos |
 | UTF-8, LF, controles y BOM | Script sobre los 9 archivos de la tarea | **OK** — 0 CRLF, 0 CR sueltos, 0 caracteres de control, 0 BOM |
-| Enlaces relativos y anclas | Script que **ignora fences y *code spans*** | **OK** — **526** enlaces relativos comprobados, **0 rotos** |
+| Enlaces relativos y anclas | Script que **ignora fences y *code spans*** | **OK** — **530** enlaces relativos comprobados, **0 rotos** |
 | Encabezados duplicados | *Slugs* repetidos en los documentos de la tarea | **OK** — 0 duplicados, tras corregir una colisión (§9.1) |
 | Secretos | `gitleaks dir . --redact=100 --config .gitleaks.toml` sobre el entregable versionado | **OK** — 5,70 MB, 263 archivos, **0 *leaks*** |
 | Grafo de tareas | Script que lee las dependencias declaradas en el ROADMAP | **OK** — 0 ciclos, 0 dependencias hacia una tarea posterior |
@@ -545,8 +545,25 @@ tier** si figura una fecha de finalización del plan gratuito, y aportar solo es
 - **ADR-010 no se reescribió:** no apareció contradicción que exija gobierno nuevo. El
   hallazgo del plan de la cuenta es un **riesgo operativo nuevo** (**R-47**), no un conflicto
   con la decisión arquitectónica.
-- **Sin commit, sin push, sin PR, sin merge**, conforme a
-  [PROJECT_INSTRUCTIONS](../claude/PROJECT_INSTRUCTIONS.md) §6.
+### 13.1 Git: dos fases, no una
+
+Este reporte se escribió **antes** de la aprobación y afirmaba, correctamente para ese
+momento, que la tarea no tenía commit, push, PR ni merge. Tras la aprobación del 2026-09-27 y
+el cierre del flujo, esa frase dejó de ser cierta. Se corrige aquí distinguiendo las dos
+fases, **sin borrar la primera**: corrección de
+`Task/029.1-Corregir-Drift-Documental-Post-Merge`.
+
+| Fase | Estado de Git |
+| --- | --- |
+| **Pre-aprobación** — mientras la tarea estuvo *En progreso* y *Lista para validación* | **Sin commit, sin push, sin PR y sin merge**, y `dev` sin tocar, conforme a [PROJECT_INSTRUCTIONS](../claude/PROJECT_INSTRUCTIONS.md) §6. Los cambios se dejaron en el árbol de trabajo para revisión |
+| **Post-aprobación** — flujo de cierre de §8, ejecutado el 2026-09-27 | **Dos commits**: `d98c03c` con el entregable validado y `a3de55d` con el registro de la aprobación · integración en `dev` con `merge --no-ff` (`affacaa`) · **rama publicada** en origin · **PR #53** `Task/029-… → main`, nunca `dev → main` · **merge manual del usuario** (`ce53ec9`, 2026-09-28T01:30:27Z) · **normalización `main → dev`** con `merge --no-ff` (`076b2f5`) · rama Task local eliminada con `git branch -d` y remota eliminada por el usuario |
+
+**Lo que no cambió entre las dos fases:** cero recursos AWS, cero `apply`/`import`/`destroy`,
+*state* intacto, cero secretos, Billing sin tocar y `terraform/` sin un solo cambio. La
+aprobación autorizó **publicar documentación**, no crear infraestructura.
+
+CI Infra por SHA: `main` `ce53ec9` **success** (run `36366233240`) · `dev` `076b2f5`
+**success** (run `36366850605`).
 
 ## 14. Aprobación
 

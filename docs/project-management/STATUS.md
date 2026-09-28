@@ -369,6 +369,83 @@ su tramo de diseño entregado; el recuento se mantiene en **48**.
 [Reporte](../task-reports/TASK-029-report.md) ·
 [Decisiones](../architecture/production-postgresql-rds-decisions.md).
 
+**2026-09-28 — `Task/029.1-Corregir-Drift-Documental-Post-Merge` Lista para validación.**
+Mantenimiento documental creado desde `main` limpio en `ce53ec9`, **solo en infra y solo bajo
+`docs/`**. **No cuenta entre las 41 y no altera el avance**: sigue en **29/41 ≈ 71 %** y ETAPA
+09 en **3/3**. **`Task/029` no se reabre**: no se toca ninguna decisión —**D-10**, **D-22**,
+**D-23**, **D-24**, **EX-029-D13**— ni el contenido sustantivo de **R-47**, que conserva
+severidad **Alta** y sigue **Abierto**.
+
+La auditoría encontró **nueve** afirmaciones invalidadas, no una:
+
+1. La frase de Git ya identificada en el reporte de `Task/029` —«sin commit, sin push, sin PR,
+   sin merge»—, sustituida por una **§13.1** que distingue **pre-aprobación** y
+   **post-aprobación** con los SHA reales, **sin borrar la afirmación original**.
+2. **Tres cifras de gates que se contradecían entre sí**: la ficha declaraba **497** en un sitio
+   y **526** en otro, y el reporte **526**. Se fijan en **530**, que es lo que el gate de cierre
+   midió de verdad y lo que registra el mensaje del commit `a3de55d`. **No** se usa el número
+   nuevo del árbol: falsearía lo que aquella tarea comprobó.
+3. **Cuatro estados que seguían diciendo «Propuesta»** tras la aprobación —la nota de aporte a
+   la tabla de riesgos, el intro de **R-47**, la *Vista rápida* y la fila del ROADMAP—, alineados
+   con lo que [open-decisions.md](../architecture/open-decisions.md) ya declaraba: **Resueltas**,
+   con **D-12** aún abierta.
+
+Auditoría **A = 36 · B = 4 · C = 9 → 0**. El primer barrido buscaba `sin PR` como subcadena y
+capturaba «sin **Pro**xy» y «sin **pro**visionar»; con límite de palabra las apariciones en
+contexto de `Task/029` pasaron de **414 a 48**. **Historia ajena intacta**: ni una línea de
+`Task/028`, `Task/028.2`, `Task/005.3` o `Task/001`.
+
+Gates: `git diff --check`, UTF-8/LF/controles/BOM, **1.867 enlaces en todo `docs/` con 0
+rotos**, grafo sin ciclos, Gitleaks 8.30.1 sin hallazgos, `terraform/` sin cambios y
+backend/frontend intactos. Los **13 encabezados duplicados** detectados son **preexistentes en
+`main`** —10 en este archivo, 2 en `TASK-024-report.md`, 1 en `open-decisions.md`—, ninguno en
+los archivos de esta tarea y **fuera de su alcance**.
+
+**Cero AWS, cero Terraform, cero `apply`, *state* intacto, cero secretos y Billing sin tocar.**
+`Task/030` sigue **Pendiente y no iniciada**.
+[Ficha](../tasks/TASK-029.1-correct-post-merge-documentation-drift.md) ·
+[Reporte](../task-reports/TASK-029.1-report.md).
+
+**2026-09-28 — `Task/029.1-Corregir-Drift-Documental-Post-Merge` APROBADA** por el usuario
+mediante `approved: Task/029.1-Corregir-Drift-Documental-Post-Merge`.
+
+**Mantenimiento documental: no cuenta entre las 41 y no altera el avance.** Sigue en **29/41
+≈ 71 %** y ETAPA 09 en **3/3**. **Ninguna decisión se tocó** —**D-10**, **D-22**, **D-23**,
+**D-24** y **EX-029-D13** intactas— y **R-47** conserva severidad **Alta**, estado **Abierto** y
+su mitigación sin cambios: solo se desambiguó la fecha de alta.
+
+**Nueve correcciones en cuatro archivos**, preservando la historia en todos los casos:
+
+1. La frase de Git del reporte de `Task/029` pasa a una **§13.1** con dos fases —pre-aprobación
+   sin commit ni PR; post-aprobación con `d98c03c`, `a3de55d`, `affacaa`, PR #53, `ce53ec9` y
+   `076b2f5`—, **sin borrar la afirmación original**.
+2. **Cuatro cifras de gates** que se contradecían: **497** y **526** en la ficha y **526** en el
+   reporte quedan en **530**, la que midió el gate de cierre de `Task/029`; y el propio reporte
+   de `Task/029.1` pasa de **5** a **6 archivos (4 modificados + 2 nuevos)**, porque el 5 venía
+   de una ejecución anterior a la creación de ese mismo archivo. Esta última la detectó **el
+   usuario** en la revisión.
+3. **Cuatro estados que seguían diciendo «Propuesta»** tras la aprobación —nota de aporte a la
+   tabla de riesgos, intro de **R-47**, *Vista rápida* y fila del ROADMAP—, alineados con lo que
+   [open-decisions.md](../architecture/open-decisions.md) ya declaraba: **Resueltas**, con
+   **D-12** aún abierta.
+
+Auditoría **A = 36 · B = 4 · C = 9 → 0**, verificada con asertos explícitos y contrapruebas de
+que la historia sigue presente. **Historia ajena intacta**: de las 24 apariciones de «5
+archivos» en `docs/`, **23 son de otras tareas** y no se tocaron.
+
+**Regla de método que deja esta tarea:** tres cifras de gate derivaron en esta cadena —497, 526
+y 5— siempre por la misma causa, **anotar el resultado antes de cerrar el entregable**. Las
+cifras de gates se escriben en la **última** ejecución y con su desglose verificable
+([reporte §5.2](../task-reports/TASK-029.1-report.md)).
+
+Gates en verde sobre el estado definitivo: `git diff --check`, UTF-8/LF/controles/BOM en **6
+archivos**, **1.867 enlaces en todo `docs/` con 0 rotos**, grafo sin ciclos y Gitleaks 8.30.1 sin
+hallazgos. Los **13 encabezados duplicados** son **preexistentes en `main`** y quedan fuera de
+alcance. **Cero AWS, cero Terraform, cero `apply`, *state* intacto, cero secretos y Billing sin
+tocar.** `Task/030` sigue **Pendiente y no iniciada**.
+[Ficha](../tasks/TASK-029.1-correct-post-merge-documentation-drift.md) ·
+[Reporte](../task-reports/TASK-029.1-report.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 
@@ -470,7 +547,7 @@ Ninguna prueba local acredita federación ni autorización real.
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Tarea recién aprobada** | `Task/027-Configurar-Cuentas-y-Presupuestos` — **Aprobada** el 2026-09-17. Gates A–E y DoD completados con evidencia saneada; D-13 resuelta. El agente no operó el navegador ni recibió datos privados. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) |
 | **Mantenimiento consolidado** | `Task/027.1-Corregir-Regresion-S09-MinIO` — **Aprobada** el 2026-09-21 y publicada en `39b6d59`; integrada en esta rama con `merge --no-ff`, con su historial íntegro. Es mantenimiento: **fuera de las 41** y **sin efecto en el avance**. |
-| **Última tarea canónica aprobada** | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Aprobada** el 2026-09-27 mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. **Cierra la ETAPA 09 (3/3)** y el avance pasa a **29/41 ≈ 71 %**. **D-22**, **D-23**, **D-24** y **D-10** quedan **Resueltas** y **EX-029-D13** **Aceptada y Vigente**; **D-12 sigue abierta**. Ejecutada en dos rondas en la misma rama. Solo en infra, creada desde `main` limpio en `d96d5d5` con `HEAD == main` verificado. **Cero recursos AWS, cero `apply`, cero secretos, cero cambios en Billing.** Entrega **D-22**, **D-23**, **D-24** y **D-10** como **Propuesta**, con el presupuesto preliminar de **D-12**. **Las cuatro decisiones humanas quedaron resueltas por el usuario el mismo día:** región **us-east-2**; **EX-029-D13**, excepción acotada y fechada al sublímite AWS —**techo global de USD 20/mes intacto**—; créditos verificados **USD 120** con límite **2027-03-15**; y **se conserva el plan gratuito**, con la continuidad diferida a una decisión fechada. Consecuencia obligatoria: **D-10 incorpora una vía de salida fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre (**R-47**). **No queda ninguna decisión humana pendiente en su alcance.** [Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) · [Reporte](../task-reports/TASK-029-report.md) · [Decisiones](../architecture/production-postgresql-rds-decisions.md) |
+| **Última tarea canónica aprobada** | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Aprobada** el 2026-09-27 mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. **Cierra la ETAPA 09 (3/3)** y el avance pasa a **29/41 ≈ 71 %**. **D-22**, **D-23**, **D-24** y **D-10** quedan **Resueltas** y **EX-029-D13** **Aceptada y Vigente**; **D-12 sigue abierta**. Ejecutada en dos rondas en la misma rama. Solo en infra, creada desde `main` limpio en `d96d5d5` con `HEAD == main` verificado. **Cero recursos AWS, cero `apply`, cero secretos, cero cambios en Billing.** Dejó **D-22**, **D-23**, **D-24** y **D-10** **Resueltas** y **EX-029-D13** **Aceptada y Vigente**, con el presupuesto preliminar de **D-12**, que **sigue abierta**. **Las cuatro decisiones humanas quedaron resueltas por el usuario el mismo día:** región **us-east-2**; **EX-029-D13**, excepción acotada y fechada al sublímite AWS —**techo global de USD 20/mes intacto**—; créditos verificados **USD 120** con límite **2027-03-15**; y **se conserva el plan gratuito**, con la continuidad diferida a una decisión fechada. Consecuencia obligatoria: **D-10 incorpora una vía de salida fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre (**R-47**). **No queda ninguna decisión humana pendiente en su alcance.** [Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) · [Reporte](../task-reports/TASK-029-report.md) · [Decisiones](../architecture/production-postgresql-rds-decisions.md) |
 | **Próxima tarea prevista** | `Task/030-Desplegar-Amazon-S3` — **Pendiente**, **no iniciada**. Abre la **ETAPA 10**. Su gate de **D-06** sigue siendo el primero: **ningún recurso de aplicación antes de resolverlo**, y **EX-028-C7 no se extiende**. Como toda Task, nacerá de `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)). |
 | **Avance global** | **29/41 ≈ 71 %** — 29 aprobadas tras `Task/029` (2026-09-27); mantenimiento excluido. |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
@@ -2984,7 +3061,8 @@ Distribución por estado:
 
 ### Riesgo introducido por `Task/029` — ciclo de vida del plan de la cuenta
 
-**Añadido el 2026-09-27**, con `Task/029` **Lista para validación**. Se crea un ID nuevo
+**Añadido el 2026-09-27**, cuando `Task/029` estaba **Lista para validación**; la tarea quedó
+**aprobada** ese mismo día y **R-47 sigue Abierto**. Se crea un ID nuevo
 porque **ningún existente lo cubre**: no es costo imprevisto (**R-02**) ni error humano de
 operación (**R-35**), sino el **cierre programado de la cuenta** por el plan contratado. Los
 IDs no se reutilizan; el recuento de riesgos abiertos pasa de 47 a **48**.
@@ -3134,7 +3212,7 @@ existentes con controles explícitos:
 | R-43 | `Task/029` (recuperación operativa) | `Task/029` diseña → `Task/036` implementa la recuperación del administrador → `Task/040` | Sin host, la recuperación va por el canal privado **D-24** |
 | R-44 | `Task/029` (operación) | `Task/029` diseña → `Task/036` implementa purga y retención → `Task/038`/`Task/040` | Sin host ni procesos residentes; mecanismo sin servicios excluidos |
 
-> **Aporte de `Task/029`, 2026-09-27 — Propuesta pendiente de aprobación.** Ninguno de estos
+> **Aporte de `Task/029`, aprobada el 2026-09-27.** Ninguno de estos
 > riesgos se cierra: todos siguen **abiertos** y su evidencia sigue en las tareas asignadas.
 > Lo que cambia es que **su tramo de diseño ya está entregado**, con dato y no con intención.
 >

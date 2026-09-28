@@ -116,7 +116,7 @@ otro repositorio al iniciar.
 | 7 | **Cumplido** | Canal D-24 viable: **Lambda ejecutora dedicada**, con el límite de **900 s** declarado. **Ningún acceso público** a la base de datos |
 | 8 | **Cumplido** | Restore sintético y PITR con owner `Task/031`; restore reciente con owner `Task/040`; **RPO ≤ 15 min** y **RTO ≤ 4 h** definidos. **Ninguna evidencia fingida** |
 | 9 | **Cumplido** | Criterios y owners de 030–041 fijados; grafo verificado: **0 ciclos**, **0 dependencias hacia una tarea posterior** |
-| 10 | **Cumplido** | Ocho gates ejecutados, **497 enlaces con 0 rotos**, contadores de decisiones y riesgos actualizados. Estado de salida **Lista para validación**; **sin autoaprobación** |
+| 10 | **Cumplido** | Ocho gates ejecutados, **530 enlaces con 0 rotos**, contadores de decisiones y riesgos actualizados. Estado de salida **Lista para validación**; **sin autoaprobación** |
 
 | 8 bis | **Ampliado el 2026-09-27** | El criterio 8 hablaba de *restore*; la decisión **H-4** obligó a añadir una **vía de salida fuera de la cuenta**, porque ningún *backup* administrado sobrevive al cierre de la cuenta. Diseñada aquí; **`Task/040` debe restaurar desde ella** |
 
@@ -160,7 +160,7 @@ facturación.**
 | --- | --- | --- |
 | Espacios y conflictos | `git diff --check` | **OK**, sin hallazgos |
 | UTF-8, LF, controles, BOM | Script sobre los 9 archivos de la tarea | **OK**: 0 CRLF, 0 CR sueltos, 0 controles, 0 BOM |
-| Enlaces relativos y anclas | Script que **ignora fences y *code spans*** | **OK**: **526** enlaces, **0 rotos** |
+| Enlaces relativos y anclas | Script que **ignora fences y *code spans*** | **OK**: **530** enlaces, **0 rotos** |
 | Encabezados duplicados | *Slugs* repetidos en los documentos de la tarea | **OK**: 0 duplicados, tras corregir una colisión |
 | Secretos | `gitleaks dir . --redact=100 --config .gitleaks.toml` sobre el entregable versionado | **OK**: 263 archivos, 5,70 MB, **0 *leaks*** |
 | Grafo de tareas | Script que lee las dependencias del ROADMAP | **OK**: **0 ciclos**, **0 dependencias hacia una tarea posterior**; gate de D-06 intacto |
