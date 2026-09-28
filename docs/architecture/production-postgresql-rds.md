@@ -6,10 +6,10 @@
 | Fecha | 2026-09-27 |
 | ADR | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md), **Aceptada** |
 | Historia | [Modelo VPS](production-postgresql-vps.md), conservado; sustitución pendiente |
-| Próxima tarea | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Lista para validación** el 2026-09-27 |
-| Instancia concreta | [Paquete de decisiones de `Task/029`](production-postgresql-rds-decisions.md) — **Propuesta, pendiente de aprobación**. Resuelve D-22, D-23, D-24 y D-10 con precios y capacidades del 2026-09-27 |
+| Próxima tarea | `Task/030-Desplegar-Amazon-S3` — **Pendiente**. `Task/029` quedó **aprobada** el 2026-09-27 y cierra la ETAPA 09 |
+| Instancia concreta | [Paquete de decisiones de `Task/029`](production-postgresql-rds-decisions.md) — **Vigente** ✔, aprobado el 2026-09-27. Resuelve **D-22**, **D-23**, **D-24** y **D-10** con precios y capacidades de esa fecha |
 
-> **Enmienda de `Task/029`, 2026-09-27 — pendiente de aprobación.** Este documento sigue
+> **Enmienda de `Task/029`, aprobada el 2026-09-27.** Este documento sigue
 > siendo el canónico y **no cambia de fondo**: `Task/029` lo **instancia**. Las decisiones
 > concretas —región, versión, clase, almacenamiento, red, TLS, KMS, secretos, canal
 > privado, recuperación, conexiones y costo— viven en
@@ -24,6 +24,14 @@
 > es prerrequisito de `Task/031`. Consecuencia obligatoria: **D-10 incorpora una vía de salida
 > fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre. Todo en
 > §6.2.
+>
+> **Aprobación del 2026-09-27.** `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`.
+> **D-22**, **D-23**, **D-24** y **D-10** pasan a **Resueltas**; **EX-029-D13**, a **Aceptada
+> y Vigente**; el paquete de decisiones, a **Vigente**. **D-12 sigue abierta** con su
+> presupuesto preliminar aprobado, y la cierra `Task/032` **con medición**. ETAPA 09 queda
+> **completa (3/3)** y el avance pasa a **29/41 ≈ 71 %**. **La aprobación no crea recursos**:
+> cada uno exige su tarea propietaria y la autorización explícita del usuario, y **el gate de
+> D-06 (`Task/030`) sigue siendo el primero**.
 
 ## 1. Alcance y topología
 
@@ -89,18 +97,18 @@ un Deny global por `SourceVpce` podría bloquearlo. Validar D-08 en Task/030.
 Cada decisión incluye alternativas, fuente/fecha, costo bruto, resultado y prueba
 posterior. D-22 a D-24 son nuevas, abiertas el 2026-09-27; D-10/11/12 mantienen sus IDs.
 
-> **Estado de entrega tras `Task/029`, 2026-09-27 — Propuesta, pendiente de aprobación.**
+> **Estado de entrega tras `Task/029`, aprobada el 2026-09-27.**
 > Las cuatro decisiones **están resueltas con datos de la fecha** en el
 > [paquete de decisiones](production-postgresql-rds-decisions.md), que es donde viven los
 > valores concretos. Resumen de lo elegido, sin duplicar la argumentación:
 >
 > | Decisión | Resultado propuesto | Detalle |
 > | --- | --- | --- |
-> | **D-22** | Región **us-east-2** *(requiere confirmación del usuario)* · PostgreSQL **17.11**, la misma que local y el CI del backend · **db.t4g.micro** · **gp3 20 GiB** con *autoscaling* a 50 · IOPS y *throughput* **no aprovisionables** bajo 400 GiB · **Single-AZ**, con **R-29** aceptado por escrito · VPC `10.40.0.0/16`, **2 subnets privadas en 2 AZ**, sin IGW · 3 security groups por **referencia de grupo** · *parameter group* propio con `rds.force_ssl = 1` explícito | [§3](production-postgresql-rds-decisions.md#3-d-22--red-topología-y-capacidad--propuesta) |
-> | **D-23** | **`verify-full`** con bundle de CA **dentro del ZIP** · CA `rds-ca-rsa2048-g1` con rotación automática · cifrado en reposo con **clave gestionada por AWS** · **tres identidades SQL** separadas, `blog_app` **sin DDL** · **SSM `SecureString`**, sin migrar a Secrets Manager · entrega del secreto **en despliegue** · **IAM DB auth descartada**: exige 300–1000 MiB extra sobre 1 GiB de instancia | [§5](production-postgresql-rds-decisions.md#5-d-23--tls-kms-secretos-y-autenticación-sql--propuesta) |
-> | **D-24** | **Lambda ejecutora dedicada** en subnets privadas, invocada por el plano de control, concurrencia reservada **= 1**. Alternativas descartadas con motivo: *runner* público **no alcanza** la VPC; EC2 y SSM Session Manager **exigen un servicio excluido**; Client VPN ≈ **73 USD/mes**. Techo de **900 s** reconocido, no disfrazado | [§8](production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--propuesta) · [runbook](../runbooks/rds-private-administration.md) |
-> | **D-10** | Retención **7 días**, PITR activo, *snapshot* manual antes de cada migración, `deletion_protection = true`, *snapshot* final obligatorio · **RPO ≤ 15 min**, **RTO ≤ 4 h** · copia entre regiones **no** se adopta ahora | [§10](production-postgresql-rds-decisions.md#10-d-10--recuperación-backups-pitr-rpo-y-rto--propuesta) |
-> | **D-12** preliminar | `max_connections` derivado **112**; presupuesto de aplicación **89**; candidato **`pool_size=1`, `max_overflow=1`, RC=20** → 40 conexiones. **RDS Proxy descartado** (+22.70/mes y exige Secrets Manager) con criterio objetivo de reincorporación | [§6](production-postgresql-rds-decisions.md#6-d-12--presupuesto-preliminar-de-conexiones--propuesta) |
+> | **D-22** | Región **us-east-2** *(requiere confirmación del usuario)* · PostgreSQL **17.11**, la misma que local y el CI del backend · **db.t4g.micro** · **gp3 20 GiB** con *autoscaling* a 50 · IOPS y *throughput* **no aprovisionables** bajo 400 GiB · **Single-AZ**, con **R-29** aceptado por escrito · VPC `10.40.0.0/16`, **2 subnets privadas en 2 AZ**, sin IGW · 3 security groups por **referencia de grupo** · *parameter group* propio con `rds.force_ssl = 1` explícito | [§3](production-postgresql-rds-decisions.md#3-d-22--red-topología-y-capacidad--resuelta) |
+> | **D-23** | **`verify-full`** con bundle de CA **dentro del ZIP** · CA `rds-ca-rsa2048-g1` con rotación automática · cifrado en reposo con **clave gestionada por AWS** · **tres identidades SQL** separadas, `blog_app` **sin DDL** · **SSM `SecureString`**, sin migrar a Secrets Manager · entrega del secreto **en despliegue** · **IAM DB auth descartada**: exige 300–1000 MiB extra sobre 1 GiB de instancia | [§5](production-postgresql-rds-decisions.md#5-d-23--tls-kms-secretos-y-autenticación-sql--resuelta) |
+> | **D-24** | **Lambda ejecutora dedicada** en subnets privadas, invocada por el plano de control, concurrencia reservada **= 1**. Alternativas descartadas con motivo: *runner* público **no alcanza** la VPC; EC2 y SSM Session Manager **exigen un servicio excluido**; Client VPN ≈ **73 USD/mes**. Techo de **900 s** reconocido, no disfrazado | [§8](production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--resuelta) · [runbook](../runbooks/rds-private-administration.md) |
+> | **D-10** | Retención **7 días**, PITR activo, *snapshot* manual antes de cada migración, `deletion_protection = true`, *snapshot* final obligatorio · **RPO ≤ 15 min**, **RTO ≤ 4 h** · copia entre regiones **no** se adopta ahora | [§10](production-postgresql-rds-decisions.md#10-d-10--recuperación-backups-pitr-rpo-y-rto--resuelta) |
+> | **D-12** preliminar | `max_connections` derivado **112**; presupuesto de aplicación **89**; candidato **`pool_size=1`, `max_overflow=1`, RC=20** → 40 conexiones. **RDS Proxy descartado** (+22.70/mes y exige Secrets Manager) con criterio objetivo de reincorporación | [§6](production-postgresql-rds-decisions.md#6-d-12--presupuesto-preliminar-de-conexiones--aprobado-d-12-sigue-abierta) |
 >
 > El **inventario A–E se repitió** sobre el commit base `d96d5d5` y confirma que **la clase
 > D está vacía**: el candidato **sin NAT** es viable con el código vigente. Hallazgo nuevo,
@@ -235,8 +243,8 @@ descartadas— es:
 
 ### 6.2 Decisión del usuario del 2026-09-27 y excepción EX-029-D13
 
-El usuario resolvió el gate el mismo día. **Propuesta pendiente de aprobación** junto con
-`Task/029`.
+El usuario resolvió el gate el mismo día. **Aceptada y Vigente** desde la aprobación de
+`Task/029`, el 2026-09-27.
 
 | Punto | Decisión |
 | --- | --- |

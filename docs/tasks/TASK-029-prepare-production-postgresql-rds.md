@@ -4,7 +4,7 @@
 | --- | --- |
 | Identificador | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` |
 | Tipo / etapa | ETAPA 09 — Cuentas y Seguridad Cloud, tercera de tres tareas. **Cuenta entre las 41** |
-| Estado | **Lista para validación** — 2026-09-27. Ejecutada solo en `personal-blog-infra`. **Cero recursos AWS** |
+| Estado | **Aprobada** — 2026-09-27 mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. Ejecutada solo en `personal-blog-infra`. **Cero recursos AWS** |
 | Definición | Fijada por `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`, **aprobada** el 2026-09-27. Sustituye a `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`; conserva el ID |
 | Repositorios previstos | `personal-blog-infra`. Backend y frontend solo en lectura, salvo que la inspección al iniciar justifique otra cosa |
 | Rama base | `main` actualizado y limpio; **nunca** `dev` |
@@ -208,7 +208,7 @@ relacionados: **R-02**, **R-29** a **R-35**, **R-38** a **R-42**, **R-12**, **R-
 
 Paquete completo:
 [production-postgresql-rds-decisions.md](../architecture/production-postgresql-rds-decisions.md)
-—**Propuesta pendiente de aprobación**—, con el resumen ejecutivo en §14. Índice vigente en
+—**Vigente**, aprobado el 2026-09-27—, con el resumen ejecutivo en §14. Índice vigente en
 el [registro de decisiones](../architecture/open-decisions.md) y contexto en el
 [canónico RDS §3](../architecture/production-postgresql-rds.md#3-decisiones-que-entrega-task029).
 ADR-010 está **Aceptada** desde el 2026-09-27 y **no se reescribe**: esta tarea la instancia.
@@ -233,7 +233,7 @@ ejecutado**) · `docs/task-reports/TASK-029-report.md`.
 **Actualizados:** el canónico RDS —enmienda de instancia, estado de entrega en §3, **§6.1
 nueva** con el resultado del gate y el hallazgo del plan de la cuenta, y §9 con la
 re-verificación de fuentes— · el registro de decisiones —D-22, D-23, D-24 y D-10 con su
-Propuesta; D-12 con el presupuesto derivado; D-11 y D-19 con estimación; D-13 con el
+Resueltas; D-12 con el presupuesto derivado aprobado, **sigue abierta**; D-11 y D-19 con estimación; D-13 con el
 resultado del gate— · STATUS · ROADMAP · el índice de runbooks · esta ficha.
 
 **ADR-010 no se modifica.** No apareció contradicción que exija gobierno arquitectónico
@@ -349,10 +349,12 @@ de **D-10** debe estar **probada por `Task/040`**, y la decisión de continuidad
 
 | Campo | Valor |
 | --- | --- |
-| Fecha de aprobación | Pendiente |
-| Aprobado por | Pendiente — solo el usuario |
+| Fecha de aprobación | **2026-09-27** |
+| Aprobado por | **El usuario**, con la expresión exacta requerida |
 | Expresión requerida | `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS` |
 
-**Estado actual: Lista para validación.** Sin commit, sin push, sin PR y sin merge. Todas
-las decisiones son **Propuesta — pendiente de aprobación**; **el agente no autoaprueba**.
+**Estado actual: Aprobada.** **D-22**, **D-23**, **D-24** y **D-10** quedan **Resueltas** y
+**EX-029-D13** **Aceptada y Vigente**; **D-12 sigue abierta** con su presupuesto preliminar
+aprobado y cierre en `Task/032`. Cierra la **ETAPA 09 (3/3)** y el avance pasa a
+**29/41 ≈ 71 %**. **La aprobación no crea recursos.**
 Reporte: [TASK-029-report.md](../task-reports/TASK-029-report.md).

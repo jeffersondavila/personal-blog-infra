@@ -3,26 +3,30 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-27 — `Task/029` deja **D-22**, **D-23**, **D-24** y **D-10** como **Propuesta pendiente de aprobación**, y **D-12** con presupuesto preliminar derivado. Antes ese día: enmienda RDS aprobada, `Task/028.2` |
-| **Decisiones abiertas** | **11** — D-07, D-08, D-10, D-11, D-12, D-19, D-20 y D-21, más **D-22 a D-24**, abiertas por `Task/028.2` el 2026-09-27 |
+| **Última actualización** | 2026-09-27 — **`Task/029` aprobada**: **D-10**, **D-22**, **D-23** y **D-24** pasan a **Resueltas** y **EX-029-D13** a **Aceptada y Vigente**. **D-12** conserva su presupuesto preliminar aprobado y **sigue abierta**. Antes ese día: enmienda RDS aprobada, `Task/028.2` |
+| **Decisiones abiertas** | **7** — D-07, D-08, D-11, D-12, D-19, D-20 y D-21 *(baja de 11 a 7 el 2026-09-27 al aprobarse `Task/029`, que resuelve D-10, D-22, D-23 y D-24)* |
 | **Cerradas por no aplicabilidad** | **3** — **D-16**, **D-17** y **D-18**, el 2026-09-27, al aceptarse ADR-010: sin VPS pierden objeto. IDs y texto conservados, no reutilizables |
-| **Decisiones resueltas** | **10** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)** |
+| **Decisiones resueltas** | **14** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)**, y **D-10**, **D-22**, **D-23** y **D-24 (2026-09-27, `Task/029`)** |
+| **Excepciones vigentes** | **EX-029-D13** — acota el sublímite AWS de **D-13** durante la etapa financiada con créditos. **Aceptada y Vigente** el 2026-09-27; vence con los créditos o el **2027-03-15**, lo que ocurra primero, y **no se renueva por inercia** |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
 > `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`.
 
-> **Nota de `Task/029`, 2026-09-27 — pendiente de aprobación.** El recuento de arriba **no
-> cambia**: una decisión sigue **abierta** hasta que el usuario aprueba la tarea que la
-> resuelve. `Task/029` entregó **D-22**, **D-23**, **D-24** y **D-10** como
-> **Propuesta**, más el presupuesto preliminar de **D-12** y la estimación que **D-11** y
-> **D-19** pedían. Al aprobarse `Task/029` pasarían a **Resueltas**, y el registro quedaría
-> en **7 abiertas** —D-07, D-08, D-11, D-12, D-19, D-20, D-21—, **14 resueltas** y 3
-> cerradas por no aplicabilidad. Contenido:
-> [paquete de decisiones](production-postgresql-rds-decisions.md). **Cero recursos creados.**
-> Resultado que el usuario debe decidir: el **gate de D-13 no se cumple** —ninguna
-> configuración de RDS cabe en el sublímite AWS de USD 5/mes— y el **Free Plan cierra la
-> cuenta**, con pérdida de datos (**R-47**).
+> **Nota de `Task/029`, aprobada el 2026-09-27.** **D-10**, **D-22**, **D-23** y **D-24**
+> pasan a **Resueltas**; el registro queda en **7 abiertas** —D-07, D-08, D-11, D-12, D-19,
+> D-20 y D-21—, **14 resueltas** y 3 cerradas por no aplicabilidad. **D-12 sigue abierta**:
+> se aprueba su presupuesto **preliminar** y `Task/032` la cierra **con medición**. **D-11** y
+> **D-19** reciben su estimación de costo y conservan sus propietarios. Contenido:
+> [paquete de decisiones](production-postgresql-rds-decisions.md) — **Vigente**.
+> **La aprobación no crea recursos:** cada uno exige su tarea propietaria y la autorización
+> explícita del usuario.
+>
+> Los dos resultados que exigían decisión humana quedaron resueltos el mismo día: el **gate
+> de D-13 no se cumplía** —ninguna configuración de RDS cabe en el sublímite de USD 5/mes— y
+> el usuario aceptó el exceso mediante **EX-029-D13**, con el techo global intacto; y ante el
+> **cierre automático de la cuenta en el Free Plan** decidió **conservar el plan gratuito**,
+> de donde sale la **vía de salida obligatoria** añadida a D-10 y el gate fechado de **R-47**.
 
 > **Nota de `Task/028.2`, aprobada el 2026-09-27.** D-01 conserva su resolución histórica,
 > pero su modelo quedó sustituido: [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md)
@@ -55,9 +59,9 @@ ADR.
 | D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
 | D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | Abierta |
 | D-09 | Herramienta concreta de rate limiting | `Task/011` · reforzado en `Task/018` | **Resuelta** (2026-09-01) — **contador de ventana fija en PostgreSQL**, por IP |
-| D-10 | Estrategia de backups cloud | `Task/029` | Abierta — **Propuesta** entregada por `Task/029` (2026-09-27): retención **7 días**, PITR, *snapshot* antes de cada migración, `deletion_protection`, **RPO ≤ 15 min** y **RTO ≤ 4 h** |
+| D-10 | Estrategia de backups cloud | `Task/029` | **Resuelta** (2026-09-27) — retención **7 días**, PITR, *snapshot* antes de cada migración, `deletion_protection`, **RPO ≤ 15 min**, **RTO ≤ 4 h** y **vía de salida fuera de la cuenta** |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
-| D-12 | Límites exactos de Lambda | `Task/032` · *desde `Task/028.2`: `Task/029` deriva el presupuesto preliminar de conexiones* | Abierta |
+| D-12 | Límites exactos de Lambda | `Task/032` · *desde `Task/028.2`: `Task/029` deriva el presupuesto preliminar de conexiones* | Abierta — presupuesto preliminar **aprobado** el 2026-09-27 con `Task/029`: 112 / 89 / 40 con `pool_size=1`, `overflow=1` y RC=20. `Task/032` cierra **con medición** |
 | D-13 | Presupuesto mensual objetivo | `Task/027` | **Resuelta** (2026-09-17) — techo USD 20/mes global y sublímite USD 5/mes AWS |
 | D-14 | ¿Se usará un emulador AWS local para la estrategia de IaC? | `Task/005.2` | **Resuelta** (2026-08-15) — **Sí, Floci** |
 | D-15 | **Topología lógica de dominios** y política de cookies/CORS | `Task/011` | **Resuelta** (2026-09-01) — **mismo *site***: sitio y panel en el dominio raíz, API en subdominio |
@@ -67,9 +71,9 @@ ADR.
 | D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) · *desde `Task/028.2`: `Task/029` estima y `Task/031` verifica antes de integrar* | Abierta |
 | D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) · *desde `Task/028.2`: `Task/031` decide **e implementa*** | Abierta |
 | D-21 | **Estrategia de *rendering* del sitio público frente a *crawlers*** | Sin tarea asignada — abierta por `Task/016` | Abierta |
-| D-22 | **Red, topología y capacidad de RDS** | `Task/029` (decide) · `Task/031` (implementa) | Abierta — **Propuesta** de `Task/029` (2026-09-27): us-east-2 *(confirmación del usuario)*, PostgreSQL **17.11**, **db.t4g.micro**, **gp3 20 GiB**, **Single-AZ**, 2 subnets privadas en 2 AZ, **sin NAT** |
-| D-23 | **TLS, KMS, secretos y autenticación SQL de RDS** | `Task/029` (decide) · `Task/031`/`Task/032` (implementan) | Abierta — **Propuesta** de `Task/029` (2026-09-27): **`verify-full`**, clave KMS gestionada por AWS, 3 identidades SQL, **SSM `SecureString`**, **IAM DB auth descartada** por memoria |
-| D-24 | **Canal privado de administración y migraciones** | `Task/029` (decide) · `Task/031`/`Task/036`/`Task/038` (implementan) | Abierta — **Propuesta** de `Task/029` (2026-09-27): **Lambda ejecutora dedicada**, serializada, con [runbook](../runbooks/rds-private-administration.md) preparado |
+| D-22 | **Red, topología y capacidad de RDS** | `Task/029` (decide) · `Task/031` (implementa) | **Resuelta** (2026-09-27) — us-east-2 *(confirmación del usuario)*, PostgreSQL **17.11**, **db.t4g.micro**, **gp3 20 GiB**, **Single-AZ**, 2 subnets privadas en 2 AZ, **sin NAT** |
+| D-23 | **TLS, KMS, secretos y autenticación SQL de RDS** | `Task/029` (decide) · `Task/031`/`Task/032` (implementan) | **Resuelta** (2026-09-27) — **`verify-full`**, clave KMS gestionada por AWS, 3 identidades SQL, **SSM `SecureString`**, **IAM DB auth descartada** por memoria |
+| D-24 | **Canal privado de administración y migraciones** | `Task/029` (decide) · `Task/031`/`Task/036`/`Task/038` (implementan) | **Resuelta** (2026-09-27) — **Lambda ejecutora dedicada**, serializada, con [runbook](../runbooks/rds-private-administration.md) preparado |
 
 > *(Nota de `Task/028.2`: este párrafo es historia de `Task/006.2`. D-17 y D-18 quedaron
 > cerradas por no aplicabilidad el 2026-09-27; los owners vigentes de D-19 y D-20 están en el
@@ -554,7 +558,7 @@ cerrada por no aplicabilidad el 2026-09-27. Costos de restore temporal y snapsho
 La custodia de backups **locales** R-12 se revisa separadamente: Task/029 prepara
 contrato y Task/031 documenta controles; retirar D-17 no los cifra.
 
-> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación.** Retención **7 días**
+> **Resuelta por `Task/029`, aprobada el 2026-09-27.** Retención **7 días**
 > —el rango es 0–35 y el default 7; **nunca 0**, que desactiva los *backups*—; **PITR
 > activo** como consecuencia de la retención no nula, con granularidad ~5 min; *snapshot*
 > **manual antes de cada migración**, porque un *backup* automático no es un punto de
@@ -566,7 +570,7 @@ contrato y Task/031 documenta controles; retirar D-17 no los cifra.
 > Contrato de **R-12** entregado sin cifrar nada: los respaldos locales **no** son el
 > mecanismo de recuperación de producción y **no se monta un trabajo desde el equipo hacia
 > S3**. Detalle:
-> [paquete de decisiones §10 y §8.7](production-postgresql-rds-decisions.md#10-d-10--recuperación-backups-pitr-rpo-y-rto--propuesta).
+> [paquete de decisiones §10 y §8.7](production-postgresql-rds-decisions.md#10-d-10--recuperación-backups-pitr-rpo-y-rto--resuelta).
 
 > **Ampliación del 2026-09-27, por la decisión H-4: vía de salida fuera de la cuenta.** El
 > usuario conserva el plan gratuito y difiere la continuidad a una decisión fechada. Eso
@@ -741,9 +745,9 @@ producción sin cálculo; no exigir medición Lambda real como salida de Task/02
 > **Parar RDS no sirve como estrategia:** el máximo son **7 días consecutivos** y mientras
 > está detenida se siguen cobrando almacenamiento y *backups*.
 
-> **EX-029-D13 — excepción acotada, decidida por el usuario el 2026-09-27. Propuesta
-> pendiente de aprobación junto con `Task/029`. D-13 sigue Resuelta y su techo global no se
-> modifica.**
+> **EX-029-D13 — excepción acotada. Aceptada y Vigente** desde el 2026-09-27, decidida por el
+> usuario y aprobada con `Task/029` ese mismo día. **D-13 sigue Resuelta y su techo global no
+> se modifica.**
 >
 > | Campo | Valor |
 > | --- | --- |
@@ -1252,7 +1256,7 @@ JavaScript.
   de salida pública demostrada y decisión explícita; ningún servicio excluido —EC2, ECS,
   EKS, ECR, ALB— sin decisión nueva; ningún valor elegido por inercia.
 
-> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación.**
+> **Resuelta por `Task/029`, aprobada el 2026-09-27.**
 >
 > | Punto | Decisión | Por qué, con dato |
 > | --- | --- | --- |
@@ -1297,7 +1301,7 @@ JavaScript.
   clave de la instancia se elige **antes** de crearla. **Este mantenimiento no lee ni crea
   secretos.**
 
-> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación. Cero secretos generados
+> **Resuelta por `Task/029`, aprobada el 2026-09-27. Cero secretos generados
 > o leídos.**
 >
 > - **TLS: `sslmode=verify-full`** —`verify-ca` no valida el *hostname*—, con
@@ -1330,7 +1334,7 @@ JavaScript.
 >   registran** la autenticación IAM, y `rds_iam` **toma precedencia** sobre la contraseña,
 >   lo que puede dejar fuera al administrador (**R-43**).
 >
-> Detalle: [§5](production-postgresql-rds-decisions.md#5-d-23--tls-kms-secretos-y-autenticación-sql--propuesta).
+> Detalle: [§5](production-postgresql-rds-decisions.md#5-d-23--tls-kms-secretos-y-autenticación-sql--resuelta).
 
 ## D-24 — Canal privado de administración y migraciones
 
@@ -1354,7 +1358,7 @@ JavaScript.
   se pide una decisión explícita. **Nunca** se abre la base de datos a Internet por
   conveniencia.
 
-> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación.** Mecanismo elegido:
+> **Resuelta por `Task/029`, aprobada el 2026-09-27.** Mecanismo elegido:
 > **Lambda ejecutora dedicada** en las subnets privadas, invocada por el plano de control.
 > No introduce ningún servicio excluido y su costo es **≈ 0.00** para uso esporádico.
 >
@@ -1387,7 +1391,7 @@ JavaScript.
 > `administrator_sessions`) quedan diseñados sobre el mismo canal, con retenciones de 7 y 30
 > días y ejecución con `blog_migrate`, **nunca** con `blog_app`. Runbook preparado y **no
 > ejecutado**: [rds-private-administration.md](../runbooks/rds-private-administration.md).
-> Detalle: [§8](production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--propuesta).
+> Detalle: [§8](production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--resuelta).
 
 Contrato detallado de las tres decisiones:
 [canónico RDS §3](production-postgresql-rds.md#3-decisiones-que-entrega-task029) ·

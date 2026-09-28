@@ -325,6 +325,50 @@ cuenta». La política elegida es correcta en su calendario en ambos casos.
 [Decisiones §11](../architecture/production-postgresql-rds-decisions.md#11-decisiones-del-usuario--h-1-a-h-4-resueltas) ·
 [Reporte](../task-reports/TASK-029-report.md).
 
+**2026-09-27 — `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` APROBADA** por el usuario
+mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`.
+
+**Cierra la ETAPA 09: 3/3 = 100 %.** El avance global pasa a **29/41 ≈ 71 %** y quedan **12
+tareas pendientes, de `Task/030` a `Task/041`**. Es la primera tarea canónica aprobada de la
+etapa desde `Task/028` y la última de ella.
+
+**Decisiones promovidas.** **D-22** —región, topología y capacidad—, **D-23** —TLS, KMS,
+secretos y autenticación SQL—, **D-24** —canal privado de administración y migraciones— y
+**D-10** —recuperación— pasan a **Resueltas**. El registro queda en **7 abiertas** —D-07,
+D-08, D-11, D-12, D-19, D-20 y D-21—, **14 resueltas** y **3 cerradas por no aplicabilidad**.
+**D-12 sigue abierta**: se aprueba su presupuesto **preliminar** —112 / 89 / 40 con
+`pool_size=1`, `overflow=1` y RC=20— y la cierra `Task/032` **con medición**. **D-11** y
+**D-19** conservan sus propietarios con la estimación de costo incorporada.
+
+**EX-029-D13 queda Aceptada y Vigente.** Suspende **solo** el sublímite AWS de **D-13**
+durante la etapa financiada con créditos; **el techo global de USD 20/mes no se modifica** y
+ningún otro presupuesto sube. **D-13 sigue Resuelta**. Vence con el agotamiento de los
+créditos o el **2027-03-15**, lo que ocurra primero, **no se renueva por inercia** y **no
+autoriza ningún recurso**.
+
+**Documentos que pasan a Vigente:**
+[production-postgresql-rds-decisions.md](../architecture/production-postgresql-rds-decisions.md)
+y el runbook [rds-private-administration.md](../runbooks/rds-private-administration.md), este
+último **Vigente pero no ejecutado**: no existen RDS ni ejecutor. **ADR-010 no se modifica**
+—sigue **Aceptada**— y **no se creó ningún ADR nuevo**: `Task/029` la instancia, no la
+reemplaza.
+
+**La aprobación no crea recursos.** Cada uno sigue exigiendo su tarea propietaria y la
+autorización explícita del usuario. **El gate de D-06 sigue siendo el primero** y es de
+`Task/030`; **EX-028-C7 no se extiende**.
+
+**Compromisos con fecha que esta aprobación deja vivos:** la **vía de salida** de D-10 debe
+estar **probada por `Task/040`** —un CSV en un bucket no es una salida probada—, y la decisión
+de continuidad **A pagar / B desmontar** debe tomarse **antes del agotamiento del crédito o
+del 2027-03-15**, con `Task/041` como gate (**R-47**, **Abierto**). Los riesgos **R-29** a
+**R-35**, **R-38** a **R-40**, **R-42**, **R-12**, **R-43** y **R-44** siguen **abiertos** con
+su tramo de diseño entregado; el recuento se mantiene en **48**.
+
+`Task/030-Desplegar-Amazon-S3` queda como **próxima tarea, Pendiente y no iniciada**.
+[Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) ·
+[Reporte](../task-reports/TASK-029-report.md) ·
+[Decisiones](../architecture/production-postgresql-rds-decisions.md).
+
 Lo siguiente conserva el registro fechado de Task/027 + Task/027.1; no describe
 el estado vivo de Git/GitHub.
 
@@ -386,7 +430,7 @@ Ninguna prueba local acredita federación ni autorización real.
 | Campo | Valor |
 | --- | --- |
 | **Tarea actual** | `Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS` — **Aprobada** el 2026-09-27 mediante `approved: Task/028.2-Reconsiderar-PostgreSQL-Produccion-RDS`. Mantenimiento fuera de las 41: el avance no cambia. **ADR-010 Aceptada**, **ADR-007 Reemplazada**; canónico RDS **Vigente**. [Ficha](../tasks/TASK-028.2-reconsider-production-postgresql-rds.md) · [Reporte](../task-reports/TASK-028.2-report.md) |
-| **Etapa actual** | **ETAPA 09 — Cuentas y Seguridad Cloud — En progreso** desde el 2026-09-15 con `Task/027`. Tiene **2 de 3 tareas aprobadas (≈ 67 %)** tras `Task/028`; falta `Task/029`. Gates A–E completos con evidencia saneada; el agente no ejecutó mutaciones externas. El usuario creó un presupuesto con cuatro alertas, pero ningún recurso de aplicación atribuible a Task/027. Todo lo observado previamente en Floci sigue siendo hipótesis hasta la ETAPA 10 |
+| **Etapa actual** | **ETAPA 09 — Cuentas y Seguridad Cloud — COMPLETADA** el 2026-09-27 con la aprobación de `Task/029`: **3 de 3 tareas aprobadas (100 %)**. Abierta el 2026-09-15 con `Task/027`. Siguiente: **ETAPA 10**, desde `Task/030`. Gates A–E completos con evidencia saneada; el agente no ejecutó mutaciones externas. El usuario creó un presupuesto con cuatro alertas, pero ningún recurso de aplicación atribuible a Task/027. Todo lo observado previamente en Floci sigue siendo hipótesis hasta la ETAPA 10 |
 | **Mantenimiento anterior (historia)** | Task/027.1 aprobado el 2026-09-21; consolidación en Task/027 y cierre postmerge comunicados por el usuario. No cuenta entre las 41. Git/GitHub son la fuente viva. |
 | **Tarea anterior** | `Task/026-Runbooks-de-Despliegue` quedó **Aprobada** el 2026-09-15 y cerrada post-merge; `Task/026.1` corrigió dos frases transitorias y también quedó cerrada post-merge sin contar en las 41. ETAPA 08 permanece **Completada (4/4, 100 %)**. Los cinco runbooks están Vigentes; el modo `production` sigue bloqueado, el bucket de estado no existe y toda evidencia de Floci sigue siendo hipótesis local. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
 | **Task/026 (historia)** | **Registro del 2026-09-15:** **`Task/026-Runbooks-de-Despliegue` — Aprobada** el 2026-09-15 mediante `approved: Task/026-Runbooks-de-Despliegue`; en aquella fecha `Task/027` aún estaba pendiente; fue aprobada después, el 2026-09-17. Rama creada sólo en infra desde `main` actualizado y limpio, SHA base `940a531827602ae04db37ddc5b15b5722500cc37`; backend y frontend en solo lectura, sin rama. Entrega cinco runbooks, destino explícito, binding de Floci fail-closed, planes humanos ligados a SHA-256, inspección `boto3` desde el ZIP y drift controlado. Ciclo real ejecutado contra el laboratorio: **21 recursos creados**, `GET /health` **200**, drift introducido y reconciliado, **dos `destroy`** con ausencia verificada por API y reconstrucción intermedia; **0 residuos Docker** al terminar. **202/202** pruebas y gates estáticos en verde, incluidos Compose, enlaces Markdown y **Gitleaks 8.30.1 en 0 hallazgos**. Dos defectos propios encontrados durante la ejecución real y corregidos con regresión: **DEF-026-1** (`botocore` no podía leer `endpoints.json` importando desde el ZIP) y **DEF-026-2** (la política IAM aparecía como actualización dependiente al recrear el SSM). **Rollback NO ejecutado: precondición ausente**, registrado sin fingir éxito y convertido en deuda con propietario. **Cero AWS real.** **APROBADA:** sus decisiones **D-026-A** a **D-026-J** pasan a **Aceptadas y Vigentes** sin ADR nuevo, los cinco runbooks pasan a **Vigentes**, y **el avance pasa de 25/41 ≈ 61 % a 26/41 ≈ 63 %**, completando la **ETAPA 08**. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
@@ -426,14 +470,14 @@ Ninguna prueba local acredita federación ni autorización real.
 | **Mantenimiento tras `Task/006`** | `Task/006.1-Corregir-Drift-Documental-Post-Merge` — **Aprobada** el 2026-08-21. Cierra el drift documental posterior a la fusión de `Task/006`. No cuenta en las 41 tareas |
 | **Tarea recién aprobada** | `Task/027-Configurar-Cuentas-y-Presupuestos` — **Aprobada** el 2026-09-17. Gates A–E y DoD completados con evidencia saneada; D-13 resuelta. El agente no operó el navegador ni recibió datos privados. [Ficha](../tasks/TASK-027-cloud-accounts-and-budgets.md) · [Reporte](../task-reports/TASK-027-report.md) |
 | **Mantenimiento consolidado** | `Task/027.1-Corregir-Regresion-S09-MinIO` — **Aprobada** el 2026-09-21 y publicada en `39b6d59`; integrada en esta rama con `merge --no-ff`, con su historial íntegro. Es mantenimiento: **fuera de las 41** y **sin efecto en el avance**. |
-| **Tarea en curso** | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Lista para validación** el 2026-09-27, tras dos rondas en la misma rama. Solo en infra, creada desde `main` limpio en `d96d5d5` con `HEAD == main` verificado. **Cero recursos AWS, cero `apply`, cero secretos, cero cambios en Billing.** Entrega **D-22**, **D-23**, **D-24** y **D-10** como **Propuesta**, con el presupuesto preliminar de **D-12**. **Las cuatro decisiones humanas quedaron resueltas por el usuario el mismo día:** región **us-east-2**; **EX-029-D13**, excepción acotada y fechada al sublímite AWS —**techo global de USD 20/mes intacto**—; créditos verificados **USD 120** con límite **2027-03-15**; y **se conserva el plan gratuito**, con la continuidad diferida a una decisión fechada. Consecuencia obligatoria: **D-10 incorpora una vía de salida fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre (**R-47**). **No queda ninguna decisión humana pendiente en su alcance.** [Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) · [Reporte](../task-reports/TASK-029-report.md) · [Decisiones](../architecture/production-postgresql-rds-decisions.md) |
-| **Próxima tarea prevista** | `Task/030-Desplegar-Amazon-S3`, **solo** cuando `Task/029` esté **aprobada** y el gate de **D-13** resuelto. Como toda Task, nacerá de `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)). |
-| **Avance global** | **28/41 ≈ 68 %** — 28 aprobadas; mantenimiento excluido. |
+| **Última tarea canónica aprobada** | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` — **Aprobada** el 2026-09-27 mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. **Cierra la ETAPA 09 (3/3)** y el avance pasa a **29/41 ≈ 71 %**. **D-22**, **D-23**, **D-24** y **D-10** quedan **Resueltas** y **EX-029-D13** **Aceptada y Vigente**; **D-12 sigue abierta**. Ejecutada en dos rondas en la misma rama. Solo en infra, creada desde `main` limpio en `d96d5d5` con `HEAD == main` verificado. **Cero recursos AWS, cero `apply`, cero secretos, cero cambios en Billing.** Entrega **D-22**, **D-23**, **D-24** y **D-10** como **Propuesta**, con el presupuesto preliminar de **D-12**. **Las cuatro decisiones humanas quedaron resueltas por el usuario el mismo día:** región **us-east-2**; **EX-029-D13**, excepción acotada y fechada al sublímite AWS —**techo global de USD 20/mes intacto**—; créditos verificados **USD 120** con límite **2027-03-15**; y **se conserva el plan gratuito**, con la continuidad diferida a una decisión fechada. Consecuencia obligatoria: **D-10 incorpora una vía de salida fuera de la cuenta**, porque los *backups* administrados no sobreviven a su cierre (**R-47**). **No queda ninguna decisión humana pendiente en su alcance.** [Ficha](../tasks/TASK-029-prepare-production-postgresql-rds.md) · [Reporte](../task-reports/TASK-029-report.md) · [Decisiones](../architecture/production-postgresql-rds-decisions.md) |
+| **Próxima tarea prevista** | `Task/030-Desplegar-Amazon-S3` — **Pendiente**, **no iniciada**. Abre la **ETAPA 10**. Su gate de **D-06** sigue siendo el primero: **ningún recurso de aplicación antes de resolverlo**, y **EX-028-C7 no se extiende**. Como toda Task, nacerá de `main` actualizado y limpio tras la normalización ([WORKFLOW §2.1 y §6.1](WORKFLOW.md)). |
+| **Avance global** | **29/41 ≈ 71 %** — 29 aprobadas tras `Task/029` (2026-09-27); mantenimiento excluido. |
 | **Correcciones heredadas Task020** | Observado el 2026-09-09: STAGE-06 tenía avance 0 %, README backend §3 describía Task010/ETAPA 03 y head 0002, y el Total de ROADMAP conservaba 18 / 44 %. Las tres contradicciones D preexistentes se corrigieron con autorización expresa durante el preflight; **B-020-3A** (D) y **B-020-3B** (C) en el reporte de Task019 también. **Todas resueltas.** No reabren Task019 ni Task019.1 |
 | **Defectos reales que destapó el baseline de Task020** | Medido el 2026-09-10 al resolver las dependencias en Linux, invisible hasta entonces: `anyio` 4.15.0 marcó obsoleto `anyio.abc.BlockingPortal`, que `starlette.testclient` sigue usando, y `pytest -W error` fallaba al recolectar; se acotó `anyio<4.15` con la medición escrita junto a la dependencia. Y `pip-audit` devolvió **3 vulnerabilidades con corrección publicada** en `httpx2` 2.10.0, una **HIGH** (CVE-2026-84382, CVSS 7.5): la tarea se detuvo y el usuario autorizó subir a 2.12.0. Ninguno de los dos afecta a la imagen de producción |
 | **Bloqueos activos** | **Ninguno abierto.** **No existe defecto bloqueante demostrado atribuible a `Task/023`.** **H-023-3** no es un bloqueo: es una **observación abierta no diagnosticada** —un fallo de `test_dos_publicaciones_simultaneas_solo_prosperan_una` en una ejecución completa, sin traza conservada y **no reproducido** en ocho intentos posteriores—. No se declara resuelto, no se declara descartado y **no se atribuye al adaptador Lambda**, que no participa en el camino de código de ese test. **Debe vigilarse en la CI**; si reaparece, el cierre **se detiene** y se analiza. **B-020.3-C — RESUELTO** el 2026-09-12: el gate Trivy de la imagen backend pasó de 12 hallazgos accionables (9 HIGH, 3 CRITICAL, exit 1) a **0 accionables, exit 0**, tras autorización explícita del usuario para aplicar las actualizaciones de seguridad de Debian en la etapa `runtime` del Dockerfile. La política S-09 no se relajó: sigue siendo `--severity HIGH,CRITICAL --ignore-unfixed --exit-code 1`, sin `.trivyignore` ni baseline de backend. **Historia preservada:** `Task/021` cerró aprobada el 2026-09-12 sin bloqueos abiertos. **Antecedente histórico:** el bloqueo del 2026-09-12 UTC —acceso **anónimo** a **ese manifiesto** de MinIO rechazado con **HTTP 401 / `UNAUTHORIZED`** en el run `34663425054` sobre `94c5e67`, dos intentos— se conserva como **hecho histórico** y no se reescribe. No se afirma que Docker Hub esté roto, privado o retirado: solo se demostró esa denegación durante esos intentos. La vía de salida está **autorizada explícitamente**: tomar MinIO desde **Quay**, con el **mismo release**, el **mismo digest** `sha256:14cea…`, contenido OCI idéntico verificado byte a byte y las **mismas 100** identidades aceptadas. No se cambian imágenes, versiones, baseline, política, *settings* ni secretos. **R-018-3** sigue **ABIERTO**. **Antecedente del 2026-09-11:** La detención por tres identidades CRITICAL→HIGH de CVE-2026-56854 quedó resuelta al sustituir exclusivamente esas severidades tras autorización explícita; gate local verde y ejecución 34636624843 conforme sobre 43c1bf2, observada el mismo día. **B-021-3** quedó **Resuelto** el 2026-09-11 por decisión explícita del usuario: S-09 de infraestructura usa **tolerancia cero** en las imágenes que construye el proyecto y **baseline exacto de riesgo aceptado** en las de terceros fijadas por digest. El residual de MinIO y Portainer **no se corrige ni se oculta**: queda enumerado, ligado a su digest y vigilado por la CI, que falla ante cualquier hallazgo accionable nuevo. **B-021-1** y **B-021-2**, D documentales heredadas, se corrigieron con autorización explícita durante el preflight del 2026-09-10. **Antecedentes del cierre de 2026-09-10:** Task020 cerró sin bloqueos: B-020-1/2/3 se resolvieron con autorización en el preflight, D-020-1/2/3 en la revisión previa a la aprobación, y los dos defectos reales del baseline se corrigieron. **B-020-4** y **B-020-5**, detectados durante el cierre aprobado de `Task/020` y **fuera de su alcance**, los corrigió `Task/020.1`, **Aprobada** el 2026-09-10. **B-020-4:** el registro histórico de `Task/002.1` (mantenimiento de 2026-07-26) llevaba una fila «Avance global» con **44 % — 18 de 41**, un contador vivo dentro de un registro histórico que no era cierto en esa fecha ni después; el valor real de aquel día, **2 de 41 ≈ 5 %**, quedó probado en el commit `700be94` y restaurado con su fecha. **B-020-5:** había **cinco** encabezados «Última tarea aprobada» simultáneos, porque cada tarea añadía el suyo sin degradar el anterior; ahora queda **uno**, el de `Task/020`, y los cuatro heredados pasaron a encabezados históricos. `Task/016` quedó **Aprobada** con **4 limitaciones acotadas**, cada una con propietario: **B-016-1** `og:image` por contenido (**D-08**, `Task/030`) · **B-016-2** Open Graph por URL sin JavaScript (**D-21** / **ADR-009**, sin tarea asignada) · **B-016-3** código HTTP `404` real (`Task/034`) · **B-016-4** evidencia con contenido real (`Task/022`) — **RESUELTO** el 2026-09-12 con la aprobación de `Task/022`: la semilla local creó el administrador y el perfil, y el recorrido administrativo real generó contenido publicado con imágenes, de modo que la evidencia que faltaba ya existe. **B-015-1** sigue **resuelto** por `Task/012.1` |
 | **Riesgos abiertos** | **47** (R-01, **R-08**, **R-14** y **R-41** cerrados —este último **por no aplicabilidad** el 2026-09-27, `Task/028.2`—; **R-021-1**, el residual de la imagen de Portainer, añadido el 2026-09-11 por `Task/021`, con su tabla en la sección de riesgos; **R-14** lo cierra la aprobación de `Task/020` el 2026-09-10; **R-018-1** a **R-018-4** añadidos el 2026-09-07 por `Task/018`, registrados con su tabla en la sección de riesgos; **R-29** a **R-35** abiertos desde el 2026-08-15; **R-36** añadido en `Task/005.6`; **R-37** en `Task/005.7`; **R-38** a **R-42** desde el 2026-08-23, `Task/006.2`; **R-43** a **R-46** desde el 2026-09-01, `Task/011`; **R-016-1** a **R-016-11** desde el 2026-09-05 con la definición de `Task/016`, registrados en su ficha §16) *(`Task/028.2`, 2026-09-27: el recuento baja de 48 a 47 por el cierre de **R-41**; R-29 a R-40 y R-42 siguen abiertos, reformulados para RDS.)* *(`Task/029`, 2026-09-27: el recuento sube de 47 a **48** con **R-47**, el cierre automático de la cuenta en el Free Plan. **ID nuevo y no reutilizable**: `Task/028.2` acordó no crear IDs para los riesgos del cambio a RDS porque cabían en los existentes, y este **no cabe** — no es costo imprevisto (**R-02**) ni error humano (**R-35**), sino el ciclo de vida del plan de la cuenta, que ningún ID cubría.)* |
-| **Decisiones abiertas** | **11** de 24 IDs: D-07, D-08, D-10, D-11, D-12, D-19, D-20, D-21 y **D-22 a D-24**, abiertas por `Task/028.2`. **10** resueltas y **3 cerradas por no aplicabilidad** —**D-16**, **D-17** y **D-18**, el 2026-09-27—. [Índice canónico](../architecture/open-decisions.md). |
+| **Decisiones abiertas** | **7** de 24 IDs: D-07, D-08, D-11, D-12, D-19, D-20 y D-21. **14** resueltas —D-10, D-22, D-23 y D-24 el 2026-09-27 con `Task/029`— y **3 cerradas por no aplicabilidad** (D-16 a D-18). **D-12 sigue abierta** con su presupuesto preliminar aprobado; la cierra `Task/032` con medición. Excepción vigente: **EX-029-D13**, que acota el sublímite AWS de **D-13** hasta el agotamiento de los créditos o el **2027-03-15** |
 
 > **Recuento tras la aprobación de `Task/018`, 2026-09-08:**
 > **18 de 41 — 44 %**; ETAPA 05 **Completada, 3 de 3 — 100 %**.
@@ -2860,20 +2904,20 @@ normalización `main → dev` se completó, lo que habilitó el inicio de `Task/
 | 06 — Integración Continua | 3 | **3** | **100 %** — **completada** el 2026-09-12 (`Task/020.3`) |
 | 07 — Validación Local | 1 | **1** | **100 %** — **completada** el 2026-09-12 (`Task/022`) |
 | 08 — Preparación Cloud + AWS Local Parity | 4 | **4** | **100 %** — **completada** el 2026-09-15 (`Task/026`) |
-| 09 — Cuentas y Seguridad Cloud | 3 | **2** | **≈ 67 %** — **En progreso** |
+| 09 — Cuentas y Seguridad Cloud | 3 | **3** | **100 %** — **completada** el 2026-09-27 (`Task/029`) |
 | 10 — Despliegue Cloud | 7 | 0 | 0 % |
 | 11 — Automatización de Despliegues | 3 | 0 | 0 % |
 | 12 — Lanzamiento y Operación | 2 | 0 | 0 % |
-| **Total** | **41** | **28** | **≈ 68 %** |
+| **Total** | **41** | **29** | **≈ 71 %** |
 
 Distribución por estado:
 
 | Estado | Tareas |
 | --- | --- |
-| Pendiente | **13** — Task/029–Task/041 |
+| Pendiente | **12** — Task/030–Task/041 |
 | En progreso | **0** |
 | Lista para validación | **0** |
-| **Aprobada** | **28** |
+| **Aprobada** | **29** |
 | Bloqueada | 0 |
 | Descartada | 0 |
 | **Total** | **41** |

@@ -33,7 +33,7 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 | Runbook | Entorno | Estado |
 | --- | --- | --- |
 | [github-oidc-bootstrap.md](github-oidc-bootstrap.md) | AWS real futuro; bootstrap OIDC aislado | **Borrador operativo Task/028, no ejecutado**; solo diseño/local autorizado |
-| [rds-private-administration.md](rds-private-administration.md) | AWS real futuro; migraciones, purga y restore por canal privado sobre RDS | **Preparado en `Task/029`, no ejecutado** — Propuesta pendiente de aprobación; no existe RDS ni ejecutor |
+| [rds-private-administration.md](rds-private-administration.md) | AWS real futuro; migraciones, purga y restore por canal privado sobre RDS | **Vigente** — aprobado en `Task/029` (2026-09-27); **no ejecutado**: no existe RDS ni ejecutor |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |
 | [local-backup-and-recovery.md](local-backup-and-recovery.md) | Local (backup y recuperación) | **Vigente** — aprobado en `Task/004` (2026-07-31) |
 | [deployment-create.md](deployment-create.md) | Laboratorio AWS local; transición AWS preparada | **Vigente** — aprobado en `Task/026` (2026-09-15) |

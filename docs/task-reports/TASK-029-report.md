@@ -4,16 +4,16 @@
 | --- | --- |
 | Tarea | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` |
 | Etapa | ETAPA 09 — Cuentas y Seguridad Cloud, tercera de tres. **Cuenta entre las 41** |
-| Estado | **Lista para validación** — 2026-09-27 |
+| Estado | **Aprobada** — 2026-09-27, mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS` |
 | Repositorios modificados | **Solo `personal-blog-infra`** |
 | Rama | `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`, creada desde `main` |
 | SHA base | `d96d5d569a673d2a0ddfae3cc9b09cfff078b837` |
 | Recursos AWS creados | **Cero** |
 | Secretos generados o leídos | **Cero** |
-| Avance | **28/41 ≈ 68 %** · ETAPA 09 **2/3 ≈ 67 %** — **no se mueve hasta la aprobación** |
+| Avance | **29/41 ≈ 71 %** · ETAPA 09 **3/3 = 100 %**, **completada** con esta aprobación |
 
 > **Resultado en una frase.** Las cuatro decisiones del alcance —**D-22**, **D-23**,
-> **D-24** y **D-10**— quedan resueltas como **Propuesta** con precios y capacidades
+> **D-24** y **D-10**— quedan **Resueltas** con precios y capacidades
 > verificados contra fuentes primarias, y el candidato **sin NAT** se confirma sobre el
 > código real. Los dos puntos que el agente no podía cerrar —el **gate de D-13**, que ninguna
 > configuración de RDS satisface, y el **plan de la cuenta, que la cierra sola**— **los
@@ -87,7 +87,9 @@ Tabla completa con URL y fechas:
 
 ## 4. Decisiones entregadas
 
-Todas **Propuesta — pendiente de aprobación**. Argumentación completa en el
+**D-22**, **D-23**, **D-24** y **D-10** quedaron **Resueltas** con la aprobación del 2026-09-27;
+**D-12** conserva su presupuesto preliminar aprobado y **sigue abierta**, con cierre en
+`Task/032`. Argumentación completa en el
 [paquete de decisiones](../architecture/production-postgresql-rds-decisions.md).
 
 ### 4.1 D-22 — red, topología y capacidad
@@ -445,7 +447,7 @@ aplicación puede crearse antes de que D-06 esté resuelta**. `Task/029` depende
 | `docs/architecture/production-postgresql-rds-decisions.md` | **Nuevo.** Paquete de decisiones: 15 secciones, inventario A–E, costo, conexiones, contratos, planes de prueba y checkpoint humano |
 | `docs/runbooks/rds-private-administration.md` | **Nuevo.** Runbook del canal privado: migración, purga, restore y recuperación del administrador. **Preparado y no ejecutado** |
 | `docs/architecture/production-postgresql-rds.md` | Enmienda de instancia; §3 con el estado de entrega; **§6.1 nueva** con el resultado del gate y el hallazgo del plan de la cuenta; §9 con la re-verificación de fuentes |
-| `docs/architecture/open-decisions.md` | D-22, D-23, D-24 y D-10 con su **Propuesta**; D-12 con el presupuesto derivado; D-11 y D-19 con estimación; D-13 con el resultado del gate; índice y nota de recuento |
+| `docs/architecture/open-decisions.md` | D-22, D-23, D-24 y D-10 **Resueltas**; D-12 con el presupuesto derivado; D-11 y D-19 con estimación; D-13 con el resultado del gate; índice y nota de recuento |
 | `docs/project-management/STATUS.md` | Entrada fechada; *Vista rápida* con tarea en curso y próxima; **R-47 nuevo** con su justificación de ID; recuento 47 → 48; aporte de `Task/029` a R-29–R-44 |
 | `docs/project-management/ROADMAP.md` | Estado de ETAPA 09 y fila de `Task/029`; nota sobre la columna «Define / construye» y las dos condiciones previas nuevas |
 | `docs/tasks/TASK-029-prepare-production-postgresql-rds.md` | §0 con la preparación Git ejecutada; estado; §9–§20 con resultados reales |
@@ -550,10 +552,13 @@ tier** si figura una fecha de finalización del plan gratuito, y aportar solo es
 
 | Campo | Valor |
 | --- | --- |
-| Estado | **Lista para validación** |
-| Fecha de aprobación | Pendiente |
-| Aprobado por | Pendiente — **solo el usuario** |
+| Estado | **Aprobada** — cierra la ETAPA 09 |
+| Fecha de aprobación | **2026-09-27** |
+| Aprobado por | **El usuario**, con la expresión exacta requerida |
 | Expresión requerida | `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS` |
 
-Toda decisión de esta tarea es **Propuesta — pendiente de aprobación**. **El agente no
-autoaprueba.**
+**Aprobada el 2026-09-27.** **D-22**, **D-23**, **D-24** y **D-10** pasan a **Resueltas**;
+**EX-029-D13**, a **Aceptada y Vigente**; el paquete de decisiones y el runbook, a **Vigente**
+—el runbook, **no ejecutado**—. **D-12 sigue abierta.** **ADR-010 no se modifica y no se creó
+ningún ADR nuevo.** **La aprobación no crea recursos**: el gate de **D-06** (`Task/030`) sigue
+siendo el primero y **EX-028-C7 no se extiende**.

@@ -1,10 +1,10 @@
 # Administración privada de RDS: migraciones, purga y recuperación
 
-**Runbook preparado, no ejecutado.** Diseño de `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`,
-**Lista para validación** el 2026-09-27. **No existe RDS, VPC, ejecutor ni credencial**:
+**Runbook Vigente, no ejecutado.** Diseño de `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`,
+**aprobada** el 2026-09-27. **No existe RDS, VPC, ejecutor ni credencial**:
 ningún paso de este documento se ha ejecutado y **este documento no autoriza ejecutarlo**.
 Contrato completo:
-[paquete de decisiones §8](../architecture/production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--propuesta).
+[paquete de decisiones §8](../architecture/production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--resuelta).
 
 Owners: `Task/031` provisiona el ejecutor y hace el primer restore · `Task/036` ejecuta la
 primera migración, la recuperación del administrador y la purga · `Task/038` automatiza el

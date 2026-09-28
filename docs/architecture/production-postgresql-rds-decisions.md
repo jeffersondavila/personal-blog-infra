@@ -2,24 +2,28 @@
 
 | Campo | Valor |
 | --- | --- |
-| Estado | **Propuesta — pendiente de aprobación**. Producido por `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`, **Lista para validación** el 2026-09-27 |
+| Estado | **Vigente** ✔ — aprobado el 2026-09-27 mediante `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. **No autoriza recursos**: cada uno exige su tarea propietaria y la autorización del usuario |
 | Canónico que amplía | [production-postgresql-rds.md](production-postgresql-rds.md) — **Vigente**, aprobado en `Task/028.2` |
 | ADR | [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Aceptada**. Este documento **no la modifica**: la instancia |
 | Decisiones que resuelve | **D-22**, **D-23**, **D-24**, **D-10** · presupuesto preliminar de **D-12** · estimación de **D-11**/**D-19** · gate de **D-13** |
 | Recursos creados | **Ninguno.** Cero `apply`, cero `import`, cero *state*, cero secretos, cero llamadas mutantes a AWS |
 | Fecha de consulta de precios y capacidades | **2026-09-27** |
 
-> **Qué es y qué no es este documento.** Es el contrato que `Task/031` implementará. Nada
-> de lo que aquí se decide está provisionado. Mientras no haya `approved:`, cada decisión de
-> este documento es **Propuesta**.
+> **Qué es y qué no es este documento.** Es el contrato que `Task/031` implementará. **Que
+> esté aprobado no provisiona nada**: cada recurso sigue exigiendo su tarea propietaria y la
+> autorización explícita del usuario.
 >
-> **Los cuatro puntos que exigían decisión humana están resueltos** por el usuario el
+> **Los cuatro puntos que exigían decisión humana quedaron resueltos** por el usuario el
 > 2026-09-27: región **us-east-2**, **excepción acotada a D-13** para la etapa financiada con
 > créditos, saldo y vencimiento **verificados** (USD 120, límite 2027-03-15) y **el plan
 > gratuito se conserva**, con la decisión de continuidad diferida a una fecha concreta.
-> Registro íntegro en la [§11](#11-decisiones-del-usuario--h-1-a-h-4-resueltas). **No queda
-> ninguna decisión humana pendiente dentro del alcance de `Task/029`**; sí queda **un dato
-> por verificar**, sin efecto bloqueante ([§11.5](#115-un-dato-por-verificar-sin-efecto-bloqueante)).
+> Registro íntegro en la [§11](#11-decisiones-del-usuario--h-1-a-h-4-resueltas). Queda **un
+> dato opcional por verificar**, sin efecto bloqueante
+> ([§11.5](#115-un-dato-por-verificar-sin-efecto-bloqueante)).
+>
+> **Aprobado el 2026-09-27**, junto con `Task/029`: **D-22**, **D-23**, **D-24** y **D-10**
+> pasan a **Resueltas**, y **EX-029-D13** a **Aceptada y Vigente**. **D-12 sigue abierta**:
+> aquí solo se aprueba su presupuesto **preliminar**, y `Task/032` la cierra **con medición**.
 
 ---
 
@@ -91,7 +95,7 @@ esta tarea.
 
 ---
 
-## 3. D-22 — Red, topología y capacidad · **Propuesta**
+## 3. D-22 — Red, topología y capacidad · **Resuelta**
 
 ### 3.1 Región
 
@@ -169,7 +173,7 @@ distintos y el contrato entre ellos es el protocolo PostgreSQL sobre TLS. Elegir
 Graviton en RDS no obliga a `lambda_arquitectura`, que sigue siendo de `Task/032`.
 
 **Riesgo aceptado explícitamente:** 1 GiB es poco. Condiciona `max_connections` a **112**
-([§6](#6-d-12--presupuesto-preliminar-de-conexiones--propuesta)) y **excluye IAM DB
+([§6](#6-d-12--presupuesto-preliminar-de-conexiones--aprobado-d-12-sigue-abierta)) y **excluye IAM DB
 authentication** ([§5.4](#54-autenticación-sql-iam-db-auth)). La clase es un cambio
 *in-place* con reinicio, así que el error es **reversible y baratо de corregir**; la
 región y la clave KMS no lo son. Subir a `t4g.small` duplica el costo: solo con medición
@@ -224,7 +228,7 @@ Tres grupos, sin reglas amplias y sin `0.0.0.0/0` en ninguna dirección.
 | --- | --- | --- | --- |
 | `sg-lambda` | **Ninguno** | TCP 5432 → `sg-rds`; HTTPS 443 → *prefix list* de S3 (gateway endpoint) | Egress por destino, nunca `0.0.0.0/0` |
 | `sg-rds` | TCP 5432 ← **`sg-lambda`** y ← `sg-admin`, por **referencia de grupo**, nunca por CIDR | **Ninguno** | Una base de datos no inicia conexiones salientes |
-| `sg-admin` | **Ninguno** | TCP 5432 → `sg-rds` | Ejecutor privado de administración y migraciones ([§8](#8-d-24--canal-privado-de-administración-y-migraciones--propuesta)) |
+| `sg-admin` | **Ninguno** | TCP 5432 → `sg-rds` | Ejecutor privado de administración y migraciones ([§8](#8-d-24--canal-privado-de-administración-y-migraciones--resuelta)) |
 
 Referencia por grupo y no por CIDR: si las subnets cambian, la regla sigue siendo
 correcta, y ningún rango accidental entra por coincidencia de direcciones.
@@ -311,7 +315,7 @@ descarga sí. Validar con **D-08** en `Task/030`.
 
 ---
 
-## 5. D-23 — TLS, KMS, secretos y autenticación SQL · **Propuesta**
+## 5. D-23 — TLS, KMS, secretos y autenticación SQL · **Resuelta**
 
 ### 5.1 TLS con verificación
 
@@ -368,7 +372,7 @@ Reglas que se fijan igualmente:
 
 | Identidad | Uso | Privilegios | Quién la usa |
 | --- | --- | --- | --- |
-| `blogadmin` (*master*) | Creación inicial y recuperación | Propietario de la base; `rds_superuser` | **Nadie en operación normal.** Solo el canal privado ([§8](#8-d-24--canal-privado-de-administración-y-migraciones--propuesta)) |
+| `blogadmin` (*master*) | Creación inicial y recuperación | Propietario de la base; `rds_superuser` | **Nadie en operación normal.** Solo el canal privado ([§8](#8-d-24--canal-privado-de-administración-y-migraciones--resuelta)) |
 | `blog_app` | La aplicación en Lambda | `CONNECT`, `USAGE` en el esquema, y `SELECT/INSERT/UPDATE/DELETE` sobre las tablas. **Sin DDL** | Lambda de la aplicación |
 | `blog_migrate` | Alembic | DDL sobre el esquema y DML necesario | Solo el ejecutor de migraciones |
 
@@ -437,7 +441,7 @@ adopta RDS Proxy, o si aparece un requisito de acceso humano federado. Se reeval
 
 ---
 
-## 6. D-12 — Presupuesto preliminar de conexiones · **Propuesta**
+## 6. D-12 — Presupuesto preliminar de conexiones · **Aprobado; D-12 sigue abierta**
 
 **Derivado, no medido.** La medición es de `Task/032`; la saturación, de `Task/040`.
 
@@ -634,7 +638,7 @@ explícita como gate de `Task/029`»*. El usuario la tomó el 2026-09-27.
 | Campo | Valor |
 | --- | --- |
 | **ID** | **EX-029-D13** |
-| **Estado** | **Propuesta — pendiente de aprobación** junto con `Task/029` |
+| **Estado** | **Aceptada y Vigente** — aprobada el 2026-09-27 con `Task/029` |
 | **Qué suspende** | **Solo** el sublímite de **USD 5/mes de AWS** de **D-13** |
 | **Qué NO cambia** | El **techo global de USD 20/mes**, que se conserva íntegro y con margen de ≈ 3.52. Ningún otro presupuesto sube. **D-13 sigue Resuelta**: esta excepción no la reabre ni la sustituye |
 | **Techo efectivo durante la excepción** | El **costo bruto de AWS** puede superar los USD 5/mes, **siempre que quepa bajo el techo global de USD 20/mes** junto con las partidas no AWS. El valor de referencia aprobado es **≈ 15.48/mes**; una desviación material exige revisión |
@@ -768,7 +772,7 @@ esta tarea al modelo:
 
 ---
 
-## 8. D-24 — Canal privado de administración y migraciones · **Propuesta**
+## 8. D-24 — Canal privado de administración y migraciones · **Resuelta**
 
 Con RDS privado **no hay SSH ni *host***, y un *runner* público de GitHub **no alcanza la
 base de datos solo por tener identidad OIDC**: le falta la ruta de red.
@@ -964,7 +968,7 @@ los tiers gratuitos siguen aplicando (**R-38**).
 
 ---
 
-## 10. D-10 — Recuperación: backups, PITR, RPO y RTO · **Propuesta**
+## 10. D-10 — Recuperación: backups, PITR, RPO y RTO · **Resuelta**
 
 | Decisión | Valor | Motivo |
 | --- | --- | --- |
@@ -1259,5 +1263,8 @@ decisiones que la requerían están **resueltas**.
 - **ADR-010 no se reescribe.** No apareció contradicción que exija gobierno nuevo: este
   documento la instancia. El hallazgo del plan de la cuenta (§7.6) es un **riesgo
   operativo nuevo**, no un conflicto con la decisión arquitectónica.
-- Todo lo decidido aquí es **Propuesta — pendiente de aprobación** hasta
-  `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`.
+- **Aprobado el 2026-09-27** mediante
+  `approved: Task/029-Preparar-PostgreSQL-Produccion-en-RDS`. **D-22**, **D-23**, **D-24** y
+  **D-10** quedan **Resueltas**; **EX-029-D13**, **Aceptada y Vigente**; **D-12 sigue
+  abierta** con su presupuesto preliminar aprobado y su cierre en `Task/032`, con medición.
+  **La aprobación no crea ningún recurso.**
