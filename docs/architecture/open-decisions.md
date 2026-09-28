@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-27 — enmienda RDS aprobada, Task/028.2 |
+| **Última actualización** | 2026-09-27 — `Task/029` deja **D-22**, **D-23**, **D-24** y **D-10** como **Propuesta pendiente de aprobación**, y **D-12** con presupuesto preliminar derivado. Antes ese día: enmienda RDS aprobada, `Task/028.2` |
 | **Decisiones abiertas** | **11** — D-07, D-08, D-10, D-11, D-12, D-19, D-20 y D-21, más **D-22 a D-24**, abiertas por `Task/028.2` el 2026-09-27 |
 | **Cerradas por no aplicabilidad** | **3** — **D-16**, **D-17** y **D-18**, el 2026-09-27, al aceptarse ADR-010: sin VPS pierden objeto. IDs y texto conservados, no reutilizables |
 | **Decisiones resueltas** | **10** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)** |
@@ -11,6 +11,18 @@
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
 > `Task/029-Preparar-PostgreSQL-Produccion-en-VPS`.
+
+> **Nota de `Task/029`, 2026-09-27 — pendiente de aprobación.** El recuento de arriba **no
+> cambia**: una decisión sigue **abierta** hasta que el usuario aprueba la tarea que la
+> resuelve. `Task/029` entregó **D-22**, **D-23**, **D-24** y **D-10** como
+> **Propuesta**, más el presupuesto preliminar de **D-12** y la estimación que **D-11** y
+> **D-19** pedían. Al aprobarse `Task/029` pasarían a **Resueltas**, y el registro quedaría
+> en **7 abiertas** —D-07, D-08, D-11, D-12, D-19, D-20, D-21—, **14 resueltas** y 3
+> cerradas por no aplicabilidad. Contenido:
+> [paquete de decisiones](production-postgresql-rds-decisions.md). **Cero recursos creados.**
+> Resultado que el usuario debe decidir: el **gate de D-13 no se cumple** —ninguna
+> configuración de RDS cabe en el sublímite AWS de USD 5/mes— y el **Free Plan cierra la
+> cuenta**, con pérdida de datos (**R-47**).
 
 > **Nota de `Task/028.2`, aprobada el 2026-09-27.** D-01 conserva su resolución histórica,
 > pero su modelo quedó sustituido: [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md)
@@ -43,7 +55,7 @@ ADR.
 | D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
 | D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | Abierta |
 | D-09 | Herramienta concreta de rate limiting | `Task/011` · reforzado en `Task/018` | **Resuelta** (2026-09-01) — **contador de ventana fija en PostgreSQL**, por IP |
-| D-10 | Estrategia de backups cloud | `Task/029` | Abierta |
+| D-10 | Estrategia de backups cloud | `Task/029` | Abierta — **Propuesta** entregada por `Task/029` (2026-09-27): retención **7 días**, PITR, *snapshot* antes de cada migración, `deletion_protection`, **RPO ≤ 15 min** y **RTO ≤ 4 h** |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
 | D-12 | Límites exactos de Lambda | `Task/032` · *desde `Task/028.2`: `Task/029` deriva el presupuesto preliminar de conexiones* | Abierta |
 | D-13 | Presupuesto mensual objetivo | `Task/027` | **Resuelta** (2026-09-17) — techo USD 20/mes global y sublímite USD 5/mes AWS |
@@ -55,9 +67,9 @@ ADR.
 | D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) · *desde `Task/028.2`: `Task/029` estima y `Task/031` verifica antes de integrar* | Abierta |
 | D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) · *desde `Task/028.2`: `Task/031` decide **e implementa*** | Abierta |
 | D-21 | **Estrategia de *rendering* del sitio público frente a *crawlers*** | Sin tarea asignada — abierta por `Task/016` | Abierta |
-| D-22 | **Red, topología y capacidad de RDS** | `Task/029` (decide) · `Task/031` (implementa) | Abierta — desde `Task/028.2` (2026-09-27) |
-| D-23 | **TLS, KMS, secretos y autenticación SQL de RDS** | `Task/029` (decide) · `Task/031`/`Task/032` (implementan) | Abierta — desde `Task/028.2` (2026-09-27) |
-| D-24 | **Canal privado de administración y migraciones** | `Task/029` (decide) · `Task/031`/`Task/036`/`Task/038` (implementan) | Abierta — desde `Task/028.2` (2026-09-27) |
+| D-22 | **Red, topología y capacidad de RDS** | `Task/029` (decide) · `Task/031` (implementa) | Abierta — **Propuesta** de `Task/029` (2026-09-27): us-east-2 *(confirmación del usuario)*, PostgreSQL **17.11**, **db.t4g.micro**, **gp3 20 GiB**, **Single-AZ**, 2 subnets privadas en 2 AZ, **sin NAT** |
+| D-23 | **TLS, KMS, secretos y autenticación SQL de RDS** | `Task/029` (decide) · `Task/031`/`Task/032` (implementan) | Abierta — **Propuesta** de `Task/029` (2026-09-27): **`verify-full`**, clave KMS gestionada por AWS, 3 identidades SQL, **SSM `SecureString`**, **IAM DB auth descartada** por memoria |
+| D-24 | **Canal privado de administración y migraciones** | `Task/029` (decide) · `Task/031`/`Task/036`/`Task/038` (implementan) | Abierta — **Propuesta** de `Task/029` (2026-09-27): **Lambda ejecutora dedicada**, serializada, con [runbook](../runbooks/rds-private-administration.md) preparado |
 
 > *(Nota de `Task/028.2`: este párrafo es historia de `Task/006.2`. D-17 y D-18 quedaron
 > cerradas por no aplicabilidad el 2026-09-27; los owners vigentes de D-19 y D-20 están en el
@@ -542,6 +554,41 @@ cerrada por no aplicabilidad el 2026-09-27. Costos de restore temporal y snapsho
 La custodia de backups **locales** R-12 se revisa separadamente: Task/029 prepara
 contrato y Task/031 documenta controles; retirar D-17 no los cifra.
 
+> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación.** Retención **7 días**
+> —el rango es 0–35 y el default 7; **nunca 0**, que desactiva los *backups*—; **PITR
+> activo** como consecuencia de la retención no nula, con granularidad ~5 min; *snapshot*
+> **manual antes de cada migración**, porque un *backup* automático no es un punto de
+> control elegido; `deletion_protection = true` y *snapshot* final obligatorio.
+> **RPO ≤ 15 min** y **RTO ≤ 4 h**, coherentes con Single-AZ y con que PITR **restaura a
+> una instancia nueva**. *Backup* dentro de la asignación gratuita —igual al
+> almacenamiento aprovisionado de la región—, así que **0.00 USD** mientras no se exceda.
+> Copia entre regiones **no se adopta ahora**: el contenido es reproducible desde Git y S3.
+> Contrato de **R-12** entregado sin cifrar nada: los respaldos locales **no** son el
+> mecanismo de recuperación de producción y **no se monta un trabajo desde el equipo hacia
+> S3**. Detalle:
+> [paquete de decisiones §10 y §8.7](production-postgresql-rds-decisions.md#10-d-10--recuperación-backups-pitr-rpo-y-rto--propuesta).
+
+> **Ampliación del 2026-09-27, por la decisión H-4: vía de salida fuera de la cuenta.** El
+> usuario conserva el plan gratuito y difiere la continuidad a una decisión fechada. Eso
+> obliga a que la opción «no continuar» sea **ejecutable**, y con el diseño anterior **no lo
+> era**: los *backups* automáticos, los *snapshots* y el bucket de medios **viven dentro de la
+> cuenta y desaparecen con ella**. D-10 protege de fallos de AZ, de error humano y de
+> corrupción; **no** de la pérdida de la cuenta.
+>
+> Diseño añadido, sin servicio nuevo, **sin NAT** y sin binario extra: el **esquema** no se
+> exporta —son las revisiones de Alembic ya versionadas en Git—; los **datos** salen con
+> `COPY … TO STDOUT` en CSV desde el ejecutor privado de **D-24** usando `psycopg`, se
+> escriben en un prefijo dedicado del bucket por el **gateway endpoint** de S3, y un **humano
+> autorizado** los descarga a su estación, donde los custodia el mecanismo de respaldo local
+> de `Task/004` (**R-12**). Los medios se sincronizan con AWS CLI.
+>
+> Propietarios: `Task/029` diseña · `Task/031` añade el modo `export` al ejecutor y sus
+> permisos mínimos · **`Task/040` demuestra que el artefacto es restaurable fuera de AWS** en
+> un PostgreSQL 17.11 local · `Task/041` es el gate fechado. **Un CSV en un bucket no es una
+> salida probada:** hasta que `Task/040` restaure desde ella, es diseño. Detalle:
+> [§10.1](production-postgresql-rds-decisions.md#101-vía-de-salida-exportación-fuera-de-la-cuenta)
+> y [runbook §6.1](../runbooks/rds-private-administration.md).
+
 <details>
 <summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
@@ -579,6 +626,21 @@ de provisionar. Task/032/033 añaden señales al desplegar sus servicios; Task/0
 verifica alarmas y diagnóstico. Database Insights/Enhanced Monitoring se justifican
 por utilidad y precio, no se incluyen implícitamente.
 
+> **Estimación de `Task/029`, 2026-09-27.** Precios de us-east-1 del 2026-09-22: ingesta de
+> logs **0.50 USD/GB** en clase Standard y **0.25** en Infrequent Access; almacenamiento
+> **0.03 USD/GB-mes**; alarmas **0.10/alarma-mes**; métricas personalizadas **0.30/mes**;
+> API **0.01/1.000 peticiones**. *Free tier* aplicable: **5 GB de ingesta, 5 GB de
+> almacenamiento, 10 alarmas, 10 métricas y 1.000.000 de peticiones al mes**.
+>
+> Con el volumen de un blog personal, **la observabilidad mínima cabe en el *free tier*:
+> 0.00 USD/mes**. Para que siga cabiendo, `Task/029` propone un techo de **8 alarmas**
+> —`CPUUtilization`, `CPUCreditBalance`, `FreeableMemory`, `FreeStorageSpace`,
+> `DatabaseConnections`, latencia de lectura y escritura, fallo de *backup* y
+> `MaximumUsedTransactionIDs`— y un *parameter group* que **no** activa
+> `log_statement = all` ni `log_min_duration_statement = 0`, porque volcarían sentencias con
+> parámetros a CloudWatch y de ahí, por **D-20**, a un tercero (**R-39**, **O-08**).
+> **Los umbrales los fija `Task/031`: `Task/029` no copia umbrales arbitrarios.**
+
 <details>
 <summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
@@ -598,6 +660,23 @@ de administración/migraciones/sondas. Evaluar directo frente a RDS Proxy, inclu
 precio, autenticación, pinning y compatibilidad psycopg. Task/040 prueba carga,
 saturación y recuperación. No trasladar defaults locales (pool 5 + overflow 5) a
 producción sin cálculo; no exigir medición Lambda real como salida de Task/029.
+
+> **Presupuesto preliminar de `Task/029`, 2026-09-27 — derivado, no medido.** Con
+> `db.t4g.micro` (1 GiB), `max_connections` = `LEAST(DBInstanceClassMemory/9531392, 5000)`
+> = **112**. Restando 3 de `superuser_reserved_connections` y reservas para migraciones
+> (5), administración (3), monitorización (2) y *churn* (10): **presupuesto de aplicación =
+> 89**. Con el **default local de 5 + 5 solo caben 8 entornos concurrentes**, que es la
+> razón concreta de no trasladarlo. Candidato: **`pool_size = 1`, `max_overflow = 1` y
+> *Reserved Concurrency* = 20** → techo de 40 conexiones, con margen de 2,2×. Se justifica
+> porque el backend es **síncrono y una invocación atiende una petición**, así que un pool
+> grande por proceso no compra concurrencia: solo reserva *slots*.
+> **RDS Proxy descartado** — **+21.90/mes** (0.015 USD/vCPU-h × 2 vCPU × 730 h) más
+> Secrets Manager, que **exige** y añade 0.80: **+22.70/mes**, ~1,6× la instancia. Además
+> PostgreSQL **no admite filtros de *session pinning*** y no soporta cancelación de
+> consultas por el proxy. Criterio objetivo para incorporarlo, con **medición** de
+> `Task/032` o `Task/040`:
+> [§6.3](production-postgresql-rds-decisions.md#63-rds-proxy--decisión-negativa-con-criterio-objetivo).
+> **La configuración del backend no se modificó en `Task/029`**: el cambio es de `Task/032`.
 
 <details>
 <summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
@@ -646,6 +725,56 @@ producción sin cálculo; no exigir medición Lambda real como salida de Task/02
 > poscrédito**. Si el costo no cabe, una **decisión explícita** del usuario es requisito
 > previo al primer `apply` de aplicación. Los créditos tampoco autorizan cambiar de plan
 > (Free Plan). D-19 se verifica antes de integrar Grafana (`Task/031`).
+
+> **Resultado del gate — `Task/029`, 2026-09-27. D-13 sigue Resuelta y NO se cambia aquí.**
+>
+> **El sublímite AWS de USD 5/mes es incompatible con cualquier RDS.** Con la lista de
+> precios de AWS del **2026-09-24**, el mínimo absoluto —`db.t4g.micro` Single-AZ en la
+> región más barata, gp3 de 20 GiB, clave gestionada por AWS, SSM estándar, solo gateway
+> endpoint S3, sin Proxy, sin endpoints de interfaz y sin NAT— es **USD 13.98/mes** de costo
+> bruto: **11.68** de instancia (0.016 × 730) más **2.30** de almacenamiento (20 × 0.115).
+> Con el resto de AWS, **≈ 15.48/mes**: **3,1× el sublímite**. No es un problema de la
+> configuración elegida; **no existe una configuración de RDS que quepa en USD 5**.
+>
+> **El techo global de USD 20/mes sí se sostiene:** ≈ 16.48 con ≈ 3.52 de margen.
+>
+> **Parar RDS no sirve como estrategia:** el máximo son **7 días consecutivos** y mientras
+> está detenida se siguen cobrando almacenamiento y *backups*.
+
+> **EX-029-D13 — excepción acotada, decidida por el usuario el 2026-09-27. Propuesta
+> pendiente de aprobación junto con `Task/029`. D-13 sigue Resuelta y su techo global no se
+> modifica.**
+>
+> | Campo | Valor |
+> | --- | --- |
+> | **Qué suspende** | **Solo** el sublímite de **USD 5/mes de AWS** |
+> | **Qué NO cambia** | El **techo global de USD 20/mes**, íntegro y con ≈ 3.52 de margen. Ningún otro presupuesto sube. **No reabre ni sustituye D-13** |
+> | **Techo efectivo** | El costo bruto de AWS puede superar los USD 5/mes **mientras quepa bajo el techo global** junto con lo no AWS. Referencia aprobada: **≈ 15.48/mes**; una desviación material exige revisión |
+> | **Motivo** | Etapa de **prueba y aprendizaje** financiada con créditos ya disponibles, con **visibilidad del costo bruto real** |
+> | **Vigencia** | Hasta el **agotamiento de los créditos o el 2027-03-15**, lo que ocurra primero |
+> | **No autoriza** | **Ningún recurso**; ni cambiar de plan, ni tocar Billing, ni elevar el techo global |
+> | **Al expirar** | **No se renueva por inercia**: exige la decisión fechada A/B |
+> | **Revisión** | `Task/041` y toda operación que se acerque al vencimiento |
+>
+> **Las cuatro cifras, separadas.** **A bruto:** ≈ 15.48/mes de AWS más ≈ 1.00 no AWS —la
+> cifra que el proyecto vigila, y no baja por haber créditos—. **B crédito consumido:** con
+> saldo de **USD 120** verificado por el usuario y límite **2027-03-15**, entre ≈ 37 y ≈ 84
+> según cuándo exista RDS. **C desembolso:** **0.00** de AWS mientras rija el plan gratuito.
+> **D poscrédito:** **no es un costo, es una decisión fechada**.
+>
+> **Hallazgo del cálculo: manda la fecha, no el saldo.** USD 120 durarían **7,75 meses**;
+> solo quedan **5,55** hasta el límite, así que **caducarían ≈ USD 34 sin usar**. No hay que
+> optimizar para estirar el saldo. Eso **no** justifica acelerar `Task/030` ni saltarse el
+> gate de **D-06**.
+>
+> **Plan de la cuenta:** el usuario decidió **no** pasar a Paid Plan y que **no** sea
+> prerrequisito de `Task/031`. Antes del agotamiento o del 2027-03-15 se decide **A** pagar y
+> continuar o **B** desmontar, migrar o preservar. Como los *backups* administrados **mueren
+> con la cuenta**, `Task/029` añade a **D-10** una **vía de salida** obligatoria. **R-47**
+> reformulado. Detalle:
+> [§7.5](production-postgresql-rds-decisions.md#75-ex-029-d13--excepción-acotada-al-sublímite-aws),
+> [§7.7](production-postgresql-rds-decisions.md#77-la-decisión-fechada-que-sustituye-al-escenario-poscrédito)
+> y [§11](production-postgresql-rds-decisions.md#11-decisiones-del-usuario--h-1-a-h-4-resueltas).
 
 ## D-14 — ¿Se usará un emulador AWS local para la estrategia de IaC? — **RESUELTA**
 
@@ -880,6 +1009,16 @@ integrar; Task/041 revisa consumo real periódicamente. El tier gratuito es una
 preferencia, no garantía. Todo cambio de gasto incompatible con D-13 exige decisión
 explícita. No esperar hasta Task/041 para descubrir costos obligatorios.
 
+> **Aporte de `Task/029`, 2026-09-27.** Sigue **abierta**; la verificación previa a integrar
+> es de `Task/031`. **Ninguna cifra comercial de Grafana se persiste aquí**, conforme a la
+> regla de redacción vigente. Lo que sí se modela es el costo **de AWS** que la integración
+> **D-20** generará: `GetMetricData` cuesta **0.01 USD/1.000 métricas solicitadas**, con
+> **1.000.000 de peticiones/mes** en el *free tier*. Un sondeo agresivo sobre muchas
+> métricas es lo único que podría salirse del tier gratuito, así que `Task/031` fija el
+> intervalo y el conjunto de métricas con ese límite a la vista. El objetivo sigue siendo el
+> tier gratuito de Grafana, declarado **preferencia presupuestaria y no dependencia
+> arquitectónica** (**R-38**).
+
 <details>
 <summary>Historia anterior a Task/028.2 — no ejecutar como alcance actual</summary>
 
@@ -1113,6 +1252,27 @@ JavaScript.
   de salida pública demostrada y decisión explícita; ningún servicio excluido —EC2, ECS,
   EKS, ECR, ALB— sin decisión nueva; ningún valor elegido por inercia.
 
+> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación.**
+>
+> | Punto | Decisión | Por qué, con dato |
+> | --- | --- | --- |
+> | Región | **us-east-2** — **decidida por el usuario el 2026-09-27 (H-1)** | Precio mínimo empatado con us-east-1 (13.98/mes) y latencia equivalente hacia Centroamérica; `sa-east-1` cuesta **2,1×** (29.20) y **no** mejora la latencia. **No había región canónica**: `us-east-1` es valor de laboratorio y plantilla; `us-east-2` solo aparecía como CloudShell temporal de `Task/028`. El `us-east-1` del laboratorio **no se toca**: es otro destino |
+> | Versión | **PostgreSQL 17.11** | **Es la que el proyecto ya usa**: `.env` y el CI del backend fijan `postgres:17.11-alpine`. `17.8`, `16.12`, `15.16` y `14.21` están en **`NO_CREATE`**; `13.x` perdió el soporte estándar el 2026-02-28 |
+> | Clase | **db.t4g.micro** (2 vCPU, 1 GiB) | 11.68/mes, la más pequeña de generación actual. `t4g.small` duplica. Cambio *in-place* con reinicio: **reversible** |
+> | Almacenamiento | **gp3 20 GiB**, *autoscaling* a 50 | gp2 cuesta lo mismo con peor línea base; magnetic **deprecado**. Techo de 50 evita cruzar los 400 GiB del volumen *striped* |
+> | IOPS / *throughput* | **No se configuran** | Bajo 400 GiB, gp3 incluye **3.000 IOPS y 125 MiB/s** y el rango aprovisionable es *«Not applicable»*: **no se puede**. Decisión cerrada por el servicio |
+> | Disponibilidad | **Single-AZ** | Multi-AZ duplica a 27.96 para un RTO de minutos en un blog que tolera horas. **R-29 aceptado por escrito** |
+> | Red | VPC `10.40.0.0/16`, **2 subnets privadas en 2 AZ**, sin subnet pública, sin IGW, **sin NAT** | El DB subnet group **exige 2 AZ incluso en Single-AZ**. Una subnet pública **no** da IP pública a la Lambda |
+> | Security groups | 3, por **referencia de grupo** y nunca por CIDR | Si las subnets cambian, la regla sigue correcta y ningún rango entra por coincidencia |
+> | Mantenimiento | *backup* 07:00–07:30 UTC; mantenimiento dom 08:00–09:00 UTC; minor automático **sí**, major **manual** | Madrugada local (UTC−6). Desactivar el minor automático crearía el *drift* que **R-42** persigue |
+> | *Parameter group* | **Propio**, familia `postgres17`, costo 0.00 | Hace explícito `rds.force_ssl = 1` —ya default en v15+, pero un default no es contrato— y fija el registro de logs sin volcar datos |
+>
+> **Inventario A–E repetido** sobre `main` = `d96d5d5`: **la clase D está vacía**, así que el
+> candidato **sin NAT** es viable con el código vigente. Hallazgo nuevo: **Lambda reclama la
+> Hyperplane ENI tras 14 días de inactividad** y la siguiente invocación falla; owner
+> `Task/032`. Detalle:
+> [§2 a §4](production-postgresql-rds-decisions.md#2-inventario-de-tráfico-de-la-lambda-ae-sobre-el-código-vigente).
+
 ## D-23 — TLS, KMS, secretos y autenticación SQL de RDS
 
 > **Abierta** por `Task/028.2` el 2026-09-27. Sustituye
@@ -1137,6 +1297,41 @@ JavaScript.
   clave de la instancia se elige **antes** de crearla. **Este mantenimiento no lee ni crea
   secretos.**
 
+> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación. Cero secretos generados
+> o leídos.**
+>
+> - **TLS: `sslmode=verify-full`** —`verify-ca` no valida el *hostname*—, con
+>   `rds.force_ssl = 1` explícito y CA **`rds-ca-rsa2048-g1`**, el default, con rotación
+>   automática del certificado de servidor. En el *trust store* **solo el root**: registrar
+>   intermedios rompe la rotación.
+> - **Hallazgo del código con consecuencia concreta:** no hay `sslmode` ni `sslrootcert` en
+>   `app/shared/database/` ni en `app/shared/configuration/`. Por tanto **el TLS viaja en la
+>   propia `BLOG_DATABASE_URL`** y **el backend no necesita cambios** —lo que confirma que
+>   `Task/029` no toca `personal-blog-backend`—, pero **el ZIP de la Lambda debe incluir el
+>   bundle de la CA**: requisito de empaquetado de `Task/032`.
+> - **KMS: clave gestionada por AWS (`aws/rds`)**, costo **0.00**, frente a **+1.00/mes** de
+>   una CMK. La CMK añade una forma nueva de perder los datos de manera irreversible
+>   (**R-35**) para controles que un solo administrador no necesita. La clave **se elige
+>   antes de crear** y **ninguna prueba la deshabilita ni programa su borrado**.
+> - **Tres identidades SQL separadas:** `blogadmin` (*master*, solo recuperación),
+>   `blog_app` **sin DDL** y `blog_migrate` con DDL. Que `blog_app` no tenga DDL es la
+>   garantía **estructural** de que una migración no puede ejecutarse al arrancar la Lambda.
+> - **SSM `SecureString`, sin migrar.** Los parámetros estándar **no tienen cargo**; Secrets
+>   Manager cuesta **0.40/secreto/mes** y su única ventaja real es la rotación gestionada,
+>   que no se justifica con tres credenciales estables. Se reconsidera **solo** si se adopta
+>   RDS Proxy —que **exige** Secrets Manager o IAM DB auth— o si la rotación pasa a ser un
+>   requisito con frecuencia definida.
+> - **Entrega del secreto en despliegue, no en *runtime*.** El backend **no tiene lector de
+>   SSM** y leer en *runtime* exigiría un **interface endpoint a +14.60/mes** más latencia
+>   de arranque en frío. Contrapartida aceptada: **rotar exige redesplegar**.
+> - **IAM DB authentication: descartada, por memoria.** La documentación exige **300–1000
+>   MiB extra** en la instancia, y `db.t4g.micro` tiene **1 GiB en total**: entre el 30 % y
+>   el 100 % de su memoria. Secundario: token de 15 min, **CloudWatch y CloudTrail no
+>   registran** la autenticación IAM, y `rds_iam` **toma precedencia** sobre la contraseña,
+>   lo que puede dejar fuera al administrador (**R-43**).
+>
+> Detalle: [§5](production-postgresql-rds-decisions.md#5-d-23--tls-kms-secretos-y-autenticación-sql--propuesta).
+
 ## D-24 — Canal privado de administración y migraciones
 
 > **Abierta** por `Task/028.2` el 2026-09-27. Con RDS
@@ -1159,5 +1354,41 @@ JavaScript.
   se pide una decisión explícita. **Nunca** se abre la base de datos a Internet por
   conveniencia.
 
+> **Propuesta de `Task/029`, 2026-09-27 — pendiente de aprobación.** Mecanismo elegido:
+> **Lambda ejecutora dedicada** en las subnets privadas, invocada por el plano de control.
+> No introduce ningún servicio excluido y su costo es **≈ 0.00** para uso esporádico.
+>
+> | Alternativa | Veredicto |
+> | --- | --- |
+> | *Runner* público de GitHub Actions | **No funciona**: le falta la ruta de red, no el permiso |
+> | EC2 *bastion* o *host* efímero | **EC2 excluido** (§17); requeriría decisión explícita |
+> | SSM Session Manager con *port forwarding* | **Exige una instancia gestionada**, es decir EC2 |
+> | Client VPN | **0.10 USD/h por asociación ≈ 73/mes**: desproporcionado |
+> | Abrir RDS a Internet «temporalmente» | **Prohibido**. ADR-010, **R-30** |
+>
+> Contrato: rol IAM propio, distinto del de la Lambda de aplicación, del de validación de
+> `Task/028`, del de despliegue y del de Terraform; identidad SQL `blog_migrate`;
+> **concurrencia reservada = 1** más el bloqueo de aviso de Alembic; artefacto con digest;
+> salida saneada sin `DATABASE_URL` ni contraseñas; **`Task/036` toma un *snapshot* manual
+> antes de la primera migración**.
+>
+> **Límite reconocido, no disfrazado:** el techo de Lambda es **900 s**. Las tres revisiones
+> del MVP son DDL sobre tablas pequeñas y caben, pero si una migración futura no cabe **se
+> detiene y se pide decisión explícita**; no se parte en trozos en silencio. `Task/036` mide
+> la duración real.
+>
+> **Alembic es compatible con RDS sin excepciones:** **ninguna migración usa `CREATE
+> EXTENSION`** —búsqueda en todo el repositorio: solo coincidencias dentro de `.venv`—, así
+> que **no se necesita `rds_superuser`**. `alembic.ini` deja `sqlalchemy.url` vacío a
+> propósito y `env.py` usa `get_settings()`: **las migraciones respetan el contrato
+> `DATABASE_URL`**.
+>
+> **R-43** (recuperación del administrador) y **R-44** (purga de `login_rate_limits` y
+> `administrator_sessions`) quedan diseñados sobre el mismo canal, con retenciones de 7 y 30
+> días y ejecución con `blog_migrate`, **nunca** con `blog_app`. Runbook preparado y **no
+> ejecutado**: [rds-private-administration.md](../runbooks/rds-private-administration.md).
+> Detalle: [§8](production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--propuesta).
+
 Contrato detallado de las tres decisiones:
-[canónico RDS §3](production-postgresql-rds.md#3-decisiones-que-entrega-task029).
+[canónico RDS §3](production-postgresql-rds.md#3-decisiones-que-entrega-task029) ·
+[paquete de decisiones de `Task/029`](production-postgresql-rds-decisions.md).
