@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-27 — **`Task/029` aprobada**: **D-10**, **D-22**, **D-23** y **D-24** pasan a **Resueltas** y **EX-029-D13** a **Aceptada y Vigente**. **D-12** conserva su presupuesto preliminar aprobado y **sigue abierta**. Antes ese día: enmienda RDS aprobada, `Task/028.2` |
-| **Decisiones abiertas** | **7** — D-07, D-08, D-11, D-12, D-19, D-20 y D-21 *(baja de 11 a 7 el 2026-09-27 al aprobarse `Task/029`, que resuelve D-10, D-22, D-23 y D-24)* |
+| **Última actualización** | 2026-09-28 — **D-08 Resuelta para el MVP** en `Task/030` (`H-030-D08-MVP`): bucket privado, presigned dinámico para borrador y publicado, **sin URL estable, sin CDN y sin servicio nuevo**; **`B-016-1` permanece abierto** como limitación de producto aceptada. Antes: 2026-09-27, **`Task/029` aprobada** — **D-10**, **D-22**, **D-23** y **D-24** pasan a **Resueltas** y **EX-029-D13** a **Aceptada y Vigente**; **D-12** conserva su presupuesto preliminar y **sigue abierta**; y la enmienda RDS de `Task/028.2` |
+| **Decisiones abiertas** | **6** — D-07, D-11, D-12, D-19, D-20 y D-21 *(baja de 7 a 6 el 2026-09-28 al resolverse **D-08** para el MVP en `Task/030`; antes había bajado de 11 a 7 el 2026-09-27 con `Task/029`)* |
 | **Cerradas por no aplicabilidad** | **3** — **D-16**, **D-17** y **D-18**, el 2026-09-27, al aceptarse ADR-010: sin VPS pierden objeto. IDs y texto conservados, no reutilizables |
-| **Decisiones resueltas** | **14** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)**, y **D-10**, **D-22**, **D-23** y **D-24 (2026-09-27, `Task/029`)** |
-| **Excepciones vigentes** | **EX-029-D13** — acota el sublímite AWS de **D-13** durante la etapa financiada con créditos. **Aceptada y Vigente** el 2026-09-27; vence con los créditos o el **2027-03-15**, lo que ocurra primero, y **no se renueva por inercia** |
+| **Decisiones resueltas** | **15** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)**, **D-10**, **D-22**, **D-23** y **D-24 (2026-09-27, `Task/029`)**, y **D-08 (2026-09-28, `Task/030`, alcance MVP)** |
+| **Excepciones vigentes** | **EX-029-D13** — acota el sublímite AWS de **D-13** durante la etapa financiada con créditos. **Aceptada y Vigente** el 2026-09-27; vence con los créditos o el **2027-03-15**, lo que ocurra primero, y **no se renueva por inercia**. **EX-028-C7 ya no está vigente: Extinguida el 2026-09-28** en `Task/030` H-030-2 |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
 > **selección de proveedor, región y tamaño sigue pendiente** y corresponde a
@@ -57,7 +57,7 @@ ADR.
 | D-05 | Reverse proxy local concreto | `Task/003` | **Resuelta** (2026-07-29) — **Traefik v3** |
 | D-06 | Backend de estado de Terraform | `Task/025` | **Resuelta** (2026-09-14) — estado **`local` fuera del árbol de Git y fuera del emulador** en el laboratorio; para AWS real, backend **`s3` con `use_lockfile = true`**, **sin DynamoDB** y con *bootstrap* separado. **El bucket de estado no existe todavía** |
 | D-07 | **Dominio concreto y DNS** (no la topología: eso es D-15) | `Task/035` | Abierta |
-| D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | Abierta |
+| D-08 | Estrategia definitiva de CDN **y de acceso a medios públicos** | `Task/030` | **Resuelta (MVP)** (2026-09-28) — privado + presigned dinámico, sin URL estable ni CDN; `B-016-1` sigue abierto |
 | D-09 | Herramienta concreta de rate limiting | `Task/011` · reforzado en `Task/018` | **Resuelta** (2026-09-01) — **contador de ventana fija en PostgreSQL**, por IP |
 | D-10 | Estrategia de backups cloud | `Task/029` | **Resuelta** (2026-09-27) — retención **7 días**, PITR, *snapshot* antes de cada migración, `deletion_protection`, **RPO ≤ 15 min**, **RTO ≤ 4 h** y **vía de salida fuera de la cuenta** |
 | D-11 | Retención exacta de CloudWatch | `Task/031` | Abierta |
@@ -391,19 +391,28 @@ laboratorio, no solo escrita.
 ### Addendum Task/028 — mecanismo resuelto, materialización pendiente
 
 **D-06 sigue Resuelta y Vigente desde Task/025.** No se reabre por la ausencia del
-bucket. **EX-028-C7**, aceptada como diseño de trabajo el 2026-09-21, permite
-exclusivamente al root `bootstrap/github-oidc/` estado local privado fuera de Git
-y fuera del grafo de aplicación: un escritor, lock, snapshots y backups cifrados
-externos con recuperación verificada. No concede permisos a CI ni cumple C-7
-literalmente. Revisar a 30 días de primera creación cloud.
+bucket. **EX-028-C7** quedó **Extinguida el 2026-09-28** en `Task/030` H-030-2, con
+esta base factual: los dos states de bootstrap viven en S3 y convergen 0/0/0 con
+`resource_drift = 0`; el locking nativo se probó por **contención real**; el recovery
+por versión se probó en ambas keys; S3 es la **única** fuente operacional; los states
+locales quedan solo como **backups históricos inactivos**; y **no existe ningún
+segundo backend local activo**. La revisión a 30 días que preveía la excepción queda
+sin objeto: la excepción ya no existe.
+
+Descripción histórica, conservada porque describe correctamente la fase anterior:
+aceptada como diseño de trabajo el 2026-09-21, permitía exclusivamente al root
+`bootstrap/github-oidc/` estado local privado fuera de Git y fuera del grafo de
+aplicación —un escritor, lock, snapshots y backups cifrados externos con recuperación
+verificada—, sin conceder permisos a CI y sin cumplir C-7 literalmente.
 
 **Task/030** materializa el bucket S3 dedicado solo al estado: privado, versionado,
 cifrado, public access block, bloqueo nativo `use_lockfile=true`, sin DynamoDB,
 separado de medios/backups. Migra `bootstrap/github-oidc/terraform.tfstate` mediante
 `terraform init -migrate-state` y resuelve la custodia/migración del estado del
-propio bootstrap del bucket. Debe extinguir EX-028-C7 **antes del primer apply
-de infraestructura de aplicación**. La ficha Task/030 deberá incorporar estos
-entregables y su recuperación verificada cuando se abra; no se implementa aquí.
+propio bootstrap del bucket. La extinción de EX-028-C7 **antes del primer apply de
+infraestructura de aplicación** quedó **cumplida el 2026-09-28**, dentro de H-030-2 y
+antes de cualquier apply de aplicación. La ficha Task/030 recoge esos entregables y
+su recuperación verificada; la aprobación final de la tarea sigue pendiente.
 
 Es una **excepción explícita y acotada de ETAPA 10**. Task/030–033 siguen reutilizando
 los módulos Task/025 para aplicación: el backend debe existir antes de inicializar
@@ -430,7 +439,46 @@ el grafo que depende de él y, por tanto, requiere bootstrap independiente.
 - **Por qué se difiere:** es una decisión del usuario, con costo asociado. **Diferir el
   nombre no obliga a diferir la topología**, y esa confusión era el defecto corregido.
 
-## D-08 — Estrategia definitiva de CDN y de acceso a medios públicos
+## D-08 — Estrategia definitiva de CDN y de acceso a medios públicos — **RESUELTA (MVP)**
+
+> **RESUELTA para el MVP** el 2026-09-28, en `Task/030` mediante
+> `authorize: Task/030 H-030-D08-MVP`. Política **deliberadamente conservadora**: se
+> resuelve con lo que ya existe y **no se introduce ningún servicio nuevo**.
+>
+> | # | Decisión |
+> | --- | --- |
+> | 1 | El bucket de medios permanece **privado** |
+> | 2 | Borradores **y** contenido publicado acceden por **presigned GET generado dinámicamente** |
+> | 3 | La base persiste **únicamente `object_key` y referencias estables**. **Nunca** una URL prefirmada |
+> | 4 | **No existe URL pública estable por contenido** en el MVP |
+> | 5 | `og:image` sigue siendo la **imagen estática propia del sitio** ya entregada por **D-016-A** |
+> | 6 | **`B-016-1` permanece abierto** para un `og:image` personalizado futuro: es una **limitación de producto aceptada**, no un bloqueo de `Task/030` |
+> | 7 | **No se introduce CDN** en `Task/030`. Si en el futuro hace falta URL estable, CDN o *social cards*, se **reabre** con tarea y decisión propias |
+> | 8 | `BLOG_STORAGE_ACCESS_TTL_SECONDS` productivo = **900 s** |
+> | 9 | **Sin firma cuantizada** en `Task/030` |
+> | 10 | CORS del bucket de medios: **`origenes_cors = []`**. El consumo actual es `<img src>` y no existe `fetch`/XHR/canvas contra S3 |
+> | 11 | *Lifecycle*: versiones no actuales **30 días**; *multipart* incompleto **abortar a 7 días**; **sin** *lifecycle* de objetos actuales; **sin** borrado automático de huérfanos, que queda como **deuda con propietario** |
+> | 12 | `forzar_destruccion = false` |
+> | 13 | **Sin** KMS, DynamoDB, NAT, CloudFront, servicio adicional ni coste fijo |
+>
+> **Disparador de reconsideración del CORS**, para que nadie lo revise por inercia: que el
+> frontend pase a leer píxeles del almacenamiento con `fetch`, `XMLHttpRequest`, `canvas` o
+> un `<img crossorigin>`. Mientras el consumo sea `<img src>` sin `crossorigin`, **S3 no
+> interviene en ningún preflight** y la lista vacía es la configuración correcta, no una
+> omisión.
+>
+> **Consecuencia aceptada y escrita.** Una prefirmada creada con credenciales temporales
+> **caduca cuando caduca la credencial**, así que desde Lambda no existe enlace de días: por
+> eso el MVP no promete URL estable y `og:image` no se personaliza. El límite superior de
+> 604800 s que admite la configuración es **inalcanzable en producción** y no debe leerse
+> como una opción.
+>
+> **Lo que esta resolución NO hace:** no crea recursos, no decide dominio —**D-07** sigue
+> abierta—, no altera el contrato público del API y no cambia código de backend ni de
+> frontend. El análisis completo que la sustenta está en
+> [§19 del reporte de `Task/030`](../task-reports/TASK-030-report.md).
+
+### Planteamiento original y su historia
 
 - **Se resuelve en:** `Task/030-Desplegar-Amazon-S3`
 - **Información necesaria:** volumen y peso reales de las imágenes; costo de
@@ -507,7 +555,14 @@ misma decisión.
 **Bloqueo declarado — `B-016-1`.** Un `og:image` **personalizado por contenido** —la
 portada del artículo compartido— exige precisamente una URL de medio pública y estable que
 **hoy no existe**. `Task/016` entrega la imagen de sitio, **declara la limitación** y **no
-cierra D-08 para desbloquearse**. Detalle en la
+cierra D-08 para desbloquearse**.
+
+> **Estado tras la resolución MVP de D-08 (2026-09-28): `B-016-1` PERMANECE ABIERTO.** La
+> decisión 4 del MVP es explícitamente *«no existe URL pública estable por contenido»*, así
+> que la condición que `B-016-1` necesita **sigue sin cumplirse**. Resolver D-08 **no** lo
+> desbloquea, y eso es deliberado: la limitación queda **aceptada como producto**. Un
+> `og:image` por contenido exigiría reabrir el asunto con tarea y decisión propias
+> (decisión 7 del MVP). Detalle en la
 [ficha de `Task/016` §8](../tasks/TASK-016-seo-accessibility-performance.md).
 
 ## D-09 — Herramienta concreta de rate limiting — **RESUELTA**

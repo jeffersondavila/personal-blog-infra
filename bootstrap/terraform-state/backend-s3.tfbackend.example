@@ -1,0 +1,8 @@
+# Future configuration only. H-030-2 is required before migration.
+bucket               = "REPLACE_WITH_REVIEWED_STATE_BUCKET"
+key                  = "bootstrap/terraform-state/terraform.tfstate"
+region               = "us-east-2"
+encrypt              = true
+use_lockfile         = true
+allowed_account_ids  = ["REPLACE_WITH_VERIFIED_ACCOUNT"]
+# Credentials come from the human session, never from this file.

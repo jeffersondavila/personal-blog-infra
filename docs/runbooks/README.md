@@ -32,7 +32,8 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 
 | Runbook | Entorno | Estado |
 | --- | --- | --- |
-| [github-oidc-bootstrap.md](github-oidc-bootstrap.md) | AWS real futuro; bootstrap OIDC aislado | **Borrador operativo Task/028, no ejecutado**; solo diseño/local autorizado |
+| [terraform-state-bootstrap.md](terraform-state-bootstrap.md) | AWS real; bootstrap D-06 separado | **Vigente** — aprobado en `Task/030` (2026-09-29): **H-030-2 COMPLETO** — states migrados y validados, locking y recovery probados, locales retirados y **EX-028-C7 Extinguida**; incluye el retorno de `terraform-medios` a S3 tras usar el laboratorio |
+| [github-oidc-bootstrap.md](github-oidc-bootstrap.md) | AWS real; bootstrap OIDC aislado | Ejecutado en `Task/028`; su state pasó a S3 en **Task/030 H-030-2** y **EX-028-C7 quedó Extinguida** el 2026-09-28. Su §2 se conserva como historia |
 | [rds-private-administration.md](rds-private-administration.md) | AWS real futuro; migraciones, purga y restore por canal privado sobre RDS | **Vigente** — aprobado en `Task/029` (2026-09-27); **no ejecutado**: no existe RDS ni ejecutor |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |
 | [local-backup-and-recovery.md](local-backup-and-recovery.md) | Local (backup y recuperación) | **Vigente** — aprobado en `Task/004` (2026-07-31) |
@@ -51,9 +52,13 @@ La operación contra AWS real sigue pendiente según el roadmap:
 
 > Los cinco runbooks de `Task/026` son **Vigentes** desde el 2026-09-15 y están
 > ejercitados contra el laboratorio AWS local. **Vigente no significa validado en AWS
-> real:** el modo `production` permanece **bloqueado**, el bucket S3 del backend de
-> estado **no existe**, y privacidad de S3, *enforcement* de IAM y cifrado real siguen
-> siendo AWS-only hasta la ETAPA 10.
+> real:** el modo `production` permanece **bloqueado**. El bucket S3 de state ya existe
+> por H-030-1 (2026-09-28); sus controles se verificaron por API. H-030-2 migró y validó
+> los **dos** states de bootstrap contra ese bucket, con lock nativo y sin DynamoDB.
+> La **contención** de ese lock y el **recovery** por versión quedaron demostrados, y
+> **EX-028-C7 quedó Extinguida** el 2026-09-28 con S3 como única fuente operacional.
+> Esto no valida los contratos de aplicación ni los controles AWS de los demás
+> servicios.
 
 ## Ampliación RDS — Task/028.2
 

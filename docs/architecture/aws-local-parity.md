@@ -1,4 +1,4 @@
-﻿# AWS Local Parity — estrategia de IaC local con Floci
+# AWS Local Parity — estrategia de IaC local con Floci
 
 | Campo | Valor |
 | --- | --- |
@@ -239,6 +239,67 @@ terraform/
 
 > La estructura concreta la fija `Task/025`. Aquí se fija el **principio**, no el árbol de
 > archivos. **En `Task/005.2` no se crea ningún archivo `.tf`.**
+
+### 4.1.1 Enmienda de `Task/030` — qué prohíbe exactamente el principio
+
+> **Vigente** desde el 2026-09-28, autorizada como `Task/030 H-030-4-root-medios`.
+> **No debilita la regla: la hace precisa.** Lo que el principio prohíbe es la
+> **divergencia**, no la separación de *state ownership*.
+
+El texto de §4.1 —«un solo grafo de recursos»— se leyó al principio como «un solo **root**
+de Terraform», y `Task/025` lo materializó así: un único root con todo el grafo de
+aplicación y un único state. Esa lectura resultó **demasiado estrecha**, y `Task/030` la
+encontró al intentar desplegar solo el bucket de medios: con un root monolítico, planificar
+el almacenamiento arrastraba Lambda, API Gateway, SSM y CloudWatch, que pertenecen a
+`Task/031`–`Task/033`, y la única vía que ofrece Terraform para evitarlo —`-target`— está
+prohibida por los runbooks.
+
+La regla queda redactada así, y estas seis frases son las que se aplican:
+
+1. **Una sola definición** de cada recurso y de cada módulo. Nada se copia ni se reimplementa.
+2. **La misma topología de roots en local y en AWS real.** Está prohibido que un componente
+   viva dentro del grafo de aplicación en un destino y en un root aparte en el otro: eso es
+   exactamente la divergencia que la regla existe para impedir.
+3. **Varios roots son legítimos** cuando representan *lifecycles* y *state ownership*
+   distintos. Lo ilegítimo es duplicar definiciones o bifurcar el diseño por destino.
+4. **Ningún recurso queda administrado por dos states.** Cada recurso tiene exactamente un
+   root propietario.
+5. **El almacenamiento es el primer *lifecycle* extraído.** El bucket de medios es
+   persistente: sobrevive a cada despliegue de la función, de la API y de los parámetros, y
+   su destrucción accidental pierde datos que ningún `apply` reconstruye. Compartir state con
+   recursos que se recrean en cada ciclo acoplaba dos ciclos de vida ajenos.
+6. **El grafo de aplicación consume lo que no administra por contrato explícito.** Recibe
+   `nombre_del_bucket_de_medios` y `arn_del_bucket_de_medios` como variables. **No** se usa
+   `terraform_remote_state`: acoplaría un root a la ubicación y al formato del state del otro
+   y le exigiría permiso de lectura sobre él, cuando dos variables resuelven la dependencia
+   sin ninguna de esas dos cosas.
+
+Estructura resultante, con **un solo** módulo de almacenamiento compartido:
+
+```
+terraform/                       ← root de APLICACION (state propio)
+  modulos/almacenamiento/        ← definicion UNICA del bucket de medios
+  modulos/{identidad,computo,api_http,parametros,registro}/
+  main.tf                        ← NO instancia almacenamiento
+terraform-medios/                ← root de ALMACENAMIENTO (state propio)
+  main.tf                        ← source = ../terraform/modulos/almacenamiento
+  entornos/{local,produccion}/
+```
+
+El módulo sigue viviendo bajo `terraform/` por continuidad con `Task/025`; que esté ahí
+**no** lo instancia. Terraform solo crea los módulos que un root llama, y el root de
+aplicación ya no lo llama: su manifiesto de módulos, tras un `init` limpio, lista
+`api_http`, `computo`, `identidad`, `parametros` y `registro`, y **no** `almacenamiento`.
+
+**Historia que no se reescribe.** `Task/025` decidió deliberadamente un único root y un
+único state, y su razonamiento era correcto para lo que entonces existía: evitar dos IaC
+divergentes. Esa decisión, su `main.tf` original y su reporte se conservan intactos. Lo que
+cambia es el alcance de la regla, no el juicio de quien la escribió.
+
+**R-26 no se relaja.** Sigue vigilando lo mismo: acumular condicionales por entorno hasta
+tener dos IaC disfrazadas de una. Separar *state ownership* no introduce ningún condicional
+por destino —los dos roots existen en los dos destinos, con los mismos módulos— y por tanto
+no es lo que R-26 vigila.
 
 ### 4.2 La aplicación no depende de Floci
 
@@ -530,14 +591,14 @@ real, nunca con expectativas.
 
 | Servicio | Local Floci | Terraform local | AWS real | Paridad | Diferencias conocidas a vigilar | Se evalúa en |
 | --- | --- | --- | --- | --- | --- | --- |
-| **S3** | **Sí** — `PUT`/`GET`/`DELETE`, `ListObjectsV2` por prefijo y **URL prefirmada** correctos; el objeto recuperado coincide **byte a byte** | **Sí** — 8 recursos creados y destruidos | Pendiente | `Paridad parcial` | **La lectura ANÓNIMA del objeto devolvió 200, no 403**: el emulador no aplica la autorización de S3 por omisión (`FLOCI_SERVICES_S3_ENFORCE_AUTH=false`). El laboratorio demuestra que la **configuración** de privacidad se acepta, **no** que el bucket sea privado. Direccionamiento *path-style*. El *lifecycle* se acepta, pero **ninguna versión expiró**: un vencimiento tarda días y no se puede observar en un ciclo | `Task/025` ✔ → **`Task/030`** (privacidad efectiva y *lifecycle* reales) |
+| **S3** | **Sí** — `PUT`/`GET`/`DELETE`, `ListObjectsV2` por prefijo y **URL prefirmada** correctos; el objeto recuperado coincide **byte a byte** | **Sí** — 8 recursos creados y destruidos | **Sí** *(`Task/030`, aprobada el 2026-09-29)* — bucket de medios real: GET **sin firma 403 `AccessDenied`**, BPA de cuenta y de bucket, policy sin ningún `Allow` e `IsPublic=false`; prefirmada GET **200** desde el anfitrión regional; *lifecycle* 30/7 configurado y releído, **expiración efectiva no observada** | `Paridad parcial` | **La lectura ANÓNIMA del objeto devolvió 200, no 403**: el emulador no aplica la autorización de S3 por omisión (`FLOCI_SERVICES_S3_ENFORCE_AUTH=false`). El laboratorio demuestra que la **configuración** de privacidad se acepta, **no** que el bucket sea privado. Direccionamiento *path-style*. El *lifecycle* se acepta, pero **ninguna versión expiró**: un vencimiento tarda días y no se puede observar en un ciclo | `Task/025` ✔ → **`Task/030`** ✔ (privacidad efectiva y configuración de *lifecycle* en AWS real; la expiración de versiones tarda días y no se observó) |
 | **SSM Parameter Store** | **Sí** — 4 parámetros leídos; `PutParameter` persiste Tags y `ListTagsForResource` los devuelve en 2.1.0 | **Sí**, segundo plan **exit 0** | Pendiente | `Paridad parcial` | **H-025-1 cerrada técnicamente por Task/027.1.** En 2.0.1 se descartaban Tags y el plan daba exit 2 por `tags_all`; evidencia histórica conservada en Task/025. Se retira la tolerancia del launcher, sin `ignore_changes` de etiquetas ni cambios productivos. **SecureString sigue sin cifrar**: solo valores ficticios (S-07) | `Task/025` ✔, addendum `Task/027.1` (aprobado 2026-09-21) → **Task/031** (AWS real) |
 | **IAM** | **Solo creación** — `GetRole` devuelve 200 y la política de confianza nombra exclusivamente a `lambda.amazonaws.com` | **Sí** — rol y política en línea creados, adjuntados y destruidos | Pendiente | `Paridad parcial` | ***Enforcement* desactivado por omisión.** El laboratorio demuestra que el rol **se crea** y la política **se adjunta**; **no** demuestra que autorice. Un rol insuficiente —o excesivo— pasaría igual. La política se escribió con mínimo privilegio real (objeto acotado a `medios/*`, `ListBucket` condicionado a `s3:prefix`, logs al grupo propio, SSM a parámetros nombrados) porque es la que irá a AWS, **no** porque esté probada. **Mínimo privilegio = AWS-only** | `Task/025` ✔ (creación) → **Task/032** (rol Lambda); **Task/028** solo federación; **Task/038/039** permisos de despliegue |
 | **Lambda** | **Sí** — el ZIP de `Task/024` (`sha256 6580410109…a02841`) se despliega e **invoca**; `package_type=Zip`, `runtime=python3.12`, `handler=app.lambda_handler.handler`, `x86_64` | **Sí** — dos ciclos históricos en Task/025 y ciclo revalidado en Task/027.1 | Pendiente | `Compatible local` | Ejecuta en contenedor Docker real. El emulador solicita `public.ecr.aws/lambda/python:3.12`; el lanzador **descarga por el digest del manifiesto Task/024**, asocia localmente esa etiqueta al contenido fijado y comprueba la imagen efectiva del contenedor real. No exige que la etiqueta remota conserve el digest histórico ni usa solo los logs como evidencia (H-025-3, Task/025 §15 ter). En el addendum se observó `sha256:a89893d9…05daa`. **El arranque en frío local NO es comparable** con el de AWS: **no sirve para dimensionar** | `Task/024` ✔, `Task/025` ✔ → **`Task/032`** (arranque real y **D-12**) |
 | **API Gateway v2 (HTTP API)** | **Sí** — `GET /health` por **HTTP real** devolvió **200** y el cuerpo del *handler* atravesando API → Lambda → FastAPI | **Sí** — api, integración `AWS_PROXY` *payload* 2.0, ruta y *stage* creados y destruidos | Pendiente | `Requiere adaptación` | **El atributo `api_endpoint` NO sirve contra el destino local**: lo sintetiza el **provider** como `https://{id}.execute-api.{region}.amazonaws.com`, que en local no resuelve. La API se direcciona por el dominio del emulador (`{id}.execute-api.localhost.floci.io:4566`) o por cabecera `Host` contra `127.0.0.1` —esta segunda **no depende de DNS externo**—. La diferencia queda confinada al **cliente**: el grafo, los módulos y las salidas son idénticos. Sin dominios propios ni TLS gestionado | `Task/025` ✔ → **`Task/033`** (*stage*, *base path*, dominio, TLS) |
 | **CloudWatch Logs** | **Sí** — grupo con retención de 7 días creado, y **`FilterLogEvents` recuperó eventos reales** de las invocaciones (2 en Task/025, 6 en el ciclo final del addendum), incluido el JSON de la aplicación y `GET /health 200` | **Sí** — creado y destruido; conserva las etiquetas por omisión | Pendiente | `Compatible local` | Se usó `FilterLogEvents` **a propósito** y no Logs Insights: Insights **degrada en silencio** ante sintaxis no soportada, así que un resultado vacío no distinguiría «no hay eventos» de «la consulta no se entendió». **No se crearon filtros de suscripción**, que se almacenan pero no entregan. El grupo lo crea Terraform y no el servicio, para que nazca con retención declarada y no infinita | `Task/017` ✔, `Task/025` ✔ → **`Task/031`** (retención real, **D-11**) |
 | **CloudWatch Metrics / alarmas** | **No evaluada** | **No evaluada** | Pendiente | `No evaluada` | **`Task/025` no creó ninguna alarma ni métrica, a propósito.** ADR-006 §6.7 observó en la 1.6.0 que el estado se fija a mano con `SetAlarmState` y que no hay motor de evaluación documentado; crear una alarma solo habría demostrado que la definición se acepta. **Observación sin comprobar:** el CHANGELOG de `2.0.0` menciona *«evaluate alarms over CloudWatch's wider evaluation range»*, que contradiría aquello. **No se ha verificado**, así que esta fila **no** cambia de estado: `SetAlarmState` nunca demuestra evaluación automática | **`Task/031`, `Task/041`** |
-| **Terraform (`plan`/`apply`/`destroy`)** | **Sí** | **Ciclo completo revalidado en 2.1.0**: 21 recursos, apply, segundo plan **exit 0**, destroy y ausencia por API | Pendiente | `Paridad parcial` | Camino crítico APIGWv2 → Lambda → Logs correcto. La divergencia histórica `tags_all` de 2.0.1 está resuelta, sin excepciones activas de idempotencia. API Gateway presente y ausente comprobado con parser corregido. Estado local fuera de Git y del emulador (D-06); se conserva el único grafo Terraform | `Task/025` ✔, addendum `Task/027.1` (aprobado 2026-09-21) → **ETAPA 10** |
+| **Terraform (`plan`/`apply`/`destroy`)** | **Sí** | **Ciclo completo revalidado en 2.1.0**: 21 recursos, apply, segundo plan **exit 0**, destroy y ausencia por API | Pendiente | `Paridad parcial` | Camino crítico APIGWv2 → Lambda → Logs correcto. La divergencia histórica `tags_all` de 2.0.1 está resuelta, sin excepciones activas de idempotencia. API Gateway presente y ausente comprobado con parser corregido. Estado local fuera de Git y del emulador (D-06); se conserva el único grafo Terraform. *Desde `Task/030` (§4.1.1): dos roots con un state cada uno —medios 8 recursos, aplicación 13—, sin duplicar definiciones; ciclo completo y `crear`/`validar`/`destruir` reales el 2026-09-29* | `Task/025` ✔, addendum `Task/027.1` (aprobado 2026-09-21) → **ETAPA 10** |
 | **AWS CLI / boto3** | **boto3: sí**, inspección desde el ZIP canónico en Task/026; **AWS CLI: no evaluada** | Inventario de recursos del ciclo local | Pendiente | `Paridad parcial` | Task/025 y el addendum 027.1 usaron el cliente SigV4 de biblioteca estándar; no acreditan por sí solos CLI/SDK. Task/026 sí ejecutó la inspección con boto3 desde el ZIP, corrigió DEF-026-1 y verificó ausencia; [evidencia](../task-reports/TASK-026-report.md). No implica validación AWS | `Task/026` ✔ → **ETAPA 10** |
 | **PostgreSQL** | **No aplica** | — | **No aplica** | `AWS-only` (fuera de AWS) | La base de datos de producción vive en un **VPS externo** ([ADR-007](../adr/ADR-007-production-postgresql-on-vps.md)): no pertenece al grafo AWS y el laboratorio **no debe reproducirla** | **`Task/029`** — proveedor y dimensionamiento. *(Sustituida el 2026-09-27 por las tres filas siguientes, al aceptarse ADR-010)* |
 | **RDS PostgreSQL, *parameter group* y DB subnet group** *(`Task/028.2`)* | No evaluada | No evaluada | No evaluada | `No evaluada` | No existe en el grafo actual. PostgreSQL local valida SQL, **no** la operación administrada | `Task/031` → `Task/040` |

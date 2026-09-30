@@ -41,19 +41,48 @@ python scripts/laboratorio/laboratorio.py --modo local destruir --lambda-zip $Ta
 Pop-Location
 ```
 
-Antes de borrar, el comando ejecuta `terraform plan -destroy`, acepta sólo `delete` sobre
-los tipos cerrados de Task/025 y muestra el SHA-256. Revisar que el plan corresponda al
-laboratorio completo y escribir exactamente `APLICAR <sha256-completo>`.
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** Desde la enmienda `H-030-4-root-medios` hay **dos roots**, y `destruir` los
+> recorre en orden **inverso** al de creación: primero **aplicación**, que consume el
+> bucket, y después **medios**, que lo administra. Cada root tiene su propio plan, su
+> propio SHA-256 y su **propia confirmación**.
+
+Para cada root, antes de borrar, el comando ejecuta `terraform plan -destroy`, acepta sólo
+`delete` sobre la lista cerrada de tipos y muestra el SHA-256. Revisar el plan y escribir
+exactamente `APLICAR <sha256-completo>`:
+
+1. **Aplicación**: función, API, parámetros, logs y rol —13 bajas en el laboratorio—, sin
+   ningún `aws_s3_*`. Tras el apply se exigen state y outputs **vacíos**. En ese punto el
+   bucket de medios sigue vivo y **es legítimo**: lo administra otro root con su propio
+   state. Solo ese nombre exacto se tolera; cualquier otro recurso es residuo.
+2. **Medios**: se vacían objetos y versiones del bucket y se revisa su plan —8 bajas, todas
+   `aws_s3_*` del módulo `almacenamiento`—. Tras el apply, state y outputs **vacíos** e
+   inventario **sin nada**.
 
 Una respuesta abreviada, EOF, `--force`, un tipo nuevo, un reemplazo o un destino
-discordante abortan sin aplicar. Después de confirmar, se eliminan objetos/versiones del
-bucket local y se aplica **el plan guardado**, no otro plan implícito.
+discordante abortan sin aplicar. Se aplica siempre **el plan guardado** de cada root, no
+otro plan implícito.
+
+### 2.1. Si `destruir` se interrumpe entre los dos roots
+
+Relanzar `destruir` **no** reanuda: el plan `-destroy` de aplicación sale vacío, la revisión
+exige al menos un `delete` y el comando aborta sin llegar a medios. Falla cerrado, pero no
+continúa. En ese caso:
+
+- **no** recrear el root de aplicación solo para poder destruirlo;
+- comprobar sin mutar que aplicación está a 0 recursos y 0 outputs, que medios conserva
+  sus recursos y que el único recurso vivo del proyecto es el bucket de medios;
+- decidir **humanamente** cómo completar medios: su plan destructivo guardado solo puede
+  usarse si su SHA-256 no cambió, su contenido sigue siendo exactamente los `delete`
+  revisados y se revalidaron todas las guardas del destino.
+
+Es una limitación registrada del herramental (§27.9 del
+[reporte de Task/030](../task-reports/TASK-030-report.md)).
 
 ## 3. Ausencia antes de retirar Floci
 
 Éxito exige simultáneamente:
 
-- `terraform state list`: cero direcciones;
+- `terraform state list` de **los dos roots**: cero direcciones, y cero outputs;
 - ListBuckets: ningún bucket `blog-lab*`;
 - Lambda: ninguna función `blog-lab*`;
 - API Gateway v2: ninguna API `blog-lab*`;
@@ -81,6 +110,11 @@ docker volume ls --filter 'label=floci=true' --format '{{.Name}}'
 
 Resultado esperado: el comando `bajar` declara cero residuos y las cinco consultas no
 imprimen nada.
+
+El laboratorio deja `terraform-medios` inicializado contra su backend **local**. Antes de
+cualquier operación productiva sobre ese root, devolverlo a S3 con el procedimiento del
+[runbook del bucket de estado](terraform-state-bootstrap.md), §3: `init -reconfigure` con el
+`TF_DATA_DIR` privado, **sin migrar** ningún state.
 
 ## 5. AWS real — pendiente
 
