@@ -1,6 +1,7 @@
 # Bootstrap D-06 — bucket de estado Terraform
 
-**Runbook de Task/030; tarea Lista para validación (2026-09-29) y aprobación final pendiente.**
+**Vigente** — aprobado en `Task/030` el 2026-09-29. *(Hasta entonces: runbook de una tarea
+en curso, con la aprobación final pendiente.)*
 El usuario autorizó `authorize: Task/030 H-030-1`: el plan revisado quedó **aplicado
 y verificado el 2026-09-28**, con siete recursos y sin cambios/destrucciones.
 H-030-2 se detuvo por metadata y drift del primer state migrado. Después del
@@ -17,6 +18,7 @@ operativas, se eliminó el scaffolding de la prueba y **EX-028-C7 quedó Extingu
 COMPLETO** (§17). No repetir/revertir ninguna migración ni ejecutar nuevos applies.
 Evidencia en el [reporte](../task-reports/TASK-030-report.md#7-ejecución-autorizada-de-h-030-1).
 Inicio: **2026-09-27, America/Guatemala**. Revalidación de esta propuesta: **2026-09-28**.
+Aprobación: **2026-09-29**.
 
 ## 1. Propiedad y alcance
 

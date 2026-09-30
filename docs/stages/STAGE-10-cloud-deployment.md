@@ -3,11 +3,11 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 10 |
-| **Estado** | En progreso — Task/030 **Lista para validación** (2026-09-29); 0/7 aprobadas |
+| **Estado** | En progreso — **1/7 aprobadas**: `Task/030` el 2026-09-29 |
 | **Dependencias** | [ETAPA 09](STAGE-09-cloud-accounts.md) |
 | **Tareas** | 7 |
-| **Aprobadas** | 0 |
-| **Avance** | 0 % |
+| **Aprobadas** | 1 |
+| **Avance** | ≈ 14 % |
 | **Hito que completa** | Blog en línea y accesible por dominio propio. |
 
 ---
@@ -33,8 +33,11 @@ medios está creado en su root propio, verificado contra AWS y convergente **0/0
 0**; `S3Storage` funciona contra S3 real tras corregir **DEF-030-1** bajo test-first; los
 subcomandos del laboratorio operan sobre los dos roots (**DEF-030-2**) y la identidad del
 runtime se verifica sin relajar el image ID (**DEF-030-3**), con `crear`, `validar` y
-`destruir` ejecutados de verdad. La tarea **no** está aprobada y **0/7** sigue siendo el
-contador de la etapa. [Reporte §27](../task-reports/TASK-030-report.md).
+`destruir` ejecutados de verdad. [Reporte §27](../task-reports/TASK-030-report.md).
+
+**2026-09-29 — Task/030 APROBADA** mediante `approved: Task/030-Desplegar-Amazon-S3`. La
+etapa pasa a **1/7 ≈ 14 %** y el avance global a **30/41 ≈ 73 %**. Siguiente:
+`Task/031`, **Pendiente y no iniciada**.
 
 ## Objetivo
 
@@ -127,10 +130,10 @@ laboratorio se corrige.
 
 ## Criterios de salida de la etapa
 
-- [ ] El bucket S3 es privado; el acceso a archivos usa URLs prefirmadas.
-      *(Evidencia de `Task/030`, Lista para validación: BPA de cuenta y bucket, policy sin
-      ningún `Allow` e `IsPublic=false`, prefirmada GET **HTTP 200** contra el bucket real.
-      Se marca al aprobarse la tarea.)*
+- [x] El bucket S3 es privado; el acceso a archivos usa URLs prefirmadas.
+      *(`Task/030`, aprobada el 2026-09-29: BPA de cuenta y bucket, policy sin ningún
+      `Allow` e `IsPublic=false`, GET sin firma **403** y prefirmada GET **HTTP 200** contra
+      el bucket real.)*
 - [ ] Toda la configuración vive en SSM Parameter Store, nunca en el código.
 - [ ] Los logs llegan a CloudWatch con retención limitada y explícita, y el alcance de
       CloudWatch se mantiene **mínimo**: sin *dashboards* elaborados ni funcionalidades no
@@ -150,9 +153,8 @@ laboratorio se corrige.
 > de backups del VPS existía en el alcance previsto de S3, con política, retención
 > y principal derivado de D-16. Lo sustituyen los criterios RDS de abajo;
 > Task/030 no crea ese destino ni esa identidad.
-- [ ] `S3Storage` —cuyo código entrega `Task/010`— **funciona contra S3 real**.
-      *(Evidencia de `Task/030`, Lista para validación: **14/14** contra el bucket real tras
-      DEF-030-1. Se marca al aprobarse la tarea.)*
+- [x] `S3Storage` —cuyo código entrega `Task/010`— **funciona contra S3 real**.
+      *(`Task/030`, aprobada el 2026-09-29: **14/14** contra el bucket real tras DEF-030-1.)*
 - [ ] La **`Reserved Concurrency`** de la Lambda es coherente con el pool de PgBouncer y con
       `max_connections`, según los números derivados en `Task/029`. *(Enmienda:
       coherente con el pool por proceso y `max_connections` de RDS, **medidos** en
@@ -179,13 +181,12 @@ Criterios **fijados por `Task/028.2`** (2026-09-27) para la capa de datos RDS:
       a red y RDS antes de operar esos recursos.
 - [ ] Costo real contrastado con la estimación de `Task/029` frente a **D-13**, separando
       costo bruto y crédito consumido.
-- [ ] Bucket de estado dedicado protegido, `use_lockfile=true`, sin DynamoDB.
-- [ ] Estados OIDC y del bootstrap del bucket bajo custodia definida y recuperable;
+- [x] Bucket de estado dedicado protegido, `use_lockfile=true`, sin DynamoDB.
+- [x] Estados OIDC y del bootstrap del bucket bajo custodia definida y recuperable;
       migración verificada por lineage/serial/recursos y plan sin cambios.
-      *(Evidencia de `Task/030` para estos dos criterios, Lista para validación: tres keys
-      en S3 con lock nativo y sin DynamoDB, locking por contención y recovery por versión
-      demostrados, y los tres states intactos en el AWS final del 2026-09-29. Se marcan al
-      aprobarse la tarea.)*
+      *(`Task/030`, aprobada el 2026-09-29, para estos dos criterios: tres keys en S3 con
+      lock nativo y sin DynamoDB, locking por contención y recovery por versión
+      demostrados, y los tres states intactos en el AWS final del 2026-09-29.)*
 - [x] **EX-028-C7 Extinguida** el 2026-09-28, antes de cualquier apply de infraestructura de aplicación.
 - [ ] La **matriz de paridad** queda actualizada con evidencia real de AWS, recurso a
       recurso y con la clasificación de diferencias.

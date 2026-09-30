@@ -63,8 +63,7 @@ se exige inventario, inspección `boto3`, runtime correcto y `/health` = 200.
 Si el plan no se puede explicar por la ausencia o el `apply` parcial observado,
 **ABORTAR**, incluso si la lista cerrada lo permitiría.
 
-> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), pendiente de su aprobación
-> final.** `recuperar` reconcilia primero **medios** y después **aplicación**. Si el bucket
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** `recuperar` reconcilia primero **medios** y después **aplicación**. Si el bucket
 > falta, su root se crea —con su propio plan y su propia confirmación— **antes** de tocar
 > aplicación; si está sano, su plan sale sin cambios y se conserva **sin apply ni
 > confirmación**; un **reemplazo** de medios se rechaza antes del apply; un fallo en medios

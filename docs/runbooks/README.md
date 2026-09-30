@@ -32,7 +32,7 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 
 | Runbook | Entorno | Estado |
 | --- | --- | --- |
-| [terraform-state-bootstrap.md](terraform-state-bootstrap.md) | AWS real; bootstrap D-06 separado | **Task/030 Lista para validación** (2026-09-29): **H-030-2 COMPLETO** — states migrados y validados, locking y recovery probados, locales retirados y **EX-028-C7 Extinguida**; incluye el retorno de `terraform-medios` a S3 tras usar el laboratorio. Tarea aún sin aprobar |
+| [terraform-state-bootstrap.md](terraform-state-bootstrap.md) | AWS real; bootstrap D-06 separado | **Vigente** — aprobado en `Task/030` (2026-09-29): **H-030-2 COMPLETO** — states migrados y validados, locking y recovery probados, locales retirados y **EX-028-C7 Extinguida**; incluye el retorno de `terraform-medios` a S3 tras usar el laboratorio |
 | [github-oidc-bootstrap.md](github-oidc-bootstrap.md) | AWS real; bootstrap OIDC aislado | Ejecutado en `Task/028`; su state pasó a S3 en **Task/030 H-030-2** y **EX-028-C7 quedó Extinguida** el 2026-09-28. Su §2 se conserva como historia |
 | [rds-private-administration.md](rds-private-administration.md) | AWS real futuro; migraciones, purga y restore por canal privado sobre RDS | **Vigente** — aprobado en `Task/029` (2026-09-27); **no ejecutado**: no existe RDS ni ejecutor |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |

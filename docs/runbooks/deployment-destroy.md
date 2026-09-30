@@ -41,8 +41,7 @@ python scripts/laboratorio/laboratorio.py --modo local destruir --lambda-zip $Ta
 Pop-Location
 ```
 
-> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), pendiente de su aprobación
-> final.** Desde la enmienda `H-030-4-root-medios` hay **dos roots**, y `destruir` los
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** Desde la enmienda `H-030-4-root-medios` hay **dos roots**, y `destruir` los
 > recorre en orden **inverso** al de creación: primero **aplicación**, que consume el
 > bucket, y después **medios**, que lo administra. Cada root tiene su propio plan, su
 > propio SHA-256 y su **propia confirmación**.

@@ -96,8 +96,7 @@ El comando:
 7. aplica, recorre las APIs, ejecuta `/health` y consulta de nuevo con `boto3` tomado
    del propio ZIP.
 
-> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), pendiente de su aprobación
-> final.** Los pasos 2 a 5 ocurren **dos veces**, una por root y en este orden:
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** Los pasos 2 a 5 ocurren **dos veces**, una por root y en este orden:
 > **medios** primero —8 altas `aws_s3_*` en el laboratorio— y **aplicación** después —13
 > altas, **ninguna** de S3—. Hay, por tanto, **dos** planes, dos SHA-256 y dos
 > confirmaciones. El root de aplicación recibe el nombre y el ARN del bucket por

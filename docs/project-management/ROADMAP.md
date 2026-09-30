@@ -1,5 +1,12 @@
 # ROADMAP — Blog Personal
 
+**2026-09-29 — `Task/030-Desplegar-Amazon-S3` APROBADA** mediante
+`approved: Task/030-Desplegar-Amazon-S3`. Primera tarea aprobada de la **ETAPA 10: 1/7 ≈
+14 %**; avance global **30/41 ≈ 73 %**. Bootstrap D-06 y bucket de medios productivo
+convergentes, `S3Storage` validado contra AWS real y DEF-030-1/2/3 cerrados; **`B-016-1`
+sigue abierto**. Siguiente: `Task/031`, **Pendiente y no iniciada**.
+[Ficha](../tasks/TASK-030-deploy-amazon-s3.md).
+
 **2026-09-29 — Task/030 Lista para validación: READY FOR FINAL APPROVAL.** Bucket de medios
 en su root propio, creado, verificado y **0/0/0 con drift 0**; **DEF-030-1**, **DEF-030-2** y
 **DEF-030-3** corregidos; laboratorio de dos roots ejecutado de verdad y retirado sin
@@ -366,10 +373,10 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 07 | Validación Local | 1 | **1** | **100 %** | **Completada** | 06 ✔ |
 | 08 | Preparación Cloud + AWS Local Parity | 4 | **4** | **100 %** | **Completada** | 07 ✔ |
 | 09 | Cuentas y Seguridad Cloud | 3 | **3** | **100 %** | **Completada** | 08 ✔ |
-| 10 | Despliegue Cloud | 7 | 0 | 0 % | **En progreso** | 09 ✔ |
+| 10 | Despliegue Cloud | 7 | **1** | **≈ 14 %** | **En progreso** | 09 ✔ |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **29** | **≈ 71 %** | | |
+| | **Total** | **41** | **30** | **≈ 73 %** | | |
 
 ---
 
@@ -712,7 +719,7 @@ otro modelo en `Task/039`. El hito añade «diseño RDS preparado», sin provisi
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. Valida `S3Storage` contra S3 real. Resuelve **D-08**. **Excepción D-06:** bootstrap independiente del bucket de estado y protecciones, migración OIDC y custodia/migración del estado del propio bootstrap; extinguir EX-028-C7 antes de aplicar aplicación. *(Enmienda `Task/028.2`: se retiran el **destino de los backups del VPS** y la **materialización de D-16**, que pierden objeto con los backups administrados de RDS. Una política de bucket con `aws:SourceVpce` no debe romper las URLs prefirmadas del navegador.)* | infra | 029 | **Lista para validación** (2026-09-29) — [ficha](../tasks/TASK-030-deploy-amazon-s3.md); **H-030-2 COMPLETO** con **EX-028-C7 Extinguida**; **D-08 Resuelta (MVP)**; S3 de medios aplicado y convergente; DEF-030-1/2/3 corregidos; **no Aprobada** |
+| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. Valida `S3Storage` contra S3 real. Resuelve **D-08**. **Excepción D-06:** bootstrap independiente del bucket de estado y protecciones, migración OIDC y custodia/migración del estado del propio bootstrap; extinguir EX-028-C7 antes de aplicar aplicación. *(Enmienda `Task/028.2`: se retiran el **destino de los backups del VPS** y la **materialización de D-16**, que pierden objeto con los backups administrados de RDS. Una política de bucket con `aws:SourceVpce` no debe romper las URLs prefirmadas del navegador.)* | infra | 029 | **Aprobada** (2026-09-29) — [ficha](../tasks/TASK-030-deploy-amazon-s3.md); **H-030-2 COMPLETO** con **EX-028-C7 Extinguida**; **D-08 Resuelta (MVP)**; S3 de medios aplicado y convergente; DEF-030-1/2/3 corregidos |
 | `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` | **Nombre y alcance fijados por `Task/028.2`, aprobada el 2026-09-27** *(antes `Task/031-Desplegar-SSM-y-CloudWatch`, dependiente de 029)*. **SSM `SecureString`** para los secretos de la Lambda, con permisos IAM mínimos. **CloudWatch mínimo**: logs y métricas nativas, retención corta y explícita (**D-11**), alarmas mínimas. **Integración AWS → Grafana Cloud**: decide **e implementa** **D-20** con modelo IAM de solo lectura, previa verificación de **D-19**. **Solo AWS.** Además: **VPC, subnets, security groups y rutas o *endpoints*** elegidos en **D-22**; **RDS privado** con *parameter group*, KMS y credenciales según **D-23**; **acceso operativo privado** según **D-24**; **restore sintético y PITR** demostrados con integridad y tiempos (**D-10**); runbooks, inventarios y guardas ampliados antes de operar esos recursos; filas de la matriz de paridad. Se aplica con identidad operativa humana, mínima y autorizada; no con el rol de `Task/028` ni con el de CI de `Task/039` | infra | 030 | Pendiente |
 | `Task/032-Desplegar-AWS-Lambda` | Función FastAPI en Lambda por **artefacto ZIP**. IAM. **Configuración no secreta por variables de entorno y secretos desde SSM.** `DATABASE_URL` apuntando a **PgBouncer**, con **TLS** hacia el VPS. Límites (**D-12**). **Reserved Concurrency** coherente con el pool de PgBouncer. *Wiring* de `S3Storage`. **Logging compatible con la observabilidad elegida.** *(Enmienda `Task/028.2`: la Lambda **se conecta a la VPC** y `DATABASE_URL` apunta a **RDS** con **TLS verificado**; secretos entregados según **D-23**; *Reserved Concurrency*, pool y *timeouts* **medidos** frente a `max_connections`; latencia `Lambda ↔ RDS` medida; tráfico real a PostgreSQL, S3, SSM y logs **sin NAT**, según el diseño aprobado; señales de la Lambda con la política **D-11**.)* | infra; backend si **D-23** exige lector de secretos en *runtime* | 030, 031 | Pendiente |
 | `Task/033-Desplegar-API-Gateway` | **HTTP API**. Rutas hacia la Lambda. CORS. Throttling. Dominio del API si corresponde. *(Enmienda `Task/028.2`: logs y métricas del API con la política **D-11** fijada en `Task/031`.)* | infra | 032 | Pendiente |
@@ -865,7 +872,7 @@ avance_etapa  = tareas_aprobadas_en_etapa / tareas_totales_en_etapa
 avance_global = tareas_aprobadas_totales  / 41
 ```
 
-Actualmente: **29/41 ≈ 71 %**. ETAPA 09: **3/3 = 100 %**, completada el 2026-09-27 con la aprobación de `Task/029`. Siguiente: **ETAPA 10**, desde `Task/030`.
+Actualmente: **30/41 ≈ 73 %**. ETAPA 10: **1/7 ≈ 14 %** tras la aprobación de `Task/030` el 2026-09-29. ETAPA 09: **3/3 = 100 %**, completada el 2026-09-27 con la aprobación de `Task/029`.
 
 > **Corrección de *drift* documental, 2026-09-06.** Este bloque afirmaba `9 / 41 = 22 %`
 > mientras [STATUS.md](STATUS.md) registraba **16 / 41**: el cálculo había dejado de

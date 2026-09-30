@@ -1,10 +1,12 @@
 # TASK-030 — Reporte de ejecución
 
-**Lista para validación — `Task/030 — READY FOR FINAL APPROVAL` (2026-09-29).** Bucket de
+**Aprobada — 2026-09-29**, mediante `approved: Task/030-Desplegar-Amazon-S3` (§28). Llegó
+como **`Task/030 — READY FOR FINAL APPROVAL`** el mismo día. Bucket de
 medios creado, verificado y convergente —**0/0/0, `resource_drift = 0`**—; DEF-030-1,
 DEF-030-2 y DEF-030-3 corregidos; ciclo real, `crear`, `validar` y `destruir` reales sobre los
 dos roots; laboratorio retirado sin residuos; contexto productivo de `terraform-medios`
-restaurado sin migrar ningún state; gates en verde. **No está Aprobada.** Cierre en §27.
+restaurado sin migrar ningún state; gates en verde. Cierre técnico en §27; aprobación y
+cierre Git en §28.
 
 *Cabecera anterior, conservada como historia:*
 **En progreso. H-030-1 completado; H-030-4-refresh-apply completado y verificado.**
@@ -3300,3 +3302,48 @@ Aprobada**: la única aprobación válida es `approved: Task/030-Desplegar-Amazo
 Sin commit, push, PR ni merge. `personal-blog-infra` y `personal-blog-backend` en
 `Task/030-Desplegar-Amazon-S3`, a **0 commits** de `main`; `personal-blog-frontend` en `main`,
 limpio. `Task/031` sin iniciar.
+
+## 28. Aprobación y cierre
+
+El usuario escribió **`approved: Task/030-Desplegar-Amazon-S3`** el 2026-09-29, después de
+§27. Antes de ejecutar el cierre se confirmó: la rama existe y es la activa en los dos
+repositorios afectados; las validaciones de §27.8 terminaron en verde; no hay cambios ajenos
+mezclados; `main` y `dev` estaban normalizados —cero commits de `main` ausentes en `dev` y
+mismo contenido— en infra y en backend.
+
+**Repositorios afectados:** `personal-blog-infra` —toda la tarea— y `personal-blog-backend`
+—DEF-030-1, dos archivos—. `personal-blog-frontend` **sin rama**, intacto en `main`.
+
+**Lo que la aprobación promueve:**
+
+| Elemento | Estado |
+| --- | --- |
+| Diseño del bootstrap D-06 y root `terraform-medios` | **Aceptado**, antes propuesto |
+| [terraform-state-bootstrap.md](../runbooks/terraform-state-bootstrap.md) | **Vigente** |
+| Runbooks del laboratorio —crear, validar, rollback, destruir, recuperar— | siguen **Vigentes**, con la ampliación a dos roots **aprobada** |
+| §4.1.1 de [aws-local-parity](../architecture/aws-local-parity.md) | ya **Vigente** desde el 2026-09-28; sin cambios |
+| Fila S3 de la matriz de paridad | evidencia de AWS real **aprobada**; sigue en `Paridad parcial` |
+| D-08 | sigue **Resuelta (MVP)**; registro en 6 abiertas y 15 resueltas |
+| ADR | **ninguno nuevo** ni modificado |
+
+**Avance:** **30/41 ≈ 73 %**. **ETAPA 10: 1/7 ≈ 14 %**, con cuatro criterios de salida
+marcados en [STAGE-10](../stages/STAGE-10-cloud-deployment.md). **Deuda que sigue viva:**
+`B-016-1`; la reanudación de un `destruir` interrumpido entre roots (§27.9); la *allowlist*
+de las dos *fixtures* del backend. **La aprobación no crea recursos**: no se ejecutó ningún
+apply tras ella.
+
+**Flujo Git**, en cada repositorio afectado, según
+[PROJECT_INSTRUCTIONS §8](../claude/PROJECT_INSTRUCTIONS.md):
+
+1. commit del entregable validado —infra `160a111`, backend `cc36529`— y, en infra, un segundo
+   commit que registra esta aprobación;
+2. `dev` actualizado con `pull --ff-only` e integración de la rama Task con `merge --no-ff`;
+3. publicación de `dev` y de la rama Task;
+4. pull request **`Task/030-Desplegar-Amazon-S3 → main`** —nunca `dev → main`—, sin aceptarlo
+   ni fusionarlo: eso es exclusivo del usuario;
+5. vuelta a `main`, `fetch --prune`, `pull --ff-only` y `git branch -d` de la rama Task local,
+   sin `-D` y sin tocar la rama remota.
+
+Las URL de los PR y el estado final se entregan al usuario al terminar; GitHub es su fuente
+viva. `Task/031` **no se inicia**: nacerá de `main` tras la fusión y la normalización
+`main → dev`.

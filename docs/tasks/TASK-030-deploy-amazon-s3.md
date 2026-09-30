@@ -5,7 +5,7 @@
 | **Identificador** | `Task/030-Desplegar-Amazon-S3` |
 | **Nombre** | Desplegar Amazon S3 |
 | **Etapa** | ETAPA 10 — Despliegue Cloud |
-| **Estado** | **Lista para validación — READY FOR FINAL APPROVAL** (2026-09-29). Bucket de medios **creado, verificado y convergente** (0/0/0, drift 0); **DEF-030-1**, **DEF-030-2** y **DEF-030-3 corregidos**; `crear`, `validar` y `destruir` **reales** sobre los dos roots; laboratorio retirado sin residuos; AWS final **0/0/0, drift 0**. **No Aprobada**: solo el usuario aprueba |
+| **Estado** | **Aprobada** — 2026-09-29, mediante `approved: Task/030-Desplegar-Amazon-S3`. Bucket de medios **creado, verificado y convergente** (0/0/0, drift 0); **DEF-030-1**, **DEF-030-2** y **DEF-030-3 corregidos**; `crear`, `validar` y `destruir` **reales** sobre los dos roots; laboratorio retirado sin residuos; AWS final **0/0/0, drift 0** |
 | **Repositorios involucrados** | `personal-blog-infra` y `personal-blog-backend` —ampliación explícita y acotada para DEF-030-1—; frontend **intacto** |
 | **Dependencias** | Task/029 aprobada; Task/029.1 aprobada e integrada |
 | **Rama** | `Task/030-Desplegar-Amazon-S3` |
@@ -13,7 +13,7 @@
 | **SHA base** | `db6e9c7804cbf8f8afcb5fcbd8b7ec8cd8dfd485` |
 | **Fecha de inicio** | 2026-09-27, America/Guatemala |
 | **Última actualización** | 2026-09-29, America/Guatemala |
-| **Avance** | **29/41 ≈ 71 %**; ETAPA 10 **En progreso, 0/7 aprobadas** |
+| **Avance** | **30/41 ≈ 73 %**; ETAPA 10 **En progreso, 1/7 ≈ 14 %**, abierta con esta aprobación |
 
 ## 0. Preparación Git
 
@@ -176,8 +176,11 @@ state y backups después de migrar; nunca snapshots ni credenciales en Git/chat.
 
 ## 12. Decisiones técnicas
 
-Diseño **propuesto**: root independiente, siete recursos, SSE-S3, retención de todas
-las versiones, nombre determinístico y keys separadas. D-06 no se reabre.
+Diseño **aceptado con la aprobación del 2026-09-29** —antes, propuesto—: root independiente,
+siete recursos, SSE-S3, retención de todas las versiones, nombre determinístico y keys
+separadas. D-06 no se reabre. El root **`terraform-medios`**, la precisión de la regla de
+paridad (§4.1.1, Vigente desde el 2026-09-28) y el runbook del bucket de state quedan
+**Vigentes**.
 H-030-4 autoriza **diseñar y planear** el BPA global con cuatro flags; no su apply.
 **D-08 quedó Resuelta para el MVP** el 2026-09-28 (§§19–20 del reporte): bucket privado,
 presigned dinámico para borrador y publicado, TTL 900 s, CORS con lista vacía, *lifecycle*
@@ -239,9 +242,9 @@ de los locales a un archivo inactivo con manifiestos, eliminación del scaffoldi
 la prueba y extinción de EX-028-C7 con su base factual. **H-030-2 queda COMPLETO.**
 Después, **§§19–20** —D-08 Resuelta para el MVP—, **§§21–24** —root de medios, apply,
 readback y convergencia—, **§25** —DEF-030-1 bajo test-first— y **§§26–27** —laboratorio,
-DEF-030-2, DEF-030-3, ejecución real, teardown, AWS final y gates—. Todo eso deja la tarea
-**READY FOR FINAL APPROVAL**, pero **no** la aprueba: la aprobación final sigue siendo
-exclusivamente del usuario.
+DEF-030-2, DEF-030-3, ejecución real, teardown, AWS final y gates—. Todo eso dejó la tarea
+**READY FOR FINAL APPROVAL**; el usuario la **aprobó el 2026-09-29**. Para revisar el cierre
+Git y los PR, **§28**.
 
 ## 18. Deuda técnica pendiente
 
@@ -274,18 +277,18 @@ Task/041 revisa costos/versiones; Tasks/031+ conservan los propietarios del road
 
 ## 19. Próxima tarea
 
-Task/031 depende de la aprobación/cierre de esta tarea y **no está iniciada**.
-La próxima operación es exclusivamente humana: revisar el entregable y, si procede,
-escribir `approved: Task/030-Desplegar-Amazon-S3`. Hasta entonces: sin commit, push, PR
-ni merge; no repetir el ciclo ni los subcomandos del laboratorio, no aplicar nada contra
-AWS, no revertir ningún backend y no iniciar Task/031.
+`Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` **no está iniciada**. Nacerá de `main`
+actualizado y limpio **después** de que el usuario fusione los PR `Task/030 → main` y se
+normalice `main → dev`. La aprobación no autoriza iniciarla ni aplicar nada contra AWS.
 
 ## 20. Aprobación
 
 | Campo | Valor |
 | --- | --- |
-| Fecha de aprobación | Pendiente |
-| Aprobado por | Pendiente; solo usuario |
+| Fecha de aprobación | **2026-09-29** |
+| Aprobado por | **El usuario**, con la expresión exacta requerida |
 | Expresión de aprobación final | `approved: Task/030-Desplegar-Amazon-S3` |
 
-H-030-1/2/3/4 y H-030-D08 no sustituyen esa aprobación final.
+H-030-1/2/3/4, H-030-D08 y H-030-5 no sustituían esa aprobación final. **Recibida el
+2026-09-29**: la tarea queda **Aprobada**; el cierre Git se registra en §28 del
+[reporte](../task-reports/TASK-030-report.md).
