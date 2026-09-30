@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------------------
+# Destino: AWS REAL — root de medios. PLANTILLA.
+#
+# Los valores de abajo son los que D-08 fijo para el MVP el 2026-09-28
+# (`H-030-D08-MVP`). El archivo operativo se crea fuera de Git, en el directorio
+# privado del operador, porque lleva el Account ID verificado.
+#
+# Compara con entornos/local/local.tfvars: el mismo root, el mismo modulo, el
+# mismo conjunto de variables. Cambian los valores, no el grafo.
+# ---------------------------------------------------------------------------
+
+# Region decidida en Task/029.
+region = "us-east-2"
+
+# Sin banderas de emulador y sin endpoints: el provider resuelve los de AWS.
+laboratorio = false
+
+# Guarda fail-closed: el apply se rechaza si la cuenta efectiva no es esta.
+cuentas_permitidas = ["REPLACE_WITH_VERIFIED_ACCOUNT"]
+
+# Los nombres de bucket son globales en AWS.
+nombre_del_bucket = "REPLACE_WITH_REVIEWED_MEDIA_BUCKET"
+
+etiquetas = {
+  Proyecto   = "personal-blog"
+  Entorno    = "produccion"
+  Gestion    = "terraform"
+  Componente = "medios"
+  Tarea      = "Task/030"
+}
+
+# D-08 MVP, decision 10: LISTA VACIA. El consumo real es `<img src>` y S3 solo
+# interviene en CORS ante peticiones cross-origin de JavaScript. Con la lista
+# vacia el modulo no crea el recurso, que es lo correcto.
+#
+# Disparador de reconsideracion: que el frontend lea pixeles con `fetch`,
+# `XMLHttpRequest`, `canvas` o un `<img crossorigin>`.
+origenes_cors = []
+
+# D-08 MVP, decision 11.
+dias_para_expirar_versiones = 30
+
+# D-08 MVP, decision 12. Produccion NUNCA destruye un bucket con objetos dentro.
+forzar_destruccion = false

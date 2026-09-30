@@ -29,7 +29,14 @@ Debe contener fuentes/lock/scripts y ningún archivo privado, estado, plan o tok
 La preparación/transferencia de ese paquete pertenece a la operación futura
 autorizada; **no se prepara en el checkpoint**. Trabajar desde su raíz de infra.
 
-## 2. EX-028-C7: custodia temporal
+## 2. EX-028-C7: custodia temporal — **EXTINGUIDA el 2026-09-28**
+
+> **Estado canónico.** La excepción quedó **Extinguida** en `Task/030` H-030-2: ambos
+> states en S3 convergiendo 0/0/0 con drift 0, locking nativo probado por contención
+> real, recovery por versión probado, S3 como única fuente operacional, locales
+> reducidos a backups históricos inactivos y ningún segundo backend local activo.
+> Todo lo que sigue en esta sección es **historia de `Task/028`**: describe
+> correctamente la fase en que la excepción estuvo viva y no se reescribe.
 
 **Excepción aceptada como diseño de trabajo**, no aprobación de tarea ni permiso
 de crear recursos. D-06 permanece Resuelta y Vigente desde Task/025.
@@ -37,19 +44,26 @@ de crear recursos. D-06 permanece Resuelta y Vigente desde Task/025.
 | Propiedad | Contrato |
 | --- | --- |
 | Alcance | Solo `bootstrap/github-oidc/`; no aplicación ni backend de CI |
-| Estado | `$HOME/.local/state/personal-blog/bootstrap/github-oidc/terraform.tfstate` |
+| Estado | `$HOME/.local/state/personal-blog/bootstrap/github-oidc/terraform.tfstate`; en la estación Windows, su equivalente bajo `%LOCALAPPDATA%`. **Migrado a S3 en Task/030 H-030-2**: el backend operativo es `bootstrap/github-oidc/terraform.tfstate` del bucket de state, con `use_lockfile=true` y sin DynamoDB. La copia local se conserva intacta y **ya no es backend activo** |
 | Configuración, planes y TF_DATA_DIR | Fuera de todo checkout Git, incluso de rutas ignoradas |
 | Protección | umask 077; directorios 0700; archivos 0600; propietario humano |
 | Concurrencia | Un escritor, workspace default, lock local activado; no force-unlock sin diagnóstico |
 | Copias | Antes/después de mutaciones y tras fallo parcial; cifradas y fuera de CloudShell |
 | Revisión | A los 30 días de la primera creación cloud, fecha registrada en evidencia privada |
-| Extinción | Task/030, antes del primer apply de infraestructura de aplicación |
-| C-7 | **No PASS literal**: excepción acotada hasta migración comprobada a S3 |
+| Extinción | Task/030, antes del primer apply de infraestructura de aplicación. **Todavía no extinguida:** contención de locking y recovery **ya demostrados**; falta el archivado formal de los locales y la extinción misma |
+| C-7 | **No PASS literal** mientras la excepción vivió: acotada hasta la migración comprobada a S3. Esa migración se comprobó y **EX-028-C7 quedó Extinguida el 2026-09-28** |
 
 CloudShell cifra el almacenamiento persistente, pero retiene HOME solo hasta
 120 días desde el último uso: no sustituye un backup externo.
 [Cifrado](https://docs.aws.amazon.com/cloudshell/latest/userguide/data-encryption.html)
 y [retención](https://docs.aws.amazon.com/general/latest/gr/cloudshell.html).
+
+> **Nota de Task/030 H-030-2 (2026-09-28).** Este root ya **no** usa `backend "local"`:
+> `versions.tf` declara `backend "s3" {}` y su configuración parcial vive en el
+> directorio privado del operador. Los comandos de esta sección y de §5 se conservan
+> como historia de `Task/028`; **no reinicializar el backend local** ni tratar la copia
+> local como backend activo. El provider necesita además `AWS_PROFILE`, porque su
+> bloque no declara `profile`.
 
 **Comandos futuros, solo después de autorización:**
 
@@ -401,7 +415,8 @@ detenidos y backups recuperables:
 4. Migrar o custodiar explícitamente el estado del bootstrap del bucket; resolver
    esa dependencia antes de cerrar la excepción.
 5. Archivar cifrado el estado local, retirar su uso como backend y registrar
-   extinción EX-028-C7 **antes del primer apply de aplicación**.
+   extinción EX-028-C7 **antes del primer apply de aplicación**. **Cumplido el
+   2026-09-28** en `Task/030` H-030-2, antes de cualquier apply de aplicación.
 
 ## 11. Costos y operaciones pendientes
 

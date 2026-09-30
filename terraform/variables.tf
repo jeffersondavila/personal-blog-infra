@@ -60,48 +60,40 @@ variable "etiquetas" {
   description = "Etiquetas aplicadas por omision a todo recurso que las admita."
 }
 
-# --- S3: bucket de medios --------------------------------------------------
+# --- S3: bucket de medios, RECIBIDO, no administrado -----------------------
+#
+# Enmienda de Task/030 (`H-030-4-root-medios`): el bucket lo administra el root
+# `../terraform-medios`. Aqui llegan solo su nombre y su ARN, como contrato
+# explicito. `origenes_cors` y `dias_para_expirar_versiones` se han retirado de
+# este root: son configuracion del almacenamiento y viven donde vive el bucket.
 
-variable "bucket_de_medios" {
+variable "nombre_del_bucket_de_medios" {
   type        = string
   description = <<-DESC
-    Nombre del bucket de medios. Es el unico bucket que crea esta tarea: el
-    paquete Lambda se carga directamente, asi que no hace falta un bucket de
-    despliegue.
+    Nombre del bucket de medios, producido por el root `terraform-medios` y
+    transportado por el orquestador. Este root **no lo crea**: lo consume para la
+    configuracion de la aplicacion.
   DESC
 
   validation {
-    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.bucket_de_medios))
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.nombre_del_bucket_de_medios))
     error_message = "El nombre del bucket debe cumplir las reglas de S3: 3 a 63 caracteres, minusculas."
   }
 }
 
-variable "origenes_cors" {
-  type        = list(string)
-  default     = []
+variable "arn_del_bucket_de_medios" {
+  type        = string
   description = <<-DESC
-    Origenes autorizados a leer medios desde el navegador. Nunca el comodin: el
-    backend ya lo rechaza para el panel (requisito S-04) y un bucket de medios no
-    necesita ser legible desde cualquier origen.
+    ARN del bucket de medios, producido por el root `terraform-medios`. Lo
+    consume la politica del rol de ejecucion para acotar sus permisos de objeto.
+
+    No se obtiene con `terraform_remote_state`: eso acoplaria este root a la
+    ubicacion y al formato del state del otro. Se recibe como valor.
   DESC
 
   validation {
-    condition     = !contains(var.origenes_cors, "*")
-    error_message = "El comodin no se admite como origen CORS."
-  }
-}
-
-variable "dias_para_expirar_versiones" {
-  type        = number
-  default     = 30
-  description = <<-DESC
-    Dias tras los que una version no actual de un objeto se elimina. Valor de
-    laboratorio: la politica definitiva de medios es de Task/030 (D-08).
-  DESC
-
-  validation {
-    condition     = var.dias_para_expirar_versiones >= 1
-    error_message = "La expiracion debe ser de al menos un dia."
+    condition     = can(regex("^arn:aws[a-z-]*:s3:::[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$", var.arn_del_bucket_de_medios))
+    error_message = "Se exige el ARN de un bucket S3, con la forma arn:aws:s3:::<nombre>."
   }
 }
 

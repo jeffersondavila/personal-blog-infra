@@ -96,6 +96,14 @@ El comando:
 7. aplica, recorre las APIs, ejecuta `/health` y consulta de nuevo con `boto3` tomado
    del propio ZIP.
 
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** Los pasos 2 a 5 ocurren **dos veces**, una por root y en este orden:
+> **medios** primero —8 altas `aws_s3_*` en el laboratorio— y **aplicación** después —13
+> altas, **ninguna** de S3—. Hay, por tanto, **dos** planes, dos SHA-256 y dos
+> confirmaciones. El root de aplicación recibe el nombre y el ARN del bucket por
+> **variables explícitas**, leídos de las salidas del root de medios; si el contrato está
+> incompleto, aborta antes de tocar aplicación. Ejecutado de verdad el 2026-09-29 (§27.3 del
+> [reporte de Task/030](../task-reports/TASK-030-report.md)).
+
 No hay `--force`. Si el plan contiene `update`, `delete`, reemplazos o tipos ajenos,
 **ABORTAR** y conservar la salida para diagnóstico.
 
@@ -103,8 +111,9 @@ No hay `--force`. Si el plan contiene `update`, `delete`, reemplazos o tipos aje
 
 Se considera creado sólo si coinciden todas estas evidencias:
 
-- Terraform terminó con código 0.
-- S3, los cuatro SSM, IAM, Lambda, API Gateway v2 y Logs aparecen en inventario.
+- Terraform terminó con código 0 en los dos roots.
+- S3, los cuatro SSM, IAM, Lambda, API Gateway v2 y Logs aparecen en inventario; el bucket,
+  en el state de medios, y **ningún** `aws_s3_*` en el de aplicación.
 - `boto3/<versión>` encuentra los mismos recursos mediante endpoints loopback.
 - El runtime observado coincide con el digest del manifiesto.
 - `GET /health` atravesó API Gateway v2 → Lambda y devolvió HTTP 200.

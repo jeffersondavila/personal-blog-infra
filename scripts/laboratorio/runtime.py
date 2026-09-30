@@ -237,6 +237,46 @@ def es_contenedor_de_la_funcion(nombre: str, nombre_de_la_funcion: str) -> bool:
     return resto.startswith(nombre_de_la_funcion)
 
 
+def repositorio_de_la_etiqueta(etiqueta: str) -> str:
+    """Parte de repositorio de una etiqueta, sin la etiqueta de version.
+
+    Se separa por el **ultimo** `:` y solo si lo que sigue no contiene `/`, porque
+    un registro con puerto —`registro:5000/imagen`— tambien lleva dos puntos.
+    """
+    cuerpo, separador, version = etiqueta.rpartition(":")
+    if separador and "/" not in version:
+        return cuerpo
+    return etiqueta
+
+
+def representaciones_de_la_identidad(fijado: RuntimeFijado, id_esperado: str) -> frozenset[str]:
+    """Las formas en que Docker puede nombrar EXACTAMENTE el runtime fijado.
+
+    Es una lista **cerrada**, derivada por completo de la identidad inmutable de
+    `Task/024` y del identificador local de esa misma imagen. No hay ningun
+    patron: «parece un sha256» no entra aqui, y una etiqueta, un digest o un
+    identificador distintos quedan fuera por construccion.
+    """
+    return frozenset(
+        {
+            # Etiqueta fijada, que es lo que entregaba Docker historicamente.
+            fijado.etiqueta,
+            # Referencia inmutable completa, etiqueta mas digest.
+            fijado.referencia,
+            # Referencia por digest sin etiqueta.
+            f"{repositorio_de_la_etiqueta(fijado.etiqueta)}@{fijado.digest}",
+            # Digest desnudo. Con el almacen de imagenes de containerd, Docker
+            # 29.1.3 entrega esto en `Config.Image`, y ahi `.Id` ES el digest del
+            # manifiesto: la misma identidad, nombrada de otra manera.
+            fijado.digest,
+            # Identificador local de la imagen fijada, para el almacen clasico,
+            # donde el `.Id` no coincide con el digest del registro.
+            id_esperado,
+        }
+        - {""}
+    )
+
+
 def confirmar_imagen_del_contenedor(
     fijado: RuntimeFijado,
     *,
@@ -252,16 +292,30 @@ def confirmar_imagen_del_contenedor(
 
     `id_observado` a `None` no es una confirmacion: no haber encontrado el
     contenedor significa que no se pudo demostrar nada.
+
+    Sobre la **representacion** de la imagen, que es el arreglo de **DEF-030-3**:
+    antes se exigia que `Config.Image` fuera textualmente `fijado.etiqueta`. Eso
+    confundia una **forma de nombrar** con la **identidad**, y rompio sin que
+    nada del proyecto cambiara: con el almacen de imagenes de containerd, Docker
+    29.1.3 entrega el digest desnudo en lugar de la etiqueta. `Task/025` habia
+    observado la etiqueta, con el mismo image ID y el mismo digest fijado.
+
+    Ahora se exige que la representacion pertenezca a la lista **cerrada** de
+    formas que denotan el runtime fijado. La comprobacion autoritativa del
+    identificador **no se relaja**: sigue exigiendose igualdad exacta con
+    `id_esperado`, y se comprueba siempre.
     """
     if not id_observado:
         raise ErrorDeRuntime(
             "no se observo ningun contenedor de Lambda del que leer la imagen; sin "
             "esa observacion no se puede afirmar que se ejecuto el runtime fijado"
         )
-    if imagen_solicitada != fijado.etiqueta:
+    admitidas = representaciones_de_la_identidad(fijado, id_esperado)
+    if not imagen_solicitada or imagen_solicitada not in admitidas:
         raise ErrorDeRuntime(
-            f"el contenedor pidio la imagen '{imagen_solicitada}' y el runtime "
-            f"fijado es '{fijado.etiqueta}'"
+            f"el contenedor pidio la imagen '{imagen_solicitada}', que no denota el "
+            f"runtime fijado por Task/024 ({fijado.referencia}). Representaciones "
+            f"admitidas: {sorted(admitidas)}"
         )
     if id_observado != id_esperado:
         raise ErrorDeRuntime(

@@ -48,6 +48,7 @@ import urllib.error
 import urllib.request
 import zipfile
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -70,6 +71,14 @@ COMPOSE_DEL_LABORATORIO = RAIZ / "laboratorio" / "docker-compose.laboratorio.yml
 ENV_DEL_LABORATORIO = RAIZ / "laboratorio" / ".env.laboratorio"
 ENV_DE_EJEMPLO = RAIZ / "laboratorio" / ".env.laboratorio.example"
 
+#: Root del almacenamiento de medios. Enmienda de Task/030
+#: (`H-030-4-root-medios`): el bucket dejo de pertenecer al state del grafo de
+#: aplicacion y vive en su propio root, que REUTILIZA el mismo modulo.
+#:
+#: El laboratorio usa EXACTAMENTE la misma topologia de roots que AWS real: no
+#: existe la variante "en local el bucket va dentro del grafo de aplicacion".
+DIRECTORIO_DE_MEDIOS = RAIZ / "terraform-medios"
+
 #: Archivos que el lanzador GENERA. Estan ignorados por Git: son configuracion
 #: del destino de una ejecucion concreta, no fuente.
 BACKEND_GENERADO = DIRECTORIO_DE_TERRAFORM / "backend.generado.tf"
@@ -79,6 +88,83 @@ PLAN_GUARDADO = DIRECTORIO_GENERADO / "plan.tfplan"
 PLAN_EN_JSON = DIRECTORIO_GENERADO / "plan.json"
 
 TFVARS_LOCAL = DIRECTORIO_DE_TERRAFORM / "entornos" / "local" / "local.tfvars"
+
+BACKEND_GENERADO_DE_MEDIOS = DIRECTORIO_DE_MEDIOS / "backend.generado.tf"
+DIRECTORIO_GENERADO_DE_MEDIOS = DIRECTORIO_DE_MEDIOS / "generado"
+VARIABLES_GENERADAS_DE_MEDIOS = DIRECTORIO_GENERADO_DE_MEDIOS / "destino.tfvars.json"
+PLAN_GUARDADO_DE_MEDIOS = DIRECTORIO_GENERADO_DE_MEDIOS / "plan.tfplan"
+TFVARS_LOCAL_DE_MEDIOS = DIRECTORIO_DE_MEDIOS / "entornos" / "local" / "local.tfvars"
+
+#: Endpoints que declara el root de medios. No habla con Lambda, SSM, IAM, logs ni
+#: API Gateway, asi que enviarle esos atributos seria un error de tipo.
+ENDPOINTS_DEL_ROOT_DE_MEDIOS = ("s3", "sts")
+
+
+@dataclass(frozen=True)
+class RootDeTerraform:
+    """Un root de Terraform con su propio state, y por tanto su propio lifecycle.
+
+    Existe para que el lanzador pueda orquestar DOS roots sin bifurcar el codigo
+    por destino: los dos se tratan igual y solo difieren en sus rutas. El nombre
+    del subdirectorio de estado es lo que garantiza que **ningun recurso queda
+    administrado por dos states**.
+    """
+
+    nombre: str
+    directorio: Path
+    backend_generado: Path
+    directorio_generado: Path
+    variables_generadas: Path
+    plan_guardado: Path
+    tfvars_local: Path
+
+
+ROOT_DE_APLICACION = RootDeTerraform(
+    nombre="aplicacion",
+    directorio=DIRECTORIO_DE_TERRAFORM,
+    backend_generado=BACKEND_GENERADO,
+    directorio_generado=DIRECTORIO_GENERADO,
+    variables_generadas=VARIABLES_GENERADAS,
+    plan_guardado=PLAN_GUARDADO,
+    tfvars_local=TFVARS_LOCAL,
+)
+
+ROOT_DE_MEDIOS = RootDeTerraform(
+    nombre="medios",
+    directorio=DIRECTORIO_DE_MEDIOS,
+    backend_generado=BACKEND_GENERADO_DE_MEDIOS,
+    directorio_generado=DIRECTORIO_GENERADO_DE_MEDIOS,
+    variables_generadas=VARIABLES_GENERADAS_DE_MEDIOS,
+    plan_guardado=PLAN_GUARDADO_DE_MEDIOS,
+    tfvars_local=TFVARS_LOCAL_DE_MEDIOS,
+)
+
+#: Orden canonico de los roots al CREAR o reconciliar: el que administra el
+#: bucket va primero, porque el grafo de aplicacion lo consume por contrato.
+#: Esta tupla es la **unica** autoridad sobre el orden; ningun comando declara
+#: el suyo. Invertirla da el orden de destruccion, y no se escribe a mano para
+#: que las dos no puedan desincronizarse.
+ROOTS_EN_ORDEN_DE_CREACION: tuple[RootDeTerraform, ...] = (
+    ROOT_DE_MEDIOS,
+    ROOT_DE_APLICACION,
+)
+
+ROOTS_EN_ORDEN_DE_DESTRUCCION: tuple[RootDeTerraform, ...] = tuple(
+    reversed(ROOTS_EN_ORDEN_DE_CREACION)
+)
+
+#: Sentido de cada operacion del lanzador. Se declara explicitamente para que un
+#: comando nuevo no herede un orden por omision: `secuencia_de_roots` aborta si
+#: la operacion no esta aqui. Es la leccion de DEF-030-2, donde cinco
+#: subcomandos se quedaron operando sobre un solo root sin que nada avisara.
+SENTIDO_DE_CADA_OPERACION: dict[str, str] = {
+    "ciclo": "creacion",
+    "crear": "creacion",
+    "rollback": "creacion",
+    "recuperar": "creacion",
+    "validar": "lectura",
+    "destruir": "destruccion",
+}
 
 #: Prefijo de los nombres de recurso del laboratorio. Debe coincidir con el
 #: `prefijo` de `entornos/local/local.tfvars`: es lo que permite buscar residuos.
@@ -132,6 +218,30 @@ DIFERENCIAS_DEL_DESTINO_LOCAL: tuple[mod_inventario.DiferenciaDelDestino, ...] =
 
 class ErrorDelLaboratorio(RuntimeError):
     """Una etapa del laboratorio no se pudo completar de forma demostrable."""
+
+
+def secuencia_de_roots(operacion: str) -> tuple[RootDeTerraform, ...]:
+    """Roots que toca `operacion`, en el orden en que debe tocarlos.
+
+    Es el arreglo de **DEF-030-2**. La enmienda de `Task/030` extrajo el
+    almacenamiento de medios a su propio root y cablo la topologia solo en
+    `ciclo`; `crear`, `validar`, `rollback`, `destruir` y `recuperar` siguieron
+    asumiendo un root unico. `destruir` llegaba a destruir el grafo de aplicacion
+    y despues abortaba por inventario, dejando el bucket en pie.
+
+    Aqui vive la unica respuesta a «que roots y en que orden», y una operacion no
+    declarada **aborta** en lugar de recibir un orden por omision.
+    """
+    sentido = SENTIDO_DE_CADA_OPERACION.get(operacion)
+    if sentido is None:
+        raise ErrorDelLaboratorio(
+            f"la operacion '{operacion}' no declara su sentido en "
+            "SENTIDO_DE_CADA_OPERACION: sin eso no se puede saber en que orden "
+            f"tocar los roots. Declaradas: {sorted(SENTIDO_DE_CADA_OPERACION)}"
+        )
+    if sentido == "destruccion":
+        return ROOTS_EN_ORDEN_DE_DESTRUCCION
+    return ROOTS_EN_ORDEN_DE_CREACION
 
 
 # --- utilidades -------------------------------------------------------------
@@ -702,7 +812,7 @@ def retirar_recursos_del_emulador() -> list[str]:
 # --- Terraform --------------------------------------------------------------
 
 
-def escribir_backend(modo: str) -> Path:
+def escribir_backend(modo: str, root: RootDeTerraform = ROOT_DE_APLICACION) -> Path:
     """Genera **solo** el bloque `backend`, que es lo que `init` no puede recibir.
 
     Esta es la respuesta a la dificultad real de **D-06**: `-backend-config` puede
@@ -711,10 +821,14 @@ def escribir_backend(modo: str) -> Path:
 
     Lo que se genera es este archivo y nada mas. Los recursos, los modulos y las
     variables son fuente versionada: el grafo sigue siendo uno solo.
+
+    Cada root recibe su **propio subdirectorio de estado**. Es lo que impide que
+    dos roots compartan archivo de state y, con ello, que un recurso acabe
+    administrado dos veces (enmienda de Task/030).
     """
-    directorio_de_estado = raiz_de_estado(modo)
+    directorio_de_estado = raiz_de_estado(modo) / root.nombre
     directorio_de_estado.mkdir(parents=True, exist_ok=True)
-    BACKEND_GENERADO.write_text(
+    root.backend_generado.write_text(
         "# ARCHIVO GENERADO por scripts/laboratorio/laboratorio.py — no editar.\n"
         "#\n"
         "# Solo contiene el bloque `backend`, porque su TIPO no se puede cambiar\n"
@@ -723,6 +837,7 @@ def escribir_backend(modo: str) -> Path:
         "# El estado vive FUERA del arbol de Git y FUERA del emulador: el\n"
         "# almacenamiento del emulador es efimero y perderlo dejaria recursos\n"
         "# creados sin registro de como destruirlos.\n"
+        f"# Root: {root.nombre}. Su state es propio y no se comparte.\n"
         "\n"
         "terraform {\n"
         '  backend "local" {}\n'
@@ -730,23 +845,60 @@ def escribir_backend(modo: str) -> Path:
         encoding="utf-8",
         newline="\n",
     )
-    print(f"backend generado para el destino '{modo}': {BACKEND_GENERADO.name}")
+    print(
+        f"backend generado para el destino '{modo}', root '{root.nombre}': "
+        f"{root.backend_generado.name}"
+    )
     return directorio_de_estado
 
 
-def escribir_variables_del_destino(destino: mod_destino.Destino, zip_de_lambda: Path) -> None:
+def escribir_variables_del_destino(
+    destino: mod_destino.Destino,
+    zip_de_lambda: Path,
+    medios: dict[str, Any] | None = None,
+) -> None:
     """Escribe los valores que dependen de la maquina, en JSON.
 
     En JSON y no en HCL por una razon concreta: en HCL la barra invertida es un
     escape, y una ruta de Windows como `C:\\Users\\...` se interpretaria mal. JSON
     no tiene ese problema.
+
+    `medios` son las salidas del root de almacenamiento, ya aplicado. Viajan por
+    aqui —y no con `-var` en cada invocacion— porque este archivo lo incluyen ya
+    todos los comandos del root de aplicacion, igual que `lambda_zip_path`. Es el
+    transporte del contrato explicito entre los dos roots: sin
+    `terraform_remote_state` y sin que este root conozca donde vive el otro state.
     """
+    if medios is None:
+        # Operaciones humanas de Task/026: corren sobre un laboratorio YA creado,
+        # asi que el contrato del bucket ya esta escrito. Se reutiliza en lugar de
+        # reinicializar el root de medios solo para releer dos valores.
+        previas = (
+            json.loads(VARIABLES_GENERADAS.read_text(encoding="utf-8"))
+            if VARIABLES_GENERADAS.exists()
+            else {}
+        )
+        medios = {
+            "nombre_del_bucket": previas.get("nombre_del_bucket_de_medios"),
+            "arn_del_bucket": previas.get("arn_del_bucket_de_medios"),
+        }
+    for clave in ("nombre_del_bucket", "arn_del_bucket"):
+        if not medios.get(clave):
+            raise ErrorDelLaboratorio(
+                f"falta '{clave}' del contrato del root de medios: el grafo de "
+                "aplicacion no puede recibirlo. Ejecuta el ciclo, que aplica el "
+                "root de almacenamiento antes que el de aplicacion"
+            )
     DIRECTORIO_GENERADO.mkdir(parents=True, exist_ok=True)
     VARIABLES_GENERADAS.write_text(
         json.dumps(
             {
                 "endpoints_aws": dict(destino.endpoints),
                 "lambda_zip_path": str(zip_de_lambda).replace("\\", "/"),
+                # Contrato recibido del root de medios. Este root NO administra el
+                # bucket: solo lo consume.
+                "nombre_del_bucket_de_medios": medios["nombre_del_bucket"],
+                "arn_del_bucket_de_medios": medios["arn_del_bucket"],
                 # El contenedor de la funcion NO ve 127.0.0.1 del host: ve la red
                 # de ejecucion. Este es el endpoint que el SDK debe usar desde
                 # dentro, y es una de las diferencias legitimas de destino.
@@ -770,16 +922,44 @@ def escribir_variables_del_destino(destino: mod_destino.Destino, zip_de_lambda: 
     print(f"variables del destino escritas en {VARIABLES_GENERADAS.name}")
 
 
+def escribir_variables_de_medios(destino: mod_destino.Destino) -> None:
+    """Variables del destino para el root de medios.
+
+    Solo necesita los endpoints: el nombre del bucket, las etiquetas, el CORS y el
+    lifecycle viven en su tfvars versionado. Se escribe aparte porque es OTRO root
+    con OTRO state, y mezclar sus variables reintroduciria el acoplamiento que la
+    enmienda de Task/030 elimina.
+
+    Se pasan **solo** los endpoints que ese root declara. Su variable es un objeto
+    con `s3` y `sts`, y enviarle los ocho del grafo de aplicacion seria un atributo
+    no soportado: el root de medios no habla con Lambda, ni con SSM, ni con IAM.
+    """
+    DIRECTORIO_GENERADO_DE_MEDIOS.mkdir(parents=True, exist_ok=True)
+    endpoints = {
+        nombre: valor
+        for nombre, valor in dict(destino.endpoints).items()
+        if nombre in ENDPOINTS_DEL_ROOT_DE_MEDIOS
+    }
+    VARIABLES_GENERADAS_DE_MEDIOS.write_text(
+        json.dumps({"endpoints_aws": endpoints}, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    print(f"variables del root de medios escritas en {VARIABLES_GENERADAS_DE_MEDIOS.name}")
+
+
 def terraform(
     binario: Path,
     destino: mod_destino.Destino,
     argumentos: list[str],
     *,
+    raiz: Path = DIRECTORIO_DE_TERRAFORM,
     codigos_aceptados: tuple[int, ...] = (0,),
     silencioso: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     operacion = argumentos[0] if argumentos else ""
     if operacion in {"init", "plan", "apply", "destroy"}:
+        print(f"root objetivo: {raiz.name}")
         titulo(
             "GUARDAS — destino y perimetro antes de "
             f"terraform {operacion} (R-23/R-24)"
@@ -805,21 +985,23 @@ def terraform(
         )
     entorno = mod_destino.entorno_para_terraform(destino)
     return ejecutar(
-        [str(binario), f"-chdir={DIRECTORIO_DE_TERRAFORM}"] + argumentos,
+        [str(binario), f"-chdir={raiz}"] + argumentos,
         entorno=entorno,
         codigos_aceptados=codigos_aceptados,
         silencioso=silencioso,
     )
 
 
-def variables_comunes() -> list[str]:
+def variables_comunes(root: RootDeTerraform = ROOT_DE_APLICACION) -> list[str]:
     return [
-        f"-var-file={TFVARS_LOCAL}",
-        f"-var-file={VARIABLES_GENERADAS}",
+        f"-var-file={root.tfvars_local}",
+        f"-var-file={root.variables_generadas}",
     ]
 
 
-def generar_lock(binario: Path, destino: mod_destino.Destino) -> None:
+def generar_lock(
+    binario: Path, destino: mod_destino.Destino, root: RootDeTerraform = ROOT_DE_APLICACION
+) -> None:
     """Genera el lock del provider para **las dos** plataformas y lo versiona.
 
     `terraform init` a secas escribe solo los hashes de la plataforma actual. Con
@@ -827,7 +1009,7 @@ def generar_lock(binario: Path, destino: mod_destino.Destino) -> None:
     `init -lockfile=readonly` fallaria por una diferencia que no es un problema
     real. `providers lock` con las dos plataformas lo evita.
     """
-    titulo("LOCK DEL PROVIDER — las dos plataformas, versionado")
+    titulo(f"LOCK DEL PROVIDER — las dos plataformas, versionado ({root.nombre})")
     terraform(
         binario,
         destino,
@@ -837,8 +1019,9 @@ def generar_lock(binario: Path, destino: mod_destino.Destino) -> None:
             "-platform=linux_amd64",
             "-platform=windows_amd64",
         ],
+        raiz=root.directorio,
     )
-    lock = DIRECTORIO_DE_TERRAFORM / ".terraform.lock.hcl"
+    lock = root.directorio / ".terraform.lock.hcl"
     if not lock.exists():
         raise ErrorDelLaboratorio("no se genero .terraform.lock.hcl")
     texto = lock.read_text(encoding="utf-8")
@@ -847,8 +1030,14 @@ def generar_lock(binario: Path, destino: mod_destino.Destino) -> None:
     print(f"lock con {len(hashes)} hashes para el provider {mod_herramientas.VERSION_DEL_PROVIDER}")
 
 
-def inicializar(binario: Path, destino: mod_destino.Destino, *, solo_lectura: bool) -> None:
-    directorio_de_estado = escribir_backend(destino.modo)
+def inicializar(
+    binario: Path,
+    destino: mod_destino.Destino,
+    *,
+    solo_lectura: bool,
+    root: RootDeTerraform = ROOT_DE_APLICACION,
+) -> None:
+    directorio_de_estado = escribir_backend(destino.modo, root)
     ruta_del_estado = directorio_de_estado / "terraform.tfstate"
     argumentos = [
         "init",
@@ -858,15 +1047,340 @@ def inicializar(binario: Path, destino: mod_destino.Destino, *, solo_lectura: bo
     ]
     if solo_lectura:
         argumentos.append("-lockfile=readonly")
-    terraform(binario, destino, argumentos)
-    print(f"estado local en: {ruta_del_estado}")
+    terraform(binario, destino, argumentos, raiz=root.directorio)
+    print(f"estado local del root '{root.nombre}' en: {ruta_del_estado}")
+
+
+# --- topologia de dos roots, compartida por TODOS los comandos --------------
+#
+# Arreglo de DEF-030-2. La enmienda de Task/030 extrajo el almacenamiento de
+# medios a su propio root y cablo la orquestacion unicamente en `ciclo`. Los
+# cinco subcomandos de runbook —los que se usan en una incidencia— siguieron
+# asumiendo un root unico. Lo que sigue es la orquestacion que ahora usan todos.
+
+
+@dataclass(frozen=True)
+class HerramentalDeRoots:
+    """Las operaciones externas que la orquestacion de roots necesita.
+
+    Se agrupan en un objeto, y no como parametros sueltos, para que las pruebas
+    puedan sustituirlas de una vez sin tocar el disco ni ejecutar Terraform. Es
+    la misma costura inyectable que `exigir_confirmacion_del_plan` ofrece con su
+    `leer`.
+    """
+
+    corredor: Callable[..., Any]
+    inicializar: Callable[..., None]
+    escribir_variables_de_medios: Callable[..., None]
+    escribir_variables_de_aplicacion: Callable[..., None]
+    vaciar_bucket: Callable[..., int]
+
+
+def herramental_real() -> HerramentalDeRoots:
+    """El herramental que habla con Terraform y con el destino de verdad."""
+
+    def vaciar(destino: mod_destino.Destino, *, bucket: str) -> int:
+        return mod_verificacion.vaciar_bucket(
+            destino,
+            bucket=bucket,
+            clave_aws=mod_destino.CLAVE_FICTICIA,
+            secreto=mod_destino.SECRETO_FICTICIO,
+        )
+
+    return HerramentalDeRoots(
+        corredor=terraform,
+        inicializar=inicializar,
+        escribir_variables_de_medios=escribir_variables_de_medios,
+        escribir_variables_de_aplicacion=escribir_variables_del_destino,
+        vaciar_bucket=vaciar,
+    )
+
+
+#: Lo que el root de medios publica y el de aplicacion consume. Son las dos
+#: unicas piezas del contrato explicito entre roots.
+CLAVES_DEL_CONTRATO_DE_MEDIOS = ("nombre_del_bucket", "arn_del_bucket")
+
+
+def contrato_del_root_de_medios(
+    binario: Path,
+    destino: mod_destino.Destino,
+    *,
+    aplicar: bool,
+    regenerar_lock: bool = False,
+    confirmar: bool = False,
+    acciones: tuple[str, ...] = ("create", "update"),
+    herramental: HerramentalDeRoots | None = None,
+) -> dict[str, Any]:
+    """Deja el root de medios en su estado y devuelve su contrato explicito.
+
+    `aplicar=True` lo crea o lo reconcilia. `aplicar=False` es el camino de
+    lectura, para los comandos que solo consumen el contrato de un laboratorio ya
+    creado y no deben modificar nada.
+
+    Si el contrato no esta completo, **aborta aqui**: continuar al root de
+    aplicacion con un ARN vacio produciria una politica IAM sin sentido y un
+    plan que parece valido.
+    """
+    herramental = herramental or herramental_real()
+    root = ROOT_DE_MEDIOS
+    herramental.escribir_variables_de_medios(destino)
+    if aplicar and regenerar_lock:
+        herramental.inicializar(binario, destino, solo_lectura=False, root=root)
+        generar_lock(binario, destino, root)
+    herramental.inicializar(binario, destino, solo_lectura=True, root=root)
+    herramental.corredor(
+        binario, destino, ["fmt", "-check", "-recursive"], raiz=root.directorio
+    )
+    herramental.corredor(binario, destino, ["validate"], raiz=root.directorio)
+    if aplicar:
+        herramental.corredor(
+            binario,
+            destino,
+            ["plan", "-input=false", f"-out={root.plan_guardado}"]
+            + variables_comunes(root),
+            raiz=root.directorio,
+        )
+        crudo = herramental.corredor(
+            binario,
+            destino,
+            ["show", "-json", str(root.plan_guardado)],
+            raiz=root.directorio,
+            silencioso=True,
+        )
+        plan = json.loads(crudo.stdout)
+        resumen = mod_inventario.revisar_plan(plan, acciones_permitidas=acciones)
+        print(f"plan de medios revisado: {resumen}")
+        hay_cambios = any(resumen.get(accion, 0) for accion in acciones) or any(
+            salida.get("actions") != ["no-op"]
+            for salida in plan.get("output_changes", {}).values()
+        )
+        if hay_cambios:
+            if confirmar:
+                exigir_confirmacion_del_plan(
+                    sha256_de_archivo(root.plan_guardado), operacion="aplicar medios"
+                )
+            herramental.corredor(
+                binario, destino, ["apply", "-input=false", str(root.plan_guardado)],
+                raiz=root.directorio,
+            )
+        else:
+            print("medios sin cambios; se conserva su state sin apply")
+    crudas = herramental.corredor(
+        binario, destino, ["output", "-json"], raiz=root.directorio, silencioso=True
+    )
+    contrato = {
+        nombre: dato.get("value")
+        for nombre, dato in json.loads(crudas.stdout or "{}").items()
+    }
+    faltantes = [
+        clave for clave in CLAVES_DEL_CONTRATO_DE_MEDIOS if not contrato.get(clave)
+    ]
+    if faltantes:
+        raise ErrorDelLaboratorio(
+            f"el root de medios no publica {faltantes}: el grafo de aplicacion no "
+            "puede recibir su contrato, y no se continua al root de aplicacion"
+        )
+    nombre = contrato["nombre_del_bucket"]
+    arn = contrato["arn_del_bucket"]
+    if not isinstance(nombre, str) or arn != f"arn:aws:s3:::{nombre}":
+        raise ErrorDelLaboratorio("el nombre y el ARN del contrato de medios no coinciden")
+    return contrato
+
+
+def destruir_los_dos_roots(
+    binario: Path,
+    destino: mod_destino.Destino,
+    *,
+    contrato: dict[str, Any] | None,
+    herramental: HerramentalDeRoots | None = None,
+) -> None:
+    """Destruye los roots en el orden **inverso** al de creacion.
+
+    Aplicacion primero, que CONSUME el bucket, y medios despues, que lo
+    administra: al reves, el rol de ejecucion quedaria referenciando un ARN ya
+    inexistente.
+
+    Si el root de aplicacion falla, el de medios **no se toca**. Su state
+    conserva su ownership intacto y la operacion se puede reintentar sin haber
+    perdido el registro de como destruir el bucket.
+    """
+    herramental = herramental or herramental_real()
+    bucket = (contrato or {}).get("nombre_del_bucket")
+    for root in secuencia_de_roots("destruir"):
+        if root == ROOT_DE_MEDIOS and bucket:
+            borrados = herramental.vaciar_bucket(destino, bucket=bucket)
+            print(f"objetos y versiones retirados de '{bucket}' antes del destroy: {borrados}")
+        herramental.corredor(
+            binario,
+            destino,
+            ["destroy", "-input=false", "-auto-approve"] + variables_comunes(root),
+            raiz=root.directorio,
+        )
+
+
+def exigir_ownership_disjunto(
+    estado_de_medios: list[str],
+    estado_de_aplicacion: list[str],
+    *,
+    exigir_bucket: bool = True,
+) -> None:
+    """Ningun recurso puede estar administrado por **dos** states.
+
+    Es el invariante que la enmienda de `Task/030` tiene que sostener, y se
+    comprueba sobre los states reales en lugar de darlo por supuesto:
+
+    - las direcciones de los dos states son **disjuntas**;
+    - el root de aplicacion **no** administra ningun `aws_s3_bucket*`: solo lo
+      consume por contrato;
+    - el root de medios **si** lo administra, porque es su duenno.
+
+    `exigir_bucket=False` sirve despues de un teardown, donde los dos states
+    quedan vacios y eso es exactamente lo correcto.
+    """
+    comunes = sorted(set(estado_de_medios) & set(estado_de_aplicacion))
+    if comunes:
+        raise ErrorDelLaboratorio(
+            "hay recursos administrados por los dos states, que es la situacion "
+            f"que la separacion de roots debe impedir: {comunes}"
+        )
+    intrusos = sorted(
+        direccion for direccion in estado_de_aplicacion if "aws_s3_bucket" in direccion
+    )
+    if intrusos:
+        raise ErrorDelLaboratorio(
+            "el root de aplicacion administra recursos de S3, y solo debe "
+            f"consumirlos por contrato: {intrusos}"
+        )
+    if exigir_bucket and not any(
+        "aws_s3_bucket" in direccion for direccion in estado_de_medios
+    ):
+        raise ErrorDelLaboratorio(
+            "el root de medios no administra ningun aws_s3_bucket: sin eso, el "
+            "contrato que recibe el root de aplicacion no tiene duenno"
+        )
+
+
+def estado_del_root(
+    binario: Path,
+    destino: mod_destino.Destino,
+    root: RootDeTerraform,
+    *,
+    herramental: HerramentalDeRoots | None = None,
+) -> list[str]:
+    """Direcciones que administra el state de `root`."""
+    herramental = herramental or herramental_real()
+    resultado = herramental.corredor(
+        binario,
+        destino,
+        ["state", "list"],
+        raiz=root.directorio,
+        silencioso=True,
+        codigos_aceptados=(0, 1),
+    )
+    return [linea.strip() for linea in resultado.stdout.splitlines() if linea.strip()]
+
+
+def preparar_los_roots_para(
+    operacion: str,
+    binario: Path,
+    destino: mod_destino.Destino,
+    zip_de_lambda: Path,
+    *,
+    regenerar_lock: bool = False,
+    herramental: HerramentalDeRoots | None = None,
+) -> dict[str, Any]:
+    """Deja los dos roots listos para `operacion` y devuelve el contrato de medios.
+
+    Un solo camino para `ciclo`, `crear`, `validar`, `rollback`, `recuperar` y
+    `destruir`. El orden y la cobertura salen de `secuencia_de_roots`, de modo que
+    no hay cinco copias que puedan divergir: eso fue exactamente DEF-030-2.
+
+    La **preparacion** es siempre medios primero, incluso al destruir: el
+    contrato del bucket hace falta antes de tocar el grafo de aplicacion, aunque
+    sea para vaciarlo y destruirlo. El orden inverso gobierna el `destroy`, y lo
+    aplica `destruir_los_dos_roots`.
+    """
+    herramental = herramental or herramental_real()
+    # Valida que la operacion este declarada: una nueva no hereda orden en silencio.
+    secuencia_de_roots(operacion)
+    aplicar_medios = operacion in {"ciclo", "crear", "recuperar"}
+
+    titulo(
+        "ROOT DE MEDIOS — "
+        + ("reconciliacion" if aplicar_medios else "lectura del contrato")
+    )
+    contrato = contrato_del_root_de_medios(
+        binario,
+        destino,
+        aplicar=aplicar_medios,
+        regenerar_lock=regenerar_lock,
+        confirmar=operacion in {"crear", "recuperar"},
+        acciones=("create",) if operacion == "crear" else ("create", "update"),
+        herramental=herramental,
+    )
+    print(json.dumps(contrato, indent=2, sort_keys=True))
+
+    titulo("ROOT DE APLICACION — recibe el contrato por variables explicitas")
+    herramental.escribir_variables_de_aplicacion(destino, zip_de_lambda, contrato)
+    if regenerar_lock and aplicar_medios:
+        herramental.inicializar(
+            binario, destino, solo_lectura=False, root=ROOT_DE_APLICACION
+        )
+        generar_lock(binario, destino, ROOT_DE_APLICACION)
+    herramental.inicializar(
+        binario, destino, solo_lectura=True, root=ROOT_DE_APLICACION
+    )
+    return contrato
+
+
+def exigir_ausencia_en_el_destino(
+    inventario: dict[str, list[str]], *, bucket_de_medios_vivo: str | None
+) -> None:
+    """Exige ausencia sabiendo que el bucket de medios puede ser legitimo.
+
+    Mientras el root de medios no haya sido destruido, su bucket **no es un
+    residuo**: es infraestructura viva de otro root, con su propio state. Tratarlo
+    como residuo es lo que hacia `destruir` abortar despues de un destroy
+    correcto del grafo de aplicacion.
+
+    Todo lo demas sigue siendo residuo, incluido cualquier **otro** bucket con el
+    prefijo del laboratorio: la tolerancia es de un nombre exacto, no del
+    servicio.
+    """
+    observado = {servicio: list(valores) for servicio, valores in inventario.items()}
+    if bucket_de_medios_vivo:
+        observado["s3"] = [
+            nombre
+            for nombre in observado.get("s3", [])
+            if nombre != bucket_de_medios_vivo
+        ]
+    mod_inventario.exigir_inventario_vacio(observado)
 
 
 def revisar_plan_guardado(
-    binario: Path, destino: mod_destino.Destino, *, acciones: tuple[str, ...], minimo: int
+    binario: Path,
+    destino: mod_destino.Destino,
+    *,
+    acciones: tuple[str, ...],
+    minimo: int,
+    root: RootDeTerraform = ROOT_DE_APLICACION,
 ) -> dict[str, int]:
-    resultado = terraform(binario, destino, ["show", "-json", str(PLAN_GUARDADO)], silencioso=True)
-    PLAN_EN_JSON.write_text(resultado.stdout, encoding="utf-8", newline="\n")
+    """Revisa el plan guardado de `root` contra una lista cerrada de acciones.
+
+    El root es explicito porque cada uno tiene su propio plan: revisar el del
+    grafo de aplicacion y dar por bueno el del almacenamiento fue el defecto que
+    dejaba el bucket en pie al destruir.
+    """
+    plan_en_json = root.directorio_generado / "plan.json"
+    resultado = terraform(
+        binario,
+        destino,
+        ["show", "-json", str(root.plan_guardado)],
+        raiz=root.directorio,
+        silencioso=True,
+    )
+    plan_en_json.parent.mkdir(parents=True, exist_ok=True)
+    plan_en_json.write_text(resultado.stdout, encoding="utf-8", newline="\n")
     plan = json.loads(resultado.stdout)
     resumen = mod_inventario.revisar_plan(plan, acciones_permitidas=acciones, minimo=minimo)
     print(f"plan revisado contra la lista cerrada de tipos: {resumen}")
@@ -1071,8 +1585,12 @@ def inspeccionar_con_sdk(
     return informe
 
 
-def salidas(binario: Path, destino: mod_destino.Destino) -> dict[str, Any]:
-    resultado = terraform(binario, destino, ["output", "-json"], silencioso=True)
+def salidas(
+    binario: Path, destino: mod_destino.Destino, root: RootDeTerraform = ROOT_DE_APLICACION
+) -> dict[str, Any]:
+    resultado = terraform(
+        binario, destino, ["output", "-json"], raiz=root.directorio, silencioso=True
+    )
     crudas = json.loads(resultado.stdout or "{}")
     return {nombre: dato.get("value") for nombre, dato in crudas.items()}
 
@@ -1373,7 +1891,7 @@ def introducir_y_reconciliar_drift(
     terraform(
         binario,
         destino,
-        ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(),
+        ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(ROOT_DE_APLICACION),
     )
     crudo = terraform(
         binario,
@@ -1443,13 +1961,11 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
 
     lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
     with mod_destino.lock_de_escritura(lock_de_operacion):
-        escribir_variables_del_destino(destino, zip_congelado.ruta)
+        medios = preparar_los_roots_para(
+            "ciclo", binario, destino, zip_congelado.ruta,
+            regenerar_lock=argumentos.regenerar_lock,
+        )
 
-        titulo("TERRAFORM — init, fmt, validate")
-        if argumentos.regenerar_lock:
-            inicializar(binario, destino, solo_lectura=False)
-            generar_lock(binario, destino)
-        inicializar(binario, destino, solo_lectura=True)
         terraform(binario, destino, ["fmt", "-check", "-recursive"])
         print("formato correcto")
         terraform(binario, destino, ["validate"])
@@ -1458,7 +1974,7 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         terraform(
             binario,
             destino,
-            ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(),
+            ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(ROOT_DE_APLICACION),
         )
         revisar_plan_guardado(binario, destino, acciones=("create",), minimo=1)
 
@@ -1468,8 +1984,13 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
 
         titulo("TERRAFORM — apply del plan revisado")
         terraform(binario, destino, ["apply", "-input=false", str(PLAN_GUARDADO)])
-        valores = salidas(binario, destino)
+        valores = salidas(binario, destino, ROOT_DE_APLICACION)
         print(json.dumps(valores, indent=2, sort_keys=True))
+        exigir_ownership_disjunto(
+            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
+            estado_del_root(binario, destino, ROOT_DE_APLICACION),
+        )
+        print("ownership disjunto: aplicacion no administra S3")
 
         evidencia = ejercitar_servicios(
             destino, valores, runtime_fijado=runtime_fijado, id_del_runtime=id_del_runtime
@@ -1481,10 +2002,17 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         )
 
         titulo("IDEMPOTENCIA — segundo plan, se exige exit 0")
+        segundo_plan_medios = terraform(
+            binario, destino,
+            ["plan", "-input=false", "-detailed-exitcode"] + variables_comunes(ROOT_DE_MEDIOS),
+            raiz=ROOT_DE_MEDIOS.directorio, codigos_aceptados=(0, 1, 2),
+        )
+        mod_inventario.exigir_sin_cambios(segundo_plan_medios.returncode)
+        print("idempotencia de medios: exit 0")
         resultado = terraform(
             binario,
             destino,
-            ["plan", "-input=false", "-detailed-exitcode"] + variables_comunes(),
+            ["plan", "-input=false", "-detailed-exitcode"] + variables_comunes(ROOT_DE_APLICACION),
             codigos_aceptados=(0, 1, 2),
         )
         print(f"codigo de salida del segundo plan: {resultado.returncode}")
@@ -1496,7 +2024,7 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
             terraform(
                 binario,
                 destino,
-                ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(),
+                ["plan", "-input=false", f"-out={PLAN_GUARDADO}"] + variables_comunes(ROOT_DE_APLICACION),
                 silencioso=True,
             )
             crudo = terraform(
@@ -1524,12 +2052,13 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         primer_destroy = destruir_y_verificar(binario, destino, valores, etapa="primer destroy")
 
         titulo("RECONSTRUCCION — desde cero, con las mismas fuentes")
+        preparar_los_roots_para("ciclo", binario, destino, zip_congelado.ruta)
         terraform(
             binario,
             destino,
-            ["apply", "-input=false", "-auto-approve"] + variables_comunes(),
+            ["apply", "-input=false", "-auto-approve"] + variables_comunes(ROOT_DE_APLICACION),
         )
-        valores_reconstruidos = salidas(binario, destino)
+        valores_reconstruidos = salidas(binario, destino, ROOT_DE_APLICACION)
         print(json.dumps(valores_reconstruidos, indent=2, sort_keys=True))
 
         titulo("SMOKE DE LA RECONSTRUCCION — GET /health otra vez")
@@ -1584,26 +2113,27 @@ def destruir_y_verificar(
     )
     print("destino revalidado inmediatamente antes de la operacion destructiva")
 
-    bucket = valores.get("bucket_de_medios")
-    if bucket:
-        borrados = mod_verificacion.vaciar_bucket(
-            destino,
-            bucket=bucket,
-            clave_aws=mod_destino.CLAVE_FICTICIA,
-            secreto=mod_destino.SECRETO_FICTICIO,
-        )
-        print(f"objetos y versiones retirados del bucket antes del destroy: {borrados}")
-
-    terraform(
-        binario,
-        destino,
-        ["destroy", "-input=false", "-auto-approve"] + variables_comunes(),
+    destruir_los_dos_roots(
+        binario, destino, contrato={"nombre_del_bucket": valores.get("bucket_de_medios")}
     )
 
     titulo(f"{etapa.upper()} — verificacion de AUSENCIA contra las APIs")
-    estado = terraform(binario, destino, ["state", "list"], silencioso=True, codigos_aceptados=(0, 1))
-    restantes = [linea for linea in estado.stdout.splitlines() if linea.strip()]
-    print(f"recursos en el estado de Terraform: {len(restantes)}")
+    restantes: list[str] = []
+    for root in secuencia_de_roots("destruir"):
+        estado = terraform(
+            binario,
+            destino,
+            ["state", "list"],
+            raiz=root.directorio,
+            silencioso=True,
+            codigos_aceptados=(0, 1),
+        )
+        restantes += [linea for linea in estado.stdout.splitlines() if linea.strip()]
+        if salidas(binario, destino, root):
+            raise ErrorDelLaboratorio(f"el state de '{root.nombre}' conserva outputs")
+    if restantes:
+        raise ErrorDelLaboratorio(f"los states conservan recursos: {restantes}")
+    print(f"recursos en los estados de Terraform: {len(restantes)}")
     print("  (el estado vacio no es la evidencia: la evidencia es lo que sigue)")
     inventario = inventario_del_destino(destino)
     for servicio, elementos in sorted(inventario.items()):
@@ -1746,18 +2276,27 @@ def aplicar_version_desde_runbook(
     with mod_destino.lock_de_escritura(lock_de_operacion):
         if operacion == "crear":
             inventario_inicial = inventario_del_destino(destino)
-            mod_inventario.exigir_inventario_vacio(inventario_inicial)
+            # Al crear no existe todavia ningun root, asi que no hay bucket
+            # legitimo que tolerar: el inventario debe estar vacio del todo.
+            exigir_ausencia_en_el_destino(inventario_inicial, bucket_de_medios_vivo=None)
             print("precondicion de creacion: inventario del destino vacio")
 
-        escribir_variables_del_destino(destino, artefacto.ruta)
-        inicializar(binario, destino, solo_lectura=True)
-        terraform(binario, destino, ["fmt", "-check", "-recursive"])
-        terraform(binario, destino, ["validate"])
+        # Los DOS roots, en el orden canonico, con el contrato del bucket
+        # inyectado al grafo de aplicacion como variables explicitas.
+        contrato = preparar_los_roots_para(operacion, binario, destino, artefacto.ruta)
+        terraform(
+            binario,
+            destino,
+            ["fmt", "-check", "-recursive"],
+            raiz=ROOT_DE_APLICACION.directorio,
+        )
+        terraform(binario, destino, ["validate"], raiz=ROOT_DE_APLICACION.directorio)
         terraform(
             binario,
             destino,
             ["plan", "-input=false", f"-out={PLAN_GUARDADO}"]
-            + variables_comunes(),
+            + variables_comunes(ROOT_DE_APLICACION),
+            raiz=ROOT_DE_APLICACION.directorio,
         )
         revisar_plan_guardado(
             binario,
@@ -1776,8 +2315,14 @@ def aplicar_version_desde_runbook(
             binario,
             destino,
             ["apply", "-input=false", str(PLAN_GUARDADO)],
+            raiz=ROOT_DE_APLICACION.directorio,
         )
-        valores = salidas(binario, destino)
+        valores = salidas(binario, destino, ROOT_DE_APLICACION)
+        exigir_ownership_disjunto(
+            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
+            estado_del_root(binario, destino, ROOT_DE_APLICACION),
+        )
+        print(f"ownership disjunto comprobado; bucket del contrato: {contrato['nombre_del_bucket']}")
         evidencia = ejercitar_servicios(
             destino,
             valores,
@@ -1832,7 +2377,7 @@ def comando_recuperar(argumentos: argparse.Namespace) -> int:
 
 
 def comando_validar(argumentos: argparse.Namespace) -> int:
-    titulo("VALIDAR — inventario, APIs y camino critico")
+    titulo("VALIDAR — los dos roots, su contrato, inventario, APIs y camino critico")
     (
         _,
         destino,
@@ -1845,9 +2390,40 @@ def comando_validar(argumentos: argparse.Namespace) -> int:
         raise ErrorDelLaboratorio("no se observo la identidad local del runtime")
     lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
     with mod_destino.lock_de_escritura(lock_de_operacion):
-        escribir_variables_del_destino(destino, artefacto.ruta)
-        inicializar(binario, destino, solo_lectura=True)
-        valores = salidas(binario, destino)
+        # Camino de LECTURA: prepara los dos roots y lee el contrato del bucket
+        # sin aplicar nada. El contrato NO se deduce de las salidas del root de
+        # aplicacion, que solo lo consume.
+        contrato = preparar_los_roots_para("validar", binario, destino, artefacto.ruta)
+
+        titulo("VALIDAR — configuracion valida en los DOS roots")
+        for root in secuencia_de_roots("validar"):
+            terraform(
+                binario,
+                destino,
+                ["fmt", "-check", "-recursive"],
+                raiz=root.directorio,
+            )
+            terraform(binario, destino, ["validate"], raiz=root.directorio)
+            print(f"  root '{root.nombre}': formato y configuracion correctos")
+
+        titulo("VALIDAR — ownership: ningun recurso en dos states")
+        estado_de_medios = estado_del_root(binario, destino, ROOT_DE_MEDIOS)
+        estado_de_aplicacion = estado_del_root(binario, destino, ROOT_DE_APLICACION)
+        exigir_ownership_disjunto(estado_de_medios, estado_de_aplicacion)
+        print(
+            f"  medios administra {len(estado_de_medios)} recurso(s); "
+            f"aplicacion {len(estado_de_aplicacion)}, ninguno de S3"
+        )
+
+        valores = salidas(binario, destino, ROOT_DE_APLICACION)
+        if valores.get("bucket_de_medios") != contrato["nombre_del_bucket"]:
+            raise ErrorDelLaboratorio(
+                "el grafo de aplicacion no esta usando el bucket que publica el "
+                f"root de medios: {valores.get('bucket_de_medios')!r} frente a "
+                f"{contrato['nombre_del_bucket']!r}"
+            )
+        print("  contrato entre roots coherente en ambos extremos")
+
         evidencia = ejercitar_servicios(
             destino,
             valores,
@@ -1865,6 +2441,11 @@ def comando_validar(argumentos: argparse.Namespace) -> int:
                 "artefacto_sha256": artefacto.sha256,
                 "camino_critico": evidencia["camino_critico"]["estado"],
                 "inspeccion_sdk": evidencia_sdk["sdk"],
+                "contrato_de_medios": contrato["nombre_del_bucket"],
+                "recursos_por_root": {
+                    "medios": len(estado_de_medios),
+                    "aplicacion": len(estado_de_aplicacion),
+                },
             },
             indent=2,
             sort_keys=True,
@@ -1880,55 +2461,74 @@ def comando_destruir(argumentos: argparse.Namespace) -> int:
     )
     lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
     with mod_destino.lock_de_escritura(lock_de_operacion):
-        escribir_variables_del_destino(destino, artefacto.ruta)
-        inicializar(binario, destino, solo_lectura=True)
-        valores = salidas(binario, destino)
-        terraform(
-            binario,
-            destino,
-            ["plan", "-destroy", "-input=false", f"-out={PLAN_GUARDADO}"]
-            + variables_comunes(),
-        )
-        revisar_plan_guardado(
-            binario,
-            destino,
-            acciones=("delete",),
-            minimo=1,
-        )
-        sha_del_plan = sha256_de_archivo(PLAN_GUARDADO)
-        print(f"SHA-256 del plan destructivo revisado: {sha_del_plan}")
-        exigir_confirmacion_del_plan(sha_del_plan, operacion="destruir")
+        # Preparacion en orden de creacion para poder leer el contrato del bucket;
+        # el `destroy` va despues en orden INVERSO.
+        contrato = preparar_los_roots_para("destruir", binario, destino, artefacto.ruta)
 
-        bucket = valores.get("bucket_de_medios")
-        if bucket:
-            borrados = mod_verificacion.vaciar_bucket(
+        exigir_ownership_disjunto(
+            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
+            estado_del_root(binario, destino, ROOT_DE_APLICACION),
+        )
+        bucket = contrato["nombre_del_bucket"]
+        planes: dict[str, str] = {}
+        for indice, root in enumerate(secuencia_de_roots("destruir")):
+            if root == ROOT_DE_MEDIOS:
+                borrados = herramental_real().vaciar_bucket(destino, bucket=bucket)
+                print(f"objetos y versiones retirados de '{bucket}': {borrados}")
+            titulo(f"DESTRUIR — plan destructivo del root '{root.nombre}'")
+            terraform(
+                binario,
                 destino,
-                bucket=bucket,
-                clave_aws=mod_destino.CLAVE_FICTICIA,
-                secreto=mod_destino.SECRETO_FICTICIO,
+                ["plan", "-destroy", "-input=false", f"-out={root.plan_guardado}"]
+                + variables_comunes(root),
+                raiz=root.directorio,
             )
-            print(f"objetos y versiones retirados del bucket: {borrados}")
-        terraform(
-            binario,
-            destino,
-            ["apply", "-input=false", str(PLAN_GUARDADO)],
-        )
+            revisar_plan_guardado(
+                binario,
+                destino,
+                acciones=("delete",),
+                minimo=1,
+                root=root,
+            )
+            sha_del_plan = sha256_de_archivo(root.plan_guardado)
+            print(f"SHA-256 del plan destructivo de '{root.nombre}': {sha_del_plan}")
+            exigir_confirmacion_del_plan(
+                sha_del_plan, operacion=f"destruir el root '{root.nombre}'"
+            )
+            planes[root.nombre] = sha_del_plan
 
-        estado = terraform(
-            binario,
-            destino,
-            ["state", "list"],
-            silencioso=True,
-            codigos_aceptados=(0, 1),
-        )
-        restantes = [linea for linea in estado.stdout.splitlines() if linea.strip()]
-        if restantes:
-            raise ErrorDelLaboratorio(
-                f"el estado conserva {len(restantes)} recurso(s) tras el destroy"
+            terraform(
+                binario,
+                destino,
+                ["apply", "-input=false", str(root.plan_guardado)],
+                raiz=root.directorio,
             )
-        inventario = inventario_del_destino(destino)
-        mod_inventario.exigir_inventario_vacio(inventario)
-    print("destroy aplicado y ausencia demostrada contra las APIs")
+            restantes = estado_del_root(binario, destino, root)
+            outputs = salidas(binario, destino, root)
+            if restantes or outputs:
+                raise ErrorDelLaboratorio(
+                    f"el state de '{root.nombre}' conserva {len(restantes)} "
+                    f"recurso(s) y {len(outputs)} output(s) tras su destroy"
+                )
+            queda_medios = indice + 1 < len(secuencia_de_roots("destruir"))
+            exigir_ausencia_en_el_destino(
+                inventario_del_destino(destino),
+                bucket_de_medios_vivo=bucket if queda_medios else None,
+            )
+            print(
+                f"root '{root.nombre}' destruido; inventario coherente "
+                + ("(el bucket de medios sigue vivo, y es legitimo)" if queda_medios else "(nada vivo)")
+            )
+
+        exigir_ownership_disjunto(
+            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
+            estado_del_root(binario, destino, ROOT_DE_APLICACION),
+            exigir_bucket=False,
+        )
+    print(
+        "destroy aplicado en los dos roots, en orden inverso, y ausencia "
+        f"demostrada contra las APIs. Planes confirmados: {planes}"
+    )
     return 0
 
 
@@ -1941,7 +2541,7 @@ def comando_inspeccionar_sdk(argumentos: argparse.Namespace) -> int:
     with mod_destino.lock_de_escritura(lock_de_operacion):
         escribir_variables_del_destino(destino, artefacto.ruta)
         inicializar(binario, destino, solo_lectura=True)
-        valores = salidas(binario, destino)
+        valores = salidas(binario, destino, ROOT_DE_APLICACION)
         inspeccionar_con_sdk(
             destino,
             valores,

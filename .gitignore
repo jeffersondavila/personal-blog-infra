@@ -26,6 +26,8 @@ credentials.json
 # `init -lockfile=readonly` y falla ante cualquier discrepancia.
 !terraform/.terraform.lock.hcl
 !bootstrap/github-oidc/.terraform.lock.hcl
+!bootstrap/terraform-state/.terraform.lock.hcl
+!terraform-medios/.terraform.lock.hcl
 
 # Providers descargados y metadatos de trabajo: se reconstruyen con `init`.
 .terraform/
@@ -45,11 +47,14 @@ credentials.json
 *.gpg
 !*.tfvars.example
 !terraform/entornos/local/local.tfvars
+!terraform-medios/entornos/local/local.tfvars
 
 # Archivos que GENERA el lanzador: configuracion de una ejecucion concreta, no
 # fuente. El grafo de recursos es fuente versionada y no se genera.
 terraform/backend.generado.tf
 terraform/generado/
+terraform-medios/backend.generado.tf
+terraform-medios/generado/
 
 # Planes: binarios y su volcado JSON efimero. Un plan guardado puede revelar
 # valores del destino.

@@ -180,6 +180,34 @@ jobs:
           terraform -chdir=bootstrap/github-oidc test
           python3 -B -m unittest discover -s tests/oidc -v
 
+      # Offline only. This job has no AWS identity or deployment permissions.
+      - name: State bootstrap static validation and mocked plans
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch bootstrap/terraform-state/.terraform.lock.hcl >/dev/null
+          terraform -chdir=bootstrap/terraform-state fmt -check -recursive
+          terraform -chdir=bootstrap/terraform-state init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=bootstrap/terraform-state validate
+          terraform -chdir=bootstrap/terraform-state test
+          python3 -B -m unittest discover -s tests/terraform_state -v
+
+      # El root de medios tiene su propio state y su propio lifecycle
+      # (`Task/030`), asi que necesita su propio gate: sin el, un root
+      # versionado quedaria sin comprobar formato, lock ni validez. Offline
+      # igual que los de bootstrap: proveedores simulados, sin credenciales.
+      - name: Media storage root static validation and mocked plans
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch terraform-medios/.terraform.lock.hcl >/dev/null
+          terraform -chdir=terraform-medios fmt -check -recursive
+          terraform -chdir=terraform-medios init -backend=false -input=false -lockfile=readonly
+          git diff --exit-code -- terraform-medios/.terraform.lock.hcl
+          terraform -chdir=terraform-medios validate
+          terraform -chdir=terraform-medios test
+
       # Las guardas fail-closed usan entradas sinteticas. La sonda HTTP se prueba
       # contra un servidor efimero de loopback, sin AWS ni emulador en CI.
       #
