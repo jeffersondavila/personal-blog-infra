@@ -46,12 +46,13 @@ realiza estas comprobaciones:
 | --- | --- |
 | Destino | modo local, ocho endpoints loopback, región `us-east-1`, cuenta `000000000000` |
 | Perímetro | un solo binding `4566/tcp -> 127.0.0.1:4566` |
+| Roots *(desde `Task/030`, DEF-030-2)* | fmt/validate de los dos; medios solo se **lee**; ownership disjunto; aplicación sin ningún `aws_s3_*`; contrato nombre/ARN coherente con lo inyectado |
 | S3 | bucket, versionado/configuración y objeto de prueba; privacidad efectiva queda AWS-only |
 | SSM | cuatro parámetros legibles; `SecureString` local no demuestra cifrado |
 | IAM | rol y política creados; Floci no demuestra enforcement |
 | Lambda | runtime, handler, arquitectura, memoria, timeout y paquete |
 | API | `GET /health` HTTP 200 por API Gateway v2 → Lambda |
-| Runtime | ID de imagen observado igual al digest del manifiesto Task/024 |
+| Runtime | ID de imagen observado **igual** al esperado del manifiesto Task/024; la referencia que Docker entrega debe pertenecer a la lista **cerrada** de formas de ese runtime —etiqueta, referencia completa, `repositorio@digest`, digest o image ID— *(DEF-030-3, `Task/030`)* |
 | Logs | grupo presente y eventos recuperados sin secretos evidentes |
 | SDK oficial | `boto3` del ZIP encuentra S3, SSM, IAM, Lambda, API y Logs |
 

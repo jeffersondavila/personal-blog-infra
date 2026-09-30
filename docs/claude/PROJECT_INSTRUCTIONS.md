@@ -466,8 +466,17 @@ Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
 - **Terraform es la fuente de verdad** de la infraestructura cloud.
 - **Floci es el destino local; AWS real es el destino definitivo y la autoridad
   final.** Lo observado en Floci es hipótesis hasta validarse en AWS.
-- **No duplicar módulos local/cloud.** Una sola definición, un solo grafo de
-  recursos. Nada de recursos Terraform específicos de Floci.
+- **No duplicar módulos local/cloud.** Una sola definición de cada recurso y de
+  cada módulo. Nada de recursos Terraform específicos de Floci. **Precisado el
+  2026-09-28** (`Task/030 H-030-4-root-medios`): lo prohibido es la **divergencia**,
+  no la separación de *state ownership*. **Varios roots son legítimos** cuando
+  representan *lifecycles* distintos, siempre que la **topología de roots sea la
+  misma en local y en AWS**, que **ningún recurso quede administrado por dos
+  states** y que un root consuma lo que no administra por **contrato explícito**
+  —variables, no `terraform_remote_state`—. El almacenamiento de medios fue el
+  primer *lifecycle* extraído: vive en `terraform-medios` y reutiliza el módulo
+  `terraform/modulos/almacenamiento`. Detalle en
+  [`aws-local-parity.md`](../architecture/aws-local-parity.md) §4.1.1.
 - **No acoplar la aplicación a Floci.** Backend y herramientas usan AWS SDK /
   boto3, AWS CLI y el provider oficial `hashicorp/aws`.
 - **Las diferencias van a la matriz de paridad**, nunca a una bifurcación del
@@ -483,8 +492,11 @@ Decisión: [`ADR-006`](../adr/ADR-006-local-aws-parity-with-floci.md) —
   la ETAPA 10.
 
 **D-06 está Resuelta y Vigente desde Task/025 (2026-09-14)**: local protegido
-para laboratorio y S3 con lock nativo para AWS. Bucket pendiente de Task/030;
-EX-028-C7 acota el estado local temporal del bootstrap OIDC ([runbook](../runbooks/github-oidc-bootstrap.md)).
+para laboratorio y S3 con lock nativo para AWS. Bucket creado en Task/030 (H-030-1);
+los dos states de bootstrap operan ya en S3 con lock nativo y sin DynamoDB.
+**EX-028-C7 quedó Extinguida el 2026-09-28** en Task/030 H-030-2, tras probar
+convergencia, contención de locking y recovery por versión; los states locales son
+solo backups históricos inactivos ([runbook](../runbooks/github-oidc-bootstrap.md)).
 **D-01** conserva su resolución histórica; ADR-010 —Aceptada el 2026-09-27— sustituyó
 el modelo (sección 16). Task/029 prepara las decisiones RDS; Task/031 amplía el grafo.
 
@@ -501,8 +513,9 @@ Fuente completa y única: [PostgreSQL RDS](../architecture/production-postgresql
    Lambda conectada a VPC.
 2. SG restrictivos, TLS verificado, KMS/secretos y acceso SQL de mínimo privilegio.
 3. Task/029 decide/prepara sin provisionar ni exigir evidencia de recursos futuros.
-4. Task/030 materializa D-06 antes del primer apply de aplicación. EX-028-C7 no
-   se extiende a RDS. Task/031 provisiona red/RDS/config/observabilidad.
+4. Task/030 materializa D-06 antes del primer apply de aplicación; hecho, con
+   **EX-028-C7 Extinguida el 2026-09-28**, que por tanto nunca llegó a extenderse a
+   RDS. Task/031 provisiona red/RDS/config/observabilidad.
 5. Task/032 demuestra conectividad, S3, secretos y conexiones; Task/036 migra;
    Task/038 automatiza ese canal; Task/040 valida carga, recuperación y seguridad.
 6. **NAT Gateway sigue excluido** (sección 17): RDS no lo exige, y solo una necesidad

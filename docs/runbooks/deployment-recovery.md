@@ -63,6 +63,15 @@ se exige inventario, inspección `boto3`, runtime correcto y `/health` = 200.
 Si el plan no se puede explicar por la ausencia o el `apply` parcial observado,
 **ABORTAR**, incluso si la lista cerrada lo permitiría.
 
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), pendiente de su aprobación
+> final.** `recuperar` reconcilia primero **medios** y después **aplicación**. Si el bucket
+> falta, su root se crea —con su propio plan y su propia confirmación— **antes** de tocar
+> aplicación; si está sano, su plan sale sin cambios y se conserva **sin apply ni
+> confirmación**; un **reemplazo** de medios se rechaza antes del apply; un fallo en medios
+> impide continuar. El contrato nombre/ARN se obtiene antes del root de aplicación.
+> Evidencia: **pruebas controladas** de integración; no se provocó un incidente real
+> (§27.4 del [reporte de Task/030](../task-reports/TASK-030-report.md)).
+
 ## 4. Ensayo canónico completo
 
 Para certificación local —no para una operación humana de producción— existe un ciclo
@@ -83,10 +92,21 @@ de ella, sólo puede aparecer H-025-1 (`aws_ssm_parameter.tags_all`).
 
 ## 5. Estado perdido o incoherente
 
-En Windows, el estado local vive normalmente en
-`$env:LOCALAPPDATA/personal-blog-infra/estado/local/terraform.tfstate`; si se definió
+En Windows, el estado local vive normalmente bajo
+`$env:LOCALAPPDATA/personal-blog-infra/estado/local/`; si se definió
 `PERSONAL_BLOG_CACHE`, deriva de su directorio padre. Nunca está en Git ni dentro de
 Floci.
+
+> **Actualizado el 2026-09-28** por la enmienda `Task/030 H-030-4-root-medios`. Ahora hay
+> **dos estados, uno por root**, cada uno en su subdirectorio:
+>
+> - `estado/local/aplicacion/terraform.tfstate` — función, API, parámetros, logs y rol;
+> - `estado/local/medios/terraform.tfstate` — bucket de medios.
+>
+> Antes había un único `estado/local/terraform.tfstate`. Si encuentras esa ruta, es de una
+> ejecución anterior a la enmienda: **consérvala como evidencia y no la reutilices**. El
+> orden de recuperación es el de creación —medios primero, porque el grafo de aplicación
+> recibe su nombre y su ARN como entradas— y el de destrucción es el inverso.
 
 Si falta y las APIs aún muestran recursos:
 
@@ -96,8 +116,9 @@ Si falta y las APIs aún muestran recursos:
 4. restaura una copia válida del estado si existe;
 5. si no existe, abre una decisión humana para importar o retirar recursos uno a uno.
 
-No hay backend S3 que pueda restaurarse hoy: su bucket no existe y el bootstrap pertenece
-a una tarea futura.
+El laboratorio no usa backend S3: sus states son locales por diseño. *(Hasta `Task/030`
+esta frase decía que el bucket de state no existía; desde el 2026-09-28 existe, pero solo
+guarda states productivos, nunca los del laboratorio.)*
 
 ## 6. Cuando Floci no alcance paridad
 

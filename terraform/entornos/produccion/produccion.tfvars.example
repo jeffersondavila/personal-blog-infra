@@ -37,13 +37,15 @@ etiquetas = {
   Gestion  = "terraform"
 }
 
-# Los nombres de bucket son globales en AWS: el definitivo se elige en ETAPA 10.
-bucket_de_medios = "CAMBIAR-nombre-global-unico"
+# El bucket de medios YA NO es de este root (enmienda de Task/030): lo administra
+# `terraform-medios`, con su propio state. Aqui solo llegan su nombre y su ARN, y
+# el ARN lo transporta el orquestador desde las salidas de ese root.
+nombre_del_bucket_de_medios = "CAMBIAR-nombre-global-unico"
+# arn_del_bucket_de_medios se pasa con -var; no se fija en este archivo.
 
-# Origen real del sitio. Nunca el comodin. El dominio concreto es D-07.
-origenes_cors = ["https://CAMBIAR-dominio-del-sitio"]
-
-dias_para_expirar_versiones = 30
+# `origenes_cors` y `dias_para_expirar_versiones` se han retirado de este root:
+# viven en entornos/produccion de terraform-medios. D-08, resuelta para el MVP el
+# 2026-09-28, fija la lista de CORS **vacia** y 30 dias de versiones no actuales.
 
 # Dimensionamiento REAL, medido en AWS. Los valores del laboratorio no sirven:
 # el arranque en frio local no es comparable (D-12).

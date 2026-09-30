@@ -1,5 +1,24 @@
 # ROADMAP — Blog Personal
 
+**2026-09-29 — Task/030 Lista para validación: READY FOR FINAL APPROVAL.** Bucket de medios
+en su root propio, creado, verificado y **0/0/0 con drift 0**; **DEF-030-1**, **DEF-030-2** y
+**DEF-030-3** corregidos; laboratorio de dos roots ejecutado de verdad y retirado sin
+residuos; AWS final sin apply y sin drift. **No Aprobada**; `Task/031` sin iniciar.
+Avance sin cambios, **29/41 ≈ 71 %**. [Ficha](../tasks/TASK-030-deploy-amazon-s3.md).
+
+**2026-09-28 — Task/030 En progreso.** Abre ETAPA 10 (0/7 aprobadas); H-030-1
+autorizado, aplicado y verificado: siete recursos del bootstrap D-06, incluido BPA
+global. H-030-2 autorizado: el primer state se migró, se detuvo en H-030-4 por lineage/serial
+y quedó validado tras el refresh-only autorizado; **el state OIDC también está migrado
+y validado**, con convergencia sin drift y sin necesitar refresh-only. **Contención de
+locking y recovery demostrados**, locales retirados y **EX-028-C7 Extinguida** el
+2026-09-28: **H-030-2 COMPLETO**. **D-08 Resuelta para el MVP** ese mismo día, sin URL
+estable, sin CDN y sin servicio nuevo; **`B-016-1` sigue abierto**. **Enmienda de
+`Task/025`**: el bucket de medios pasa a un root propio, `terraform-medios`, que reutiliza el
+módulo compartido; la regla de paridad queda precisada. Resta el **apply** del S3 de medios.
+**29/41 ≈ 71 %**
+y ETAPA 09 **Completada 3/3**. [Ficha](../tasks/TASK-030-deploy-amazon-s3.md).
+
 **2026-09-21 — Task/028 En progreso: implementación local autorizada.** Base main
 `65fbf860a7ba47460eecad70431f0ba8f5bcfab1`; solo infra. Diseño de trabajo aceptado;
 AWS/GitHub y publicaciones requieren autorización posterior. Avance **27/41 ≈ 66 %**,
@@ -346,11 +365,11 @@ Estados oficiales: `Pendiente` · `En progreso` · `Lista para validación` · `
 | 06 | Integración Continua | 3 | **3** | **100 %** | **Completada** | 05 ✔ |
 | 07 | Validación Local | 1 | **1** | **100 %** | **Completada** | 06 ✔ |
 | 08 | Preparación Cloud + AWS Local Parity | 4 | **4** | **100 %** | **Completada** | 07 ✔ |
-| 09 | Cuentas y Seguridad Cloud | 3 | **2** | **≈ 67 %** | **En progreso** | 08 ✔ |
-| 10 | Despliegue Cloud | 7 | 0 | 0 % | Pendiente | 09 |
+| 09 | Cuentas y Seguridad Cloud | 3 | **3** | **100 %** | **Completada** | 08 ✔ |
+| 10 | Despliegue Cloud | 7 | 0 | 0 % | **En progreso** | 09 ✔ |
 | 11 | Automatización de Despliegues | 3 | 0 | 0 % | Pendiente | 10 |
 | 12 | Lanzamiento y Operación | 2 | 0 | 0 % | Pendiente | 11 |
-| | **Total** | **41** | **28** | **≈ 68 %** | | |
+| | **Total** | **41** | **29** | **≈ 71 %** | | |
 
 ---
 
@@ -693,7 +712,7 @@ otro modelo en `Task/039`. El hito añade «diseño RDS preparado», sin provisi
 
 | Tarea | Descripción | Repos | Depende de | Estado |
 | --- | --- | --- | --- | --- |
-| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. Valida `S3Storage` contra S3 real. Resuelve **D-08**. **Excepción D-06:** bootstrap independiente del bucket de estado y protecciones, migración OIDC y custodia/migración del estado del propio bootstrap; extinguir EX-028-C7 antes de aplicar aplicación. *(Enmienda `Task/028.2`: se retiran el **destino de los backups del VPS** y la **materialización de D-16**, que pierden objeto con los backups administrados de RDS. Una política de bucket con `aws:SourceVpce` no debe romper las URLs prefirmadas del navegador.)* | infra | 029 | Pendiente |
+| `Task/030-Desplegar-Amazon-S3` | Bucket. CORS. Políticas. URLs prefirmadas. Lifecycle. Object storage y medios. Valida `S3Storage` contra S3 real. Resuelve **D-08**. **Excepción D-06:** bootstrap independiente del bucket de estado y protecciones, migración OIDC y custodia/migración del estado del propio bootstrap; extinguir EX-028-C7 antes de aplicar aplicación. *(Enmienda `Task/028.2`: se retiran el **destino de los backups del VPS** y la **materialización de D-16**, que pierden objeto con los backups administrados de RDS. Una política de bucket con `aws:SourceVpce` no debe romper las URLs prefirmadas del navegador.)* | infra | 029 | **Lista para validación** (2026-09-29) — [ficha](../tasks/TASK-030-deploy-amazon-s3.md); **H-030-2 COMPLETO** con **EX-028-C7 Extinguida**; **D-08 Resuelta (MVP)**; S3 de medios aplicado y convergente; DEF-030-1/2/3 corregidos; **no Aprobada** |
 | `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` | **Nombre y alcance fijados por `Task/028.2`, aprobada el 2026-09-27** *(antes `Task/031-Desplegar-SSM-y-CloudWatch`, dependiente de 029)*. **SSM `SecureString`** para los secretos de la Lambda, con permisos IAM mínimos. **CloudWatch mínimo**: logs y métricas nativas, retención corta y explícita (**D-11**), alarmas mínimas. **Integración AWS → Grafana Cloud**: decide **e implementa** **D-20** con modelo IAM de solo lectura, previa verificación de **D-19**. **Solo AWS.** Además: **VPC, subnets, security groups y rutas o *endpoints*** elegidos en **D-22**; **RDS privado** con *parameter group*, KMS y credenciales según **D-23**; **acceso operativo privado** según **D-24**; **restore sintético y PITR** demostrados con integridad y tiempos (**D-10**); runbooks, inventarios y guardas ampliados antes de operar esos recursos; filas de la matriz de paridad. Se aplica con identidad operativa humana, mínima y autorizada; no con el rol de `Task/028` ni con el de CI de `Task/039` | infra | 030 | Pendiente |
 | `Task/032-Desplegar-AWS-Lambda` | Función FastAPI en Lambda por **artefacto ZIP**. IAM. **Configuración no secreta por variables de entorno y secretos desde SSM.** `DATABASE_URL` apuntando a **PgBouncer**, con **TLS** hacia el VPS. Límites (**D-12**). **Reserved Concurrency** coherente con el pool de PgBouncer. *Wiring* de `S3Storage`. **Logging compatible con la observabilidad elegida.** *(Enmienda `Task/028.2`: la Lambda **se conecta a la VPC** y `DATABASE_URL` apunta a **RDS** con **TLS verificado**; secretos entregados según **D-23**; *Reserved Concurrency*, pool y *timeouts* **medidos** frente a `max_connections`; latencia `Lambda ↔ RDS` medida; tráfico real a PostgreSQL, S3, SSM y logs **sin NAT**, según el diseño aprobado; señales de la Lambda con la política **D-11**.)* | infra; backend si **D-23** exige lector de secretos en *runtime* | 030, 031 | Pendiente |
 | `Task/033-Desplegar-API-Gateway` | **HTTP API**. Rutas hacia la Lambda. CORS. Throttling. Dominio del API si corresponde. *(Enmienda `Task/028.2`: logs y métricas del API con la política **D-11** fijada en `Task/031`.)* | infra | 032 | Pendiente |
@@ -791,7 +810,7 @@ identificadores.**
 | **Conexiones y RDS Proxy** (**D-12**) | `Task/029` — presupuesto preliminar | `Task/032` — medición y límites | `Task/040` — carga, saturación y recuperación |
 | **Operación administrada** *(sustituye a «Configuración del sistema operativo del VPS», **D-18** con cierre N/A (2026-09-27))* | `Task/029` — **D-22**: versión, ventana, *parameter group* | `Task/031` — runbooks y guardas · `Task/039` — plan en CI | `Task/040` |
 | **Credenciales CI multi-provider** | `Task/028` — **solo** GitHub → AWS | `Task/039` — **AWS y Cloudflare** | `Task/040` |
-| **Backend de estado D-06** | Task/025 — mecanismo resuelto; Task/028 — EX-028-C7 **solo** bootstrap OIDC, **no extensible** | Task/030 — bootstrap, migración OIDC y extinción de EX-028-C7 | Task/030 **antes** del primer `apply` de aplicación, incluido el de `Task/031`; Task/039 acceso mínimo desde CI |
+| **Backend de estado D-06** | Task/025 — mecanismo resuelto; Task/028 — EX-028-C7 **solo** bootstrap OIDC, **no extensible** | Task/030 — bootstrap, migración OIDC y **extinción de EX-028-C7: hecha el 2026-09-28** | **Cumplido** en Task/030 **antes** del primer `apply` de aplicación, incluido el de `Task/031`; Task/039 acceso mínimo desde CI |
 | **Observabilidad de producción** | `Task/031` — CloudWatch mínimo, señales RDS, **D-11** y **D-20** implementada | `Task/031` · `Task/032`/`Task/033` — señales de Lambda y API | `Task/040` |
 | **Costo de la observabilidad** (**D-19**) | `Task/027` — presupuesto (**D-13**) · `Task/029` — estimación | `Task/031` — verificación antes de integrar | `Task/041` |
 | **Identidades separadas** | `Task/028` — rol de validación **intacto y sin políticas** | Humana operativa (`Task/031`) · ejecución Lambda (`Task/032`) · despliegue backend (`Task/038`) · Terraform (`Task/039`) · integración Grafana (`Task/031`) | `Task/040` |

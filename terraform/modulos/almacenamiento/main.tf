@@ -29,6 +29,11 @@ resource "aws_s3_bucket" "medios" {
   # reconstruccion no se podria producir. Contra AWS real este valor se declara
   # en el tfvars del destino y NO tiene por que ser true.
   force_destroy = var.forzar_destruccion
+
+  # Etiquetas explicitas. `default_tags` del provider sigue aplicandose; esto lo
+  # complementa para que el etiquetado sea comprobable offline, donde un provider
+  # simulado no propaga `default_tags`. Por omision es `{}` y no cambia nada.
+  tags = var.etiquetas
 }
 
 # El bucket es privado. No se usa ACL: `BucketOwnerEnforced` las desactiva, que

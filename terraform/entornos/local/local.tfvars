@@ -22,15 +22,22 @@ etiquetas = {
   Tarea    = "Task-025"
 }
 
-# --- S3 --------------------------------------------------------------------
-
-bucket_de_medios = "blog-lab-medios"
-
-# Origen del entorno local del blog: Traefik publica sitio y API en 8081
-# (.env.example, TRAEFIK_HTTP_HOST_PORT). Nunca el comodin.
-origenes_cors = ["http://localhost:8081"]
-
-dias_para_expirar_versiones = 30
+# --- S3: bucket RECIBIDO del root de almacenamiento ------------------------
+#
+# Enmienda de Task/030: el bucket lo administra `terraform-medios`, con su propio
+# tfvars y su propio state. Aqui solo llega su nombre.
+#
+# `arn_del_bucket_de_medios` NO se fija aqui: lo pasa el lanzador con -var, leido
+# de las salidas del root de almacenamiento despues de aplicarlo. Fijarlo en el
+# archivo permitiria que quedara desincronizado del bucket real.
+#
+# `origenes_cors` y `dias_para_expirar_versiones` se han retirado de este root:
+# ahora viven en entornos/local/local.tfvars de terraform-medios.
+#
+# `nombre_del_bucket_de_medios` tampoco se fija aqui: el lanzador lo escribe en
+# `generado/destino.tfvars.json` junto al ARN, leidos los dos de las salidas del
+# root de medios. Una sola fuente de verdad evita que este archivo quede
+# desincronizado del bucket que existe de verdad.
 
 # --- Lambda ----------------------------------------------------------------
 #

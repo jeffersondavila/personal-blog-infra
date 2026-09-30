@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | **Número** | 10 |
-| **Estado** | Pendiente |
+| **Estado** | En progreso — Task/030 **Lista para validación** (2026-09-29); 0/7 aprobadas |
 | **Dependencias** | [ETAPA 09](STAGE-09-cloud-accounts.md) |
 | **Tareas** | 7 |
 | **Aprobadas** | 0 |
@@ -11,6 +11,30 @@
 | **Hito que completa** | Blog en línea y accesible por dominio propio. |
 
 ---
+
+**Apertura 2026-09-27:** [Task/030](../tasks/TASK-030-deploy-amazon-s3.md) prepara
+el bootstrap D-06. H-030-4 autoriza solo diseño/plan del BPA **global de cuenta**,
+además del de bucket. **2026-09-28:** H-030-1 autorizado, aplicado y verificado
+(siete recursos). **H-030-4-refresh-apply completado**: primer bootstrap S3
+validado tras refresh-only autorizado y convergencia 0/0/0, drift 0. **El state OIDC
+también quedó migrado y validado**, sin refresh-only, con drift 0 e IAM real intacto.
+**Contención del locking nativo y recovery por versión demostrados** sobre las dos
+keys, sin force-unlock y sin tocar nada autoritativo. Después se retiraron los states
+locales como fuentes operativas y **EX-028-C7 quedó Extinguida el 2026-09-28**:
+**H-030-2 COMPLETO**, con S3 como única fuente operacional. **D-08 quedó Resuelta para el
+MVP** ese día: privado, presigned dinámico, sin URL estable ni CDN, `og:image` estático y
+**cero servicios nuevos**; **`B-016-1` sigue abierto**. Y una **enmienda al diseño de
+`Task/025`**: el almacenamiento de medios pasa a un root propio, `terraform-medios`, con su
+propio state, reutilizando el módulo compartido; la regla de paridad queda precisada
+([§4.1.1](../architecture/aws-local-parity.md)). *(Hasta aquí, el estado del 2026-09-28.)*
+
+**2026-09-29 — Task/030 Lista para validación, READY FOR FINAL APPROVAL.** El bucket de
+medios está creado en su root propio, verificado contra AWS y convergente **0/0/0 con drift
+0**; `S3Storage` funciona contra S3 real tras corregir **DEF-030-1** bajo test-first; los
+subcomandos del laboratorio operan sobre los dos roots (**DEF-030-2**) y la identidad del
+runtime se verifica sin relajar el image ID (**DEF-030-3**), con `crear`, `validar` y
+`destruir` ejecutados de verdad. La tarea **no** está aprobada y **0/7** sigue siendo el
+contador de la etapa. [Reporte §27](../task-reports/TASK-030-report.md).
 
 ## Objetivo
 
@@ -46,7 +70,9 @@ cifrado, public access block, bloqueo nativo `use_lockfile=true`, sin DynamoDB y
 separado de medios/backups. Debe migrar `bootstrap/github-oidc/terraform.tfstate`
 con `terraform init -migrate-state` y resolver la custodia/migración del estado del
 propio bootstrap del bucket, con recuperación probada. La ficha Task/030 recogerá
-estos entregables al abrirse. EX-028-C7 termina antes del primer apply de aplicación.
+estos entregables al abrirse. EX-028-C7 debía terminar antes del primer apply de
+aplicación: **terminó el 2026-09-28**, **Extinguida** en H-030-2, sin que se haya
+ejecutado ningún apply de aplicación.
 *(Precisión de `Task/028.2`: la **custodia** de EX-028-C7 quedó cerrada en `Task/028`; la
 **excepción** sigue acotada al root del bootstrap OIDC y **no se extiende a RDS** ni a
 ningún recurso de aplicación. Por eso `Task/031` depende de `Task/030`.)*
@@ -102,6 +128,9 @@ laboratorio se corrige.
 ## Criterios de salida de la etapa
 
 - [ ] El bucket S3 es privado; el acceso a archivos usa URLs prefirmadas.
+      *(Evidencia de `Task/030`, Lista para validación: BPA de cuenta y bucket, policy sin
+      ningún `Allow` e `IsPublic=false`, prefirmada GET **HTTP 200** contra el bucket real.
+      Se marca al aprobarse la tarea.)*
 - [ ] Toda la configuración vive en SSM Parameter Store, nunca en el código.
 - [ ] Los logs llegan a CloudWatch con retención limitada y explícita, y el alcance de
       CloudWatch se mantiene **mínimo**: sin *dashboards* elaborados ni funcionalidades no
@@ -117,11 +146,13 @@ laboratorio se corrige.
 - [ ] El dominio resuelve por HTTPS con certificado válido.
 - [ ] Existe contenido real publicado y visible en el sitio.
 - [ ] El costo real observado coincide con lo estimado.
-- [ ] El **destino de backups del VPS** existe en S3, con su política, su retención y el
-      **principal de acceso** derivado de **D-16**, sin credenciales versionadas.
-      *(Pierde objeto con la enmienda; lo sustituyen los criterios de RDS de más
-      abajo.)*
+> **Criterio histórico sustituido por ADR-010; no es un gate actual:** el destino
+> de backups del VPS existía en el alcance previsto de S3, con política, retención
+> y principal derivado de D-16. Lo sustituyen los criterios RDS de abajo;
+> Task/030 no crea ese destino ni esa identidad.
 - [ ] `S3Storage` —cuyo código entrega `Task/010`— **funciona contra S3 real**.
+      *(Evidencia de `Task/030`, Lista para validación: **14/14** contra el bucket real tras
+      DEF-030-1. Se marca al aprobarse la tarea.)*
 - [ ] La **`Reserved Concurrency`** de la Lambda es coherente con el pool de PgBouncer y con
       `max_connections`, según los números derivados en `Task/029`. *(Enmienda:
       coherente con el pool por proceso y `max_connections` de RDS, **medidos** en
@@ -151,7 +182,11 @@ Criterios **fijados por `Task/028.2`** (2026-09-27) para la capa de datos RDS:
 - [ ] Bucket de estado dedicado protegido, `use_lockfile=true`, sin DynamoDB.
 - [ ] Estados OIDC y del bootstrap del bucket bajo custodia definida y recuperable;
       migración verificada por lineage/serial/recursos y plan sin cambios.
-- [ ] EX-028-C7 extinguida antes del primer apply de infraestructura de aplicación.
+      *(Evidencia de `Task/030` para estos dos criterios, Lista para validación: tres keys
+      en S3 con lock nativo y sin DynamoDB, locking por contención y recovery por versión
+      demostrados, y los tres states intactos en el AWS final del 2026-09-29. Se marcan al
+      aprobarse la tarea.)*
+- [x] **EX-028-C7 Extinguida** el 2026-09-28, antes de cualquier apply de infraestructura de aplicación.
 - [ ] La **matriz de paridad** queda actualizada con evidencia real de AWS, recurso a
       recurso y con la clasificación de diferencias.
 

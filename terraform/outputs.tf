@@ -31,9 +31,12 @@ output "hash_del_codigo_desplegado" {
   description = "Hash del artefacto efectivamente desplegado, registrado como evidencia."
 }
 
+# El bucket lo administra `../terraform-medios`. Esta salida se conserva porque el
+# verificador del laboratorio la consume, pero ahora es un ECO de la entrada
+# recibida, no la propiedad de un recurso de este state.
 output "bucket_de_medios" {
-  value       = module.almacenamiento.nombre
-  description = "Nombre del bucket de medios."
+  value       = var.nombre_del_bucket_de_medios
+  description = "Nombre del bucket de medios, recibido del root de almacenamiento."
 }
 
 output "grupo_de_logs" {

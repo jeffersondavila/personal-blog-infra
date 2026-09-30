@@ -429,15 +429,19 @@ control»**. La garantía exacta, y la única que puede afirmarse, es:
 Está fijado por prueba en `tests/integration/test_acceso_publico_a_medios.py`,
 que inspecciona el JSON entero tras retirar los enlaces firmados.
 
-### Qué sigue abierto — **D-08**, `Task/030`
+### D-08 — **Resuelta para el MVP** el 2026-09-28, `Task/030`
 
-| Pregunta | Propietario |
+| Pregunta | Respuesta del MVP (2026-09-28, `H-030-D08-MVP`) |
 | --- | --- |
-| Si existe además una URL **estable** para los medios del contenido publicado, y por qué vía | `Task/030` |
-| **Semántica de caché** de esas URLs y su compatibilidad con un CDN | `Task/030` |
-| **Valor productivo** del TTL (aquí es configuración: `BLOG_STORAGE_ACCESS_TTL_SECONDS`, 900 s por defecto) | `Task/030` |
-| Política del bucket, CORS y *lifecycle* | `Task/030` |
-| Qué URL usa `og:image` | **Respondido por `Task/016`** (2026-09-06, **Vigente**): una **imagen estática del propio sitio**, versionada en `public/`. Es la única opción estable y no expirable que no decide nada de lo que D-08 reserva. El `og:image` **personalizado por contenido** sigue bloqueado por D-08 |
+| Si existe además una URL **estable** para los medios del contenido publicado, y por qué vía | **No existe.** Borrador y publicado se sirven igual: presigned GET generado al servir. Ninguna vía estable se introduce en el MVP |
+| **Semántica de caché** de esas URLs y su compatibilidad con un CDN | La URL **cambia en cada respuesta** y por tanto **no es cacheable** por intermediarios. **No se introduce CDN**. Se acepta como coste del MVP |
+| **Valor productivo** del TTL | **900 s.** Sigue siendo configuración; el rango admite hasta 604800 s, pero desde Lambda ese valor es **inalcanzable**: una prefirmada caduca con la credencial que la firmó |
+| Política del bucket, CORS y *lifecycle* | Privado, BPA, `BucketOwnerEnforced`, versionado, SSE-S3, *deny* de transporte no TLS. **CORS con lista vacía**, porque el consumo es `<img src>`. *Lifecycle*: versiones no actuales 30 días y *multipart* abortado a 7 |
+| Qué URL usa `og:image` | **La imagen estática del propio sitio** (D-016-A, `Task/016`), confirmada por el MVP. El `og:image` **por contenido** sigue **bloqueado: `B-016-1` permanece abierto** como limitación de producto aceptada |
+
+**El contrato público no cambia.** `access_url` y `thumbnail_access_url` conservan su
+naturaleza temporal, `object_key` sigue fuera del contrato y `access_expires_at` sigue sin
+exponerse. La resolución del MVP **no añade, retira ni renombra ningún campo**.
 
 Por eso **no** se expone `access_expires_at`: declarar cuándo caduca el enlace es
 describir su semántica de caché, que es literalmente una de las preguntas de

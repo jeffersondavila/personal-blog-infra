@@ -82,6 +82,14 @@ El gate exige:
 Si el ZIP anterior produce el mismo código y el plan no actualiza Lambda, el comando
 aborta: no se declarará un rollback inexistente.
 
+> **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), pendiente de su aprobación
+> final.** El rollback **solo lee** el root de medios: un bucket sano no se reaplica ni se
+> recrea, y su nombre y ARN se inyectan al root de aplicación, que es el único que recibe
+> el plan `update`. Un plan que no actualice `aws_lambda_function` —sin cambios, o
+> actualizando otro recurso— se rechaza **sin aplicar ningún root**. Evidencia: **pruebas
+> controladas** de integración; no se provocó un rollback real (§27.4 del
+> [reporte de Task/030](../task-reports/TASK-030-report.md)).
+
 ## 5. Limpieza del worktree
 
 Sólo después de validar y comprobar que el worktree no tiene cambios rastreados:

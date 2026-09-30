@@ -1,0 +1,16 @@
+# Plantilla del backend remoto del root de medios. SIN CREDENCIALES.
+#
+# El TIPO de backend no se puede cambiar con -backend-config, asi que el bloque
+# `backend "s3" {}` se genera en `backend.generado.tf` antes de `init`; este
+# archivo aporta solo sus AJUSTES.
+#
+# La key es dedicada y NO es ninguna de las dos del bootstrap:
+#   bootstrap/terraform-state/terraform.tfstate   <- no tocar
+#   bootstrap/github-oidc/terraform.tfstate       <- no tocar
+bucket               = "REPLACE_WITH_REVIEWED_STATE_BUCKET"
+key                  = "application/media/terraform.tfstate"
+region               = "us-east-2"
+encrypt              = true
+use_lockfile         = true
+allowed_account_ids  = ["REPLACE_WITH_VERIFIED_ACCOUNT"]
+# profile lo aporta la operacion humana; las credenciales nunca viven aqui.
