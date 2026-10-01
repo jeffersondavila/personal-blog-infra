@@ -5,8 +5,10 @@ como **`Task/030 — READY FOR FINAL APPROVAL`** el mismo día. Bucket de
 medios creado, verificado y convergente —**0/0/0, `resource_drift = 0`**—; DEF-030-1,
 DEF-030-2 y DEF-030-3 corregidos; ciclo real, `crear`, `validar` y `destruir` reales sobre los
 dos roots; laboratorio retirado sin residuos; contexto productivo de `terraform-medios`
-restaurado sin migrar ningún state; gates en verde. Cierre técnico en §27; aprobación y
-cierre Git en §28.
+restaurado sin migrar ningún state; gates en verde. El entregable final del backend incluye
+también la reparación de CI MinIO/GHCR y urllib3 **2.8.0** con excepción de índice por
+paquete: **6 archivos, +222 / −14**. Checkpoint técnico en §27; aprobación e inventario
+final en §28.
 
 *Cabecera anterior, conservada como historia:*
 **En progreso. H-030-1 completado; H-030-4-refresh-apply completado y verificado.**
@@ -3311,8 +3313,25 @@ repositorios afectados; las validaciones de §27.8 terminaron en verde; no hay c
 mezclados; `main` y `dev` estaban normalizados —cero commits de `main` ausentes en `dev` y
 mismo contenido— en infra y en backend.
 
-**Repositorios afectados:** `personal-blog-infra` —toda la tarea— y `personal-blog-backend`
-—DEF-030-1, dos archivos—. `personal-blog-frontend` **sin rama**, intacto en `main`.
+**Repositorios afectados:** `personal-blog-infra` y `personal-blog-backend`.
+`personal-blog-frontend` no forma parte del entregable.
+
+**Entregable final del backend: 6 archivos, +222 / −14.** Incluye DEF-030-1, la reparación
+de CI MinIO/GHCR y urllib3 **2.8.0** con excepción de índice por paquete:
+
+| Archivo del backend | Resultado durable |
+| --- | --- |
+| `app/shared/storage/s3.py` | Prefirmadas con anfitrión regional (DEF-030-1) |
+| `tests/unit/test_adaptadores_de_almacenamiento.py` | Regresión de DEF-030-1 |
+| `.github/workflows/ci-backend.yml` | MinIO desde el espejo privado de GHCR, autenticado mediante `GHCR_MINIO_READ_TOKEN`; manifiesto `linux/amd64` preservado del índice original, misma release y mismos bytes ejecutados |
+| `scripts/generar-locks.sh` | Fecha global congelada; excepción temporal de urllib3 mediante `--exclude-newer-package` y `--upgrade-package` |
+| `requirements.lock` | urllib3 2.8.0 en el lock de ejecución |
+| `requirements-dev.lock` | urllib3 2.8.0 en el lock de desarrollo |
+
+Las cifras **2 archivos, +145 / −4** de §§25–27 describen los checkpoints de DEF-030-1
+anteriores a esas dos correcciones adicionales; se preservan como historia y no
+representan el inventario final. El consumo actual de MinIO queda descrito en
+[STAGE-06](../stages/STAGE-06-continuous-integration.md#estado-actual-de-minio-en-ci-backend).
 
 **Lo que la aprobación promueve:**
 
@@ -3329,10 +3348,16 @@ mismo contenido— en infra y en backend.
 **Avance:** **30/41 ≈ 73 %**. **ETAPA 10: 1/7 ≈ 14 %**, con cuatro criterios de salida
 marcados en [STAGE-10](../stages/STAGE-10-cloud-deployment.md). **Deuda que sigue viva:**
 `B-016-1`; la reanudación de un `destruir` interrumpido entre roots (§27.9); la *allowlist*
-de las dos *fixtures* del backend. **La aprobación no crea recursos**: no se ejecutó ningún
-apply tras ella.
+de las dos *fixtures* del backend; y **DT-030-URLLIB3**, excepción temporal de índice por
+paquete, con propietario y criterio de retiro en
+[NFR §7.1](../architecture/non-functional-requirements.md#71-deuda-viva-dt-030-urllib3).
+**La aprobación no crea recursos**: no se ejecutó ningún apply tras ella.
 
-**Flujo Git**, en cada repositorio afectado, según
+**Registro histórico del primer cierre tras la aprobación del 2026-09-29.** La lista
+siguiente describe aquel checkpoint; la referencia del backend identifica únicamente
+DEF-030-1, no el entregable final de seis archivos descrito arriba.
+
+**Flujo Git de aquel checkpoint**, en cada repositorio afectado, según
 [PROJECT_INSTRUCTIONS §8](../claude/PROJECT_INSTRUCTIONS.md):
 
 1. commit del entregable validado —infra `160a111`, backend `cc36529`— y, en infra, un segundo

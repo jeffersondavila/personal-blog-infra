@@ -6,7 +6,7 @@
 | **Nombre** | Desplegar Amazon S3 |
 | **Etapa** | ETAPA 10 — Despliegue Cloud |
 | **Estado** | **Aprobada** — 2026-09-29, mediante `approved: Task/030-Desplegar-Amazon-S3`. Bucket de medios **creado, verificado y convergente** (0/0/0, drift 0); **DEF-030-1**, **DEF-030-2** y **DEF-030-3 corregidos**; `crear`, `validar` y `destruir` **reales** sobre los dos roots; laboratorio retirado sin residuos; AWS final **0/0/0, drift 0** |
-| **Repositorios involucrados** | `personal-blog-infra` y `personal-blog-backend` —ampliación explícita y acotada para DEF-030-1—; frontend **intacto** |
+| **Repositorios involucrados** | `personal-blog-infra` y `personal-blog-backend` —DEF-030-1, reparación de CI MinIO/GHCR y urllib3 2.8.0 con excepción de índice por paquete—; frontend **intacto** |
 | **Dependencias** | Task/029 aprobada; Task/029.1 aprobada e integrada |
 | **Rama** | `Task/030-Desplegar-Amazon-S3` |
 | **Rama base** | `main` actualizado y limpio; nunca `dev` |
@@ -203,7 +203,10 @@ H-030-2 modifica: su backend pasa de `local` a `s3`. La enmienda de H-030-4 aña
 tfvars y el módulo de almacenamiento— más la orquestación del laboratorio en
 `scripts/laboratorio/laboratorio.py`. DEF-030-2 y DEF-030-3 tocan `laboratorio.py` y
 `runtime.py` y añaden dos archivos de prueba en `tests/laboratorio/`. En el **backend**,
-DEF-030-1 modifica exactamente dos archivos, **+145 / −4**. Inventario exacto en el reporte.
+el entregable final comprende **6 archivos, +222 / −14**: DEF-030-1, reparación de CI
+MinIO/GHCR y urllib3 **2.8.0** con excepción de índice por paquete. Los **2 archivos,
++145 / −4** corresponden solo al checkpoint de DEF-030-1, preservado en §§25–27 del
+reporte; el inventario final está en §28.
 
 ## 15. Resultado de pruebas
 
@@ -257,6 +260,12 @@ Quedan, con propietario:
   el [runbook](../runbooks/deployment-destroy.md); deuda del herramental del laboratorio.
 - Las dos fixtures sintéticas del backend que Gitleaks reconoce siguen sin *allowlist*
   (§26.9): observación, no hallazgo de seguridad.
+- **DT-030-URLLIB3 — abierta**, propiedad del mantenimiento de dependencias del backend:
+  `FECHA_DEL_INDICE` global sigue congelada y urllib3 usa temporalmente
+  `--exclude-newer-package` junto con `--upgrade-package`. Se retira cuando la fecha
+  global permita resolver naturalmente urllib3 **2.8.0 o superior compatible**, con
+  ambos locks reproducibles y los gates existentes en verde. Criterio completo en
+  [NFR §7.1](../architecture/non-functional-requirements.md#71-deuda-viva-dt-030-urllib3).
 
 H-030-2 ya no deja deuda:
 migración, convergencia, locking por contención, recovery, retirada de locales y

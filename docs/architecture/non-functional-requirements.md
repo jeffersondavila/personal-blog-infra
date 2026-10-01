@@ -111,6 +111,18 @@ asunto distinto, con sus propios criterios de salida y seguimiento en
 [Task020.3](../task-reports/TASK-020.3-report.md). No se
 añaden a S-09 criterios ni propietarios que su definición no declare.
 
+**Estado actual de MinIO en CI Backend — resultado final de Task/030.** CI Backend ya
+no obtiene MinIO de Quay: usa el **espejo privado de GHCR**
+`ghcr.io/jeffersondavila/personal-blog-minio-base`, fijado por digest y autenticado mediante
+**`GHCR_MINIO_READ_TOKEN`**. El runner **`ubuntu-24.04`, `linux/amd64`** ejecuta el
+**manifiesto amd64 preservado del índice original**: misma release
+`RELEASE.2025-09-07T16-13-09Z` y **mismos bytes ejecutados**. El espejo no contiene el índice
+multi-arquitectura completo; cambiar de arquitectura exige disponer de su manifiesto.
+La historia de **Task/020.3** y **H-028-1** se conserva; las observaciones de Quay que
+siguen corresponden a sus checkpoints anteriores. Detalle en
+[STAGE-06](../stages/STAGE-06-continuous-integration.md#estado-actual-de-minio-en-ci-backend).
+Este cambio de origen no redefine S-09 ni su política.
+
 **Mantenimiento de reproducibilidad de CI Backend — 2026-09-12.** Task020
 permanece aprobada. El run `34491446991` **attempt 1** fue success el
 2026-09-10; **attempt 2**, mismo SHA `5fedcb3`, falló el 2026-09-12 por acceso
@@ -380,6 +392,32 @@ dice nada de AWS, y esa validación sigue siendo de la ETAPA 10.
 | M-04 | **Migraciones reversibles**: toda migración aplica y revierte. | `Task/005`, `Task/008` |
 | M-05 | **Documentación actualizada** como parte de la Definition of Done. | Todas |
 | M-06 | **Sin capas ni abstracciones vacías** (ver [ADR-004](../adr/ADR-004-modular-monolith.md)). | Todas |
+
+### 7.1 Deuda viva DT-030-URLLIB3
+
+**Estado: abierta. Propietario: mantenimiento de dependencias del backend.** El resultado
+final de Task/030 usa urllib3 **2.8.0** en ambos locks. La **`FECHA_DEL_INDICE` global
+permanece congelada en `2026-09-10T00:00:00Z`**; únicamente urllib3 tiene una excepción
+temporal, `FECHA_DE_URLLIB3='2026-09-16T00:00:00Z'`. El generador combina
+`--exclude-newer-package "urllib3=$FECHA_DE_URLLIB3"` con `--upgrade-package urllib3`:
+la primera opción admite esa versión fuera de la fecha global y la segunda evita
+conservar por preferencia una versión antigua de un lock previo. El resto del índice
+continúa limitado por `--exclude-newer "$FECHA_DEL_INDICE"`.
+
+**Criterio de retiro:** en un mantenimiento autorizado de dependencias, avanzar la fecha
+global lo suficiente para que incluya naturalmente urllib3 **2.8.0 o una versión superior
+compatible**. Retirar entonces `FECHA_DE_URLLIB3` y las dos opciones específicas de
+urllib3 de ambas invocaciones del generador. La deuda solo se cierra cuando:
+
+1. Ambos locks resuelven urllib3 **≥ 2.8.0 compatible** usando únicamente la fecha global,
+   sin excepción por paquete ni actualización forzada específica de urllib3.
+2. La regeneración con los locks existentes y desde cero produce el mismo resultado;
+   el gate existente de desfase de locks pasa y se revisa el diff de dependencias.
+3. Los gates existentes del backend, incluidas regresión y auditoría de ambos locks,
+   terminan en verde.
+
+Mover solo la fecha o borrar solo una opción no cumple el criterio. **Task/030.2 documenta
+esta deuda; no modifica el generador, las fechas ni los locks**, y no inicia Task/031.
 
 ---
 
