@@ -5,7 +5,7 @@
 | **Identificador** | Task/030.2 |
 | **Nombre** | Corregir drift documental post-merge |
 | **Etapa** | Mantenimiento documental, **fuera de las 41 tareas** |
-| **Estado** | **Aprobada** — 2026-10-01 |
+| **Estado** | **Aprobada** — 2026-10-01; enmienda previa al merge **H-030.2-CI-Alpine-repair** (§21) |
 | **Repositorio modificado** | `personal-blog-infra` |
 | **Dependencias** | Task/030 Aprobada; resultado final disponible para contrastar |
 | **Base** | `main` actualizado y limpio, conforme a WORKFLOW §2.1 |
@@ -42,7 +42,8 @@ temporal de índice de urllib3.
 ## 4. Fuera del alcance
 
 Backend funcional, frontend, AWS, Terraform apply, cambios de dependencias, scripts,
-locks y CI funcional. Task/030 no se reabre y Task/031 no se inicia.
+locks y CI funcional. Task/030 no se reabre y Task/031 no se inicia. La enmienda de §21
+es la única excepción, autorizada después de la aprobación y acotada a dos Dockerfiles.
 
 ## 5. Entregables
 
@@ -111,7 +112,9 @@ Task/030, su reporte, STAGE-06, NFR, STATUS y ROADMAP; ficha y reporte de este m
 ## 14. Archivos modificados
 
 Inventario completo en [reporte §4](../task-reports/TASK-030.2-report.md#4-archivos-del-entregable).
-STAGE-10 solo se verifica; no necesita cambios.
+STAGE-10 solo se verifica; no necesita cambios. La enmienda de §21 añade
+`docker/postgres/Dockerfile` y `docker/traefik/Dockerfile`
+([reporte §7](../task-reports/TASK-030.2-report.md#7-enmienda-h-0302-ci-alpine-repair)).
 
 ## 15. Resultado de pruebas
 
@@ -152,3 +155,25 @@ altera el avance de las 41 tareas.
 `approved: Task/030.2-Corregir-Drift-Documental-Post-Merge`, conforme a
 [WORKFLOW §3](../project-management/WORKFLOW.md). La aprobación mantiene el carácter
 documental del mantenimiento y no autoriza iniciar Task/031.
+
+## 21. Enmienda post-aprobación H-030.2-CI-Alpine-repair
+
+Tras la aprobación y antes del merge, CI Infra falló en el PR al construir la imagen de
+PostgreSQL: el pin exacto `libcrypto3`/`libssl3` **3.5.8-r0** ya no era seleccionable en el
+índice de Alpine v3.24, que avanzó a **3.5.9-r0** por una actualización de seguridad. El
+workflow, ambos Dockerfiles y `.env.example` —todo lo que interviene en ese build— eran
+idénticos en `main`: deriva externa, no regresión del cambio documental.
+
+Autorización: `authorize: Task/030.2 H-030.2-CI-Alpine-repair`, en la misma rama y el mismo
+PR, limitada a restaurar la reproducibilidad de las imágenes de PostgreSQL y Traefik.
+
+- [x] Comparar con evidencia conservar 3.5.8-r0 frente a adoptar 3.5.9-r0.
+- [x] Actualizar el pin en `docker/postgres/Dockerfile` y `docker/traefik/Dockerfile`.
+- [x] Builds reales sin caché, versiones dentro de las imágenes, arranque endurecido y S-09.
+- [x] Repetir los gates infra completos y el gate documental.
+- [x] Registro durable en NFR, STATUS, ROADMAP, esta ficha y el reporte.
+
+Fuera de la enmienda: AWS, Terraform apply, backend, frontend, MinIO, workflow, baseline,
+`.env.example` y scripts. Comparación y resultados en el
+[reporte §7](../task-reports/TASK-030.2-report.md#7-enmienda-h-0302-ci-alpine-repair).
+La aprobación de §20 se conserva; la enmienda no la sustituye ni inicia Task/031.

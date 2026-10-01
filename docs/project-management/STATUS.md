@@ -5,7 +5,11 @@
 **fuera de las 41 tareas**: entregable final de Task/030 y origen actual de
 MinIO en CI Backend reconciliados; deuda **DT-030-URLLIB3** explícita. Bajo
 **H-030.2-counter-fix**, la fila canónica de Task/029 refleja **Aprobada (2026-09-27)**,
-con su historia preservada. Task/030 permanece **Aprobada**. Gates en verde y avance
+con su historia preservada. Antes del merge, la enmienda **H-030.2-CI-Alpine-repair**
+llevó `libcrypto3`/`libssl3` a **3.5.9-r0** en las imágenes de PostgreSQL y Traefik, tras
+una deriva externa del índice de Alpine v3.24 que rompía CI Infra
+([NFR](../architecture/non-functional-requirements.md#1-seguridad)).
+Task/030 permanece **Aprobada**. Gates en verde y avance
 sin cambios: **30/41 ≈ 73 %**, **11 pendientes**; ETAPA 10 **1/7 ≈ 14 %**;
 **Task/031 Pendiente, no iniciada**.
 [Ficha](../tasks/TASK-030.2-correct-post-merge-documentation-drift.md) ·
@@ -641,7 +645,7 @@ Ninguna prueba local acredita federación ni autorización real.
 
 | Campo | Valor |
 | --- | --- |
-| **Tarea actual** | **Ninguna en curso.** Task/030.2 **Aprobada** el 2026-10-01, mantenimiento documental fuera de las 41. `Task/030` permanece **Aprobada**; `Task/031` **Pendiente, no iniciada**. |
+| **Tarea actual** | **Ninguna en curso.** Task/030.2 **Aprobada** el 2026-10-01, mantenimiento documental fuera de las 41, con la enmienda de CI **H-030.2-CI-Alpine-repair** previa al merge. `Task/030` permanece **Aprobada**; `Task/031` **Pendiente, no iniciada**. |
 | **Deuda de índice urllib3** | **DT-030-URLLIB3 — abierta**. Fecha global congelada, excepción temporal por paquete con `--exclude-newer-package` y `--upgrade-package`. Propietario: mantenimiento de dependencias del backend. Retirar cuando la fecha global admita naturalmente urllib3 **2.8.0 o superior compatible**, con ambos locks reproducibles sin la excepción y gates existentes en verde. [Criterio completo](../architecture/non-functional-requirements.md#71-deuda-viva-dt-030-urllib3). |
 | **Etapa actual** | **ETAPA 10 — Despliegue Cloud — En progreso, 1/7 aprobadas (≈ 14 %)** tras `Task/030`. ETAPA 09 **Completada 3/3** por Task/029. Avance global **30/41 ≈ 73 %** |
 | **Mantenimiento anterior (historia)** | Task/027.1 aprobado el 2026-09-21; consolidación en Task/027 y cierre postmerge comunicados por el usuario. No cuenta entre las 41. Git/GitHub son la fuente viva. |
