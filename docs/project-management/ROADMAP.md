@@ -4,8 +4,8 @@
 `approved: Task/030.2-Corregir-Drift-Documental-Post-Merge`, mantenimiento documental
 **fuera de las 41**. Resultado final de Task/030 reconciliado, deuda temporal de urllib3 explícita y fila
 canónica de Task/029 corregida bajo **H-030.2-counter-fix**. Antes del merge,
-**H-030.2-CI-Alpine-repair** subió `libcrypto3`/`libssl3` a **3.5.9-r0** en las imágenes de
-PostgreSQL y Traefik para restaurar CI Infra. Task/030 sigue **Aprobada**.
+**H-030.2-CI-Alpine-repair**, aprobada con el entregable, subió `libcrypto3`/`libssl3` a
+**3.5.9-r0** en las imágenes de PostgreSQL y Traefik para restaurar CI Infra. Task/030 sigue **Aprobada**.
 Gates en verde; avance **30/41 ≈ 73 %**, **11 pendientes**, ETAPA 10 **1/7 ≈ 14 %**;
 **Task/031 Pendiente, no iniciada**.
 [Ficha](../tasks/TASK-030.2-correct-post-merge-documentation-drift.md) ·
