@@ -5,7 +5,7 @@
 | **Identificador** | Task/030.2 |
 | **Nombre** | Corregir drift documental post-merge |
 | **Etapa** | Mantenimiento documental, **fuera de las 41 tareas** |
-| **Estado** | **Aprobada** — 2026-10-01; enmienda previa al merge **H-030.2-CI-Alpine-repair** (§21) |
+| **Estado** | **Aprobada** — 2026-10-01; enmienda previa al merge **H-030.2-CI-Alpine-repair** (§21), **aprobada** el 2026-10-01 |
 | **Repositorio modificado** | `personal-blog-infra` |
 | **Dependencias** | Task/030 Aprobada; resultado final disponible para contrastar |
 | **Base** | `main` actualizado y limpio, conforme a WORKFLOW §2.1 |
@@ -177,3 +177,7 @@ Fuera de la enmienda: AWS, Terraform apply, backend, frontend, MinIO, workflow, 
 `.env.example` y scripts. Comparación y resultados en el
 [reporte §7](../task-reports/TASK-030.2-report.md#7-enmienda-h-0302-ci-alpine-repair).
 La aprobación de §20 se conserva; la enmienda no la sustituye ni inicia Task/031.
+
+**Enmienda aprobada por el usuario el 2026-10-01**, con CI Infra en verde, mediante una
+nueva expresión exacta `approved: Task/030.2-Corregir-Drift-Documental-Post-Merge` sobre
+el entregable enmendado.

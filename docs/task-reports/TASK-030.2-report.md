@@ -6,7 +6,8 @@ Mantenimiento **fuera de las 41 tareas**, presentado previamente como
 **Task/030.2 — READY FOR FINAL APPROVAL**.
 [Ficha](../tasks/TASK-030.2-correct-post-merge-documentation-drift.md).
 **Enmienda previa al merge:** H-030.2-CI-Alpine-repair, en
-[§7](#7-enmienda-h-0302-ci-alpine-repair). Las secciones 1–6 describen la entrega aprobada.
+[§7](#7-enmienda-h-0302-ci-alpine-repair), **aprobada** el 2026-10-01. Las secciones 1–6
+describen la entrega aprobada originalmente.
 
 ## 1. Resultado y alcance
 
@@ -93,7 +94,9 @@ arquitectónicas que promover. **DT-030-URLLIB3 sigue abierta** y Task/031 sigue
 
 Enmienda **posterior a la aprobación y previa al merge**, autorizada mediante
 `authorize: Task/030.2 H-030.2-CI-Alpine-repair` en la misma rama y el mismo PR. No
-sustituye la aprobación de §6 ni reabre el alcance documental.
+sustituye la aprobación de §6 ni reabre el alcance documental. Con CI Infra en verde, el
+usuario aprobó el entregable enmendado el **2026-10-01** mediante una nueva expresión exacta
+`approved: Task/030.2-Corregir-Drift-Documental-Post-Merge`.
 
 ### 7.1. Causa raíz: deriva externa del índice de Alpine
 
