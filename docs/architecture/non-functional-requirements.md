@@ -123,6 +123,28 @@ siguen corresponden a sus checkpoints anteriores. Detalle en
 [STAGE-06](../stages/STAGE-06-continuous-integration.md#estado-actual-de-minio-en-ci-backend).
 Este cambio de origen no redefine S-09 ni su política.
 
+**Mantenimiento de reproducibilidad de CI Infra — 2026-10-01.** Las imágenes propias de
+PostgreSQL y Traefik aplican, sobre su base fijada por tag y digest —Alpine 3.24.1—,
+parches `apk` de **versión exacta** del repositorio oficial de la misma rama.
+`libcrypto3`/`libssl3` **3.5.8-r0** fue correcto en su checkpoint: `Task/018` lo fijó como
+parche de seguridad sobre 3.5.7-r0. El 2026-09-30 Alpine publicó en v3.24 el *security
+upgrade* a **3.5.9-r0** —OpenSSL 3.5.9, trece CVE— y su índice móvil dejó de seleccionar
+3.5.8-r0, que además ya no está en los espejos sin caché. El pin exacto falló cerrado:
+`apk` se negó a construir en lugar de instalar otra versión en silencio, y CI Infra reveló
+esa deriva externa al construir PostgreSQL durante `Task/030.2`, cuyo cambio documental no
+la causó. Bajo **H-030.2-CI-Alpine-repair**, 3.5.9-r0 se adoptó en ambas imágenes
+—`libcrypto3` y `libssl3` juntas; `libuuid` sigue en 2.42.3-r1— solo después de validar los
+builds reales, el arranque endurecido y S-09 con tolerancia cero. No se usaron URL
+directas a `.apk`, `--allow-untrusted` ni repositorios ajenos, y no cambiaron baseline,
+workflow ni gates. Detalle en el
+[reporte de Task/030.2](../task-reports/TASK-030.2-report.md#7-enmienda-h-0302-ci-alpine-repair).
+
+*Regla de mantenimiento resultante:* un pin `apk` exacto vale mientras el índice firmado de
+su rama lo ofrezca, y el índice de una rama estable solo expone la versión vigente de cada
+paquete. Cuando avance, el pin se actualiza al sucesor de la **misma rama** tras repetir
+build y S-09; nunca retrocede, nunca se relaja a una versión libre y nunca se resuelve con
+un paquete fuera del índice.
+
 **Mantenimiento de reproducibilidad de CI Backend — 2026-09-12.** Task020
 permanece aprobada. El run `34491446991` **attempt 1** fue success el
 2026-09-10; **attempt 2**, mismo SHA `5fedcb3`, falló el 2026-09-12 por acceso
