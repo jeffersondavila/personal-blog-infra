@@ -1,5 +1,20 @@
 # STATUS — Estado del proyecto Blog Personal
 
+**2026-10-01 — Task/030.2 Aprobada** por el usuario mediante
+`approved: Task/030.2-Corregir-Drift-Documental-Post-Merge`. Mantenimiento documental
+**fuera de las 41 tareas**: entregable final de Task/030 y origen actual de
+MinIO en CI Backend reconciliados; deuda **DT-030-URLLIB3** explícita. Bajo
+**H-030.2-counter-fix**, la fila canónica de Task/029 refleja **Aprobada (2026-09-27)**,
+con su historia preservada. Antes del merge, la enmienda **H-030.2-CI-Alpine-repair**,
+aprobada con el entregable, llevó `libcrypto3`/`libssl3` a **3.5.9-r0** en las imágenes de
+PostgreSQL y Traefik, tras una deriva externa del índice de Alpine v3.24 que rompía CI Infra
+([NFR](../architecture/non-functional-requirements.md#1-seguridad)).
+Task/030 permanece **Aprobada**. Gates en verde y avance
+sin cambios: **30/41 ≈ 73 %**, **11 pendientes**; ETAPA 10 **1/7 ≈ 14 %**;
+**Task/031 Pendiente, no iniciada**.
+[Ficha](../tasks/TASK-030.2-correct-post-merge-documentation-drift.md) ·
+[Reporte](../task-reports/TASK-030.2-report.md).
+
 **2026-09-29 — `Task/030-Desplegar-Amazon-S3` APROBADA** por el usuario mediante
 `approved: Task/030-Desplegar-Amazon-S3`.
 
@@ -630,7 +645,8 @@ Ninguna prueba local acredita federación ni autorización real.
 
 | Campo | Valor |
 | --- | --- |
-| **Tarea actual** | **Ninguna en curso.** `Task/030-Desplegar-Amazon-S3` quedó **Aprobada** el 2026-09-29; `Task/031` **Pendiente, no iniciada**. |
+| **Tarea actual** | **Ninguna en curso.** Task/030.2 **Aprobada** el 2026-10-01, mantenimiento documental fuera de las 41, con la enmienda de CI **H-030.2-CI-Alpine-repair** previa al merge, también aprobada. `Task/030` permanece **Aprobada**; `Task/031` **Pendiente, no iniciada**. |
+| **Deuda de índice urllib3** | **DT-030-URLLIB3 — abierta**. Fecha global congelada, excepción temporal por paquete con `--exclude-newer-package` y `--upgrade-package`. Propietario: mantenimiento de dependencias del backend. Retirar cuando la fecha global admita naturalmente urllib3 **2.8.0 o superior compatible**, con ambos locks reproducibles sin la excepción y gates existentes en verde. [Criterio completo](../architecture/non-functional-requirements.md#71-deuda-viva-dt-030-urllib3). |
 | **Etapa actual** | **ETAPA 10 — Despliegue Cloud — En progreso, 1/7 aprobadas (≈ 14 %)** tras `Task/030`. ETAPA 09 **Completada 3/3** por Task/029. Avance global **30/41 ≈ 73 %** |
 | **Mantenimiento anterior (historia)** | Task/027.1 aprobado el 2026-09-21; consolidación en Task/027 y cierre postmerge comunicados por el usuario. No cuenta entre las 41. Git/GitHub son la fuente viva. |
 | **Tarea anterior** | `Task/026-Runbooks-de-Despliegue` quedó **Aprobada** el 2026-09-15 y cerrada post-merge; `Task/026.1` corrigió dos frases transitorias y también quedó cerrada post-merge sin contar en las 41. ETAPA 08 permanece **Completada (4/4, 100 %)**. Los cinco runbooks están Vigentes; el modo `production` sigue bloqueado, el bucket de estado no existe y toda evidencia de Floci sigue siendo hipótesis local. [Ficha](../tasks/TASK-026-deployment-runbooks.md) · [Reporte](../task-reports/TASK-026-report.md) |
@@ -3436,7 +3452,7 @@ existentes con controles explícitos:
 | `Task/026-Runbooks-de-Despliegue` | 08 | infra | **Aprobada** (2026-09-15) |
 | `Task/027-Configurar-Cuentas-y-Presupuestos` | 09 | infra | **Aprobada** (2026-09-17) — Gates A–E y DoD completos; D-13 resuelta |
 | `Task/028-GitHub-OIDC-AWS` | 09 | infra | **Aprobada** (2026-09-26) |
-| `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` | 09 | infra | Pendiente |
+| `Task/029-Preparar-PostgreSQL-Produccion-en-RDS` | 09 | infra | **Aprobada** (2026-09-27) |
 | `Task/030-Desplegar-Amazon-S3` | 10 | infra, backend (DEF-030-1) | **Aprobada** (2026-09-29) |
 | `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` | 10 | infra | Pendiente |
 | `Task/032-Desplegar-AWS-Lambda` | 10 | infra (+ backend si **D-23** exige lector de secretos en *runtime*) | Pendiente |
