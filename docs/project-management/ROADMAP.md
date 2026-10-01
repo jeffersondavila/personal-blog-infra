@@ -1,5 +1,14 @@
 # ROADMAP — Blog Personal
 
+**2026-10-01 — Task/030.2 Aprobada** mediante
+`approved: Task/030.2-Corregir-Drift-Documental-Post-Merge`, mantenimiento documental
+**fuera de las 41**. Resultado final de Task/030 reconciliado, deuda temporal de urllib3 explícita y fila
+canónica de Task/029 corregida bajo **H-030.2-counter-fix**. Task/030 sigue **Aprobada**.
+Gates en verde; avance **30/41 ≈ 73 %**, **11 pendientes**, ETAPA 10 **1/7 ≈ 14 %**;
+**Task/031 Pendiente, no iniciada**.
+[Ficha](../tasks/TASK-030.2-correct-post-merge-documentation-drift.md) ·
+[Reporte](../task-reports/TASK-030.2-report.md).
+
 **2026-09-29 — `Task/030-Desplegar-Amazon-S3` APROBADA** mediante
 `approved: Task/030-Desplegar-Amazon-S3`. Primera tarea aprobada de la **ETAPA 10: 1/7 ≈
 14 %**; avance global **30/41 ≈ 73 %**. Bootstrap D-06 y bucket de medios productivo

@@ -12,6 +12,23 @@
 
 ---
 
+## Estado actual de MinIO en CI Backend
+
+El resultado final de **Task/030** sustituye Quay como origen de MinIO en **CI Backend**:
+se descarga del **espejo privado de GHCR** `ghcr.io/jeffersondavila/personal-blog-minio-base`,
+fijado por digest, con autenticación mediante el secreto **`GHCR_MINIO_READ_TOKEN`**.
+El runner actual es **`ubuntu-24.04`, `linux/amd64`**. Consume el **manifiesto amd64
+preservado del índice multi-arquitectura original**, que era el que ese runner resolvía
+desde Quay: **misma release `RELEASE.2025-09-07T16-13-09Z`, mismos bytes ejecutados**.
+El espejo conserva ese manifiesto, no el índice completo; un cambio de arquitectura
+requiere disponer del manifiesto correspondiente.
+
+La transición a Quay de **Task/020.3** y la recuperación del espejo en **H-028-1** se
+conservan como historia en sus reportes. Las menciones a Quay de los checkpoints siguientes
+describen el estado de entonces. Este registro del resultado no reabre esas tareas.
+[Entregable final de Task/030](../task-reports/TASK-030-report.md#28-aprobación-y-cierre) ·
+[H-028-1](../task-reports/TASK-028-report.md).
+
 ## Objetivo
 
 Automatizar la verificación de calidad en cada cambio de los tres repositorios, de modo
