@@ -1,0 +1,176 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "LecturaRegionalSinRecurso",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeAccountAttributes",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeNatGateways",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribePrefixLists",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeTags",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcEndpointServices",
+        "ec2:DescribeVpcEndpoints",
+        "ec2:DescribeVpcs",
+        "logs:DescribeLogGroups",
+        "rds:DescribeCertificates",
+        "rds:DescribeDBEngineVersions",
+        "rds:DescribeDBInstanceAutomatedBackups",
+        "rds:DescribeDBInstances",
+        "rds:DescribeDBParameterGroups",
+        "rds:DescribeDBParameters",
+        "rds:DescribeDBSnapshots",
+        "rds:DescribeDBSubnetGroups",
+        "rds:DescribeEngineDefaultParameters",
+        "rds:DescribeEvents",
+        "rds:DescribeOrderableDBInstanceOptions",
+        "rds:DescribePendingMaintenanceActions",
+        "rds:ListTagsForResource",
+        "ssm:DescribeParameters"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}"
+        }
+      }
+    },
+    {
+      "Sid": "RdsCrearGruposPropios",
+      "Effect": "Allow",
+      "Action": [
+        "rds:CreateDBParameterGroup",
+        "rds:CreateDBSubnetGroup"
+      ],
+      "Resource": [
+        "arn:aws:rds:${region}:${cuenta}:pg:blog-prod-*",
+        "arn:aws:rds:${region}:${cuenta}:subgrp:blog-prod-*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos"
+        }
+      }
+    },
+    {
+      "Sid": "RdsCrearLaInstanciaProductiva",
+      "Effect": "Allow",
+      "Action": "rds:CreateDBInstance",
+      "Resource": [
+        "arn:aws:rds:${region}:${cuenta}:db:blog-prod-postgres",
+        "arn:aws:rds:${region}:${cuenta}:og:default:postgres-17",
+        "arn:aws:rds:${region}:${cuenta}:pg:blog-prod-postgres17",
+        "arn:aws:rds:${region}:${cuenta}:subgrp:blog-prod-postgres"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos"
+        },
+        "Bool": {
+          "rds:PubliclyAccessible": "false"
+        }
+      }
+    },
+    {
+      "Sid": "RdsOperarRecursosPropios",
+      "Effect": "Allow",
+      "Action": [
+        "rds:AddTagsToResource",
+        "rds:ModifyDBInstance",
+        "rds:ModifyDBParameterGroup",
+        "rds:ModifyDBSubnetGroup"
+      ],
+      "Resource": [
+        "arn:aws:rds:${region}:${cuenta}:db:blog-prod-postgres",
+        "arn:aws:rds:${region}:${cuenta}:og:default:postgres-17",
+        "arn:aws:rds:${region}:${cuenta}:pg:blog-prod-*",
+        "arn:aws:rds:${region}:${cuenta}:subgrp:blog-prod-*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}"
+        },
+        "StringEqualsIfExists": {
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos"
+        }
+      }
+    },
+    {
+      "Sid": "CustodiaDeLaContrasenaMaster",
+      "Effect": "Allow",
+      "Action": [
+        "ssm:AddTagsToResource",
+        "ssm:GetParameter",
+        "ssm:GetParameters",
+        "ssm:ListTagsForResource",
+        "ssm:PutParameter"
+      ],
+      "Resource": "arn:aws:ssm:${region}:${cuenta}:parameter/blog-prod/datos/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}"
+        }
+      }
+    },
+    {
+      "Sid": "GrupoDeLogsDePostgreSQL",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:ListTagsForResource",
+        "logs:ListTagsLogGroup",
+        "logs:PutRetentionPolicy",
+        "logs:TagLogGroup",
+        "logs:TagResource"
+      ],
+      "Resource": [
+        "arn:aws:logs:${region}:${cuenta}:log-group:/aws/rds/instance/blog-prod-postgres/postgresql",
+        "arn:aws:logs:${region}:${cuenta}:log-group:/aws/rds/instance/blog-prod-postgres/postgresql:*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}"
+        }
+      }
+    },
+    {
+      "Sid": "StateRemotoSoloDelRootDeDatos",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::${bucket_de_estado}"
+    },
+    {
+      "Sid": "LeerYEscribirElStateYSuLock",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject"
+      ],
+      "Resource": [
+        "arn:aws:s3:::${bucket_de_estado}/application/data/terraform.tfstate",
+        "arn:aws:s3:::${bucket_de_estado}/application/data/terraform.tfstate.tflock"
+      ]
+    },
+    {
+      "Sid": "LiberarSoloElLock",
+      "Effect": "Allow",
+      "Action": "s3:DeleteObject",
+      "Resource": "arn:aws:s3:::${bucket_de_estado}/application/data/terraform.tfstate.tflock"
+    }
+  ]
+}

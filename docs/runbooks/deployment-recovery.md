@@ -1,9 +1,10 @@
 # Runbook — Recuperar o reconstruir un despliegue
 
 > **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
-> el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
-> Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
-> snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.
+> el alcance probado de Task/026. Task/031 H-031-1/H-031-1A amplía el laboratorio con
+> tres roots, **21 recursos de datos**, guardas e inventario de red/RDS en modo mock.
+> La operación productiva, permisos efectivos, snapshots/restore/PITR, KMS y seguridad
+> siguen pendientes de sus checkpoints autorizados en AWS.
 > Task/036/038 añade migraciones privadas y Task/040 verifica DR/restore integral.
 > [Contrato RDS](../architecture/production-postgresql-rds.md). No autoriza AWS ni
 > extiende EX-028-C7; D-06 en Task/030 precede al primer apply de aplicación.
@@ -63,6 +64,10 @@ se exige inventario, inspección `boto3`, runtime correcto y `/health` = 200.
 Si el plan no se puede explicar por la ausencia o el `apply` parcial observado,
 **ABORTAR**, incluso si la lista cerrada lo permitiría.
 
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1) — Propuesta — pendiente de aprobación.** Orden de reconciliación:
+> **medios → datos → aplicación**, cada root con su plan y su confirmación si cambia; un
+> reemplazo o una destrucción en datos se rechazan antes del apply.
+>
 > **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** `recuperar` reconcilia primero **medios** y después **aplicación**. Si el bucket
 > falta, su root se crea —con su propio plan y su propia confirmación— **antes** de tocar
 > aplicación; si está sano, su plan sale sin cambios y se conserva **sin apply ni
@@ -87,7 +92,19 @@ El ciclo ejecuta CREATE → VALIDATE → inspección con `boto3` → segundo pla
 controlado → reconciliación → DESTROY → ausencia → RECONSTRUCCIÓN → smoke → segundo
 DESTROY → ausencia. El drift permitido es exactamente
 `/blog-lab/local/storage_region`; el plan debe recrear su dirección Terraform y, fuera
-de ella, sólo puede aparecer H-025-1 (`aws_ssm_parameter.tags_all`).
+de ella, aplicación debe converger (H-025-1 quedó resuelta con Floci 2.1.0). El segundo
+plan de datos solo tolera las diez diferencias estrechas del emulador declaradas en la
+[matriz de paridad](../architecture/aws-local-parity.md), nunca drift nuevo ni `ignore_changes`.
+
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1A) — Propuesta — pendiente de aprobación.**
+> El segundo plan de datos es **un único** plan guardado con `-detailed-exitcode` cuyo JSON se
+> lee **siempre**, también con `exit 0`. Se juzgan **las dos** secciones: `resource_changes`
+> contra las diez diferencias del emulador y `resource_drift` contra una lista **cerrada** de
+> cinco entradas —por dirección, acciones exactas, conjunto exacto de atributos y forma de la
+> transición—; `deferred_changes` debe estar vacío. Cualquier entrada, atributo, acción o
+> valor fuera de lista **detiene** el ciclo. `domain_dns_ips: null → []` figura en la lista
+> como representación del SDKv2 del provider, **no** del emulador: contra AWS el gate
+> productivo lo rechaza y se aplica DN-2 ([reporte de Task/031 §15](../task-reports/TASK-031-report.md#15-h-031-1a--resolución-del-bloqueo-de-domain_dns_ips-2026-10-03)).
 
 ## 5. Estado perdido o incoherente
 
@@ -97,10 +114,11 @@ En Windows, el estado local vive normalmente bajo
 Floci.
 
 > **Actualizado el 2026-09-28** por la enmienda `Task/030 H-030-4-root-medios`. Ahora hay
-> **dos estados, uno por root**, cada uno en su subdirectorio:
+> **dos estados hasta Task/030; tres desde Task/031, uno por root**, cada uno en su subdirectorio:
 >
 > - `estado/local/aplicacion/terraform.tfstate` — función, API, parámetros, logs y rol;
-> - `estado/local/medios/terraform.tfstate` — bucket de medios.
+> - `estado/local/medios/terraform.tfstate` — bucket de medios;
+> - `estado/local/datos/terraform.tfstate` — red privada y RDS *(desde `Task/031`)*.
 >
 > Antes había un único `estado/local/terraform.tfstate`. Si encuentras esa ruta, es de una
 > ejecución anterior a la enmienda: **consérvala como evidencia y no la reutilices**. El
@@ -135,3 +153,19 @@ Antes del primer intento real se requieren: bootstrap del estado, identidad efí
 presupuesto, `tfvars` aprobado, locks, backups, observabilidad y ventana de cambio. Se
 ejecutará primero `init`/`plan` sin mutación, se verificará la cuenta real autorizada y se
 repetirán los gates AWS-only. Hasta entonces `--modo production` debe fallar cerrado.
+
+## 8. RDS productivo con retención temporal de 1 día (plan FREE)
+
+Regla operativa de `Task/031` H-031-3-RECOVERY-3-FREE ([reporte §34](../task-reports/TASK-031-report.md#34-h-031-3-recovery-3-free--retención-temporal-de-1-día-y-plan-de-recuperación-2026-10-05)). Mientras la cuenta AWS siga en
+el plan **FREE**, `blog-prod-postgres` conserva backups automáticos y PITR de solo **1 día**, una excepción
+temporal; el objetivo de D-10 sigue siendo 7. Por eso:
+
+1. **Antes de una migración de esquema o de cualquier cambio destructivo de la base**, se crea un *snapshot*
+   manual de la instancia y se verifica que llegue a `available` antes de continuar. Si no se puede
+   verificar, el cambio no empieza.
+2. El *snapshot* manual es un punto de control **elegido**. **No sustituye** al PITR ni lo amplía, y no
+   cambia la retención.
+3. Crearlo exige la autorización de la tarea que haga el cambio. Este runbook **no** autoriza crear
+   *snapshots* ahora ni automatizarlos todavía.
+4. Al pasar voluntariamente al plan **PAID**, se restaura `dias_de_retencion_de_backups = 7` con su propio
+   plan revisado, y esta sección deja de aplicarse.

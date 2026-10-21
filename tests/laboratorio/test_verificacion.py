@@ -48,11 +48,66 @@ class InventarioApiGatewayTests(unittest.TestCase):
              patch.object(modulo, "buckets_presentes", return_value=[]), \
              patch.object(modulo, "funciones_presentes", return_value=[]), \
              patch.object(modulo, "grupos_de_logs", return_value=[]), \
-             patch.object(modulo, "parametros_presentes", return_value=[]):
+             patch.object(modulo, "parametros_presentes", return_value=[]), \
+             patch.object(modulo, "vpcs_presentes", return_value=[]), \
+             patch.object(modulo, "grupos_de_seguridad_presentes", return_value=[]), \
+             patch.object(modulo, "instancias_rds_presentes", return_value=[]), \
+             patch.object(modulo, "grupos_de_subredes_rds_presentes", return_value=[]), \
+             patch.object(modulo, "grupos_de_parametros_rds_presentes", return_value=[]),              patch.object(modulo, "alarmas_presentes", return_value=[]),              patch.object(modulo, "roles_presentes", return_value=[]):
             observado = lanzador.inventario_del_destino(object())
         self.assertEqual(observado["apigatewayv2"], ["blog-lab-api"])
         with self.assertRaises(inventario.ErrorDeInventario):
             inventario.exigir_inventario_vacio(observado)
+
+
+class InventarioDeRedYRdsTests(unittest.TestCase):
+    """Consultas `query` del root de datos (Task/031): ausencia demostrable o abortar."""
+
+    DESCRIBE_VPCS = b"""<DescribeVpcsResponse xmlns="http://ec2.amazonaws.com/doc/2016-11-15/">
+      <vpcSet>
+        <item><vpcId>vpc-por-omision</vpcId><isDefault>true</isDefault></item>
+        <item><vpcId>vpc-1</vpcId><tagSet>
+          <item><key>Proyecto</key><value>personal-blog</value></item>
+          <item><key>Name</key><value>blog-lab-vpc</value></item>
+        </tagSet></item>
+        <item><vpcId>vpc-2</vpcId><tagSet><item><key>Name</key><value>ajena</value></item></tagSet></item>
+      </vpcSet>
+    </DescribeVpcsResponse>"""
+
+    DESCRIBE_DB = b"""<DescribeDBInstancesResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/">
+      <DescribeDBInstancesResult><DBInstances>
+        <DBInstance><DBInstanceIdentifier>blog-lab-postgres</DBInstanceIdentifier></DBInstance>
+        <DBInstance><DBInstanceIdentifier>otra</DBInstanceIdentifier></DBInstance>
+      </DBInstances></DescribeDBInstancesResult>
+    </DescribeDBInstancesResponse>"""
+
+    def consultar(self, funcion, respuesta):
+        with patch.object(modulo, "cliente") as crear:
+            crear.return_value.llamar.return_value = respuesta
+            return funcion(object(), prefijo="blog-lab", clave_aws="test", secreto="test")
+
+    def test_solo_cuenta_la_vpc_con_name_del_prefijo(self):
+        self.assertEqual(self.consultar(modulo.vpcs_presentes, (200, self.DESCRIBE_VPCS)), ["blog-lab-vpc"])
+
+    def test_instancias_rds_filtradas_por_prefijo(self):
+        self.assertEqual(
+            self.consultar(modulo.instancias_rds_presentes, (200, self.DESCRIBE_DB)),
+            ["blog-lab-postgres"],
+        )
+
+    def test_error_http_o_xml_invalido_no_es_prueba_de_ausencia(self):
+        funciones = (
+            modulo.vpcs_presentes,
+            modulo.grupos_de_seguridad_presentes,
+            modulo.instancias_rds_presentes,
+            modulo.grupos_de_subredes_rds_presentes,
+            modulo.grupos_de_parametros_rds_presentes,
+        )
+        for funcion in funciones:
+            for respuesta in ((500, b"<Error/>"), (200, b"no-xml")):
+                with self.subTest(funcion=funcion.__name__, respuesta=respuesta):
+                    with self.assertRaises(modulo.ErrorDeVerificacion):
+                        self.consultar(funcion, respuesta)
 
 
 class EliminacionDeParametroTests(unittest.TestCase):

@@ -1,0 +1,19 @@
+# Tooling de AUDITORIA de documentacion: parser de la gate local de enlaces Markdown.
+#
+# Por que existe: esa gate (`MarkdownIt('commonmark').enable('table')` sobre enlaces e imagenes relativos,
+# archivos inexistentes y anclas de encabezados, duplicados y HTML) cargaba `markdown-it-py` desde un venv
+# efimero bajo `tmp/`, sin version fijada en ningun repositorio. Al limpiarse esa carpeta no pudo
+# reconstruirse con evidencia (TASK-031-report §42 y §43). La gate no debe volver a depender de un venv
+# efimero bajo `tmp/`: este archivo es su definicion durable.
+#
+# Decision NUEVA de Task/031 H-031-3, no reconstruccion historica: la version anterior nunca quedo fijada.
+# NO es dependencia de runtime del backend, del frontend ni de la aplicacion. Instalar solo en un entorno
+# descartable e ignorado por Git, siempre con hashes:
+#
+#   python -m pip install --require-hashes -r scripts/security/requirements-markdown-links.txt
+#
+# Ambos artefactos son wheels `py3-none-any`; markdown-it-py 4.2.0 exige Python >=3.10 y `mdurl~=0.1`.
+markdown-it-py==4.2.0 \
+    --hash=sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a
+mdurl==0.1.2 \
+    --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8

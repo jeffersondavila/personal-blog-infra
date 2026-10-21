@@ -15,6 +15,9 @@ secrets/
 *.p12
 credentials
 credentials.json
+# Única excepción a `*.pem` (Task/031, autorizada por el usuario el 2026-10-21): la CA PÚBLICA de RDS de us-east-2,
+# 3 raíces sin clave privada, fuente del ZIP fijado de la ejecutora h0316 (SHA-256 fijado en sus pruebas).
+!terraform/modulos/ejecutor_privado/codigo_h0316/rds-ca-us-east-2.pem
 
 # Terraform (Task/025)
 #
@@ -28,6 +31,8 @@ credentials.json
 !bootstrap/github-oidc/.terraform.lock.hcl
 !bootstrap/terraform-state/.terraform.lock.hcl
 !terraform-medios/.terraform.lock.hcl
+!terraform-datos/.terraform.lock.hcl
+!bootstrap/operador-datos/.terraform.lock.hcl
 
 # Providers descargados y metadatos de trabajo: se reconstruyen con `init`.
 .terraform/
@@ -48,6 +53,7 @@ credentials.json
 !*.tfvars.example
 !terraform/entornos/local/local.tfvars
 !terraform-medios/entornos/local/local.tfvars
+!terraform-datos/entornos/local/local.tfvars
 
 # Archivos que GENERA el lanzador: configuracion de una ejecucion concreta, no
 # fuente. El grafo de recursos es fuente versionada y no se genera.
@@ -55,6 +61,8 @@ terraform/backend.generado.tf
 terraform/generado/
 terraform-medios/backend.generado.tf
 terraform-medios/generado/
+terraform-datos/backend.generado.tf
+terraform-datos/generado/
 
 # Planes: binarios y su volcado JSON efimero. Un plan guardado puede revelar
 # valores del destino.

@@ -1,9 +1,10 @@
 # Runbook — Validar un despliegue
 
 > **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
-> el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
-> Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
-> snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.
+> el alcance probado de Task/026. Task/031 H-031-1/H-031-1A amplía el laboratorio con
+> tres roots, **21 recursos de datos**, guardas e inventario de red/RDS en modo mock.
+> La operación productiva, permisos efectivos, snapshots/restore/PITR, KMS y seguridad
+> siguen pendientes de sus checkpoints autorizados en AWS.
 > Task/036/038 añade migraciones privadas y Task/040 verifica DR/restore integral.
 > [Contrato RDS](../architecture/production-postgresql-rds.md). No autoriza AWS ni
 > extiende EX-028-C7; D-06 en Task/030 precede al primer apply de aplicación.
@@ -44,9 +45,9 @@ realiza estas comprobaciones:
 
 | Plano | Evidencia exigida |
 | --- | --- |
-| Destino | modo local, ocho endpoints loopback, región `us-east-1`, cuenta `000000000000` |
+| Destino | modo local, diez endpoints loopback, región `us-east-1`, cuenta `000000000000` |
 | Perímetro | un solo binding `4566/tcp -> 127.0.0.1:4566` |
-| Roots *(desde `Task/030`, DEF-030-2)* | fmt/validate de los dos; medios solo se **lee**; ownership disjunto; aplicación sin ningún `aws_s3_*`; contrato nombre/ARN coherente con lo inyectado |
+| Roots *(desde `Task/030`, DEF-030-2; tres desde `Task/031`)* | fmt/validate de los tres; medios y datos solo se **leen**; ownership disjunto de los tres states; aplicación sin ningún `aws_s3_*` ni recurso de red o RDS; contrato nombre/ARN coherente con lo inyectado; contrato de datos completo y sin la contraseña canario en sus salidas; 21 recursos de datos, SG por omisión no gestionado ni usado (H-031-1A) |
 | S3 | bucket, versionado/configuración y objeto de prueba; privacidad efectiva queda AWS-only |
 | SSM | cuatro parámetros legibles; `SecureString` local no demuestra cifrado |
 | IAM | rol y política creados; Floci no demuestra enforcement |

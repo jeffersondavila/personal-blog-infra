@@ -76,7 +76,9 @@ workspace `default`. `PersonalBlogGitHubOidcValidation` nunca opera este root.
 | `bootstrap/terraform-state` | S3 efectivo y validado; convergencia 0/0/0, drift 0, serial 2 | `bootstrap/terraform-state/terraform.tfstate`, nueva versión tras refresh-only autorizado |
 | `bootstrap/github-oidc` | S3 efectivo y validado; convergencia 0/0/0, drift 0, serial 1 | `bootstrap/github-oidc/terraform.tfstate`, primera y única versión |
 | `terraform-medios` | S3 efectivo; plan normal 0/0/0, drift 0 (2026-09-29) | `application/media/terraform.tfstate`; nunca una de las dos keys de bootstrap |
-| Aplicación | Sin inicializar contra AWS en esta fase | Se fijará en su checkpoint; nunca una de las dos keys de bootstrap |
+| `terraform-datos` *(`Task/031`, propuesta de H-031-1)* | **Inicializado en H-031-2 (2026-10-04)**, S3 con lock nativo; state todavía ausente hasta H-031-3. Desde el 2026-10-04, por decisión del usuario, con `personal-blog` / `PersonalBlogAdministrator`; el root ya exige exactamente esa identidad (reporte de Task/031 §24 y §25) | `application/data/terraform.tfstate`; nunca una de las keys existentes |
+| `bootstrap/operador-datos` *(`Task/031`, propuesta de H-031-1)* | **Sin inicializar.** Solo en H-031-IAM, con `PersonalBlogAdministrator` como bootstrap | `bootstrap/operador-datos/terraform.tfstate`; nunca una de las keys existentes |
+| Aplicación | Sin inicializar contra AWS en esta fase | Se fijará en su checkpoint; nunca una de las keys anteriores |
 
 **Root de medios: volver del laboratorio sin tocar su state.** El laboratorio reutiliza
 el directorio `terraform-medios/` y le genera `backend.generado.tf` con `backend "local"`.

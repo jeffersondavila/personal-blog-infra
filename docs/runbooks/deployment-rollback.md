@@ -1,9 +1,10 @@
 # Runbook — Rollback de una versión
 
 > **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
-> el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
-> Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
-> snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.
+> el alcance probado de Task/026. Task/031 H-031-1/H-031-1A amplía el laboratorio con
+> tres roots, **21 recursos de datos**, guardas e inventario de red/RDS en modo mock.
+> La operación productiva, permisos efectivos, snapshots/restore/PITR, KMS y seguridad
+> siguen pendientes de sus checkpoints autorizados en AWS.
 > Task/036/038 añade migraciones privadas y Task/040 verifica DR/restore integral.
 > [Contrato RDS](../architecture/production-postgresql-rds.md). No autoriza AWS ni
 > extiende EX-028-C7; D-06 en Task/030 precede al primer apply de aplicación.
@@ -82,6 +83,9 @@ El gate exige:
 Si el ZIP anterior produce el mismo código y el plan no actualiza Lambda, el comando
 aborta: no se declarará un rollback inexistente.
 
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1) — Propuesta — pendiente de aprobación.** El rollback también **solo
+> lee** el root de datos: la red y RDS no se reaplican para cambiar de artefacto.
+>
 > **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** El rollback **solo lee** el root de medios: un bucket sano no se reaplica ni se
 > recrea, y su nombre y ARN se inyectan al root de aplicación, que es el único que recibe
 > el plan `update`. Un plan que no actualice `aws_lambda_function` —sin cambios, o
