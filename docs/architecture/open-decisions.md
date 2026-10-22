@@ -3,10 +3,10 @@
 | Campo | Valor |
 | --- | --- |
 | **Estado** | Registro vivo. Iniciado en `Task/002-Definir-MVP-y-Arquitectura` |
-| **Última actualización** | 2026-09-28 — **D-08 Resuelta para el MVP** en `Task/030` (`H-030-D08-MVP`): bucket privado, presigned dinámico para borrador y publicado, **sin URL estable, sin CDN y sin servicio nuevo**; **`B-016-1` permanece abierto** como limitación de producto aceptada. Antes: 2026-09-27, **`Task/029` aprobada** — **D-10**, **D-22**, **D-23** y **D-24** pasan a **Resueltas** y **EX-029-D13** a **Aceptada y Vigente**; **D-12** conserva su presupuesto preliminar y **sigue abierta**; y la enmienda RDS de `Task/028.2` |
-| **Decisiones abiertas** | **6** — D-07, D-11, D-12, D-19, D-20 y D-21 *(baja de 7 a 6 el 2026-09-28 al resolverse **D-08** para el MVP en `Task/030`; antes había bajado de 11 a 7 el 2026-09-27 con `Task/029`)* |
+| **Última actualización** | 2026-10-21 — **`Task/031` aprobada**: **D-20** pasa a **Resuelta**; **D-11** y **D-19** siguen **Abiertas**. Antes: 2026-09-28 — **D-08 Resuelta para el MVP** en `Task/030` (`H-030-D08-MVP`): bucket privado, presigned dinámico para borrador y publicado, **sin URL estable, sin CDN y sin servicio nuevo**; **`B-016-1` permanece abierto** como limitación de producto aceptada. Antes: 2026-09-27, **`Task/029` aprobada** — **D-10**, **D-22**, **D-23** y **D-24** pasan a **Resueltas** y **EX-029-D13** a **Aceptada y Vigente**; **D-12** conserva su presupuesto preliminar y **sigue abierta**; y la enmienda RDS de `Task/028.2` |
+| **Decisiones abiertas** | **5** — D-07, D-11, D-12, D-19 y D-21 *(baja de 6 a 5 el 2026-10-21 al resolverse **D-20** con la aprobación de `Task/031`; de 7 a 6 el 2026-09-28 al resolverse **D-08** para el MVP en `Task/030`; antes había bajado de 11 a 7 el 2026-09-27 con `Task/029`)* |
 | **Cerradas por no aplicabilidad** | **3** — **D-16**, **D-17** y **D-18**, el 2026-09-27, al aceptarse ADR-010: sin VPS pierden objeto. IDs y texto conservados, no reutilizables |
-| **Decisiones resueltas** | **15** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)**, **D-10**, **D-22**, **D-23** y **D-24 (2026-09-27, `Task/029`)**, y **D-08 (2026-09-28, `Task/030`, alcance MVP)** |
+| **Decisiones resueltas** | **16** — D-05 (2026-07-29), D-14 y D-01 (2026-08-15), D-15, D-02 y D-09 (2026-09-01), D-03 (2026-09-04), D-04 (2026-09-05), **D-06 (2026-09-14)**, **D-13 (2026-09-17)**, **D-10**, **D-22**, **D-23** y **D-24 (2026-09-27, `Task/029`)**, **D-08 (2026-09-28, `Task/030`, alcance MVP)** y **D-20 (2026-10-21, `Task/031`)** |
 | **Excepciones vigentes** | **EX-029-D13** — acota el sublímite AWS de **D-13** durante la etapa financiada con créditos. **Aceptada y Vigente** el 2026-09-27; vence con los créditos o el **2027-03-15**, lo que ocurra primero, y **no se renueva por inercia**. **EX-028-C7 ya no está vigente: Extinguida el 2026-09-28** en `Task/030` H-030-2 |
 
 > **D-01 se resolvió en cuanto al *modelo*** —PostgreSQL autogestionado en VPS externo—. La
@@ -69,7 +69,7 @@ ADR.
 | D-17 | **Herramienta de gestión de secretos cifrados del VPS** | `Task/029` | **Cerrada por no aplicabilidad** (2026-09-27) — `Task/028.2`, ADR-010 |
 | D-18 | **Mecanismo de configuración interna del sistema operativo del VPS** | `Task/029` | **Cerrada por no aplicabilidad** (2026-09-27) — `Task/028.2`, ADR-010 |
 | D-19 | **Plan, límites y costo reales de Grafana Cloud** | `Task/041` (con aporte de `Task/027`) · *desde `Task/028.2`: `Task/029` estima y `Task/031` verifica antes de integrar* | Abierta — verificada para integrar en `Task/031` (2026-10-08); comprobación al terminar el trial y revisión de `Task/041` |
-| D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) · *desde `Task/028.2`: `Task/031` decide **e implementa*** | **Propuesta — pendiente de aprobación**: implementada en `Task/031` H-031-9 (2026-10-15) |
+| D-20 | **Mecanismo de integración `CloudWatch → Grafana Cloud`** | `Task/031` (decide) · `Task/040` (valida) · *desde `Task/028.2`: `Task/031` decide **e implementa*** | **Resuelta** (2026-10-21, con la aprobación de `Task/031`) — rol `PersonalBlogLecturaGrafana` con `sts:ExternalId`, solo métricas, implementado en H-031-9 (2026-10-15); `Task/040` valida datos y alertas |
 | D-21 | **Estrategia de *rendering* del sitio público frente a *crawlers*** | Sin tarea asignada — abierta por `Task/016` | Abierta |
 | D-22 | **Red, topología y capacidad de RDS** | `Task/029` (decide) · `Task/031` (implementa) | **Resuelta** (2026-09-27) — us-east-2 *(confirmación del usuario)*, PostgreSQL **17.11**, **db.t4g.micro**, **gp3 20 GiB**, **Single-AZ**, 2 subnets privadas en 2 AZ, **sin NAT** |
 | D-23 | **TLS, KMS, secretos y autenticación SQL de RDS** | `Task/029` (decide) · `Task/031`/`Task/032` (implementan) | **Resuelta** (2026-09-27) — **`verify-full`**, clave KMS gestionada por AWS, 3 identidades SQL, **SSM `SecureString`**, **IAM DB auth descartada** por memoria |
@@ -679,7 +679,7 @@ contrato y Task/031 documenta controles; retirar D-17 no los cifra.
 
 ## D-11 — Retención exacta de CloudWatch
 
-> **Baseline de `Task/031` — Propuesta — pendiente de aprobación** (`H-031-1`, DH-4,
+> **Baseline de `Task/031` — aceptado con la aprobación de `Task/031` el 2026-10-21** (`H-031-1`, DH-4,
 > 2026-10-03). El grupo de logs de PostgreSQL de RDS se crea **antes** que la instancia, con
 > nombre exacto y **retención de 14 días**: si lo creara RDS al exportar, nacería con retención
 > infinita. Es un *baseline*, no el cierre de D-11: alarmas, umbrales y destinatarios siguen
@@ -706,9 +706,9 @@ por utilidad y precio, no se incluyen implícitamente.
 > parámetros a CloudWatch y de ahí, por **D-20**, a un tercero (**R-39**, **O-08**).
 > **Los umbrales los fija `Task/031`: `Task/029` no copia umbrales arbitrarios.**
 
-> **`Task/031` H-031-8, preparado offline (2026-10-07). Propuesta — pendiente de aprobación.** Ocho alarmas sin acciones —SNS y otros destinatarios no están aprobados—, dentro de las 10 gratuitas, con estadístico, periodo y puntos de la guía de AWS para RDS. El **fallo de *backup*** no tiene métrica de CloudWatch: queda como decisión. D-11 sigue **Abierta** hasta aplicarlas y observarlas en AWS ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+> **`Task/031` H-031-8, preparado offline (2026-10-07). Aceptado con la aprobación de `Task/031` (2026-10-21).** Ocho alarmas sin acciones —SNS y otros destinatarios no están aprobados—, dentro de las 10 gratuitas, con estadístico, periodo y puntos de la guía de AWS para RDS. El **fallo de *backup*** no tiene métrica de CloudWatch: queda como decisión. D-11 sigue **Abierta** hasta aplicarlas y observarlas en AWS ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
 
-> **`Task/031` H-031-8, aplicado en AWS (2026-10-15). Propuesta — pendiente de aprobación.**
+> **`Task/031` H-031-8, aplicado en AWS (2026-10-15). Aceptado con la aprobación de `Task/031` (2026-10-21); D-11 sigue Abierta.**
 > - Las 8 alarmas existen, sin acciones y con la configuración exacta del catálogo (readback 8/8).
 > - El state converge con la guarda original, tras un refresh-only aprobado.
 > - **Hallazgo de calibración:** `memoria` está en `ALARM` desde su primera evaluación. Una `db.t4g.micro` ronda los
@@ -1111,7 +1111,7 @@ explícita. No esperar hasta Task/041 para descubrir costos obligatorios.
 
 > **Corrección de `Task/031` H-031-9 (2026-10-07).** `GetMetricData` **se cobra siempre**: no entra en el millón de peticiones gratuitas de CloudWatch (USD 0.01 por 1.000 métricas en us-east-2, Price List del 2026-10-07). La verificación de D-19 —plan, límites y costo reales de la cuenta de Grafana del usuario— **sigue pendiente**: necesita esos datos ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
 
-> **Verificación previa a integrar de `Task/031` H-031-9 (2026-10-08). Propuesta — pendiente de aprobación.**
+> **Verificación previa a integrar de `Task/031` H-031-9 (2026-10-08). Aceptada con la aprobación de `Task/031` (2026-10-21); D-19 sigue Abierta.**
 > - **Mecanismo y costo:** gate superado. Plan objetivo Free. El stack está en el trial de 14 días **sin método de
 >   pago**, así que no puede cobrar al terminar. Ninguna cifra de Grafana se persiste.
 > - **Costo AWS:** lo acota la política de uso: paneles bajo demanda y sin reglas de alerta de Grafana sobre
@@ -1156,6 +1156,12 @@ explícita. No esperar hasta Task/041 para descubrir costos obligatorios.
 
 ## D-20 — Mecanismo de integración `CloudWatch → Grafana Cloud`
 
+> **Resuelta el 2026-10-21 con la aprobación de `Task/031`.** El mecanismo es el rol
+> `PersonalBlogLecturaGrafana` de H-031-9 (abajo): confianza solo de la cuenta de Grafana con `sts:ExternalId`;
+> solo métricas y `DescribeAlarms` de `blog-prod-*`, sin `logs:*`, sin escritura y sin credenciales de larga
+> vida. Los estados de alarma en Grafana quedan fuera del alcance actual. `Task/040` valida datos y alertas con
+> la Lambda y el API presentes. El párrafo siguiente se conserva como contrato de origen.
+
 **Abierta; Task/031 decide e implementa** integración CloudWatch → Grafana
 Cloud, con rol/principal dedicado, lectura mínima y costo de consulta/exportación
 incluido. Task/040 demuestra datos y alertas con Lambda/API ya presentes. Alloy de
@@ -1163,9 +1169,9 @@ host pierde objeto en la enmienda ADR-010; Grafana no desaparece. No dar acceso 
 permisos de despliegue ni secretos permanentes versionados. Si costo o mecanismo
 no encajan, resolverlo explícitamente antes de integrar, sin fingir evidencia.
 
-> **`Task/031` H-031-9, preparado y NO implementado (2026-10-07). Propuesta — pendiente de aprobación:** rol IAM asumible con ExternalId (`PersonalBlogLecturaGrafana`), solo métricas en us-east-2 y estados de las alarmas del proyecto; **sin `logs:*`** —el log de PostgreSQL puede llevar verificadores SCRAM y sentencias DDL— y sin ninguna escritura. Se descartan la clave IAM estática y el *push*. Módulo `terraform/modulos/lectura_grafana`, no cableado: se implementa solo después del gate de D-19 ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+> **`Task/031` H-031-9, preparado y NO implementado (2026-10-07). Aceptado con la aprobación de `Task/031` (2026-10-21):** rol IAM asumible con ExternalId (`PersonalBlogLecturaGrafana`), solo métricas en us-east-2 y estados de las alarmas del proyecto; **sin `logs:*`** —el log de PostgreSQL puede llevar verificadores SCRAM y sentencias DDL— y sin ninguna escritura. Se descartan la clave IAM estática y el *push*. Módulo `terraform/modulos/lectura_grafana`, no cableado: se implementa solo después del gate de D-19 ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
 
-> **`Task/031` H-031-9, implementado en AWS (2026-10-15). Propuesta — pendiente de aprobación.**
+> **`Task/031` H-031-9, implementado en AWS (2026-10-15). Aceptado con la aprobación de `Task/031` (2026-10-21).**
 > - **Rol:** `PersonalBlogLecturaGrafana`, gestionado por Terraform en `terraform-datos`, tras el gate de D-19.
 > - **Confianza:** solo la cuenta AWS de Grafana, con el `sts:ExternalId` del stack. Ambos valores viven solo en el
 >   tfvars privado.

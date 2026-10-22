@@ -440,7 +440,7 @@ test-first en `Task/032` —no aquí.
 - La contraseña *master* **se genera en `Task/031`** por procedimiento privado y
   autorizado. **`Task/029` no genera ni lee ningún secreto.**
 
-> **Custodia de `blog_migrate` y `blog_app` — `Task/031` H-031-6, preparada offline (2026-10-07). Propuesta — pendiente de aprobación.** Dos SecureString estándar con `alias/aws/ssm` y `value_wo`, junto a la master (`/<prefijo>/datos/<identidad>`), con versión independiente cada una: módulo `terraform/modulos/credenciales_sql`, todavía no cableado. Las contraseñas se generan en memoria en el proceso que ejecuta Terraform; la ejecutora recibe solo verificadores SCRAM. Las identidades se crean por el canal privado con los privilegios de esta sección ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+> **Custodia de `blog_migrate` y `blog_app` — `Task/031` H-031-6, preparada offline (2026-10-07). Aceptada con la aprobación de `Task/031` (2026-10-21).** Dos SecureString estándar con `alias/aws/ssm` y `value_wo`, junto a la master (`/<prefijo>/datos/<identidad>`), con versión independiente cada una: módulo `terraform/modulos/credenciales_sql`, todavía no cableado. Las contraseñas se generan en memoria en el proceso que ejecuta Terraform; la ejecutora recibe solo verificadores SCRAM. Las identidades se crean por el canal privado con los privilegios de esta sección ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
 
 ### 5.4 Autenticación SQL: IAM DB auth
 
@@ -894,7 +894,7 @@ es despreciable para ejecuciones esporádicas.
 >
 > La solicitud de cuota a 1001 sigue abierta y deja de ser requisito ([reporte §49](../task-reports/TASK-031-report.md#49-d-24-modificada-y-plan-de-h-031-5-2026-10-18)).
 
-> **Entrega de credenciales y modos de provisión — `Task/031` REMAINDER (2026-10-07). Propuesta — pendiente de aprobación.** Resuelve la contradicción de la nota anterior sin cambiar D-22, D-23 ni D-24:
+> **Entrega de credenciales y modos de provisión — `Task/031` REMAINDER (2026-10-07). Aceptada con la aprobación de `Task/031` (2026-10-21).** Resuelve la contradicción de la nota anterior sin cambiar D-22, D-23 ni D-24:
 >
 > - **Credenciales.** El operador autorizado las lee en memoria de su SecureString y las entrega en el evento de una invocación **síncrona**. La ejecutora no lee SSM ni KMS, no tiene variables de configuración y no registra nada del evento: cero secreto persistente y costo 0.
 > - **`identidades` recibe verificadores SCRAM-SHA-256.** La contraseña de `blog_migrate` y `blog_app` no viaja; el verificador sí queda en el log de PostgreSQL por `log_statement = ddl`, y por eso D-20 no lee logs.
@@ -1020,12 +1020,15 @@ Alarmas mínimas: `CPUUtilization`, `CPUCreditBalance`, `FreeableMemory`,
 *backup* y `MaximumUsedTransactionIDs`. Ocho señales, dentro de las 10 gratuitas. Los
 umbrales los fija `Task/031`: **no se copian umbrales arbitrarios aquí**.
 
-> **Alarmas — `Task/031` H-031-8, preparadas offline (2026-10-07). Propuesta — pendiente de aprobación.** Ocho alarmas sin acciones, con umbrales derivados de la guía de AWS para RDS, de la clase de D-22 y de D-12 (módulo `terraform/modulos/alarmas_rds`, no cableado). **El fallo de *backup* no tiene métrica de CloudWatch:** RDS lo comunica como evento, y convertirlo en alarma exige EventBridge y otro destino, servicios no aprobados. Queda como decisión ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+> **Alarmas — `Task/031` H-031-8, preparadas offline (2026-10-07). Aceptadas con la aprobación de `Task/031` (2026-10-21); D-11 sigue abierta.** Ocho alarmas sin acciones, con umbrales derivados de la guía de AWS para RDS, de la clase de D-22 y de D-12 (módulo `terraform/modulos/alarmas_rds`, no cableado). **El fallo de *backup* no tiene métrica de CloudWatch:** RDS lo comunica como evento, y convertirlo en alarma exige EventBridge y otro destino, servicios no aprobados. Queda como decisión ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
 
-> **Alarmas aplicadas en AWS — `Task/031` H-031-8 (2026-10-15). Propuesta — pendiente de aprobación.** Las 8 existen
+> **Alarmas aplicadas en AWS — `Task/031` H-031-8 (2026-10-15). Aceptadas con la aprobación de `Task/031` (2026-10-21).** Las 8 existen
 > sin acciones, con readback 8/8 y convergencia. `memoria` está en `ALARM` en reposo: una `db.t4g.micro` ronda los
 > 148 MiB libres frente al umbral de 256 MiB. Es un hallazgo de calibración: no se cambia el umbral ni el tamaño sin
 > una decisión específica ([reporte §47](../task-reports/TASK-031-report.md#47-h-031-8-y-h-031-9--alarmas-de-d-11-y-rol-de-d-20-aplicados-y-convergentes-2026-10-08-a-2026-10-15)).
+>
+> Desde el 2026-10-21, la calibración de `memoria` y el alertamiento efectivo son alcance de `Task/040`, con
+> **D-11 abierta** ([STAGE-12](../stages/STAGE-12-launch-and-operations.md)).
 
 ### 9.3 `Task/032` — Lambda real
 
@@ -1263,7 +1266,7 @@ Decisiones humanas que esta tarea **traslada, con fecha y propietario**, a tarea
 
 ## 12. Contratos de Terraform que `Task/031` implementará
 
-> **Enmienda de `Task/031` a §12.2 — Propuesta — pendiente de aprobación** (diseño aprobado
+> **Enmienda de `Task/031` a §12.2 — aceptada con la aprobación de `Task/031` (2026-10-21)** (diseño aprobado
 > en `H-031-1`, DH-1, 2026-10-03). El texto original se conserva intacto debajo.
 >
 > - Los módulos `modulos/red` y `modulos/base_de_datos` existen con esos nombres y bajo

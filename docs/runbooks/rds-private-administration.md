@@ -1,8 +1,11 @@
 # Administración privada de RDS: migraciones, purga y recuperación
 
-**Runbook Vigente, no ejecutado.** Diseño de `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`,
-**aprobada** el 2026-09-27. **No existe RDS, VPC, ejecutor ni credencial**:
-ningún paso de este documento se ha ejecutado y **este documento no autoriza ejecutarlo**.
+**Runbook Vigente.** Diseño de `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`,
+**aprobada** el 2026-09-27, ampliado en `Task/031`, **aprobada** el 2026-10-21. *(Hasta `Task/031`: no
+ejecutado; no existían RDS, VPC, ejecutor ni credenciales.)* `Task/031` ejecutó en AWS las identidades
+SQL, `verify`, `export` y el restore sintético (H-031-6 y H-031-7); las migraciones y `purge` son de
+`Task/036`. **Este documento no autoriza ejecutar nada**: cada operación exige su tarea propietaria y la
+autorización explícita del usuario.
 Contrato completo:
 [paquete de decisiones §8](../architecture/production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--resuelta).
 
@@ -22,6 +25,10 @@ canal · `Task/040` lo valida.
 > - **2026-10-15:** H-031-8 (alarmas) y H-031-9 (rol de Grafana) se aplicaron sin la ejecutora, que sigue fuera del root hasta la cuota. Este canal **no cambia** y sigue sin desplegarse ([reporte §47](../task-reports/TASK-031-report.md#47-h-031-8-y-h-031-9--alarmas-de-d-11-y-rol-de-d-20-aplicados-y-convergentes-2026-10-08-a-2026-10-15)).
 >
 > - **2026-10-18 — D-24 modificada, aprobada por el usuario el 2026-10-19:** la ejecutora vuelve al root **sin concurrencia reservada**; las escrituras administrativas se excluyen con un bloqueo de aviso de PostgreSQL y la cuota de Lambda deja de bloquear. **Desplegada el 2026-10-19 como *shell* h0315**: responde `selfcheck`, y los modos de este runbook siguen `NOT_IMPLEMENTED` hasta H-031-6 y `Task/036` ([reporte §49.15](../task-reports/TASK-031-report.md#4915-aprobación-de-d-24-y-40-y-apply-de-h-031-5-2026-10-19)).
+>
+> - **2026-10-20 y 2026-10-21:** H-031-6 (`identidades`, `verify` y `export`) y H-031-7 (marcador sintético,
+>   restore PITR y limpieza) se ejecutaron en AWS ([reporte §51](../task-reports/TASK-031-report.md#51-h-031-6-aplicada-y-verificada-y-h-031-7-completa-2026-10-20-y-2026-10-21)). El canal quedó **aprobado con
+>   `Task/031` el 2026-10-21**; Alembic, las migraciones y `purge` siguen en `Task/036`.
 >
 > Ningún procedimiento de este runbook es ejecutable antes de su fase
 > ([reporte §44](../task-reports/TASK-031-report.md#44-h-031-5--ejecutora-privada-de-d-24-por-fases-implementación-offline-y-cuota-lambda-2026-10-06)).

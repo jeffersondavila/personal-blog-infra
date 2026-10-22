@@ -64,7 +64,7 @@ se exige inventario, inspección `boto3`, runtime correcto y `/health` = 200.
 Si el plan no se puede explicar por la ausencia o el `apply` parcial observado,
 **ABORTAR**, incluso si la lista cerrada lo permitiría.
 
-> **Ampliado el 2026-10-03 por `Task/031` (H-031-1) — Propuesta — pendiente de aprobación.** Orden de reconciliación:
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1), aprobada el 2026-10-21.** Orden de reconciliación:
 > **medios → datos → aplicación**, cada root con su plan y su confirmación si cambia; un
 > reemplazo o una destrucción en datos se rechazan antes del apply.
 >
@@ -96,7 +96,7 @@ de ella, aplicación debe converger (H-025-1 quedó resuelta con Floci 2.1.0). E
 plan de datos solo tolera las diez diferencias estrechas del emulador declaradas en la
 [matriz de paridad](../architecture/aws-local-parity.md), nunca drift nuevo ni `ignore_changes`.
 
-> **Ampliado el 2026-10-03 por `Task/031` (H-031-1A) — Propuesta — pendiente de aprobación.**
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1A), aprobada el 2026-10-21.**
 > El segundo plan de datos es **un único** plan guardado con `-detailed-exitcode` cuyo JSON se
 > lee **siempre**, también con `exit 0`. Se juzgan **las dos** secciones: `resource_changes`
 > contra las diez diferencias del emulador y `resource_drift` contra una lista **cerrada** de

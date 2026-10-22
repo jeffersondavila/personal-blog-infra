@@ -4,7 +4,7 @@
 lectura, sin EventBridge, SNS, métricas personalizadas ni alarmas nuevas. Contexto en el
 [reporte de Task/031, §48](../task-reports/TASK-031-report.md#48-bloqueos-b1-b3-y-b4--decisiones-del-usuario-del-2026-10-16).
 
-**Estado.** Propuesta — pendiente de aprobación: se consolida con el `approved` de `Task/031`.
+**Estado.** **Vigente** — aprobado con `Task/031` el 2026-10-21. *(Hasta entonces: propuesta pendiente de aprobación.)*
 
 ## 1. Por qué es manual y qué hueco cubre
 

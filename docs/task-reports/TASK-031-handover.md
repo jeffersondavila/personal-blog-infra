@@ -1,7 +1,9 @@
 # Task/031 — Documento de traspaso (2026-10-21)
 
-Estado: **CIERRE TÉCNICO COMPLETADO — Lista para validación.** Falta la revisión del usuario y el
-`approved: Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`. Este documento **no** es la aprobación.
+Estado: **Aprobada el 2026-10-21** mediante `approved: Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`, con la
+aceptación expresa de las excepciones 5, 6 y 8 ([reporte §52](TASK-031-report.md#52-aprobación-y-cierre-2026-10-21)).
+Este documento es el traspaso **previo** a la aprobación y se conserva como historia: se escribió con la tarea
+en **CIERRE TÉCNICO COMPLETADO — Lista para validación**.
 
 Fuente de verdad: el [reporte de Task/031](TASK-031-report.md), sobre todo la
 [§51](TASK-031-report.md#51-h-031-6-aplicada-y-verificada-y-h-031-7-completa-2026-10-20-y-2026-10-21). También
@@ -53,7 +55,7 @@ En PostgreSQL:
 
 Los criterios de aceptación 1 a 4, 7, 9 y 10 de la ficha tienen evidencia completa en el reporte; la matriz final está en §51.16. Tres **no se cumplen
 tal como se redactaron**: tienen una **desviación documentada** respecto del requisito original (§48.8 y §51.16 del
-reporte) y solo se cierran con la aceptación expresa del usuario:
+reporte) y solo se cierran con la aceptación expresa del usuario, **concedida el 2026-10-21**:
 - el 5: backups de 1 día, porque el plan FREE no admite 7;
 - el 6: la identidad operativa es `PersonalBlogAdministrator` (§24);
 - el 8: las alarmas no tienen acciones y falta calibrar `memoria`; de D-19 queda la comprobación al terminar el trial.
@@ -150,9 +152,10 @@ python -B tmp/h0320/cierre_h0317.py                             # cierre de H-03
 
 ## 9. Pendientes verdaderos
 
-1. La revisión del usuario y la aceptación de las desviaciones de §5.
+1. ~~La revisión del usuario y la aceptación de las desviaciones de §5~~: concedidas el 2026-10-21.
 2. ~~La decisión sobre el `.pem` de §7~~: resuelta el 2026-10-21.
-3. Con `approved`, el flujo de cierre de `docs/claude/PROJECT_INSTRUCTIONS.md` §8:
+3. Con `approved`, el flujo de cierre de `docs/claude/PROJECT_INSTRUCTIONS.md` §8, iniciado el 2026-10-21
+   ([reporte §52](TASK-031-report.md#52-aprobación-y-cierre-2026-10-21)):
    - commits, integración en `dev` con `--no-ff` y publicación;
    - la rama Task en `origin` y el PR `Task/031 → main`, que no se fusiona;
    - volver a `main` y borrar la rama local con `-d`.

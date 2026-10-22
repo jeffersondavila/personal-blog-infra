@@ -97,7 +97,7 @@ El comando:
 7. aplica, recorre las APIs, ejecuta `/health` y consulta de nuevo con `boto3` tomado
    del propio ZIP.
 
-> **Ampliado el 2026-10-03 por `Task/031` (H-031-1 y H-031-1A) — Propuesta — pendiente de aprobación.** Hay un **tercer** root,
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1 y H-031-1A), aprobada el 2026-10-21.** Hay un **tercer** root,
 > `terraform-datos` —red privada y RDS—, entre medios y aplicación: los pasos 2 a 5 ocurren
 > **tres** veces, con **21** altas en datos y su propia confirmación. Datos recibe el ARN del
 > bucket por variable. Tras su plan y su apply, la contraseña **canario** del laboratorio se

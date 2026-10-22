@@ -42,7 +42,7 @@ python scripts/laboratorio/laboratorio.py --modo local destruir --lambda-zip $Ta
 Pop-Location
 ```
 
-> **Ampliado el 2026-10-03 por `Task/031` (H-031-1 y H-031-1A) — Propuesta — pendiente de aprobación.** Hay **tres** roots y el
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1 y H-031-1A), aprobada el 2026-10-21.** Hay **tres** roots y el
 > orden inverso es **aplicación → datos → medios**. Datos tiene su propio plan, su SHA-256 y
 > su confirmación —21 bajas en el laboratorio, ninguna de S3 ni de aplicación—, y su apply
 > del plan guardado vuelve a aportar el archivo de variables **efímeras** (la contraseña

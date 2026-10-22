@@ -4,7 +4,7 @@
 - [D-20 en open-decisions](../architecture/open-decisions.md#d-20--mecanismo-de-integración-cloudwatch--grafana-cloud);
 - [reporte de Task/031, §47](../task-reports/TASK-031-report.md).
 
-**Estado.** Propuesta — pendiente de aprobación: se consolida con el `approved` de `Task/031`.
+**Estado.** **Vigente** — aprobado con `Task/031` el 2026-10-21. *(Hasta entonces: propuesta pendiente de aprobación.)*
 
 **Ejecución en AWS (2026-10-15):**
 - el rol y su política en línea existen, creados por Terraform en H-031-9;

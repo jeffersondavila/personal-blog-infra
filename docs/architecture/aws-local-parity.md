@@ -303,7 +303,7 @@ no es lo que R-26 vigila.
 
 #### 4.1.1.1 Segundo *lifecycle* extraído — red y base de datos (`Task/031`)
 
-> **Propuesta — pendiente de aprobación** como parte de `Task/031`; diseño aprobado en
+> **Vigente** — aprobada con `Task/031` el 2026-10-21; diseño aprobado en
 > `H-031-1` (DH-1, 2026-10-03).
 
 La red privada y RDS pasan a un root propio, **`terraform-datos`**, con su propio state

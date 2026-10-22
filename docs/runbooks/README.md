@@ -34,9 +34,9 @@ exactos y reproducibles, y con el resultado esperado de cada uno.
 | --- | --- | --- |
 | [terraform-state-bootstrap.md](terraform-state-bootstrap.md) | AWS real; bootstrap D-06 separado | **Vigente** — aprobado en `Task/030` (2026-09-29): **H-030-2 COMPLETO** — states migrados y validados, locking y recovery probados, locales retirados y **EX-028-C7 Extinguida**; incluye el retorno de `terraform-medios` a S3 tras usar el laboratorio |
 | [github-oidc-bootstrap.md](github-oidc-bootstrap.md) | AWS real; bootstrap OIDC aislado | Ejecutado en `Task/028`; su state pasó a S3 en **Task/030 H-030-2** y **EX-028-C7 quedó Extinguida** el 2026-09-28. Su §2 se conserva como historia |
-| [rds-private-administration.md](rds-private-administration.md) | AWS real futuro; migraciones, purga y restore por canal privado sobre RDS | **Vigente** — aprobado en `Task/029` (2026-09-27); **no ejecutado**: no existe RDS ni ejecutor |
-| [grafana-cloudwatch.md](grafana-cloudwatch.md) | AWS real; Grafana Cloud lee CloudWatch con el rol de D-20 | **Propuesta — pendiente de aprobación** (`Task/031` H-031-9) |
-| [rds-backup-supervision.md](rds-backup-supervision.md) | AWS real; supervisión manual de los backups de RDS (solo lectura) | **Propuesta — pendiente de aprobación** (`Task/031`, B3 opción A) |
+| [rds-private-administration.md](rds-private-administration.md) | AWS real futuro; migraciones, purga y restore por canal privado sobre RDS | **Vigente** — aprobado en `Task/029` (2026-09-27) y ampliado en `Task/031` (aprobada el 2026-10-21), que ejecutó en AWS las identidades SQL, `verify`, `export` y el restore sintético (H-031-6 y H-031-7). Migraciones y `purge`: `Task/036` |
+| [grafana-cloudwatch.md](grafana-cloudwatch.md) | AWS real; Grafana Cloud lee CloudWatch con el rol de D-20 | **Vigente** — aprobado en `Task/031` (2026-10-21; H-031-9) |
+| [rds-backup-supervision.md](rds-backup-supervision.md) | AWS real; supervisión manual de los backups de RDS (solo lectura) | **Vigente** — aprobado en `Task/031` (2026-10-21; B3, opción A) |
 | [local-environment.md](local-environment.md) | Local (Docker Compose) | **Vigente** — aprobado en `Task/003` (2026-07-29) |
 | [local-backup-and-recovery.md](local-backup-and-recovery.md) | Local (backup y recuperación) | **Vigente** — aprobado en `Task/004` (2026-07-31) |
 | [deployment-create.md](deployment-create.md) | Laboratorio AWS local; transición AWS preparada | **Vigente** — aprobado en `Task/026` (2026-09-15) |

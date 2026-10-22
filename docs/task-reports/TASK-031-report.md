@@ -3,7 +3,7 @@
 | Campo | Valor |
 | --- | --- |
 | Tarea | `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` |
-| Estado | **En progreso** — H-031-1 completado; **H-031-1A READY FOR H-031-IAM** (2026-10-03), tras un primer ciclo rechazado por drift no declarado (§14.5) y su resolución demostrada (§15); H-031-IAM: plan revisado (§16) y **aplicado** —8 recursos IAM creados, readback verde—, pero **BLOQUEADO en la simulación** por S-10 (§17). Corrección S-10 diseñada y simulada en verde; su plan de reparación (0/1/0) quedó bloqueado por `resource_drift` de metadatos (§18). Plan refresh-only preparado (§19) y aplicado: **exit 1** por `templatefile` inconsistente, pero el state **sí** quedó escrito con exactamente los cinco metadatos (§20); el usuario lo **aceptó** por esa evidencia. State aceptado y nuevo plan (§21). S-10 aplicada y verificada (§22); preparación del login detenida (§23). **H-031-IAM COMPLETE** (§24): por **decisión operacional del usuario**, las operaciones restantes usan `personal-blog` / `PersonalBlogAdministrator` y `personal-blog-datos` no se configura. **H-031-2-ALIGN READY** (§25): `terraform-datos` y su guarda exigen exactamente `PersonalBlogAdministrator`; procedimiento de la contraseña efímera definido. **H-031-2 PLAN READY FOR APPLY REVIEW** (§26): plan 21/0/0, `PLAN_OK`, sin drift, `SECRET_ABSENT`; sin apply |
+| Estado | **Aprobada — 2026-10-21**, mediante `approved: Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`, con la aceptación expresa de las excepciones 5, 6 y 8 ([§52](#52-aprobación-y-cierre-2026-10-21)). Cierre técnico en §51; matriz final en §51.16. *Estado anterior, conservado como historia:* **En progreso** — H-031-1 completado; **H-031-1A READY FOR H-031-IAM** (2026-10-03), tras un primer ciclo rechazado por drift no declarado (§14.5) y su resolución demostrada (§15); H-031-IAM: plan revisado (§16) y **aplicado** —8 recursos IAM creados, readback verde—, pero **BLOQUEADO en la simulación** por S-10 (§17). Corrección S-10 diseñada y simulada en verde; su plan de reparación (0/1/0) quedó bloqueado por `resource_drift` de metadatos (§18). Plan refresh-only preparado (§19) y aplicado: **exit 1** por `templatefile` inconsistente, pero el state **sí** quedó escrito con exactamente los cinco metadatos (§20); el usuario lo **aceptó** por esa evidencia. State aceptado y nuevo plan (§21). S-10 aplicada y verificada (§22); preparación del login detenida (§23). **H-031-IAM COMPLETE** (§24): por **decisión operacional del usuario**, las operaciones restantes usan `personal-blog` / `PersonalBlogAdministrator` y `personal-blog-datos` no se configura. **H-031-2-ALIGN READY** (§25): `terraform-datos` y su guarda exigen exactamente `PersonalBlogAdministrator`; procedimiento de la contraseña efímera definido. **H-031-2 PLAN READY FOR APPLY REVIEW** (§26): plan 21/0/0, `PLAN_OK`, sin drift, `SECRET_ABSENT`; sin apply |
 | Rama | `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`, desde `main` `6c31d1d` |
 | Ficha | [TASK-031](../tasks/TASK-031-deploy-network-rds-ssm-cloudwatch.md) |
 
@@ -5356,7 +5356,7 @@ La tabla de §48.8 se conserva como foto del 2026-10-16. Esta es la matriz **fin
 | 3 | Cifrado `aws/rds` | **Cumplido** | RDS cifrada con `aws/rds` (§37.3); ninguna prueba deshabilita ni programa el borrado de una clave | — |
 | 4 | Master ausente | **Cumplido** | `PRODUCTION_SECRET_ABSENT = true` en cada fase, en plan, state, salidas y archivos; también para `blog_migrate` y `blog_app` (§51.3 y §51.5) | — |
 | 5 | Backups de 7 días, PITR activo | **Con excepción** | PITR activo y `LatestRestorableTime` avanzando: diagnóstico de B3 (§48.3) y preflights de H-031-7, con 189 a 281 s de retraso. PITR real con integridad (§51.8) | Retención de **1 día**: excepción temporal del plan FREE (§34); objetivo de 7 días al pasar al plan PAID |
-| 6 | Identidad operativa mínima | **Con excepción** | Se opera con `PersonalBlogAdministrator` (§24). El bootstrap de la identidad de datos existe en `bootstrap/operador-datos/` y no se aplicó | La identidad mínima no se usa, por decisión del usuario del 2026-10-04 |
+| 6 | Identidad operativa mínima | **Con excepción** | Se opera con `PersonalBlogAdministrator` (§24). La identidad mínima `PersonalBlogDataOperator` se **creó y validó** en H-031-IAM con su bootstrap `bootstrap/operador-datos/`: 8 recursos, S-10 aplicada, simulación contra el rol real 62/62 y convergencia 0/0/0 (§17 a §24). Se conserva **sin uso operativo** | La identidad mínima no es el contexto operativo, por decisión del usuario del 2026-10-04 |
 | 7 | Restore sintético y PITR | **Cumplido** | §51.8 a §51.10 y los registros de «Evidencia del cierre definitivo de H-031-7» | — |
 | 8 | CloudWatch D-11; D-20 tras D-19 | **Con excepción** | Retención explícita de 14 días en los grupos de logs de PostgreSQL y de la ejecutora, confirmada por la convergencia (el refresh lee el valor real) y, en la ejecutora, por readback (§49.15). 8 alarmas, dentro del límite de 10, con readback 8/8 (§47). D-20 aplicado tras verificar D-19 para integrarlo (§47) | Alarmas sin acciones, **sin alertamiento efectivo**; fallo de backup con supervisión manual (B3); `memoria` en `ALARM` en reposo; D-20 solo con métricas. El alertamiento efectivo y la calibración de `memoria`, en `Task/040`, con **D-11 abierta**; **D-19 abierta**, con la comprobación al terminar el trial en `Task/041` |
 | 9 | Convergencia 0/0/0 y paridad | **Cumplido, en los términos del criterio** | 0/0/0 tras cada apply en AWS: H-031-3 (§42.4), H-031-8 y H-031-9 (§47), H-031-5 (§49.15) y H-031-6 (§51.3). Matriz de paridad actualizada **sin declarar paridad completa** | No es una declaración de paridad; ver «Alcance real del criterio 9» |
@@ -5449,3 +5449,97 @@ estén implementadas y verificadas. **D-19** sigue con su comprobación en `Task
 - la fila y la sección de D-11 en `open-decisions.md`.
 
 No se modificó ninguna alarma ni ningún recurso en AWS, y no se promovió ninguna decisión que deba seguir abierta.
+
+## 52. Aprobación y cierre (2026-10-21)
+
+El usuario escribió **`approved: Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`** después de revisar el cierre técnico,
+las evidencias de H-031-6 y H-031-7, la matriz de aceptación (§51.16) y las excepciones documentadas. La fecha es
+UTC, como el resto del cierre de la tarea; en America/Guatemala era la noche del 2026-10-20.
+
+**Aceptación expresa de las excepciones.** El usuario aceptó las excepciones de los criterios **5**, **6** y **8**,
+con sus restricciones, responsables y tareas de seguimiento tal como quedaron documentados en §51.16. Dejó escrito
+que esa aceptación:
+- **no cierra D-11 ni D-19**;
+- **no autoriza cambios adicionales en AWS**.
+
+**Comprobaciones previas al cierre:**
+- la rama `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` existe y es la activa; nació de `main` `6c31d1d`, que
+  coincide con `origin/main`, y no tenía commits propios;
+- el entregable son 164 archivos —29 modificados y 135 nuevos—, sin cambios ajenos mezclados;
+- **repositorio afectado:** solo `personal-blog-infra`; backend y frontend, **sin rama** e intactos en `main`;
+- validaciones del entregable, todas en verde:
+  - las 32 gates sin conexión: Terraform `fmt`, `init`, `validate` y `test` en los seis roots, las suites de
+    Python, el Compose del laboratorio y `git diff --check`;
+  - Gitleaks 8.30.1 sin hallazgos sobre los 428 archivos del entregable, con un control positivo de 3/3;
+  - el ID de cuenta real, la cuenta de Grafana y el `ExternalId` del tfvars privado: 0 apariciones;
+  - 2337 enlaces Markdown, 0 rotos;
+  - todos los archivos en LF y sin BOM.
+
+**Corrección de formato antes del commit.** `git diff --cached --check` detectó una línea en blanco sobrante al
+final de tres archivos nuevos: `terraform-datos/outputs.tf`, `terraform/modulos/ejecutor_privado/outputs.tf` y
+`terraform/modulos/exportacion/outputs.tf`. La gate `diff-check` no la veía: compara sin `--cached`, y los
+archivos nuevos no estaban en el índice. Se quitó ese salto de línea sobrante. `terraform fmt -check` acepta las
+dos variantes y la configuración no cambia. Después se repitieron las 32 gates, otra vez en verde.
+
+**Lo que la aprobación promueve:**
+
+| Elemento | Estado |
+| --- | --- |
+| **D-20** — integración `CloudWatch → Grafana Cloud` | **Resuelta**: rol `PersonalBlogLecturaGrafana`, con `sts:ExternalId` y solo métricas. `Task/040` valida datos y alertas |
+| **D-11** | Sigue **Abierta**. Las notas de H-031-1 y H-031-8 quedan aceptadas; el alertamiento efectivo y la calibración de `memoria` son de `Task/040` (§51.17) |
+| **D-19** | Sigue **Abierta**. La verificación previa a integrar queda aceptada; la comprobación al terminar el trial es de `Task/041` |
+| Registro de decisiones | **5 abiertas** —D-07, D-11, D-12, D-19 y D-21—, **16 resueltas** y 3 cerradas por no aplicabilidad |
+| Notas de `Task/031` en el [paquete de decisiones RDS](../architecture/production-postgresql-rds-decisions.md): custodia de `blog_migrate` y `blog_app`, entrega de credenciales, alarmas y enmienda a §12.2 | **Aceptadas** |
+| §4.1.1.1 de [aws-local-parity](../architecture/aws-local-parity.md): `terraform-datos` como segundo *lifecycle* | **Vigente** |
+| Runbooks [grafana-cloudwatch](../runbooks/grafana-cloudwatch.md) y [rds-backup-supervision](../runbooks/rds-backup-supervision.md) | **Vigentes** |
+| Ampliaciones de `Task/031` en los cinco runbooks del laboratorio, en [rds-private-administration](../runbooks/rds-private-administration.md) y en la custodia de R-12 de [local-backup-and-recovery](../runbooks/local-backup-and-recovery.md) | **Aprobadas**; los runbooks siguen **Vigentes** |
+| [identidad-operativa-datos.md](../architecture/identidad-operativa-datos.md) | **Implementada sin uso operativo**: la identidad operativa es `PersonalBlogAdministrator` (excepción 6) |
+| ADR | **Ninguno nuevo** ni modificado |
+
+Se consolidan también, ya aprobadas antes: D-24 modificada (2026-10-19), la semántica de §40, el validador TLS
+(§51.4), R-12 con seguimiento en `Task/040` (§48.4), el orden de las fases (§47.3) y la excepción del `.gitignore`
+(§51.15).
+
+**Correcciones documentales al registrar la aprobación.** Ninguna cambia un criterio, una excepción ni un estado
+aceptado:
+1. **§51.16, fila del criterio 6, columna «Evidencia».** Decía que el bootstrap de la identidad de datos «no se
+   aplicó». Era **inexacto**: `PersonalBlogDataOperator` se creó y validó en H-031-IAM (§17 a §24) y se conserva
+   sin uso operativo. El estado «Con excepción» y la excepción aceptada no cambian.
+2. **`identidad-operativa-datos.md`:** «Código (no aplicado)» pasa a «aplicado en H-031-IAM; sin uso operativo».
+3. **`terraform-state-bootstrap.md` §3:** las filas de `terraform-datos` y `bootstrap/operador-datos` seguían en el
+   estado de H-031-2 («state todavía ausente», «sin inicializar»); ahora registran el del cierre.
+4. **`rds-private-administration.md` y el índice de runbooks** decían «no ejecutado» y que no existían RDS ni
+   ejecutor; ahora registran lo ejecutado en H-031-6 y H-031-7.
+5. **Ficha:** H-031-2 se marca completa —H-031-3 se autorizó sobre su plan guardado exacto (§27)—, igual que el
+   cierre.
+6. **STAGE-10** marca dos criterios de salida: **D-20 decidida** y los **runbooks ampliados a red y RDS antes de
+   operar**. **No** marca, por falta de evidencia completa:
+   - RDS no pública: no hubo un caso negativo activo de conexión;
+   - TLS desde la Lambda de la aplicación (`Task/032`);
+   - credenciales ausentes de los logs de CloudWatch;
+   - la clave KMS de la temporal del PITR (`KmsKeyId`): solo se comprobó el cifrado activo.
+
+**Avance:** **31/41 ≈ 76 %**. **ETAPA 10: 2/7 ≈ 29 %**. Quedan **10 pendientes**, de `Task/032` a `Task/041`.
+
+**Seguimientos que siguen vivos** (§51.16):
+- el alertamiento efectivo de RDS y la calibración de `memoria`, en `Task/040`, con **D-11 abierta**;
+- D-19, en `Task/041`;
+- R-12, en `Task/040`;
+- la exportación con datos reales, en `Task/036` y `Task/040`;
+- la retención de 7 días, al pasar al plan PAID;
+- la supervisión manual de los backups (B3), vigente.
+
+**La aprobación no crea recursos.** Tras ella no se ejecutó Terraform, ninguna operación de AWS ni la restauración
+PITR.
+
+**Flujo Git**, solo en `personal-blog-infra`, según [PROJECT_INSTRUCTIONS §8](../claude/PROJECT_INSTRUCTIONS.md):
+1. un commit del entregable validado y un segundo commit que registra esta aprobación;
+2. `dev` actualizado con `pull --ff-only` e integración de la rama Task con `merge --no-ff`;
+3. publicación de `dev` y de la rama Task;
+4. pull request **`Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch → main`** —nunca `dev → main`—, sin aceptarlo ni
+   fusionarlo: eso es exclusivo del usuario;
+5. vuelta a `main`, `fetch --prune`, `pull --ff-only` y `git branch -d` de la rama Task local, sin `-D` y sin
+   tocar la rama remota.
+
+La URL del PR y el estado final se entregan al usuario al terminar; GitHub es su fuente viva. `Task/032` **no se
+inicia**: como toda Task, nace de `main` actualizado y limpio tras la normalización `main → dev`.

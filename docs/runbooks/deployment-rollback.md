@@ -83,7 +83,7 @@ El gate exige:
 Si el ZIP anterior produce el mismo código y el plan no actualiza Lambda, el comando
 aborta: no se declarará un rollback inexistente.
 
-> **Ampliado el 2026-10-03 por `Task/031` (H-031-1) — Propuesta — pendiente de aprobación.** El rollback también **solo
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1), aprobada el 2026-10-21.** El rollback también **solo
 > lee** el root de datos: la red y RDS no se reaplican para cambiar de artefacto.
 >
 > **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** El rollback **solo lee** el root de medios: un bucket sano no se reaplica ni se
