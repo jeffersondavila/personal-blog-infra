@@ -115,6 +115,15 @@ services:
       # configura solo con lo que declara este archivo.
       LOCALSTACK_PARITY: "false"
 
+      # RDS SOLO como plano de control (Task/031, DH-5). Sin esto, crear una
+      # instancia hace que el emulador lance un contenedor de motor desde una
+      # imagen por ETIQUETA (`postgres:16-alpine`), que el demonio de Docker
+      # descargaria fuera del perimetro y sin digest. Con `mock` no hay motor:
+      # el laboratorio valida topologia, contratos, orden y guardas, y nada del
+      # plano de datos de RDS —TLS, KMS, backups, PITR— cuenta como evidencia.
+      # Eso es AWS-only y se demuestra contra AWS real.
+      FLOCI_SERVICES_RDS_MOCK: "true"
+
     networks:
       entrada:
       ejecucion:
@@ -125,7 +134,8 @@ services:
 
     healthcheck:
       # UBI micro no incluye curl. Solo builtins de Bash, presente en la imagen.
-      # Exige respuesta HTTP correcta Y los seis servicios del grafo activos.
+      # Exige respuesta HTTP correcta Y los ocho servicios de los tres roots
+      # activos (EC2 y RDS desde Task/031, por el root de datos).
       # Cada lectura tiene limite; Docker acota tambien la conexion y el total.
       test:
         - CMD
@@ -145,7 +155,7 @@ services:
           patron='"services"[[:space:]]*:[[:space:]]*\{([^}]*)\}'
           [[ "$$cuerpo" =~ $$patron ]] || exit 1
           servicios="$${BASH_REMATCH[1]}"
-          for servicio in s3 ssm lambda logs iam apigateway; do
+          for servicio in s3 ssm lambda logs iam apigateway ec2 rds; do
             patron="\"$$servicio\"[[:space:]]*:[[:space:]]*\"running\""
             [[ "$$servicios" =~ $$patron ]] || exit 1
           done

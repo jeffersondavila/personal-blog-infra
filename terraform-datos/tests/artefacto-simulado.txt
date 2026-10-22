@@ -1,0 +1,4 @@
+Artefacto SIMULADO de la ejecutora privada (Task/031 H-031-5) para las pruebas offline de terraform-datos.
+No es un ZIP y nunca se despliega: el provider simulado no lee su contenido. Solo sirve para que el root calcule
+su digest y para probar que un digest distinto se rechaza. El artefacto real lo construye y lo fija
+scripts/terraform_datos/empaquetar_ejecutor.py.

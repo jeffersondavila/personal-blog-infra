@@ -64,6 +64,7 @@ from laboratorio import herramientas as mod_herramientas  # noqa: E402
 from laboratorio import inventario as mod_inventario  # noqa: E402
 from laboratorio import runtime as mod_runtime  # noqa: E402
 from laboratorio import verificacion as mod_verificacion  # noqa: E402
+from terraform_datos import empaquetar_ejecutor as mod_ejecutor  # noqa: E402
 
 RAIZ = Path(__file__).resolve().parents[2]
 DIRECTORIO_DE_TERRAFORM = RAIZ / "terraform"
@@ -99,13 +100,54 @@ TFVARS_LOCAL_DE_MEDIOS = DIRECTORIO_DE_MEDIOS / "entornos" / "local" / "local.tf
 #: API Gateway, asi que enviarle esos atributos seria un error de tipo.
 ENDPOINTS_DEL_ROOT_DE_MEDIOS = ("s3", "sts")
 
+#: Root de DATOS: red privada y RDS de ADR-010. Enmienda de Task/031
+#: (`H-031-1`, DH-1), segundo lifecycle extraido con el mismo criterio que el de
+#: medios. Tambien aqui la topologia es la misma en el laboratorio y en AWS real.
+DIRECTORIO_DE_DATOS = RAIZ / "terraform-datos"
+BACKEND_GENERADO_DE_DATOS = DIRECTORIO_DE_DATOS / "backend.generado.tf"
+DIRECTORIO_GENERADO_DE_DATOS = DIRECTORIO_DE_DATOS / "generado"
+VARIABLES_GENERADAS_DE_DATOS = DIRECTORIO_GENERADO_DE_DATOS / "destino.tfvars.json"
+PLAN_GUARDADO_DE_DATOS = DIRECTORIO_GENERADO_DE_DATOS / "plan.tfplan"
+TFVARS_LOCAL_DE_DATOS = DIRECTORIO_DE_DATOS / "entornos" / "local" / "local.tfvars"
+
+#: Endpoints de cada root: solo los que su variable `endpoints_aws` declara.
+#: Enviarle a un root un servicio que no usa seria un atributo no soportado.
+#: Desde H-031-5, datos tambien habla con IAM y Lambda (la ejecutora privada de D-24, de vuelta en el root desde el
+#: 2026-10-18 con concurrencia no reservada) y desde H-031-8 con CloudWatch (alarmas de D-11). Sin el endpoint de CloudWatch, las alarmas del
+#: laboratorio irian a AWS real: la lista es una guarda, no una preferencia.
+ENDPOINTS_DEL_ROOT_DE_DATOS = ("cloudwatch", "ec2", "iam", "lambda", "logs", "rds", "ssm", "sts")
+
+#: D-20 en el laboratorio: valores FICTICIOS, distintos de la cuenta del emulador. Los reales del stack de Grafana
+#: solo viven en el archivo privado del destino productivo.
+INTEGRACION_GRAFANA_DEL_LABORATORIO = {"cuenta": "999999999999", "external_id": "laboratorio-d20"}
+
+#: Alarmas de D-11 (H-031-8), por senal; el mismo catalogo que el modulo `alarmas_rds`.
+SENALES_DE_D11 = ("almacenamiento", "conexiones", "cpu", "creditos", "escritura", "lectura", "memoria", "xid")
+ROL_DE_GRAFANA = "PersonalBlogLecturaGrafana"
+ROL_DE_LA_EJECUTORA = "PersonalBlogEjecutorDatos"
+ENDPOINTS_DEL_ROOT_DE_APLICACION = (
+    "apigatewayv2", "cloudwatch", "iam", "lambda", "logs", "s3", "ssm", "sts",
+)
+
+#: Contrasena master del LABORATORIO. Es publica por diseno, como las
+#: credenciales `test`/`test` de `destino.py`: el emulador no cifra nada y su
+#: unica funcion es ser un CANARIO. Tras cada plan y cada apply del root de datos
+#: se busca en el plan, el state y las salidas; si aparece, el ciclo aborta. Es
+#: la demostracion empirica de DH-2 (la contrasena real nunca se genera aqui).
+CONTRASENA_DEL_LABORATORIO = "LaboratorioCanarioPublicoNoEsSecreto0000"
+EFIMERAS_DEL_LABORATORIO = {
+    "contrasena_master": CONTRASENA_DEL_LABORATORIO,
+    "contrasena_blog_migrate": "LaboratorioCanarioMigracionesNoEsSecreto0000",
+    "contrasena_blog_app": "LaboratorioCanarioAplicacionNoEsSecreto0000",
+}
+
 
 @dataclass(frozen=True)
 class RootDeTerraform:
     """Un root de Terraform con su propio state, y por tanto su propio lifecycle.
 
-    Existe para que el lanzador pueda orquestar DOS roots sin bifurcar el codigo
-    por destino: los dos se tratan igual y solo difieren en sus rutas. El nombre
+    Existe para que el lanzador pueda orquestar VARIOS roots sin bifurcar el
+    codigo por destino: todos se tratan igual y solo difieren en sus rutas. El nombre
     del subdirectorio de estado es lo que garantiza que **ningun recurso queda
     administrado por dos states**.
     """
@@ -139,13 +181,25 @@ ROOT_DE_MEDIOS = RootDeTerraform(
     tfvars_local=TFVARS_LOCAL_DE_MEDIOS,
 )
 
-#: Orden canonico de los roots al CREAR o reconciliar: el que administra el
-#: bucket va primero, porque el grafo de aplicacion lo consume por contrato.
+ROOT_DE_DATOS = RootDeTerraform(
+    nombre="datos",
+    directorio=DIRECTORIO_DE_DATOS,
+    backend_generado=BACKEND_GENERADO_DE_DATOS,
+    directorio_generado=DIRECTORIO_GENERADO_DE_DATOS,
+    variables_generadas=VARIABLES_GENERADAS_DE_DATOS,
+    plan_guardado=PLAN_GUARDADO_DE_DATOS,
+    tfvars_local=TFVARS_LOCAL_DE_DATOS,
+)
+
+#: Orden canonico de los roots al CREAR o reconciliar: medios primero, porque
+#: datos recibe el ARN de su bucket para la politica del gateway endpoint; datos
+#: despues, y aplicacion al final (Task/032 consumira las salidas de datos).
 #: Esta tupla es la **unica** autoridad sobre el orden; ningun comando declara
 #: el suyo. Invertirla da el orden de destruccion, y no se escribe a mano para
 #: que las dos no puedan desincronizarse.
 ROOTS_EN_ORDEN_DE_CREACION: tuple[RootDeTerraform, ...] = (
     ROOT_DE_MEDIOS,
+    ROOT_DE_DATOS,
     ROOT_DE_APLICACION,
 )
 
@@ -214,6 +268,159 @@ ACTUALIZACIONES_DEPENDIENTES_DEL_DRIFT = (
 # Resuelto con 2.1.0 en el addendum de Task/027.1. Se conserva la historia
 # en TASK-025-report.md; tags_all vuelve a exigir convergencia literal.
 DIFERENCIAS_DEL_DESTINO_LOCAL: tuple[mod_inventario.DiferenciaDelDestino, ...] = ()
+
+#: Diferencias del destino local en el root de DATOS, observadas en H-031-1 con
+#: Floci 2.1.0 y RDS en modo `mock` (sin motor). Cada una se demostro con un
+#: segundo plan tras un apply limpio: el emulador acepta el valor pero no lo
+#: devuelve, y el plan nunca converge por un motivo ajeno a la configuracion.
+#: Mismo criterio que arriba: tolerancia ESTRECHA por tipo y atributo, en el
+#: verificador y NUNCA como `ignore_changes`. Contra AWS real no se tolera
+#: ninguna: la convergencia exigida alli es 0/0/0.
+_MOTIVO_RDS_MOCK = (
+    "Floci 2.1.0 con RDS en modo mock no conserva ni devuelve este atributo de la "
+    "instancia (H-031-1); AWS real si lo representa"
+)
+DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DiferenciaDelDestino, ...] = (
+    *(
+        mod_inventario.DiferenciaDelDestino(
+            tipo="aws_db_instance", atributo=atributo, motivo=_MOTIVO_RDS_MOCK
+        )
+        for atributo in (
+            "ca_cert_identifier",
+            "enabled_cloudwatch_logs_exports",
+            "engine_lifecycle_support",
+            "max_allocated_storage",
+            "network_type",
+            "port",
+            "storage_type",
+        )
+    ),
+    mod_inventario.DiferenciaDelDestino(
+        tipo="aws_db_parameter_group",
+        atributo="parameter",
+        motivo="Floci 2.1.0 acepta ModifyDBParameterGroup pero DescribeDBParameters no devuelve los valores de usuario (H-031-1)",
+    ),
+    mod_inventario.DiferenciaDelDestino(
+        tipo="aws_ssm_parameter",
+        atributo="key_id",
+        motivo="Floci 2.1.0 no devuelve el KeyId de un SecureString: no hay KMS que lo respalde (aws-local-parity.md 6.4)",
+    ),
+    mod_inventario.DiferenciaDelDestino(
+        tipo="aws_ssm_parameter",
+        atributo="tier",
+        motivo="Floci 2.1.0 no devuelve el Tier del parametro en DescribeParameters (H-031-1)",
+    ),
+    # Ciclo del 2026-10-19 (H-031-6): primer ciclo completo con las alarmas de H-031-8.
+    *(
+        mod_inventario.DiferenciaDelDestino(
+            tipo="aws_cloudwatch_metric_alarm",
+            atributo=atributo,
+            motivo=(
+                f"Floci 2.1.0 acepta {campo} en PutMetricAlarm pero DescribeAlarms no lo devuelve (llamada "
+                "directa al emulador, 2026-10-19); AWS real si: readback 8/8 de H-031-8"
+            ),
+        )
+        for atributo, campo in (("datapoints_to_alarm", "DatapointsToAlarm"),
+                                ("extended_statistic", "ExtendedStatistic"))
+    ),
+)
+
+#: `resource_drift` del root de DATOS: lista CERRADA por direccion, acciones,
+#: conjunto exacto de atributos y forma de cada transicion (H-031-1A). Antes de
+#: H-031-1A el gate no leia esta seccion y `domain_dns_ips: null -> []` paso sin
+#: declararse; el ciclo se rechazo y solo despues de diagnosticarlo se declaro.
+#:
+#: `domain_dns_ips` NO es una diferencia del emulador: es la representacion del
+#: SDKv2 del provider. Por eso su motivo lo dice, y por eso contra AWS real se
+#: espera la misma entrada, que `scripts/terraform_datos/check_plan.py` y el
+#: plan de convergencia de H-031-3 siguen rechazando (DN-2). Nada de esto viaja
+#: a los modulos: ni `ignore_changes`, ni tolerancia productiva.
+_MOTIVO_DOMAIN_DNS_IPS = (
+    "domain_dns_ips null -> []: representacion del SDKv2 2.40.1 que usa el provider "
+    "6.64.0, no del emulador. Read escribe la lista vacia en toda instancia sin dominio "
+    "AD; el apply conserva el null planificado (normalizeNullValues con apply=true) y "
+    "el refresh no (apply=false); Terraform compara con RawEquals. "
+    "enabled_cloudwatch_logs_exports -> []: Floci 2.1.0 con RDS mock no lo devuelve (H-031-1)"
+)
+_MOTIVO_REGLAS_SEPARADAS = (
+    "Floci 2.1.0 devuelve en el grupo las reglas que gestionan aparte los recursos "
+    "aws_vpc_security_group_*_rule, creadas despues de escribir el state del grupo. "
+    "Observacion del laboratorio: no predice el drift de AWS (DN-2)"
+)
+DRIFT_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DriftDelDestino, ...] = (
+    mod_inventario.DriftDelDestino(
+        direccion="module.base_de_datos.aws_db_instance.this",
+        tipo="aws_db_instance",
+        acciones=("update",),
+        transiciones=(
+            ("domain_dns_ips", "nulo_a_lista_vacia"),
+            ("enabled_cloudwatch_logs_exports", "lista_a_vacia"),
+        ),
+        motivo=_MOTIVO_DOMAIN_DNS_IPS,
+    ),
+    mod_inventario.DriftDelDestino(
+        direccion="module.base_de_datos.aws_db_parameter_group.this",
+        tipo="aws_db_parameter_group",
+        acciones=("update",),
+        transiciones=(("parameter", "lista_a_vacia"),),
+        motivo="Floci 2.1.0 acepta ModifyDBParameterGroup pero DescribeDBParameters no devuelve los valores de usuario (H-031-1)",
+    ),
+    *(
+        mod_inventario.DriftDelDestino(
+            direccion=f"module.red.aws_security_group.{grupo}",
+            tipo="aws_security_group",
+            acciones=("update",),
+            transiciones=((sentido, "agrega_reglas_separadas"),),
+            motivo=_MOTIVO_REGLAS_SEPARADAS,
+        )
+        for grupo, sentido in (("admin", "egress"), ("lambda", "egress"), ("rds", "ingress"))
+    ),
+    # Ciclo del 2026-10-19 (H-031-6): primer ciclo completo con H-031-8, H-031-9, H-031-5 y H-031-6. Igual que
+    # `domain_dns_ips`, NO son diferencias del emulador: es la representacion del SDKv2 tras crear, observada TAMBIEN
+    # contra AWS real y resuelta alli con refresh-only guardados y autorizados. La convergencia productiva sigue
+    # exigiendo `resource_drift` vacio.
+    *(
+        mod_inventario.DriftDelDestino(
+            direccion=f'module.alarmas_rds.aws_cloudwatch_metric_alarm.this["{senal}"]',
+            tipo="aws_cloudwatch_metric_alarm",
+            acciones=("update",),
+            transiciones=tuple((lista, "nulo_a_lista_vacia")
+                               for lista in ("alarm_actions", "insufficient_data_actions", "ok_actions")),
+            motivo=(
+                "Listas de acciones null -> []: representacion del SDKv2 del provider 6.64.0 tras crear una alarma "
+                "sin acciones; la misma que se observo en AWS real (reporte de Task/031 §47.7)"
+            ),
+        )
+        for senal in SENALES_DE_D11
+    ),
+    mod_inventario.DriftDelDestino(
+        direccion="module.ejecutor_privado.aws_iam_role.this",
+        tipo="aws_iam_role",
+        acciones=("update",),
+        transiciones=(("inline_policy", "refleja_politicas_en_linea"),),
+        motivo=(
+            "inline_policy [] -> reflejo EXACTO de sus politicas en linea (-ejecucion y, desde H-031-6, "
+            "-exportacion): representacion del provider; la misma que se observo en AWS real (§49.15)"
+        ),
+    ),
+    mod_inventario.DriftDelDestino(
+        direccion="module.ejecutor_privado.aws_lambda_function.this",
+        tipo="aws_lambda_function",
+        acciones=("update",),
+        transiciones=(("layers", "nulo_a_lista_vacia"),),
+        motivo="layers null -> []: representacion del SDKv2; la misma que se observo en AWS real (§49.15)",
+    ),
+    mod_inventario.DriftDelDestino(
+        direccion="module.lectura_grafana.aws_iam_role.this",
+        tipo="aws_iam_role",
+        acciones=("update",),
+        transiciones=(("inline_policy", "refleja_politicas_en_linea"), ("tags", "nulo_a_mapa_vacio")),
+        motivo=(
+            "inline_policy [] -> reflejo EXACTO de su politica -lectura y tags null -> {}: representacion del "
+            "provider; la misma que se observo en AWS real (§47.9)"
+        ),
+    ),
+)
 
 
 class ErrorDelLaboratorio(RuntimeError):
@@ -346,7 +553,7 @@ def resolver(env_lab: dict[str, str], modo: str) -> mod_destino.Destino:
     entorno = construir_entorno_para_guardas(env_lab)
     resuelto = mod_destino.resolver_destino(entorno, modo=modo)
     print(f"destino validado: modo={resuelto.modo} region={resuelto.region}")
-    print(f"  endpoints: {resuelto.endpoints['s3']} (los ocho servicios)")
+    print(f"  endpoints: {resuelto.endpoints['s3']} (los diez servicios)")
     print(f"  cuenta esperada: {resuelto.cuenta_esperada}")
     return resuelto
 
@@ -893,7 +1100,13 @@ def escribir_variables_del_destino(
     VARIABLES_GENERADAS.write_text(
         json.dumps(
             {
-                "endpoints_aws": dict(destino.endpoints),
+                # Solo los servicios que este root declara: desde Task/031 el
+                # destino resuelve tambien EC2 y RDS, que son del root de datos.
+                "endpoints_aws": {
+                    nombre: valor
+                    for nombre, valor in dict(destino.endpoints).items()
+                    if nombre in ENDPOINTS_DEL_ROOT_DE_APLICACION
+                },
                 "lambda_zip_path": str(zip_de_lambda).replace("\\", "/"),
                 # Contrato recibido del root de medios. Este root NO administra el
                 # bucket: solo lo consume.
@@ -948,6 +1161,114 @@ def escribir_variables_de_medios(destino: mod_destino.Destino) -> None:
     print(f"variables del root de medios escritas en {VARIABLES_GENERADAS_DE_MEDIOS.name}")
 
 
+def preparar_ejecutor_h0316(destino: Path) -> str:
+    """Copia solo el ZIP H-031-6 previamente construido y verificado; nunca descarga dependencias.
+
+    PERSONAL_BLOG_EJECUTOR_ZIP apunta al resultado de empaquetar_ejecutor.py --fase h0316.
+    La guarda exige el mismo pin que AWS. El laboratorio no invoca SQL contra el RDS mock.
+    """
+    origen = os.environ.get("PERSONAL_BLOG_EJECUTOR_ZIP", "")
+    if not origen or not Path(origen).is_file():
+        raise ErrorDelLaboratorio("falta PERSONAL_BLOG_EJECUTOR_ZIP: construir el artefacto H-031-6 con sus ruedas fijadas")
+    contenido = Path(origen).read_bytes()
+    sha256 = hashlib.sha256(contenido).hexdigest()
+    if sha256 != mod_ejecutor.SHA256_ESPERADO_H0316:
+        raise ErrorDelLaboratorio("el artefacto H-031-6 no coincide con su pin")
+    destino.write_bytes(contenido)
+    return sha256
+
+
+def escribir_variables_de_datos(
+    destino: mod_destino.Destino, medios: dict[str, Any] | None = None
+) -> None:
+    """Variables del destino para el root de datos.
+
+    Lleva cinco cosas, y ninguna mas:
+    - los endpoints que ese root declara;
+    - el ARN del bucket que publica el root de medios, por contrato explicito y sin
+      `terraform_remote_state`;
+    - el artefacto FIJADO de la ejecutora de D-24 (h0316 desde H-031-6), copiado de
+      `PERSONAL_BLOG_EJECUTOR_ZIP` y comprobado contra su pin;
+    - la integracion de Grafana FICTICIA de D-20;
+    - las tres contrasenas FICTICIAS del laboratorio (master, `blog_migrate` y
+      `blog_app`), cada una un canario distinto.
+
+    Las contrasenas son variables efimeras: Terraform las usa para los atributos
+    write-only y no las escribe ni en el plan ni en el state. Que aqui viajen en un
+    archivo generado e ignorado por Git es aceptable porque son publicas por
+    diseno; en AWS real nunca se escriben en un archivo de variables (DH-2).
+    """
+    if medios is None:
+        previas = (
+            json.loads(VARIABLES_GENERADAS_DE_DATOS.read_text(encoding="utf-8"))
+            if VARIABLES_GENERADAS_DE_DATOS.exists()
+            else {}
+        )
+        medios = {"arn_del_bucket": previas.get("arn_del_bucket_de_medios")}
+    if not medios.get("arn_del_bucket"):
+        raise ErrorDelLaboratorio(
+            "falta 'arn_del_bucket' del contrato del root de medios: el root de "
+            "datos no puede limitar a el su gateway endpoint"
+        )
+    DIRECTORIO_GENERADO_DE_DATOS.mkdir(parents=True, exist_ok=True)
+    artefacto = DIRECTORIO_GENERADO_DE_DATOS / "ejecutor.zip"
+    sha256 = preparar_ejecutor_h0316(artefacto)
+    endpoints = {
+        nombre: valor
+        for nombre, valor in dict(destino.endpoints).items()
+        if nombre in ENDPOINTS_DEL_ROOT_DE_DATOS
+    }
+    VARIABLES_GENERADAS_DE_DATOS.write_text(
+        json.dumps(
+            {
+                "endpoints_aws": endpoints,
+                "arn_del_bucket_de_medios": medios["arn_del_bucket"],
+                "integracion_grafana": dict(INTEGRACION_GRAFANA_DEL_LABORATORIO),
+                "zip_de_la_ejecutora": {"ruta": artefacto.as_posix(), "sha256": sha256},
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    # La efimera en archivo PROPIO: al aplicar un plan guardado hay que volver a
+    # aportarla, y Terraform rechaza que se repitan las demas variables.
+    ruta_de_las_efimeras_de_datos().write_text(
+        json.dumps(EFIMERAS_DEL_LABORATORIO, indent=2) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+    print(f"variables del root de datos escritas en {VARIABLES_GENERADAS_DE_DATOS.name}")
+
+
+def exigir_canarios_ausentes(textos: dict[str, str]) -> list[str]:
+    for canario in EFIMERAS_DEL_LABORATORIO.values():
+        exigir_secreto_ausente(textos, canario)
+    return list(textos)
+
+
+def exigir_secreto_ausente(textos: dict[str, str], secreto: str) -> list[str]:
+    """Aborta si `secreto` aparece en cualquiera de los textos (DH-2).
+
+    Se usa con la contrasena CANARIO del laboratorio sobre el plan, el state y
+    las salidas del root de datos. Devuelve lo que se reviso, para el reporte. El
+    secreto nunca se imprime: el error nombra el texto, no su contenido.
+    """
+    if not secreto:
+        raise ErrorDelLaboratorio("no hay canario que buscar: la comprobacion seria vacua")
+    revisados: list[str] = []
+    for nombre, texto in textos.items():
+        if secreto in (texto or ""):
+            raise ErrorDelLaboratorio(
+                f"la contrasena master aparece en '{nombre}': un atributo que no es "
+                "write-only la esta persistiendo. STOP (DH-2)"
+            )
+        revisados.append(nombre)
+    return revisados
+
+
 def terraform(
     binario: Path,
     destino: mod_destino.Destino,
@@ -996,7 +1317,25 @@ def variables_comunes(root: RootDeTerraform = ROOT_DE_APLICACION) -> list[str]:
     return [
         f"-var-file={root.tfvars_local}",
         f"-var-file={root.variables_generadas}",
-    ]
+    ] + variables_efimeras(root)
+
+
+def variables_efimeras(root: RootDeTerraform) -> list[str]:
+    """Archivos de variables EFIMERAS del root, si las tiene.
+
+    Al aplicar un plan guardado, Terraform exige volver a aportar las variables
+    efimeras —no estan en el plan— y rechaza que se repitan las demas. Por eso
+    viajan en un archivo propio que se pasa tanto al planear como al aplicar el
+    plan guardado. Hoy solo el root de datos tiene una: la contrasena master.
+    """
+    if root == ROOT_DE_DATOS:
+        return [f"-var-file={ruta_de_las_efimeras_de_datos()}"]
+    return []
+
+
+def ruta_de_las_efimeras_de_datos() -> Path:
+    """Junto al archivo de variables del destino, y derivada de el al llamar."""
+    return VARIABLES_GENERADAS_DE_DATOS.with_name("efimeras.tfvars.json")
 
 
 def generar_lock(
@@ -1051,7 +1390,7 @@ def inicializar(
     print(f"estado local del root '{root.nombre}' en: {ruta_del_estado}")
 
 
-# --- topologia de dos roots, compartida por TODOS los comandos --------------
+# --- topologia de roots, compartida por TODOS los comandos ------------------
 #
 # Arreglo de DEF-030-2. La enmienda de Task/030 extrajo el almacenamiento de
 # medios a su propio root y cablo la orquestacion unicamente en `ciclo`. Los
@@ -1074,6 +1413,7 @@ class HerramentalDeRoots:
     escribir_variables_de_medios: Callable[..., None]
     escribir_variables_de_aplicacion: Callable[..., None]
     vaciar_bucket: Callable[..., int]
+    escribir_variables_de_datos: Callable[..., None]
 
 
 def herramental_real() -> HerramentalDeRoots:
@@ -1093,6 +1433,7 @@ def herramental_real() -> HerramentalDeRoots:
         escribir_variables_de_medios=escribir_variables_de_medios,
         escribir_variables_de_aplicacion=escribir_variables_del_destino,
         vaciar_bucket=vaciar,
+        escribir_variables_de_datos=escribir_variables_de_datos,
     )
 
 
@@ -1187,7 +1528,111 @@ def contrato_del_root_de_medios(
     return contrato
 
 
-def destruir_los_dos_roots(
+#: Lo que el root de datos publica para la ejecutora (H-031-5) y para la Lambda
+#: de aplicacion (Task/032). Sin cualquiera de estas piezas el contrato no sirve.
+CLAVES_DEL_CONTRATO_DE_DATOS = (
+    "id_de_vpc",
+    "ids_de_subredes",
+    "id_sg_lambda",
+    "id_sg_admin",
+    "id_sg_rds",
+    "id_endpoint_s3",
+    "identificador_rds",
+    "nombre_del_parametro_master",
+)
+
+
+def contrato_del_root_de_datos(
+    binario: Path,
+    destino: mod_destino.Destino,
+    *,
+    contrato_de_medios: dict[str, Any],
+    aplicar: bool,
+    regenerar_lock: bool = False,
+    confirmar: bool = False,
+    acciones: tuple[str, ...] = ("create", "update"),
+    herramental: HerramentalDeRoots | None = None,
+) -> dict[str, Any]:
+    """Deja el root de datos en su estado y devuelve su contrato explicito.
+
+    Mismo patron que `contrato_del_root_de_medios`, con una comprobacion mas,
+    que es la razon de ser de DH-2: tras el plan, y tras el apply si lo hay, la
+    contrasena CANARIO se busca en el plan, el state y las salidas. Si aparece en
+    cualquiera, aborta antes de tocar el root de aplicacion.
+    """
+    herramental = herramental or herramental_real()
+    root = ROOT_DE_DATOS
+    herramental.escribir_variables_de_datos(destino, contrato_de_medios)
+    if aplicar and regenerar_lock:
+        herramental.inicializar(binario, destino, solo_lectura=False, root=root)
+        generar_lock(binario, destino, root)
+    herramental.inicializar(binario, destino, solo_lectura=True, root=root)
+    herramental.corredor(
+        binario, destino, ["fmt", "-check", "-recursive"], raiz=root.directorio
+    )
+    herramental.corredor(binario, destino, ["validate"], raiz=root.directorio)
+    if aplicar:
+        herramental.corredor(
+            binario,
+            destino,
+            ["plan", "-input=false", f"-out={root.plan_guardado}"]
+            + variables_comunes(root),
+            raiz=root.directorio,
+        )
+        crudo = herramental.corredor(
+            binario,
+            destino,
+            ["show", "-json", str(root.plan_guardado)],
+            raiz=root.directorio,
+            silencioso=True,
+        )
+        exigir_canarios_ausentes({"plan de datos": crudo.stdout})
+        plan = json.loads(crudo.stdout)
+        resumen = mod_inventario.revisar_plan(plan, acciones_permitidas=acciones)
+        print(f"plan de datos revisado: {resumen}")
+        hay_cambios = any(resumen.get(accion, 0) for accion in acciones) or any(
+            salida.get("actions") != ["no-op"]
+            for salida in plan.get("output_changes", {}).values()
+        )
+        if hay_cambios:
+            if confirmar:
+                exigir_confirmacion_del_plan(
+                    sha256_de_archivo(root.plan_guardado), operacion="aplicar datos"
+                )
+            # El plan guardado no lleva la contrasena (es efimera): se aporta otra vez.
+            herramental.corredor(
+                binario,
+                destino,
+                ["apply", "-input=false"] + variables_efimeras(root) + [str(root.plan_guardado)],
+                raiz=root.directorio,
+            )
+            estado = herramental.corredor(
+                binario, destino, ["show", "-json"], raiz=root.directorio, silencioso=True
+            )
+            exigir_canarios_ausentes({"state de datos": estado.stdout})
+        else:
+            print("datos sin cambios; se conserva su state sin apply")
+    crudas = herramental.corredor(
+        binario, destino, ["output", "-json"], raiz=root.directorio, silencioso=True
+    )
+    revisados = exigir_canarios_ausentes({"salidas de datos": crudas.stdout})
+    print(f"contrasena canario ausente en: {', '.join(revisados)}")
+    contrato = {
+        nombre: dato.get("value")
+        for nombre, dato in json.loads(crudas.stdout or "{}").items()
+    }
+    faltantes = [clave for clave in CLAVES_DEL_CONTRATO_DE_DATOS if not contrato.get(clave)]
+    if faltantes:
+        raise ErrorDelLaboratorio(
+            f"el root de datos no publica {faltantes}: su contrato no esta completo "
+            "y no se continua al root de aplicacion"
+        )
+    if len(contrato["ids_de_subredes"]) != 2:
+        raise ErrorDelLaboratorio("el root de datos debe publicar exactamente dos subredes")
+    return contrato
+
+
+def destruir_los_roots(
     binario: Path,
     destino: mod_destino.Destino,
     *,
@@ -1196,13 +1641,13 @@ def destruir_los_dos_roots(
 ) -> None:
     """Destruye los roots en el orden **inverso** al de creacion.
 
-    Aplicacion primero, que CONSUME el bucket, y medios despues, que lo
-    administra: al reves, el rol de ejecucion quedaria referenciando un ARN ya
-    inexistente.
+    Aplicacion primero, que CONSUME el bucket; datos despues, cuya politica de
+    endpoint referencia ese bucket; y medios al final, que lo administra. Al
+    reves, un root quedaria referenciando lo que otro ya destruyo.
 
-    Si el root de aplicacion falla, el de medios **no se toca**. Su state
-    conserva su ownership intacto y la operacion se puede reintentar sin haber
-    perdido el registro de como destruir el bucket.
+    Si un root falla, los siguientes **no se tocan**. Su state conserva su
+    ownership intacto y la operacion se puede reintentar sin haber perdido el
+    registro de como destruir lo que queda.
     """
     herramental = herramental or herramental_real()
     bucket = (contrato or {}).get("nombre_del_bucket")
@@ -1218,46 +1663,112 @@ def destruir_los_dos_roots(
         )
 
 
+#: Tipos que SOLO puede administrar su root duenno. Un `aws_ssm_parameter` o un
+#: `aws_cloudwatch_log_group` existen en mas de un root —cada uno los suyos— y
+#: por eso no figuran aqui: la exclusividad se exige solo donde existe.
+TIPOS_EXCLUSIVOS_DE_CADA_ROOT: dict[str, tuple[str, ...]] = {
+    "medios": ("aws_s3_bucket",),
+    "datos": (
+        "aws_vpc",
+        "aws_subnet",
+        "aws_route_table",
+        "aws_route_table_association",
+        "aws_vpc_endpoint",
+        "aws_security_group",
+        "aws_vpc_security_group_ingress_rule",
+        "aws_vpc_security_group_egress_rule",
+        "aws_db_subnet_group",
+        "aws_db_parameter_group",
+        "aws_db_instance",
+    ),
+}
+
+#: Lo que cada root duenno DEBE administrar mientras exista.
+TIPOS_QUE_DEFINEN_A_CADA_ROOT: dict[str, tuple[str, ...]] = {
+    "medios": ("aws_s3_bucket",),
+    "datos": ("aws_vpc", "aws_db_instance"),
+}
+
+
+def tipo_de_direccion(direccion: str) -> str:
+    """Tipo de recurso de una direccion de state: `module.red.aws_vpc.this` -> `aws_vpc`."""
+    for parte in direccion.split("."):
+        if parte.startswith("aws_"):
+            return parte
+    return ""
+
+
+def _es_del_tipo(direccion: str, tipo: str) -> bool:
+    observado = tipo_de_direccion(direccion)
+    # `aws_s3_bucket` cubre toda la familia `aws_s3_bucket_*`, que es del mismo duenno.
+    return observado == tipo or (tipo == "aws_s3_bucket" and observado.startswith("aws_s3_bucket"))
+
+
 def exigir_ownership_disjunto(
-    estado_de_medios: list[str],
-    estado_de_aplicacion: list[str],
+    estados: dict[str, list[str]],
     *,
-    exigir_bucket: bool = True,
+    exigir_duennos: bool = True,
 ) -> None:
     """Ningun recurso puede estar administrado por **dos** states.
 
-    Es el invariante que la enmienda de `Task/030` tiene que sostener, y se
+    Es el invariante de la regla de paridad (aws-local-parity.md §4.1.1), y se
     comprueba sobre los states reales en lugar de darlo por supuesto:
 
-    - las direcciones de los dos states son **disjuntas**;
-    - el root de aplicacion **no** administra ningun `aws_s3_bucket*`: solo lo
-      consume por contrato;
-    - el root de medios **si** lo administra, porque es su duenno.
+    - las direcciones de todos los states son **disjuntas** dos a dos;
+    - ningun root administra un tipo **exclusivo** de otro: el bucket es de
+      medios; la red y RDS son de datos. Los demas solo los consumen por contrato;
+    - cada root duenno **si** administra lo que lo define.
 
-    `exigir_bucket=False` sirve despues de un teardown, donde los dos states
-    quedan vacios y eso es exactamente lo correcto.
+    `exigir_duennos=False` sirve despues de un teardown, donde los states quedan
+    vacios y eso es exactamente lo correcto.
     """
-    comunes = sorted(set(estado_de_medios) & set(estado_de_aplicacion))
-    if comunes:
-        raise ErrorDelLaboratorio(
-            "hay recursos administrados por los dos states, que es la situacion "
-            f"que la separacion de roots debe impedir: {comunes}"
-        )
-    intrusos = sorted(
-        direccion for direccion in estado_de_aplicacion if "aws_s3_bucket" in direccion
-    )
-    if intrusos:
-        raise ErrorDelLaboratorio(
-            "el root de aplicacion administra recursos de S3, y solo debe "
-            f"consumirlos por contrato: {intrusos}"
-        )
-    if exigir_bucket and not any(
-        "aws_s3_bucket" in direccion for direccion in estado_de_medios
-    ):
-        raise ErrorDelLaboratorio(
-            "el root de medios no administra ningun aws_s3_bucket: sin eso, el "
-            "contrato que recibe el root de aplicacion no tiene duenno"
-        )
+    nombres = sorted(estados)
+    for indice, primero in enumerate(nombres):
+        for segundo in nombres[indice + 1:]:
+            comunes = sorted(set(estados[primero]) & set(estados[segundo]))
+            if comunes:
+                raise ErrorDelLaboratorio(
+                    f"hay recursos administrados por los states '{primero}' y "
+                    f"'{segundo}', que es la situacion que la separacion de roots "
+                    f"debe impedir: {comunes}"
+                )
+    for duenno, tipos in TIPOS_EXCLUSIVOS_DE_CADA_ROOT.items():
+        for root, direcciones in estados.items():
+            if root == duenno:
+                continue
+            intrusos = sorted(
+                direccion
+                for direccion in direcciones
+                if any(_es_del_tipo(direccion, tipo) for tipo in tipos)
+            )
+            if intrusos:
+                raise ErrorDelLaboratorio(
+                    f"el root '{root}' administra recursos que son de '{duenno}', y "
+                    f"solo debe consumirlos por contrato: {intrusos}"
+                )
+    if exigir_duennos:
+        for duenno, tipos in TIPOS_QUE_DEFINEN_A_CADA_ROOT.items():
+            if duenno not in estados:
+                continue
+            for tipo in tipos:
+                if not any(_es_del_tipo(d, tipo) for d in estados[duenno]):
+                    raise ErrorDelLaboratorio(
+                        f"el root '{duenno}' no administra ningun {tipo}: sin eso, el "
+                        "contrato que reciben los demas roots no tiene duenno"
+                    )
+
+
+def estados_de_los_roots(
+    binario: Path,
+    destino: mod_destino.Destino,
+    *,
+    herramental: HerramentalDeRoots | None = None,
+) -> dict[str, list[str]]:
+    """El state de CADA root de la topologia, por nombre."""
+    return {
+        root.nombre: estado_del_root(binario, destino, root, herramental=herramental)
+        for root in ROOTS_EN_ORDEN_DE_CREACION
+    }
 
 
 def estado_del_root(
@@ -1289,16 +1800,17 @@ def preparar_los_roots_para(
     regenerar_lock: bool = False,
     herramental: HerramentalDeRoots | None = None,
 ) -> dict[str, Any]:
-    """Deja los dos roots listos para `operacion` y devuelve el contrato de medios.
+    """Deja los tres roots listos para `operacion` y devuelve el contrato de medios.
 
     Un solo camino para `ciclo`, `crear`, `validar`, `rollback`, `recuperar` y
     `destruir`. El orden y la cobertura salen de `secuencia_de_roots`, de modo que
     no hay cinco copias que puedan divergir: eso fue exactamente DEF-030-2.
 
-    La **preparacion** es siempre medios primero, incluso al destruir: el
-    contrato del bucket hace falta antes de tocar el grafo de aplicacion, aunque
-    sea para vaciarlo y destruirlo. El orden inverso gobierna el `destroy`, y lo
-    aplica `destruir_los_dos_roots`.
+    La **preparacion** es siempre en orden de creacion, incluso al destruir: el
+    contrato del bucket hace falta antes de tocar datos y aplicacion, aunque sea
+    para vaciarlo y destruirlo. El orden inverso gobierna el `destroy`, y lo
+    aplica `destruir_los_roots`. El contrato de datos viaja dentro del
+    devuelto, bajo la clave `datos`.
     """
     herramental = herramental or herramental_real()
     # Valida que la operacion este declarada: una nueva no hereda orden en silencio.
@@ -1320,6 +1832,23 @@ def preparar_los_roots_para(
     )
     print(json.dumps(contrato, indent=2, sort_keys=True))
 
+    titulo(
+        "ROOT DE DATOS — "
+        + ("reconciliacion" if aplicar_medios else "lectura del contrato")
+        + "; recibe el ARN de medios por variable"
+    )
+    datos = contrato_del_root_de_datos(
+        binario,
+        destino,
+        contrato_de_medios=contrato,
+        aplicar=aplicar_medios,
+        regenerar_lock=regenerar_lock,
+        confirmar=operacion in {"crear", "recuperar"},
+        acciones=("create",) if operacion == "crear" else ("create", "update"),
+        herramental=herramental,
+    )
+    print(json.dumps(datos, indent=2, sort_keys=True))
+
     titulo("ROOT DE APLICACION — recibe el contrato por variables explicitas")
     herramental.escribir_variables_de_aplicacion(destino, zip_de_lambda, contrato)
     if regenerar_lock and aplicar_medios:
@@ -1330,22 +1859,49 @@ def preparar_los_roots_para(
     herramental.inicializar(
         binario, destino, solo_lectura=True, root=ROOT_DE_APLICACION
     )
-    return contrato
+    return {**contrato, "datos": datos}
+
+
+def recursos_del_root_de_datos(prefijo: str = PREFIJO_DEL_LABORATORIO) -> dict[str, list[str]]:
+    """Nombres EXACTOS que el root de datos crea en el laboratorio, por categoria.
+
+    Son los que derivan los modulos de `prefijo`. Se usan para tolerar, mientras
+    el root de datos sigue vivo, exactamente esos recursos y ninguno mas.
+    """
+    base = f"{prefijo}-postgres"
+    return {
+        # La ejecutora privada de D-24 (H-031-5): funcion y grupo de logs por prefijo, y su rol de ejecucion.
+        "lambda": [f"{prefijo}-ejecutor"],
+        "logs": [f"/aws/lambda/{prefijo}-ejecutor"],
+        "cloudwatch_alarmas": [f"{prefijo}-rds-{senal}" for senal in SENALES_DE_D11],
+        "iam_roles_datos": [ROL_DE_GRAFANA, ROL_DE_LA_EJECUTORA],
+        "ec2_vpc": [f"{prefijo}-vpc"],
+        "ec2_grupos": [f"{prefijo}-lambda", f"{prefijo}-rds", f"{prefijo}-admin"],
+        "rds_instancias": [base],
+        "rds_subredes": [base],
+        "rds_parametros": [f"{base}17"],
+        "logs_rds": [f"/aws/rds/instance/{base}/postgresql"],
+        "ssm_datos": [f"/{prefijo}/datos/{rol}" for rol in ("blogadmin", "blog_migrate", "blog_app")],
+    }
 
 
 def exigir_ausencia_en_el_destino(
-    inventario: dict[str, list[str]], *, bucket_de_medios_vivo: str | None
+    inventario: dict[str, list[str]],
+    *,
+    bucket_de_medios_vivo: str | None,
+    datos_vivos: bool = False,
 ) -> None:
-    """Exige ausencia sabiendo que el bucket de medios puede ser legitimo.
+    """Exige ausencia sabiendo que los roots aun no destruidos son legitimos.
 
     Mientras el root de medios no haya sido destruido, su bucket **no es un
     residuo**: es infraestructura viva de otro root, con su propio state. Tratarlo
     como residuo es lo que hacia `destruir` abortar despues de un destroy
-    correcto del grafo de aplicacion.
+    correcto del grafo de aplicacion. Lo mismo vale, desde Task/031, para la red
+    y la base de datos del root de datos.
 
-    Todo lo demas sigue siendo residuo, incluido cualquier **otro** bucket con el
-    prefijo del laboratorio: la tolerancia es de un nombre exacto, no del
-    servicio.
+    Todo lo demas sigue siendo residuo, incluido cualquier **otro** recurso con
+    el prefijo del laboratorio: la tolerancia es de nombres exactos, no de un
+    servicio entero.
     """
     observado = {servicio: list(valores) for servicio, valores in inventario.items()}
     if bucket_de_medios_vivo:
@@ -1354,6 +1910,11 @@ def exigir_ausencia_en_el_destino(
             for nombre in observado.get("s3", [])
             if nombre != bucket_de_medios_vivo
         ]
+    if datos_vivos:
+        for categoria, legitimos in recursos_del_root_de_datos().items():
+            observado[categoria] = [
+                nombre for nombre in observado.get(categoria, []) if nombre not in legitimos
+            ]
     mod_inventario.exigir_inventario_vacio(observado)
 
 
@@ -1396,10 +1957,18 @@ def inventario_del_destino(destino: mod_destino.Destino) -> dict[str, list[str]]
         "clave_aws": mod_destino.CLAVE_FICTICIA,
         "secreto": mod_destino.SECRETO_FICTICIO,
     }
+    # Los parametros del root de datos viven bajo `/<prefijo>/datos/`. Se separan
+    # de los de aplicacion para que cada categoria tenga un solo root duenno.
+    prefijo_ssm_de_datos = f"/{PREFIJO_DEL_LABORATORIO}/datos/"
+    parametros = mod_verificacion.parametros_presentes(
+        destino, prefijo=f"/{PREFIJO_DEL_LABORATORIO}", **comun
+    )
     return {
+        # Root de medios
         "s3": mod_verificacion.buckets_presentes(
             destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
         ),
+        # Root de aplicacion y ejecutora del root de datos (mismo prefijo: tolerada solo mientras datos viva)
         "lambda": mod_verificacion.funciones_presentes(
             destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
         ),
@@ -1409,8 +1978,33 @@ def inventario_del_destino(destino: mod_destino.Destino) -> dict[str, list[str]]
         "logs": mod_verificacion.grupos_de_logs(
             destino, prefijo=f"/aws/lambda/{PREFIJO_DEL_LABORATORIO}", **comun
         ),
-        "ssm": mod_verificacion.parametros_presentes(
-            destino, prefijo=f"/{PREFIJO_DEL_LABORATORIO}", **comun
+        "ssm": [p for p in parametros if not p.startswith(prefijo_ssm_de_datos)],
+        # Root de datos (Task/031)
+        "ec2_vpc": mod_verificacion.vpcs_presentes(
+            destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
+        ),
+        "ec2_grupos": mod_verificacion.grupos_de_seguridad_presentes(
+            destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
+        ),
+        "rds_instancias": mod_verificacion.instancias_rds_presentes(
+            destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
+        ),
+        "rds_subredes": mod_verificacion.grupos_de_subredes_rds_presentes(
+            destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
+        ),
+        "rds_parametros": mod_verificacion.grupos_de_parametros_rds_presentes(
+            destino, prefijo=PREFIJO_DEL_LABORATORIO, **comun
+        ),
+        "logs_rds": mod_verificacion.grupos_de_logs(
+            destino, prefijo=f"/aws/rds/instance/{PREFIJO_DEL_LABORATORIO}", **comun
+        ),
+        "ssm_datos": [p for p in parametros if p.startswith(prefijo_ssm_de_datos)],
+        # Root de datos: alarmas de D-11 (H-031-8) y rol de D-20 (H-031-9)
+        "cloudwatch_alarmas": mod_verificacion.alarmas_presentes(
+            destino, prefijo=f"{PREFIJO_DEL_LABORATORIO}-", **comun
+        ),
+        "iam_roles_datos": mod_verificacion.roles_presentes(
+            destino, nombres=(ROL_DE_GRAFANA, ROL_DE_LA_EJECUTORA), **comun
         ),
     }
 
@@ -1929,6 +2523,57 @@ def introducir_y_reconciliar_drift(
     }
 
 
+def idempotencia_del_root_de_datos(
+    binario: Path,
+    destino: mod_destino.Destino,
+) -> dict[str, Any]:
+    """Segundo plan del root de datos: exit 0, o exit 2 SOLO por lo declarado.
+
+    Floci 2.1.0, con RDS en modo `mock`, no devuelve varios atributos que acepta
+    (`DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS`). Esas diferencias se toleran por
+    tipo y atributo, en el verificador; cualquier otra, o una creacion o
+    destruccion, aborta. El plan tambien se revisa en busca del canario.
+
+    H-031-1A: es UN solo plan guardado con `-detailed-exitcode`, y su JSON se lee
+    SIEMPRE, tambien con `exit 0`, para revisar `resource_drift` contra
+    `DRIFT_DEL_DESTINO_LOCAL_DE_DATOS`. Antes el `exit 0` no se miraba y el
+    `exit 2` solo se juzgaba por `resource_changes`.
+    """
+    root = ROOT_DE_DATOS
+    resultado = terraform(
+        binario,
+        destino,
+        ["plan", "-input=false", "-detailed-exitcode", f"-out={root.plan_guardado}"]
+        + variables_comunes(root),
+        raiz=root.directorio,
+        codigos_aceptados=(0, 1, 2),
+    )
+    if resultado.returncode not in (0, 2):
+        mod_inventario.exigir_sin_cambios(resultado.returncode)
+    crudo = terraform(
+        binario, destino, ["show", "-json", str(root.plan_guardado)],
+        raiz=root.directorio, silencioso=True,
+    )
+    exigir_canarios_ausentes({"segundo plan de datos": crudo.stdout})
+    plan = json.loads(crudo.stdout)
+    informe = mod_inventario.exigir_sin_cambios(
+        resultado.returncode,
+        plan=plan,
+        diferencias_toleradas=DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS,
+        drift_tolerado=DRIFT_DEL_DESTINO_LOCAL_DE_DATOS,
+    )
+    drift = mod_inventario.revisar_drift(plan, drift_tolerado=DRIFT_DEL_DESTINO_LOCAL_DE_DATOS)
+    print(f"idempotencia de datos: exit {resultado.returncode}")
+    print("resource_changes — solo diferencias declaradas del emulador:")
+    for clave, cuantos in sorted(informe.items()):
+        print(f"  {clave}: {cuantos} recurso(s)")
+    print("resource_drift — solo entradas declaradas, con atributos y transicion exactos:")
+    for direccion, atributos in sorted(drift.items()):
+        print(f"  {direccion}: {atributos}")
+    print("  Contra AWS real no se tolera ninguna: 0/0/0 y resource_drift = 0 (H-031-3, DN-2).")
+    return {"codigo": resultado.returncode, "cambios": informe, "drift": drift}
+
+
 def comando_ciclo(argumentos: argparse.Namespace) -> int:
     """Ciclo completo, en el orden en que cada paso produce su evidencia."""
     env_lab = leer_env_del_laboratorio()
@@ -1986,11 +2631,8 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         terraform(binario, destino, ["apply", "-input=false", str(PLAN_GUARDADO)])
         valores = salidas(binario, destino, ROOT_DE_APLICACION)
         print(json.dumps(valores, indent=2, sort_keys=True))
-        exigir_ownership_disjunto(
-            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
-            estado_del_root(binario, destino, ROOT_DE_APLICACION),
-        )
-        print("ownership disjunto: aplicacion no administra S3")
+        exigir_ownership_disjunto(estados_de_los_roots(binario, destino))
+        print("ownership disjunto: aplicacion no administra S3, ni red, ni RDS")
 
         evidencia = ejercitar_servicios(
             destino, valores, runtime_fijado=runtime_fijado, id_del_runtime=id_del_runtime
@@ -2009,6 +2651,7 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         )
         mod_inventario.exigir_sin_cambios(segundo_plan_medios.returncode)
         print("idempotencia de medios: exit 0")
+        informe_de_datos = idempotencia_del_root_de_datos(binario, destino)
         resultado = terraform(
             binario,
             destino,
@@ -2084,6 +2727,11 @@ def comando_ciclo(argumentos: argparse.Namespace) -> int:
         "camino_critico": evidencia["camino_critico"]["estado"],
         "inspeccion_sdk": evidencia_sdk["sdk"],
         "idempotencia": "exit 0" if not informe else f"exit 2 solo por {sorted(informe)}",
+        "idempotencia_de_datos": {
+            "exit": informe_de_datos["codigo"],
+            "resource_changes_declarados": sorted(informe_de_datos["cambios"]),
+            "resource_drift_declarado": informe_de_datos["drift"],
+        },
         "drift_controlado": drift,
         "primer_destroy": primer_destroy,
         "segundo_destroy": segundo_destroy,
@@ -2113,7 +2761,7 @@ def destruir_y_verificar(
     )
     print("destino revalidado inmediatamente antes de la operacion destructiva")
 
-    destruir_los_dos_roots(
+    destruir_los_roots(
         binario, destino, contrato={"nombre_del_bucket": valores.get("bucket_de_medios")}
     )
 
@@ -2139,7 +2787,7 @@ def destruir_y_verificar(
     for servicio, elementos in sorted(inventario.items()):
         print(f"  {servicio}: {len(elementos)} recurso(s) {elementos}")
     mod_inventario.exigir_inventario_vacio(inventario)
-    print("Ausencia demostrada en los cinco servicios consultados.")
+    print(f"Ausencia demostrada en las {len(inventario)} categorias consultadas de los tres roots.")
     return "verificado"
 
 
@@ -2281,8 +2929,8 @@ def aplicar_version_desde_runbook(
             exigir_ausencia_en_el_destino(inventario_inicial, bucket_de_medios_vivo=None)
             print("precondicion de creacion: inventario del destino vacio")
 
-        # Los DOS roots, en el orden canonico, con el contrato del bucket
-        # inyectado al grafo de aplicacion como variables explicitas.
+        # Los TRES roots, en el orden canonico, con los contratos inyectados
+        # como variables explicitas.
         contrato = preparar_los_roots_para(operacion, binario, destino, artefacto.ruta)
         terraform(
             binario,
@@ -2318,10 +2966,7 @@ def aplicar_version_desde_runbook(
             raiz=ROOT_DE_APLICACION.directorio,
         )
         valores = salidas(binario, destino, ROOT_DE_APLICACION)
-        exigir_ownership_disjunto(
-            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
-            estado_del_root(binario, destino, ROOT_DE_APLICACION),
-        )
+        exigir_ownership_disjunto(estados_de_los_roots(binario, destino))
         print(f"ownership disjunto comprobado; bucket del contrato: {contrato['nombre_del_bucket']}")
         evidencia = ejercitar_servicios(
             destino,
@@ -2377,7 +3022,7 @@ def comando_recuperar(argumentos: argparse.Namespace) -> int:
 
 
 def comando_validar(argumentos: argparse.Namespace) -> int:
-    titulo("VALIDAR — los dos roots, su contrato, inventario, APIs y camino critico")
+    titulo("VALIDAR — los tres roots, sus contratos, inventario, APIs y camino critico")
     (
         _,
         destino,
@@ -2390,12 +3035,12 @@ def comando_validar(argumentos: argparse.Namespace) -> int:
         raise ErrorDelLaboratorio("no se observo la identidad local del runtime")
     lock_de_operacion = raiz_de_estado(destino.modo) / "laboratorio.lock"
     with mod_destino.lock_de_escritura(lock_de_operacion):
-        # Camino de LECTURA: prepara los dos roots y lee el contrato del bucket
+        # Camino de LECTURA: prepara los tres roots y lee sus contratos
         # sin aplicar nada. El contrato NO se deduce de las salidas del root de
         # aplicacion, que solo lo consume.
         contrato = preparar_los_roots_para("validar", binario, destino, artefacto.ruta)
 
-        titulo("VALIDAR — configuracion valida en los DOS roots")
+        titulo("VALIDAR — configuracion valida en los TRES roots")
         for root in secuencia_de_roots("validar"):
             terraform(
                 binario,
@@ -2407,12 +3052,12 @@ def comando_validar(argumentos: argparse.Namespace) -> int:
             print(f"  root '{root.nombre}': formato y configuracion correctos")
 
         titulo("VALIDAR — ownership: ningun recurso en dos states")
-        estado_de_medios = estado_del_root(binario, destino, ROOT_DE_MEDIOS)
-        estado_de_aplicacion = estado_del_root(binario, destino, ROOT_DE_APLICACION)
-        exigir_ownership_disjunto(estado_de_medios, estado_de_aplicacion)
+        estados = estados_de_los_roots(binario, destino)
+        exigir_ownership_disjunto(estados)
         print(
-            f"  medios administra {len(estado_de_medios)} recurso(s); "
-            f"aplicacion {len(estado_de_aplicacion)}, ninguno de S3"
+            "  "
+            + "; ".join(f"{nombre} administra {len(direcciones)}" for nombre, direcciones in estados.items())
+            + ". Aplicacion no administra S3, ni red, ni RDS"
         )
 
         valores = salidas(binario, destino, ROOT_DE_APLICACION)
@@ -2442,9 +3087,9 @@ def comando_validar(argumentos: argparse.Namespace) -> int:
                 "camino_critico": evidencia["camino_critico"]["estado"],
                 "inspeccion_sdk": evidencia_sdk["sdk"],
                 "contrato_de_medios": contrato["nombre_del_bucket"],
+                "contrato_de_datos": contrato["datos"]["identificador_rds"],
                 "recursos_por_root": {
-                    "medios": len(estado_de_medios),
-                    "aplicacion": len(estado_de_aplicacion),
+                    nombre: len(direcciones) for nombre, direcciones in estados.items()
                 },
             },
             indent=2,
@@ -2465,10 +3110,7 @@ def comando_destruir(argumentos: argparse.Namespace) -> int:
         # el `destroy` va despues en orden INVERSO.
         contrato = preparar_los_roots_para("destruir", binario, destino, artefacto.ruta)
 
-        exigir_ownership_disjunto(
-            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
-            estado_del_root(binario, destino, ROOT_DE_APLICACION),
-        )
+        exigir_ownership_disjunto(estados_de_los_roots(binario, destino))
         bucket = contrato["nombre_del_bucket"]
         planes: dict[str, str] = {}
         for indice, root in enumerate(secuencia_de_roots("destruir")):
@@ -2500,7 +3142,7 @@ def comando_destruir(argumentos: argparse.Namespace) -> int:
             terraform(
                 binario,
                 destino,
-                ["apply", "-input=false", str(root.plan_guardado)],
+                ["apply", "-input=false"] + variables_efimeras(root) + [str(root.plan_guardado)],
                 raiz=root.directorio,
             )
             restantes = estado_del_root(binario, destino, root)
@@ -2510,23 +3152,21 @@ def comando_destruir(argumentos: argparse.Namespace) -> int:
                     f"el state de '{root.nombre}' conserva {len(restantes)} "
                     f"recurso(s) y {len(outputs)} output(s) tras su destroy"
                 )
-            queda_medios = indice + 1 < len(secuencia_de_roots("destruir"))
+            # Los roots que aun no se han destruido son legitimos, y solo ellos.
+            vivos = {r.nombre for r in secuencia_de_roots("destruir")[indice + 1:]}
             exigir_ausencia_en_el_destino(
                 inventario_del_destino(destino),
-                bucket_de_medios_vivo=bucket if queda_medios else None,
+                bucket_de_medios_vivo=bucket if "medios" in vivos else None,
+                datos_vivos="datos" in vivos,
             )
             print(
                 f"root '{root.nombre}' destruido; inventario coherente "
-                + ("(el bucket de medios sigue vivo, y es legitimo)" if queda_medios else "(nada vivo)")
+                + (f"(siguen vivos, y son legitimos: {sorted(vivos)})" if vivos else "(nada vivo)")
             )
 
-        exigir_ownership_disjunto(
-            estado_del_root(binario, destino, ROOT_DE_MEDIOS),
-            estado_del_root(binario, destino, ROOT_DE_APLICACION),
-            exigir_bucket=False,
-        )
+        exigir_ownership_disjunto(estados_de_los_roots(binario, destino), exigir_duennos=False)
     print(
-        "destroy aplicado en los dos roots, en orden inverso, y ausencia "
+        "destroy aplicado en los tres roots, en orden inverso, y ausencia "
         f"demostrada contra las APIs. Planes confirmados: {planes}"
     )
     return 0

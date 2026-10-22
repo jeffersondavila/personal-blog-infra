@@ -1,0 +1,157 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CrearLaVpcEtiquetada",
+      "Effect": "Allow",
+      "Action": "ec2:CreateVpc",
+      "Resource": "arn:aws:ec2:${region}:${cuenta}:vpc/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": ${claves_de_etiqueta}
+        }
+      }
+    },
+    {
+      "Sid": "CrearRecursosNuevosEtiquetados",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSubnet"
+      ],
+      "Resource": [
+        "arn:aws:ec2:${region}:${cuenta}:route-table/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group-rule/*",
+        "arn:aws:ec2:${region}:${cuenta}:subnet/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": ${claves_de_etiqueta}
+        }
+      }
+    },
+    {
+      "Sid": "CrearSoloElGatewayEndpointDeS3",
+      "Effect": "Allow",
+      "Action": "ec2:CreateVpcEndpoint",
+      "Resource": "arn:aws:ec2:${region}:${cuenta}:vpc-endpoint/*",
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos",
+          "ec2:VpceServiceName": "com.amazonaws.${region}.s3"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": ${claves_de_etiqueta}
+        }
+      }
+    },
+    {
+      "Sid": "OperarSoloRecursosPropios",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AssociateRouteTable",
+        "ec2:AuthorizeSecurityGroupEgress",
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CreateRouteTable",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateSubnet",
+        "ec2:CreateVpcEndpoint",
+        "ec2:ModifySecurityGroupRules",
+        "ec2:ModifySubnetAttribute",
+        "ec2:ModifyVpcAttribute",
+        "ec2:ModifyVpcEndpoint",
+        "ec2:RevokeSecurityGroupEgress"
+      ],
+      "Resource": [
+        "arn:aws:ec2:${region}:${cuenta}:route-table/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group-rule/*",
+        "arn:aws:ec2:${region}:${cuenta}:subnet/*",
+        "arn:aws:ec2:${region}:${cuenta}:vpc-endpoint/*",
+        "arn:aws:ec2:${region}:${cuenta}:vpc/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:ResourceTag/Proyecto": "personal-blog",
+          "aws:ResourceTag/Componente": "datos"
+        }
+      }
+    },
+    {
+      "Sid": "EtiquetarAlCrear",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": [
+        "arn:aws:ec2:${region}:${cuenta}:route-table/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group-rule/*",
+        "arn:aws:ec2:${region}:${cuenta}:subnet/*",
+        "arn:aws:ec2:${region}:${cuenta}:vpc-endpoint/*",
+        "arn:aws:ec2:${region}:${cuenta}:vpc/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos",
+          "ec2:CreateAction": [
+            "AuthorizeSecurityGroupEgress",
+            "AuthorizeSecurityGroupIngress",
+            "CreateRouteTable",
+            "CreateSecurityGroup",
+            "CreateSubnet",
+            "CreateVpc",
+            "CreateVpcEndpoint"
+          ]
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": ${claves_de_etiqueta}
+        }
+      }
+    },
+    {
+      "Sid": "ReetiquetarSoloRecursosPropios",
+      "Effect": "Allow",
+      "Action": "ec2:CreateTags",
+      "Resource": [
+        "arn:aws:ec2:${region}:${cuenta}:route-table/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group/*",
+        "arn:aws:ec2:${region}:${cuenta}:security-group-rule/*",
+        "arn:aws:ec2:${region}:${cuenta}:subnet/*",
+        "arn:aws:ec2:${region}:${cuenta}:vpc-endpoint/*",
+        "arn:aws:ec2:${region}:${cuenta}:vpc/*"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "aws:RequestedRegion": "${region}",
+          "aws:ResourceTag/Proyecto": "personal-blog",
+          "aws:ResourceTag/Componente": "datos"
+        },
+        "StringEqualsIfExists": {
+          "aws:RequestTag/Proyecto": "personal-blog",
+          "aws:RequestTag/Componente": "datos"
+        },
+        "ForAllValues:StringEquals": {
+          "aws:TagKeys": ${claves_de_etiqueta}
+        }
+      }
+    }
+  ]
+}

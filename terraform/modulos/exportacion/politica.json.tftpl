@@ -1,0 +1,17 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EscrituraCondicionalEnElPrefijoDeExportacion",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "${arn_del_bucket}/${prefijo}*",
+      "Condition": {
+        "StringEquals": {
+          "s3:if-none-match": "*",
+          "aws:SourceVpce": "${id_del_endpoint_s3}"
+        }
+      }
+    }
+  ]
+}

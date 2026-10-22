@@ -208,6 +208,40 @@ jobs:
           terraform -chdir=terraform-medios validate
           terraform -chdir=terraform-medios test
 
+      # Root de DATOS (`Task/031`, DH-1): red privada y RDS, con su propio state.
+      # Offline: proveedor simulado, sin credenciales. La guarda del plan se
+      # prueba con fixtures; el control negativo de DH-2 exige que Terraform
+      # RECHACE cualquier fuga de la contrasena efimera.
+      - name: Data root static validation, mocked plans and secret controls
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch terraform-datos/.terraform.lock.hcl >/dev/null
+          terraform -chdir=terraform-datos fmt -check -recursive
+          terraform fmt -check -recursive terraform/modulos/red terraform/modulos/base_de_datos
+          terraform -chdir=terraform-datos init -backend=false -input=false -lockfile=readonly
+          git diff --exit-code -- terraform-datos/.terraform.lock.hcl
+          terraform -chdir=terraform-datos validate
+          terraform -chdir=terraform-datos test
+          python3 -B -m unittest discover -s tests/terraform_datos -v
+
+      # Bootstrap de la identidad operativa minima (`Task/031`, DH-3). DISENO:
+      # nada se aplica en CI ni en H-031-1. Valida trust, limites y denegaciones.
+      - name: Operator identity bootstrap static validation and mocked plans
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch bootstrap/operador-datos/.terraform.lock.hcl >/dev/null
+          terraform -chdir=bootstrap/operador-datos fmt -check -recursive
+          terraform -chdir=bootstrap/operador-datos init -backend=false -input=false -lockfile=readonly
+          git diff --exit-code -- bootstrap/operador-datos/.terraform.lock.hcl
+          terraform -chdir=bootstrap/operador-datos validate
+          terraform -chdir=bootstrap/operador-datos test
+
       # Las guardas fail-closed usan entradas sinteticas. La sonda HTTP se prueba
       # contra un servidor efimero de loopback, sin AWS ni emulador en CI.
       #

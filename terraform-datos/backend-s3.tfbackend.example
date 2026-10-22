@@ -1,0 +1,21 @@
+# Plantilla del backend remoto del root de datos. SIN CREDENCIALES.
+#
+# El TIPO de backend no se puede cambiar con -backend-config, asi que el bloque
+# `backend "s3" {}` se genera en `backend.generado.tf` antes de `init`; este
+# archivo aporta solo sus AJUSTES. La copia operativa vive en el directorio
+# privado del operador, porque lleva el Account ID verificado.
+#
+# La key es dedicada y NO es ninguna de las tres existentes:
+#   bootstrap/terraform-state/terraform.tfstate   <- no tocar
+#   bootstrap/github-oidc/terraform.tfstate       <- no tocar
+#   application/media/terraform.tfstate           <- no tocar (terraform-medios)
+#
+# Inicializarlo contra S3 NO esta autorizado por H-031-1: es de H-031-2, y con la
+# identidad operativa minima, no con la administrativa.
+bucket               = "REPLACE_WITH_REVIEWED_STATE_BUCKET"
+key                  = "application/data/terraform.tfstate"
+region               = "us-east-2"
+encrypt              = true
+use_lockfile         = true
+allowed_account_ids  = ["REPLACE_WITH_VERIFIED_ACCOUNT"]
+# profile lo aporta la operacion humana; las credenciales nunca viven aqui.

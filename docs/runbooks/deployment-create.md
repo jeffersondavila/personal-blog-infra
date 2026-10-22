@@ -1,9 +1,10 @@
 # Runbook — Crear un despliegue
 
 > **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
-> el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
-> Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
-> snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.
+> el alcance probado de Task/026. Task/031 H-031-1/H-031-1A amplía el laboratorio con
+> tres roots, **21 recursos de datos**, guardas e inventario de red/RDS en modo mock.
+> La operación productiva, permisos efectivos, snapshots/restore/PITR, KMS y seguridad
+> siguen pendientes de sus checkpoints autorizados en AWS.
 > Task/036/038 añade migraciones privadas y Task/040 verifica DR/restore integral.
 > [Contrato RDS](../architecture/production-postgresql-rds.md). No autoriza AWS ni
 > extiende EX-028-C7; D-06 en Task/030 precede al primer apply de aplicación.
@@ -96,6 +97,14 @@ El comando:
 7. aplica, recorre las APIs, ejecuta `/health` y consulta de nuevo con `boto3` tomado
    del propio ZIP.
 
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1 y H-031-1A), aprobada el 2026-10-21.** Hay un **tercer** root,
+> `terraform-datos` —red privada y RDS—, entre medios y aplicación: los pasos 2 a 5 ocurren
+> **tres** veces, con **21** altas en datos y su propia confirmación. Datos recibe el ARN del
+> bucket por variable. Tras su plan y su apply, la contraseña **canario** del laboratorio se
+> busca en el plan, el state y las salidas: si aparece, aborta (DH-2). En el laboratorio RDS
+> corre en modo *mock*: plano de control, sin motor. El SG por omisión no se gestiona ni
+> usa; RDS lleva exclusivamente `sg-rds`. El endpoint S3 Gateway no lleva SG ni subredes.
+>
 > **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** Los pasos 2 a 5 ocurren **dos veces**, una por root y en este orden:
 > **medios** primero —8 altas `aws_s3_*` en el laboratorio— y **aplicación** después —13
 > altas, **ninguna** de S3—. Hay, por tanto, **dos** planes, dos SHA-256 y dos
@@ -111,9 +120,11 @@ No hay `--force`. Si el plan contiene `update`, `delete`, reemplazos o tipos aje
 
 Se considera creado sólo si coinciden todas estas evidencias:
 
-- Terraform terminó con código 0 en los dos roots.
+- Terraform terminó con código 0 en los tres roots *(dos hasta `Task/031`)*.
 - S3, los cuatro SSM, IAM, Lambda, API Gateway v2 y Logs aparecen en inventario; el bucket,
-  en el state de medios, y **ningún** `aws_s3_*` en el de aplicación.
+  en el state de medios, y **ningún** `aws_s3_*` en el de aplicación. *(Desde `Task/031`:
+  VPC, subredes, grupos, endpoint y RDS **solo** en el state de datos; ni aplicación ni
+  medios administran ninguno.)*
 - `boto3/<versión>` encuentra los mismos recursos mediante endpoints loopback.
 - El runtime observado coincide con el digest del manifiesto.
 - `GET /health` atravesó API Gateway v2 → Lambda y devolvió HTTP 200.

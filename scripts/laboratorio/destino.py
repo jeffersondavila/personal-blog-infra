@@ -20,7 +20,7 @@ puede demostrar, aborta.
 
 Principios
 ----------
-1. **Sin valor por omision.** Modo, region y los ocho endpoints son
+1. **Sin valor por omision.** Modo, region y los diez endpoints son
    obligatorios. Ausencia = abortar, nunca «continuar con lo razonable».
 2. **`production` se rechaza aqui.** Mientras `Task/025` no este aprobada no
    existe autorizacion de AWS real, asi que el modo se reconoce —para poder
@@ -58,13 +58,16 @@ CLAVE_FICTICIA: Final = "test"
 SECRETO_FICTICIO: Final = "test"
 
 #: Servicios cuyo endpoint local es **obligatorio**. Son los de ADR-003 mas STS,
-#: que es el que responde a la comprobacion de identidad.
+#: que es el que responde a la comprobacion de identidad, y desde Task/031 EC2 y
+#: RDS, que usa el root de datos (red privada y base de datos de ADR-010).
 SERVICIOS: Final = (
     "apigatewayv2",
     "cloudwatch",
+    "ec2",
     "iam",
     "lambda",
     "logs",
+    "rds",
     "s3",
     "ssm",
     "sts",

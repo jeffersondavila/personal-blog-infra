@@ -1,14 +1,37 @@
 # Administración privada de RDS: migraciones, purga y recuperación
 
-**Runbook Vigente, no ejecutado.** Diseño de `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`,
-**aprobada** el 2026-09-27. **No existe RDS, VPC, ejecutor ni credencial**:
-ningún paso de este documento se ha ejecutado y **este documento no autoriza ejecutarlo**.
+**Runbook Vigente.** Diseño de `Task/029-Preparar-PostgreSQL-Produccion-en-RDS`,
+**aprobada** el 2026-09-27, ampliado en `Task/031`, **aprobada** el 2026-10-21. *(Hasta `Task/031`: no
+ejecutado; no existían RDS, VPC, ejecutor ni credenciales.)* `Task/031` ejecutó en AWS las identidades
+SQL, `verify`, `export` y el restore sintético (H-031-6 y H-031-7); las migraciones y `purge` son de
+`Task/036`. **Este documento no autoriza ejecutar nada**: cada operación exige su tarea propietaria y la
+autorización explícita del usuario.
 Contrato completo:
 [paquete de decisiones §8](../architecture/production-postgresql-rds-decisions.md#8-d-24--canal-privado-de-administración-y-migraciones--resuelta).
 
 Owners: `Task/031` provisiona el ejecutor y hace el primer restore · `Task/036` ejecuta la
 primera migración, la recuperación del administrador y la purga · `Task/038` automatiza el
 canal · `Task/040` lo valida.
+
+> **Estado por fases (`Task/031` H-031-5, 2026-10-06).** RDS y la red existen desde H-031-3. La ejecutora
+> llega por fases:
+>
+> - **H-031-5:** el *shell* sin base de datos. Responde `selfcheck` y declara los modos de este runbook
+>   como `NOT_IMPLEMENTED`.
+> - **H-031-6:** la conexión con `verify-full`, la entrega de credenciales y el modo `verify`.
+> - **`Task/036`:** Alembic, las migraciones y `purge`.
+>
+> - **H-031-6 a H-031-9, preparados offline (2026-10-07):** `verify`, `identidades`, `sintetico` y `export` están implementados en el artefacto h0316, con integración local real, pero **no desplegados**. La cuota de concurrencia de Lambda bloquea el apply ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+> - **2026-10-15:** H-031-8 (alarmas) y H-031-9 (rol de Grafana) se aplicaron sin la ejecutora, que sigue fuera del root hasta la cuota. Este canal **no cambia** y sigue sin desplegarse ([reporte §47](../task-reports/TASK-031-report.md#47-h-031-8-y-h-031-9--alarmas-de-d-11-y-rol-de-d-20-aplicados-y-convergentes-2026-10-08-a-2026-10-15)).
+>
+> - **2026-10-18 — D-24 modificada, aprobada por el usuario el 2026-10-19:** la ejecutora vuelve al root **sin concurrencia reservada**; las escrituras administrativas se excluyen con un bloqueo de aviso de PostgreSQL y la cuota de Lambda deja de bloquear. **Desplegada el 2026-10-19 como *shell* h0315**: responde `selfcheck`, y los modos de este runbook siguen `NOT_IMPLEMENTED` hasta H-031-6 y `Task/036` ([reporte §49.15](../task-reports/TASK-031-report.md#4915-aprobación-de-d-24-y-40-y-apply-de-h-031-5-2026-10-19)).
+>
+> - **2026-10-20 y 2026-10-21:** H-031-6 (`identidades`, `verify` y `export`) y H-031-7 (marcador sintético,
+>   restore PITR y limpieza) se ejecutaron en AWS ([reporte §51](../task-reports/TASK-031-report.md#51-h-031-6-aplicada-y-verificada-y-h-031-7-completa-2026-10-20-y-2026-10-21)). El canal quedó **aprobado con
+>   `Task/031` el 2026-10-21**; Alembic, las migraciones y `purge` siguen en `Task/036`.
+>
+> Ningún procedimiento de este runbook es ejecutable antes de su fase
+> ([reporte §44](../task-reports/TASK-031-report.md#44-h-031-5--ejecutora-privada-de-d-24-por-fases-implementación-offline-y-cuota-lambda-2026-10-06)).
 
 ## 1. Por qué existe este canal
 
@@ -68,8 +91,12 @@ de validación de `Task/028`, del de despliegue y del de Terraform.
 3. **Verificar la revisión objetivo.** `alembic history` local frente a la revisión que el
    artefacto contiene; confirmar que el `downgrade` está probado en local. Si no es seguro,
    documentar el *roll-forward* **antes** de continuar.
-4. **Confirmar la serialización.** Concurrencia reservada del ejecutor **= 1**. Ninguna
-   otra invocación en curso.
+4. **Confirmar la serialización.** Ninguna otra operación administrativa en curso.
+   *Modificado el 2026-10-18 y aprobado por el usuario el 2026-10-19:* el ejecutor ya **no** reserva
+   concurrencia. `upgrade`, `downgrade` y `purge` toman `pg_try_advisory_xact_lock(3364, 1)` en su
+   misma conexión (criterio que hereda `Task/036`). Si el ejecutor responde `OPERACION_EN_CURSO`,
+   **no reintentar**: averiguar qué operación tiene el bloqueo y esperar a que termine. El bloqueo
+   ordena SQL; restores, PITR y *snapshots* conservan sus propias guardas.
 5. **Invocar el ejecutor** en modo `upgrade`, por el plano de control, con la identidad
    autorizada.
 6. **Medir la duración.** Techo duro de Lambda: **900 s**. Si la migración no cabe,
@@ -105,6 +132,17 @@ Reglas: sentencias **acotadas por la condición de retención**, nunca un `DELET
 completa; contar filas antes y después y registrar ambos números; ninguna de las dos tablas
 alimenta un listado, así que la purga no afecta a ninguna vista.
 
+## 3.1 Procedimiento — identidades SQL (`Task/031` H-031-6)
+
+Con el operador `scripts/terraform_datos/operar_ejecutora.py` y sus dependencias fijadas (`scripts/terraform_datos/requirements-operador.txt`), con `aws login --profile personal-blog`. **Nada toca el disco ni la línea de órdenes.**
+
+1. Las contraseñas de `blog_migrate` y `blog_app` se generan en memoria en el proceso que aplica `terraform-datos` y se custodian en sus SecureString con `value_wo` (módulo `credenciales_sql`).
+2. `python -m scripts.terraform_datos.operar_ejecutora identidades`: lee la master y las dos contraseñas en memoria, calcula los verificadores SCRAM y los envía. La ejecutora crea o ajusta los roles y relee: si algo no coincide con D-23, **revierte todo**.
+3. `verify --usuario blogadmin --controles-negativos`, `verify --usuario blog_app` (el `CREATE TABLE` debe fallar) y `verify --usuario blog_migrate`.
+4. **Rotación:** incrementar la versión de esa identidad en Terraform, aplicar y repetir el paso 2.
+
+El verificador SCRAM queda en el log de PostgreSQL por `log_statement = ddl`; la contraseña, no.
+
 ## 6. Procedimiento — restore y PITR
 
 PITR y restore de *snapshot* **crean una instancia nueva**; no sobrescriben la existente.
@@ -125,6 +163,17 @@ Objetivos: **RPO ≤ 15 min**, **RTO ≤ 4 h**.
 
 **Un *backup* existente no es un restore probado.** Ni `available`, ni un
 `LatestRestorableTime` que avanza, demuestran recuperación.
+
+**Restore sintético de `Task/031` H-031-7.** `scripts/terraform_datos/restore_sintetico.py`, con un manifiesto local sin host, cuenta ni ARN:
+
+1. `preflight` (solo lectura).
+2. `sembrar` (marcador no sensible por la ejecutora).
+3. `restaurar --identificador blog-prod-restore-h0317-AAAAMMDDhhmmss`: registra el identificador **antes** de crear; temporal privada, sin *backups*, sin exportar logs y etiquetada `Temporal=true`.
+4. `verificar` (misma huella).
+5. `limpiar`: solo la temporal de esa corrida; lista lo que borra y demuestra la ausencia por API.
+6. `informe` (RPO y RTO observados).
+
+Con la retención de 1 día del plan FREE, el PITR cubre aproximadamente las últimas 24 horas.
 
 ## 6.1 Procedimiento — exportación fuera de la cuenta (owner del diseño `Task/029`)
 
@@ -153,6 +202,8 @@ restaurable fuera de AWS · `Task/041` es el gate fechado.
    documentado como sensible y **fuera de Git** (**R-12**).
 7. **Verificar que se puede restaurar**: `alembic upgrade head` sobre un PostgreSQL **17.11**
    local y carga de los CSV. Contar filas por tabla y comparar con el origen.
+
+**Implementación de `Task/031` H-031-6:** `python -m scripts.terraform_datos.operar_ejecutora export --bucket <bucket de medios> --marca AAAAMMDDThhmmssZ`. Escribe `exportaciones/<marca>/` con un manifiesto final (filas, bytes y SHA-256 por tabla) y escritura condicional: una marca repetida da `EXPORTACION_YA_EXISTE`.
 
 **Un CSV en un bucket no es una salida probada.** La vía de salida no cuenta como existente
 hasta que `Task/040` restaure desde ella.

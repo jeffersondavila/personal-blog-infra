@@ -1,0 +1,127 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SinSalidaPublicaNiComputo",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AcceptVpcPeeringConnection",
+        "ec2:AllocateAddress",
+        "ec2:AssociateAddress",
+        "ec2:AttachInternetGateway",
+        "ec2:AttachVpnGateway",
+        "ec2:CreateClientVpnEndpoint",
+        "ec2:CreateCustomerGateway",
+        "ec2:CreateEgressOnlyInternetGateway",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateNatGateway",
+        "ec2:CreateTransitGateway",
+        "ec2:CreateTransitGatewayVpcAttachment",
+        "ec2:CreateVpcPeeringConnection",
+        "ec2:CreateVpnConnection",
+        "ec2:CreateVpnGateway",
+        "ec2:RunInstances"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SinBorradoDeProduccion",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteVpc",
+        "ec2:DeleteVpcEndpoints",
+        "logs:DeleteLogGroup",
+        "logs:DeleteRetentionPolicy",
+        "rds:DeleteDBParameterGroup",
+        "rds:DeleteDBSubnetGroup",
+        "ssm:DeleteParameter"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SinBorrarLaInstanciaProductiva",
+      "Effect": "Deny",
+      "Action": "rds:DeleteDBInstance",
+      "Resource": "arn:aws:rds:${region}:${cuenta}:db:blog-prod-postgres"
+    },
+    {
+      "Sid": "SinRdsPublico",
+      "Effect": "Deny",
+      "Action": [
+        "rds:CreateDBInstance",
+        "rds:RestoreDBInstanceFromDBSnapshot",
+        "rds:RestoreDBInstanceToPointInTime"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "rds:PubliclyAccessible": "true"
+        }
+      }
+    },
+    {
+      "Sid": "SinSecretsManagerAdministrado",
+      "Effect": "Deny",
+      "Action": [
+        "rds:CreateDBInstance",
+        "rds:ModifyDBInstance",
+        "rds:RestoreDBInstanceFromDBSnapshot",
+        "rds:RestoreDBInstanceToPointInTime"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "rds:ManageMasterUserPassword": "true"
+        }
+      }
+    },
+    {
+      "Sid": "SinServiciosRdsExcluidos",
+      "Effect": "Deny",
+      "Action": [
+        "rds:CreateBlueGreenDeployment",
+        "rds:CreateDBCluster",
+        "rds:CreateDBInstanceReadReplica",
+        "rds:CreateDBProxy",
+        "rds:CreateGlobalCluster"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SinIdentidadesNiClavesNuevas",
+      "Effect": "Deny",
+      "Action": [
+        "iam:Add*",
+        "iam:Attach*",
+        "iam:Change*",
+        "iam:Create*",
+        "iam:Deactivate*",
+        "iam:Delete*",
+        "iam:Detach*",
+        "iam:Enable*",
+        "iam:Put*",
+        "iam:Remove*",
+        "iam:Resync*",
+        "iam:Set*",
+        "iam:Tag*",
+        "iam:Untag*",
+        "iam:Update*",
+        "iam:Upload*",
+        "kms:CreateAlias",
+        "kms:CreateKey",
+        "kms:DeleteAlias",
+        "kms:DisableKey",
+        "kms:DisableKeyRotation",
+        "kms:PutKeyPolicy",
+        "kms:ScheduleKeyDeletion",
+        "kms:UpdateAlias",
+        "secretsmanager:CreateSecret",
+        "sts:AssumeRole"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

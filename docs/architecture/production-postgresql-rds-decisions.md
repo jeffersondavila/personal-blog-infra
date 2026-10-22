@@ -233,6 +233,12 @@ Tres grupos, sin reglas amplias y sin `0.0.0.0/0` en ninguna dirección.
 Referencia por grupo y no por CIDR: si las subnets cambian, la regla sigue siendo
 correcta, y ningún rango accidental entra por coincidencia de direcciones.
 
+> **Nota de `Task/031` H-031-5 (2026-10-06); se consolida con la aprobación de `Task/031`.** La salida
+> HTTPS de `sg-admin` hacia la *prefix list* de S3, que necesitará el modo `export`, **no se crea en
+> H-031-5**: ningún modo implementado usa S3 y no se concede conectividad antes de que un modo real la
+> use. Se añade y se valida en el checkpoint que implemente `export`
+> ([reporte §44](../task-reports/TASK-031-report.md#44-h-031-5--ejecutora-privada-de-d-24-por-fases-implementación-offline-y-cuota-lambda-2026-10-06)).
+
 ### 3.7 Single-AZ frente a Multi-AZ
 
 | Criterio | Single-AZ | Multi-AZ (instancia en espera) |
@@ -270,12 +276,30 @@ Valores explícitos del *parameter group*:
 
 | Parámetro | Valor | Por qué explícito |
 | --- | --- | --- |
-| `rds.force_ssl` | `1` | **Ya es el default en PostgreSQL 15 y posteriores**, pero un default no es un contrato: declararlo impide que una versión futura lo cambie en silencio |
-| `ssl_min_protocol_version` | `TLSv1.2` | Confirma el default y lo fija |
 | `log_statement` | `ddl` | Registra cambios de esquema sin volcar datos ni parámetros de consultas. Coherente con **R-39** y **O-08** |
 | `log_min_duration_statement` | `1000` (ms) | Diagnóstico de consultas lentas sin registrar todo el tráfico |
 | `log_connections` / `log_disconnections` | `1` | Necesario para diagnosticar agotamiento de conexiones (**R-33**) |
-| `superuser_reserved_connections` | `3` (default) | Explícito porque entra en el presupuesto de conexiones (§6) |
+
+> **Corrección de D-22 §3.8 — `Task/031` H-031-3-RECOVERY (2026-10-05), autorizada por el usuario; se
+> consolida con la aprobación de `Task/031`.** `superuser_reserved_connections` **sale de los valores
+> explícitos**. En `postgres17` es `Source = system`, `IsModifiable = false` y estático, con valor de sistema
+> **3**. Declararlo rompió el apply real de H-031-3 (`InvalidParameterValue`,
+> [reporte §27.4](../task-reports/TASK-031-report.md#274-h-031-3--reintento-apply-fallido-en-el-parameter-group-2026-10-05)). **El valor efectivo sigue siendo 3** y el presupuesto de
+> conexiones (§6) no cambia: el preflight `scripts/terraform_datos/check_parametros.py` exige que el catálogo
+> lo mantenga así, y que **cada** parámetro explícito sea modificable y declare el `apply_method` que
+> corresponde a su `ApplyType`. Nunca se intenta fijar por Terraform. El parameter group quedó entonces con seis valores
+> explícitos; la segunda corrección lo reduce a cuatro.
+>
+> **Segunda corrección — H-031-3-RECOVERY-2 (2026-10-05), autorizada por el usuario; se consolida con la
+> aprobación de `Task/031`.** `rds.force_ssl` y `ssl_min_protocol_version` **también salen** de los valores
+> explícitos. Coinciden con el valor de sistema y AWS real los devuelve como `Source = system` /
+> `pending-reboot` aunque se declaren, de modo que declararlos **no converge** ([reporte §32](../task-reports/TASK-031-report.md#32-h-031-3--recovery-apply-fallido-restricción-del-plan-gratuito-de-la-cuenta-2026-10-05)).
+> Pasan a ser **invariantes de sistema**, igual que `superuser_reserved_connections`. **Antes de cada plan
+> productivo**, `check_parametros.py` exige contra el catálogo real `rds.force_ssl = 1`,
+> `ssl_min_protocol_version = TLSv1.2` y `superuser_reserved_connections = 3` (este último no modificable),
+> todos con `Source = system`; cualquier diferencia es STOP. Así, un default de sistema sigue sin ser un
+> contrato tácito: el contrato es la guarda. El parameter group gestiona **cuatro** valores: los `log_*` de
+> esta tabla ([reporte §33](../task-reports/TASK-031-report.md#33-h-031-3-recovery-2--plan-de-cuenta-y-parameter-group-de-cuatro-parámetros-2026-10-05)). Sin `ignore_changes`.
 
 **No** se activa `log_min_duration_statement = 0` ni `log_statement = all`: volcarían
 sentencias con parámetros a CloudWatch y de ahí, por **D-20**, a un tercero. `Task/031`
@@ -322,7 +346,7 @@ descarga sí. Validar con **D-08** en `Task/030`.
 | Punto | Decisión |
 | --- | --- |
 | Modo del cliente | **`sslmode=verify-full`**: valida cadena **y** *hostname*. `verify-ca` no detecta suplantación del nombre |
-| Obligatoriedad en el servidor | `rds.force_ssl = 1` explícito (§3.8) |
+| Obligatoriedad en el servidor | `rds.force_ssl = 1`: invariante de sistema verificada antes de cada plan (§3.8, corrección RECOVERY-2) |
 | CA | **`rds-ca-rsa2048-g1`**, el **default** de RDS, con rotación automática del certificado de servidor |
 | *Trust store* del cliente | Bundle **regional** de la región elegida, p. ej. `us-east-2-bundle.pem` desde `truststore.pki.rds.amazonaws.com`. Solo el **root**: registrar intermedios rompe la rotación automática |
 | Rotación de la CA | El **certificado de servidor** lo rota RDS automáticamente (validez 1 año si el motor admite rotación sin reinicio; 3 si no). La **CA raíz** vive décadas. `Task/031` registra el `ValidTill` real con `describe-certificates` |
@@ -416,6 +440,8 @@ test-first en `Task/032` —no aquí.
 - La contraseña *master* **se genera en `Task/031`** por procedimiento privado y
   autorizado. **`Task/029` no genera ni lee ningún secreto.**
 
+> **Custodia de `blog_migrate` y `blog_app` — `Task/031` H-031-6, preparada offline (2026-10-07). Aceptada con la aprobación de `Task/031` (2026-10-21).** Dos SecureString estándar con `alias/aws/ssm` y `value_wo`, junto a la master (`/<prefijo>/datos/<identidad>`), con versión independiente cada una: módulo `terraform/modulos/credenciales_sql`, todavía no cableado. Las contraseñas se generan en memoria en el proceso que ejecuta Terraform; la ejecutora recibe solo verificadores SCRAM. Las identidades se crean por el canal privado con los privilegios de esta sección ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+
 ### 5.4 Autenticación SQL: IAM DB auth
 
 **No se adopta.** La razón es técnica y decisiva, no de gusto:
@@ -471,7 +497,7 @@ conexión por invocación ni que todas desaparezcan al terminar.
 | Concepto | Conexiones |
 | --- | --- |
 | `max_connections` derivado | **112** |
-| − `superuser_reserved_connections` | −3 |
+| − `superuser_reserved_connections` (valor de sistema, no gestionado; corrección de H-031-3-RECOVERY) | −3 |
 | = no privilegiadas | 109 |
 | − migraciones (canal D-24) | −5 |
 | − administración humana | −3 |
@@ -770,6 +796,8 @@ esta tarea al modelo:
   agresivo de muchas métricas es lo único que podría sacarlo del tier gratuito;
   `Task/031` fija el intervalo y el conjunto de métricas con ese límite a la vista.
 
+> **Corrección de `Task/031` H-031-9 (2026-10-07).** `GetMetricData` **no** entra en el millón de peticiones gratuitas: la página de precios de CloudWatch dice «not including GetMetricData, GetInsightRuleReport and GetMetricWidgetImage: these 3 operations are always charged». El Price List de us-east-2 (publicación del 2026-10-07) da USD 0.01 por 1.000 métricas solicitadas desde la primera. Con 8 métricas, sondear cada minuto cuesta unos USD 3.50 al mes y cada 5 minutos unos USD 0.70; las consultas bajo demanda, céntimos. Propuesta: consultas bajo demanda y las alarmas de CloudWatch como fuente de alertas ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+
 ---
 
 ## 8. D-24 — Canal privado de administración y migraciones · **Resuelta**
@@ -802,12 +830,78 @@ es despreciable para ejecuciones esporádicas.
 | Red | Las mismas subnets privadas; SG `sg-admin`; **sin ruta a Internet** |
 | Artefacto | ZIP con Alembic, `psycopg`, el bundle de la CA y las migraciones. **Versionado y con digest**, como el de la aplicación |
 | Invocación | Por el plano de control de AWS —`lambda:InvokeFunction`— por una identidad humana autorizada o, desde `Task/038`, por el rol de despliegue |
-| Serialización | **Obligatoria.** Concurrencia reservada **= 1**, más el bloqueo de aviso propio de Alembic. Dos migraciones simultáneas no pueden ocurrir |
+| Serialización | **Obligatoria.** Concurrencia reservada **= 1**, más el bloqueo de aviso propio de Alembic. Dos migraciones simultáneas no pueden ocurrir. **Modificada el 2026-10-18 y aprobada por el usuario el 2026-10-19:** sin concurrencia reservada; la exclusión la garantiza un bloqueo de aviso de PostgreSQL tomado por la aplicación (nota «Modificación de D-24» de esta sección) |
 | Duración máxima | Límite duro de Lambda: **900 s**. Ver §8.3 |
 | Salida | Saneada: revisión y versión aplicada, **nunca** la `DATABASE_URL`, la contraseña ni volcados de datos. En modo `export` la salida es el **recuento de filas por tabla y la clave del objeto en S3**, no los datos |
 | Permisos en S3 | **Solo** escritura sobre el **prefijo dedicado de exportación**, y solo en modo `export`. Ni lectura del resto del bucket ni acceso al prefijo de medios |
 | *Backup* previo | **`Task/036` toma un *snapshot* manual antes de la primera migración.** Un *backup* automático no es un punto de control elegido |
 | Reversión | Toda migración lleva `downgrade` probado en local, **y** el *snapshot* previo como red final. Si el `downgrade` no es seguro, se documenta el *roll-forward* |
+
+> **Fases de la ejecutora: `Task/031` H-031-5-DESIGN-RESOLUTION (2026-10-06), decidida por el usuario; se
+> consolida con la aprobación de `Task/031`.** El contrato de esta tabla no cambia: se implementa por fases, sin
+> fingir que la ejecutora ya alcanza PostgreSQL.
+>
+> - **H-031-5:** infraestructura Lambda privada —subredes privadas, **solo `sg-admin`**, rol propio con IAM
+>   mínimo (ENI de Lambda en VPC y logs), grupo de logs de 14 días y **concurrencia reservada 1**— y un *shell*
+>   en Python 3.12 solo con biblioteca estándar: contrato de invocación cerrado, salida saneada, modo interno
+>   `selfcheck` y los modos de esta tabla enumerados como `NOT_IMPLEMENTED`. El artefacto es mínimo,
+>   determinista y con pin SHA-256.
+> - **H-031-6:** `psycopg` con versión e integridad fijadas, bundle de la CA, **adquisición de credenciales**,
+>   la identidad SQL correspondiente, `verify-full` real y los modos que necesitan PostgreSQL: como mínimo
+>   `verify`, y `export` si hace falta para cerrar `Task/031`.
+> - **`Task/036`:** Alembic, migraciones reales, `upgrade`/`downgrade` y `purge`.
+>
+> **Entrega de credenciales: contradicción ABIERTA, no resuelta.** D-23 (§5.3) decidió entrega en despliegue,
+> sin lector en *runtime* ni endpoint de SSM; el contrato de módulo (§12.1) recibía `arns_de_parametros`, que
+> implica lectura en *runtime*, y §13 habla de una `BLOG_DATABASE_URL` propia. Con la red de D-22 la ejecutora
+> **no tiene ruta a SSM**: «When you attach your function to a VPC, it can only access resources available
+> within that VPC» (guía de Lambda). El usuario difirió la decisión a **H-031-6**, de forma explícita y
+> revisable. H-031-5 no transporta ni obtiene ninguna contraseña.
+>
+> **Serialización.** Se mantiene **concurrencia reservada = 1**, sin excepción temporal. La cuota de
+> concurrencia de esta cuenta AWS no permite reservar («You can reserve up to the Unreserved account
+> concurrency value minus 100»), así que el plan productivo de H-031-5 espera al aumento de cuota. El bloqueo
+> de aviso de PostgreSQL será defensa **adicional** cuando exista base de datos, nunca un sustituto
+> ([reporte §44](../task-reports/TASK-031-report.md#44-h-031-5--ejecutora-privada-de-d-24-por-fases-implementación-offline-y-cuota-lambda-2026-10-06)).
+>
+> **Cuota solicitada (`Task/031`, 2026-10-16).** Una única solicitud por Service Quotas a 1001; AWS abrió un caso (`CASE_OPENED`).
+> D-24 y RC=1 sin cambios ([reporte §48](../task-reports/TASK-031-report.md#48-bloqueos-b1-b3-y-b4--decisiones-del-usuario-del-2026-10-16)).
+>
+> **Modificación de D-24 — `Task/031` (2026-10-18), aprobada por el usuario el 2026-10-19; se consolida con la aprobación de `Task/031`.**
+> Por decisión del usuario,
+> la ejecutora sigue siendo una Lambda privada, pero **sin concurrencia reservada**. Cambia solo la fila
+> «Serialización»; el resto del contrato de §8.2 se mantiene.
+>
+> - **Concurrencia.** El módulo omite `reserved_concurrent_executions`, que AWS informa como `-1`: la función usa la
+>   concurrencia no reservada de la cuenta. Ni `0`, que la desactivaría, ni concurrencia provisionada.
+> - **Lambda ya no garantiza la serialización:** dos invocaciones pueden coincidir. La garantía pasa a la aplicación:
+>   - los modos de escritura administrativa (`identidades` y `sintetico`) toman `pg_try_advisory_xact_lock(3364, 1)`
+>     como primera operación de su transacción, en la misma conexión;
+>   - si otra transacción tiene la clave, fallan en el acto con `OPERACION_EN_CURSO`, sin esperar y sin escribir;
+>   - el bloqueo es de transacción: lo liberan `COMMIT`, `ROLLBACK` y el fin de la sesión;
+>   - `statement_timeout` = 20 s e `idle_in_transaction_session_timeout` = 60 s, fijados solo para esa transacción,
+>     acotan una sesión colgada o abandonada.
+> - **Lectura sin bloqueo.** `verify` y `export` no lo toman: los modos de lectura no se restringen.
+> - **Sin reejecuciones.** El operador invoca de forma síncrona con un único intento del SDK y no repite tras un
+>   error. Un `OPERACION_EN_CURSO` o un error se investigan; nunca se reintentan a ciegas.
+> - **Lo que el bloqueo no protege.** Las operaciones de AWS —restore, PITR, *snapshots*, modificación o borrado de
+>   instancias— conservan sus protecciones propias: las guardas del orquestador de restore, la protección contra
+>   borrado y la identidad que las ejecuta. El bloqueo solo ordena SQL dentro de una instancia.
+> - **Criterio de aceptación.** Toda operación SQL administrativa de escritura toma la clave `(3364, 1)` en su
+>   conexión antes de escribir, y una segunda operación incompatible se rechaza sin efectos. **`Task/036` lo hereda
+>   para `upgrade`, `downgrade` y `purge`.** El «bloqueo de aviso propio de Alembic» de la fila original no existe
+>   hoy: el `alembic/env.py` del backend no toma ninguno (verificado el 2026-10-18).
+>
+> La solicitud de cuota a 1001 sigue abierta y deja de ser requisito ([reporte §49](../task-reports/TASK-031-report.md#49-d-24-modificada-y-plan-de-h-031-5-2026-10-18)).
+
+> **Entrega de credenciales y modos de provisión — `Task/031` REMAINDER (2026-10-07). Aceptada con la aprobación de `Task/031` (2026-10-21).** Resuelve la contradicción de la nota anterior sin cambiar D-22, D-23 ni D-24:
+>
+> - **Credenciales.** El operador autorizado las lee en memoria de su SecureString y las entrega en el evento de una invocación **síncrona**. La ejecutora no lee SSM ni KMS, no tiene variables de configuración y no registra nada del evento: cero secreto persistente y costo 0.
+> - **`identidades` recibe verificadores SCRAM-SHA-256.** La contraseña de `blog_migrate` y `blog_app` no viaja; el verificador sí queda en el log de PostgreSQL por `log_statement = ddl`, y por eso D-20 no lee logs.
+> - **Modos de provisión de `Task/031`**, justificados conforme a la fila «Modos»: `identidades` (creación inicial con `blogadmin` por el canal privado, D-23 §5.3) y `sintetico` (marcador de H-031-7). `selfcheck` los separa de los cuatro modos de D-24.
+> - **`export` implementado** ([§10.1](#101-vía-de-salida-exportación-fuera-de-la-cuenta)).
+>
+> En PostgreSQL 16+ un `CREATEROLE` no superusuario necesita una membresía `SET` **transitoria** para fijar los privilegios por omisión de `blog_migrate`; se revoca en la misma transacción. Demostrado contra 17.11 en la integración local ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
 
 ### 8.3 Límite reconocido, sin disfrazarlo
 
@@ -914,7 +1008,7 @@ Criterios **medibles**, sin ciclos y sin exigir recursos que la propia tarea no 
 | TLS | `rds.force_ssl = 1` leído del *parameter group* efectivo; CA registrada con `describe-certificates` y su `ValidTill` |
 | KMS | `StorageEncrypted = true` y ARN de la clave registrado. **Ninguna prueba deshabilita ni programa el borrado de una clave** |
 | Credenciales | Tres identidades SQL creadas con privilegios verificados por `\dp`. `blog_app` **sin DDL**, comprobado con un `CREATE TABLE` que **debe fallar** |
-| *Backups* | Retención **7 días** aplicada; PITR activo; `LatestRestorableTime` avanzando |
+| *Backups* | Retención **7 días** aplicada —**1 día** mientras la cuenta siga en plan FREE (excepción temporal de §10)—; PITR activo; `LatestRestorableTime` avanzando |
 | **Restore sintético** | Datos sintéticos, PITR a instancia nueva, integridad comprobada, **tiempo medido** y limpieza autorizada registrada |
 | Acceso privado (D-24) | Ejecutor invocado por el plano de control, conecta, devuelve salida saneada |
 | CloudWatch (D-11) | Retención explícita y **≤ 10 alarmas** para no salir del *free tier* |
@@ -925,6 +1019,16 @@ Alarmas mínimas: `CPUUtilization`, `CPUCreditBalance`, `FreeableMemory`,
 `FreeStorageSpace`, `DatabaseConnections`, `ReadLatency`/`WriteLatency`, fallo de
 *backup* y `MaximumUsedTransactionIDs`. Ocho señales, dentro de las 10 gratuitas. Los
 umbrales los fija `Task/031`: **no se copian umbrales arbitrarios aquí**.
+
+> **Alarmas — `Task/031` H-031-8, preparadas offline (2026-10-07). Aceptadas con la aprobación de `Task/031` (2026-10-21); D-11 sigue abierta.** Ocho alarmas sin acciones, con umbrales derivados de la guía de AWS para RDS, de la clase de D-22 y de D-12 (módulo `terraform/modulos/alarmas_rds`, no cableado). **El fallo de *backup* no tiene métrica de CloudWatch:** RDS lo comunica como evento, y convertirlo en alarma exige EventBridge y otro destino, servicios no aprobados. Queda como decisión ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)).
+
+> **Alarmas aplicadas en AWS — `Task/031` H-031-8 (2026-10-15). Aceptadas con la aprobación de `Task/031` (2026-10-21).** Las 8 existen
+> sin acciones, con readback 8/8 y convergencia. `memoria` está en `ALARM` en reposo: una `db.t4g.micro` ronda los
+> 148 MiB libres frente al umbral de 256 MiB. Es un hallazgo de calibración: no se cambia el umbral ni el tamaño sin
+> una decisión específica ([reporte §47](../task-reports/TASK-031-report.md#47-h-031-8-y-h-031-9--alarmas-de-d-11-y-rol-de-d-20-aplicados-y-convergentes-2026-10-08-a-2026-10-15)).
+>
+> Desde el 2026-10-21, la calibración de `memoria` y el alertamiento efectivo son alcance de `Task/040`, con
+> **D-11 abierta** ([STAGE-12](../stages/STAGE-12-launch-and-operations.md)).
 
 ### 9.3 `Task/032` — Lambda real
 
@@ -980,6 +1084,19 @@ los tiers gratuitos siguen aplicando (**R-38**).
 | `copy_tags_to_snapshot` | `true` | Los *snapshots* heredan las etiquetas y son atribuibles en el costo |
 | **RPO objetivo** | **≤ 15 minutos** | PITR da ~5 min; 15 es el compromiso con margen |
 | **RTO objetivo** | **≤ 4 horas** | PITR restaura a **instancia nueva**: crear, esperar disponibilidad, verificar y cambiar `DATABASE_URL`. Coherente con Single-AZ |
+
+> **Excepción TEMPORAL — `Task/031` H-031-3-RECOVERY-3-FREE (2026-10-05), decidida por el usuario; se
+> consolida con la aprobación de `Task/031`.** El **diseño objetivo no cambia: retención de 7 días con PITR**.
+> La cuenta está en el plan **FREE** (`ACTIVE`, expira 2027-03-15) y AWS rechazó `CreateDBInstance` con 7 días
+> (`FreeTierRestrictionError`, [reporte §32](../task-reports/TASK-031-report.md#32-h-031-3--recovery-apply-fallido-restricción-del-plan-gratuito-de-la-cuenta-2026-10-05)). Mientras la cuenta siga en FREE, la retención
+> productiva es **1 día**: conserva los backups automáticos y el PITR de aproximadamente las últimas 24 horas.
+> Es el default documentado de RDS al crear por API; **no se afirma que sea el máximo del plan FREE**, que AWS
+> no publica (`FREE_PLAN_RETENTION_MAX = UNKNOWN`, [§33](../task-reports/TASK-031-report.md#33-h-031-3-recovery-2--plan-de-cuenta-y-parameter-group-de-cuatro-parámetros-2026-10-05)) y que **no se intentó descubrir por
+> tanteo**. **0 sigue prohibido.** Se modela con la variable `dias_de_retencion_de_backups` (default 7 =
+> objetivo; validación `{1, 7}`), que el entorno productivo fija en 1 de forma explícita. **Al pasar
+> voluntariamente al plan PAID se restaura 7.** Mientras la retención sea 1, **antes de una migración o de un
+> cambio destructivo** se crea y verifica un *snapshot* manual (fila de *snapshots* de esta tabla y runbook
+> `deployment-recovery.md` §8). Eso **no sustituye** al PITR ([reporte §34](../task-reports/TASK-031-report.md#34-h-031-3-recovery-3-free--retención-temporal-de-1-día-y-plan-de-recuperación-2026-10-05)).
 | Protección frente a pérdida de región | **No se adopta ahora** | Copiar *snapshots* a otra región añade costo y transferencia. El contenido es reproducible desde Git y S3. Se reconsidera si el contenido deja de serlo |
 | **Protección frente a pérdida de la cuenta** | **Vía de salida obligatoria**, §10.1 | **Añadida por la decisión H-4 del 2026-09-27.** Los *backups* administrados **no** sobreviven al cierre de la cuenta |
 | Ambientes no productivos | `destroy`/`recreate` permitido, con caducidad y costo declarados | **Jamás** sobre producción, y **nunca** un `destroy` real automático en CI |
@@ -1039,6 +1156,8 @@ trocea en silencio.
 
 **Criterio de salida, con el mismo estándar que el resto de esta tarea:** la vía de salida no
 cuenta como existente hasta que `Task/040` restaure desde ella. Hasta entonces es diseño.
+
+> **`export` implementado offline — `Task/031` H-031-6 (2026-10-07).** `COPY … TO STDOUT` en CSV por tabla de `public`, en una instantánea `REPEATABLE READ, READ ONLY`. Escribe a `exportaciones/<marca>/` del bucket de medios con `If-None-Match: *` y `ChecksumSHA256`, más un manifiesto final con filas, bytes y SHA-256 por tabla. La respuesta nunca lleva datos. Permiso: solo `s3:PutObject` sobre ese prefijo, condicionado a `s3:if-none-match` y al gateway endpoint; red: `sg-admin → prefix list de S3:443` (módulo `terraform/modulos/exportacion`, no cableado). En la integración local con MinIO, el CSV es idéntico byte a byte al `COPY` de `psql` ([reporte §46](../task-reports/TASK-031-report.md#46-remainder--h-031-6-a-h-031-9-preparados-offline-aws-bloqueado-por-la-cuota-de-lambda-2026-10-07)). Sigue sin contar como salida probada hasta `Task/040`.
 
 ---
 
@@ -1147,6 +1266,31 @@ Decisiones humanas que esta tarea **traslada, con fecha y propietario**, a tarea
 
 ## 12. Contratos de Terraform que `Task/031` implementará
 
+> **Enmienda de `Task/031` a §12.2 — aceptada con la aprobación de `Task/031` (2026-10-21)** (diseño aprobado
+> en `H-031-1`, DH-1, 2026-10-03). El texto original se conserva intacto debajo.
+>
+> - Los módulos `modulos/red` y `modulos/base_de_datos` existen con esos nombres y bajo
+>   `terraform/modulos/`, como preveía §12.1, pero **no** los llama `terraform/main.tf`: los
+>   llama un root propio, **`terraform-datos`**, con state
+>   `application/data/terraform.tfstate`. Motivo: §12.2 es anterior a la precisión de la regla
+>   de paridad ([§4.1.1](aws-local-parity.md)), y planear red y RDS en el root de aplicación
+>   crearía también la Lambda y la API de `Task/032`/`Task/033`, con `-target` prohibido.
+> - El root de aplicación **no cambia** en `Task/031`. Que `computo` reciba subredes y
+>   `sg-lambda` para su `vpc_config` llega en `Task/032`, **como variables** que transporta el
+>   orquestador desde las salidas de `terraform-datos`, nunca con `terraform_remote_state`.
+> - El SecureString de la contraseña master —custodia de D-23— vive en el mismo módulo de base
+>   de datos y se escribe con `value_wo`; la instancia usa `password_wo`: la contraseña no
+>   llega ni al plan ni al state (DH-2).
+> - `modulos/ejecutor_privado` sigue siendo de `Task/031`, en **H-031-5**; su root se decide
+>   allí; deberá adjuntar **`sg-admin` explícitamente**. Task/032 adjuntará **`sg-lambda`
+>   explícitamente**. H-031-1A fija **21 recursos** en datos: el SG por omisión no se gestiona,
+>   etiqueta, vacía ni referencia. RDS lleva **solo `sg-rds`**; S3 Gateway no lleva SG ni
+>   `subnet_ids`. El aislamiento del SG por omisión se obtiene por no uso (DN-3 eliminada).
+> - `terraform/providers.tf` **no** se amplía con `ec2` ni `rds`: esos endpoints los declara el
+>   provider de `terraform-datos`.
+>
+> Detalle: [aws-local-parity §4.1.1.1](aws-local-parity.md#4111-segundo-lifecycle-extraído--red-y-base-de-datos-task031).
+
 **`Task/029` no añade ningún recurso.** Esto es el contrato: nombres, variables, salidas
 y dependencias que `Task/031` materializará. Verificado contra el grafo real de
 `terraform/`.
@@ -1158,6 +1302,18 @@ y dependencias que `Task/031` materializará. Verificado contra el grafo real de
 | `modulos/red` | `aws_vpc`, 2 `aws_subnet` privadas, 2 `aws_route_table` y sus asociaciones, `aws_vpc_endpoint` de S3 tipo `Gateway`, 3 `aws_security_group` con sus reglas | `cidr`, `azs`, `cidrs_de_subred`, `nombre` | `id_de_vpc`, `ids_de_subredes`, `id_sg_lambda`, `id_sg_rds`, `id_sg_admin`, `id_endpoint_s3` |
 | `modulos/base_de_datos` | `aws_db_subnet_group`, `aws_db_parameter_group`, `aws_db_instance` | `ids_de_subredes`, `id_sg_rds`, `clase`, `version_del_motor`, `gib`, `gib_maximos`, `dias_de_retencion`, `ventana_de_backup`, `ventana_de_mantenimiento`, `arn_de_clave_kms` (null = clave gestionada por AWS) | `endpoint`, `puerto`, `id_del_recurso`, `arn` |
 | `modulos/ejecutor_privado` | `aws_lambda_function` del ejecutor, su `aws_iam_role` y su `aws_cloudwatch_log_group` | `ids_de_subredes`, `id_sg_admin`, `lambda_zip_path`, `arns_de_parametros` | `nombre`, `arn` |
+
+> **Enmienda de `Task/031` a §12.1: `modulos/ejecutor_privado` (H-031-5, 2026-10-06); se consolida con la
+> aprobación de `Task/031`.** Vive en `terraform/modulos/ejecutor_privado/` y lo llama `terraform-datos`.
+>
+> - **Recursos:** `aws_lambda_function`, `aws_iam_role`, **su `aws_iam_role_policy`** y
+>   `aws_cloudwatch_log_group`.
+> - **Entradas:** `nombre`, `nombre_del_rol`, `region`, `cuenta`, `ids_de_subredes`, `id_sg_admin`,
+>   `ruta_del_zip`, `sha256_del_zip` y `dias_de_retencion_de_logs`. **`arns_de_parametros` no existe**: cómo
+>   recibe la ejecutora sus credenciales es de H-031-6.
+> - **Salidas:** `nombre`, `arn` y el contrato de verificación `configuracion_efectiva`.
+>
+> Detalle: [reporte §44](../task-reports/TASK-031-report.md#44-h-031-5--ejecutora-privada-de-d-24-por-fases-implementación-offline-y-cuota-lambda-2026-10-06).
 
 ### 12.2 Cambios en la raíz que `Task/031` deberá hacer
 
@@ -1226,14 +1382,14 @@ decisiones que la requerían están **resueltas**.
 | TLS | **verify-full** + `rds.force_ssl=1` | verify-ca (insuficiente) | Bundle de CA dentro del ZIP | 0 | **R-30**; negativo obligatorio en `Task/040` | No |
 | Secretos | **SSM `SecureString`**, en despliegue | Secrets Manager (+0.40/secreto) | Rotar exige redesplegar | 0 | **R-40** | No |
 | IAM DB auth | **No** | Sí | Exige 300–1000 MiB extra en 1 GiB | 0 | Incompatible con la clase | No |
-| *Backups* / PITR | **7 días**, PITR activo | 0 (prohibido), 35 | Dentro de la asignación gratuita | 0 | **R-31**: restore probado, no supuesto | No |
+| *Backups* / PITR | **7 días**, PITR activo (**1 día** temporal en plan FREE, §10) | 0 (prohibido), 35 | Dentro de la asignación gratuita | 0 | **R-31**: restore probado, no supuesto | No |
 | RPO / RTO | **≤ 15 min / ≤ 4 h** | Multi-AZ mejora el RTO | Medidos en `Task/040` | 0 | Coherente con Single-AZ | No |
 | Pool / concurrencia | **`pool_size=1`, `overflow=1`, RC=20** | Default local 5+5: solo 8 entornos | 40 de 89 conexiones | 0 | **R-33**; medir en `Task/032` | No |
 | RDS Proxy | **No**, con criterio objetivo | Sí (+22.70) | Sin problema que resolver hoy | 0 | Reevaluar si se cumple el criterio de §6.3 | No (sí si se adopta) |
 | VPC / subnets | **1 VPC, 2 subnets privadas, 2 AZ** | Subnet pública (sin utilidad) | Requisito del DB subnet group | 0 | **R-30** | No |
 | *Endpoints* | **Solo gateway S3** | Interface SSM (+14.60) | Sin lector de SSM en *runtime* | 0 | Revisar si `Task/032` lo cambia | No |
 | NAT Gateway | **No** | Sí | Clase D **vacía** en el inventario | 0 | Requiere decisión explícita si cambia | No |
-| Canal admin / migraciones | **Lambda ejecutora dedicada** | EC2/SSM/VPN (excluidos o caros) | Serializada, RC=1 | ≈ 0 | Techo de 900 s reconocido | No |
+| Canal admin / migraciones | **Lambda ejecutora dedicada** | EC2/SSM/VPN (excluidos o caros) | Serializada, RC=1. **Modificación aprobada por el usuario el 2026-10-19:** sin RC; exclusión por bloqueo de aviso de PostgreSQL (§8.2) | ≈ 0 | Techo de 900 s reconocido | No |
 | CloudWatch | **8 alarmas**, retención explícita | Database Insights avanzado | Dentro del *free tier* | 0 | Umbrales en `Task/031` | No |
 | Grafana / D-20 | **Tier gratuito**, verificar antes de integrar | Plan de pago | Costo de `GetMetricData` modelado | 0 | **R-38**; **D-19** abierta | No |
 | Vía de salida | **Exportación lógica por el canal privado a S3 y descarga** | *Snapshots*, que **mueren con la cuenta** | Hace ejecutable la opción B de la §7.7 | ≈ 0 | Diseño hasta que `Task/040` restaure desde ella | No |

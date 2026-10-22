@@ -17,7 +17,8 @@ COMPOSE = ROOT / "laboratorio/docker-compose.laboratorio.yml"
 BASH = shutil.which("bash")
 if os.name == "nt" and Path("C:/Program Files/Git/bin/bash.exe").exists():
     BASH = "C:/Program Files/Git/bin/bash.exe"
-SERVICIOS = ("s3", "ssm", "lambda", "logs", "iam", "apigateway")
+#: Desde Task/031 tambien EC2 y RDS, que usa el root de datos.
+SERVICIOS = ("s3", "ssm", "lambda", "logs", "iam", "apigateway", "ec2", "rds")
 
 
 def sonda():
@@ -56,7 +57,16 @@ class HealthcheckTests(unittest.TestCase):
 
         class Servidor(socketserver.BaseRequestHandler):
             def handle(self):
-                self.request.recv(4096)
+                # TCP puede entregar el printf de Bash en varios segmentos. Si
+                # respondemos y cerramos tras el primero, Bash aun esta escribiendo
+                # y recibe SIGPIPE: eso no es un resultado del healthcheck.
+                self.request.settimeout(4)
+                peticion = b""
+                while b"\r\n\r\n" not in peticion:
+                    bloque = self.request.recv(4096)
+                    if not bloque:
+                        return
+                    peticion += bloque
                 self.request.sendall(respuesta)
 
         with socketserver.TCPServer(("127.0.0.1", 0), Servidor) as servidor:
@@ -69,9 +79,11 @@ class HealthcheckTests(unittest.TestCase):
                 resultado = subprocess.run([BASH, "--noprofile", "--norc", "-ec", script],
                                            env=env, capture_output=True, timeout=8)
             hilo.join(timeout=2)
+        self.assertIn(resultado.returncode, (0, 1),
+                      f"Bash no termino la sonda: {resultado.returncode}; {resultado.stderr!r}")
         return resultado.returncode
 
-    def test_http_200_y_seis_servicios_running(self):
+    def test_http_200_y_ocho_servicios_running(self):
         self.assertEqual(self.ejecutar(), 0)
 
     def test_estado_http_erroneo_no_pasa_aunque_servicios_estan_running(self):
@@ -90,7 +102,7 @@ class HealthcheckTests(unittest.TestCase):
 
     def test_exigir_servicio_inexistente_falla(self):
         self.assertNotEqual(self.ejecutar(script=sonda().replace(
-            "s3 ssm lambda logs iam apigateway", "s3 ssm lambda logs iam apigateway inexistente"
+            "s3 ssm lambda logs iam apigateway ec2 rds", "s3 ssm lambda logs iam apigateway ec2 rds inexistente"
         )), 0)
 
     def test_running_fuera_de_services_no_pasa(self):

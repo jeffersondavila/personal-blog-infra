@@ -68,7 +68,7 @@ class DataSourceTests(unittest.TestCase):
             "resource_changes": [
                 {
                     "address": "x",
-                    "type": "aws_db_instance",
+                    "type": "aws_nat_gateway",
                     "change": {"actions": ["create"]},
                 }
             ]
@@ -78,6 +78,14 @@ class DataSourceTests(unittest.TestCase):
 
 
 class PlanTests(unittest.TestCase):
+    def test_alarmas_del_root_de_datos_admitidas_sin_abrir_otros_tipos_cloudwatch(self):
+        resumen = modulo.revisar_plan(plan(cambio("aws_cloudwatch_metric_alarm", "create")),
+                                      acciones_permitidas=("create",))
+        self.assertEqual(resumen["create"], 1)
+        with self.assertRaises(modulo.ErrorDeInventario):
+            modulo.revisar_plan(plan(cambio("aws_cloudwatch_event_rule", "create")),
+                                acciones_permitidas=("create",))
+
     def test_plan_conforme_acepta(self):
         entrada = plan(
             cambio("aws_s3_bucket", "create"),
@@ -88,17 +96,48 @@ class PlanTests(unittest.TestCase):
         self.assertEqual(resumen["create"], 3)
 
     def test_plan_con_recurso_inesperado_aborta(self):
-        entrada = plan(cambio("aws_s3_bucket", "create"), cambio("aws_db_instance", "create"))
+        entrada = plan(cambio("aws_s3_bucket", "create"), cambio("aws_nat_gateway", "create"))
         with self.assertRaises(modulo.ErrorDeInventario) as capturado:
             modulo.revisar_plan(entrada, acciones_permitidas=("create",))
-        self.assertIn("aws_db_instance", str(capturado.exception))
+        self.assertIn("aws_nat_gateway", str(capturado.exception))
 
-    def test_plan_con_recurso_rds_aborta_siempre(self):
-        """El grafo Task/025 no incluye RDS; ampliacion futura en Task/031, no aqui."""
-        for tipo in ("aws_db_instance", "aws_rds_cluster", "aws_db_subnet_group"):
+    def test_lo_que_adr_010_excluye_aborta_siempre(self):
+        """Task/031 abre la red privada y RDS, y NADA mas (H-031-1, DH-1).
+
+        Hasta Task/031 esta prueba exigia rechazar cualquier `aws_db_*`: el grafo
+        de Task/025 no tenia RDS. ADR-010 y la aprobacion de H-031-1 cambiaron el
+        requisito, asi que ahora fija lo que sigue excluido: salida publica,
+        Proxy, cluster, clave KMS propia y Secrets Manager.
+        """
+        for tipo in (
+            "aws_internet_gateway",
+            "aws_nat_gateway",
+            "aws_eip",
+            "aws_egress_only_internet_gateway",
+            "aws_db_proxy",
+            "aws_rds_cluster",
+            "aws_kms_key",
+            "aws_secretsmanager_secret",
+            "aws_instance",
+            # H-031-1A: el grupo por omision no se gestiona.
+            "aws_default_security_group",
+        ):
             with self.subTest(tipo=tipo):
                 with self.assertRaises(modulo.ErrorDeInventario):
                     modulo.revisar_plan(plan(cambio(tipo, "create")), acciones_permitidas=("create",))
+
+    def test_los_tipos_del_root_de_datos_se_aceptan(self):
+        """La red privada y el RDS de D-22 son exactamente lo que se anade."""
+        tipos = (
+            "aws_vpc", "aws_subnet", "aws_route_table",
+            "aws_route_table_association", "aws_vpc_endpoint", "aws_security_group",
+            "aws_vpc_security_group_ingress_rule", "aws_vpc_security_group_egress_rule",
+            "aws_db_subnet_group", "aws_db_parameter_group", "aws_db_instance",
+        )
+        resumen = modulo.revisar_plan(
+            plan(*(cambio(tipo, "create") for tipo in tipos)), acciones_permitidas=("create",)
+        )
+        self.assertEqual(resumen["create"], len(tipos))
 
     def test_accion_inesperada_aborta(self):
         entrada = plan(cambio("aws_s3_bucket", "delete"))
