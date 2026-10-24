@@ -38,7 +38,7 @@ from typing import Final
 VERSION_DE_TERRAFORM: Final = "1.16.2"
 
 #: Version exacta del provider oficial de AWS.
-VERSION_DEL_PROVIDER: Final = "6.64.0"
+VERSION_DEL_PROVIDER: Final = "6.70.0"
 
 #: Plataformas soportadas. No hay ARM64: ninguna decision del proyecto lo
 #: autoriza, y `Task/024` ya fijo `linux/amd64` para el artefacto.
@@ -53,13 +53,13 @@ CHECKSUMS_DE_TERRAFORM: Final = {
     "windows_amd64": "6ef140ce1d399dc43b8315194176ddc2dfb5c21d607968e82ef20a55cfff40d0",
 }
 
-#: `sha256` de los artefactos del provider, verificados el 2026-09-13 contra
-#: `https://releases.hashicorp.com/terraform-provider-aws/6.64.0/terraform-provider-aws_6.64.0_SHA256SUMS`.
+#: `sha256` de los artefactos del provider, verificados el 2026-10-22 contra
+#: `https://releases.hashicorp.com/terraform-provider-aws/6.70.0/terraform-provider-aws_6.70.0_SHA256SUMS`.
 #: Se registran como evidencia de procedencia; la verificacion operativa del
 #: provider la hace Terraform con `.terraform.lock.hcl`.
 CHECKSUMS_DEL_PROVIDER: Final = {
-    "linux_amd64": "17324d4335a7a7ac01cc23eded530775606680ff53b47cb74a3cb95d1121f836",
-    "windows_amd64": "cd776b83b1f7b36635957350afe7ce28ba4e4ea3a5e2deb00d13dbd3b35d9d40",
+    "linux_amd64": "58acc041b080778ded75320e241ebcf6cf2ed145bede644b86a4784ce46086c6",
+    "windows_amd64": "2d8c016b3809ab32f536b01bf2c98fcbdeb066b7b7e50f756ff6ff1e0b0539c7",
 }
 
 #: Direccion oficial de descarga. Solo se usa cuando la cache esta vacia.

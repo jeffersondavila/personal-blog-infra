@@ -18,7 +18,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "= 6.64.0"
+      version = "= 6.70.0"
     }
   }
   # D-06: configuracion parcial desde el directorio privado del operador.

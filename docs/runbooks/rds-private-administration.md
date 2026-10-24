@@ -63,7 +63,7 @@ Ninguna operación de este runbook empieza sin **todos** estos puntos:
 4. Identidad humana operativa con MFA. **Nunca root. Nunca *access keys*.**
 5. Artefacto del ejecutor identificado por **digest**, con Alembic, `psycopg`, el bundle
    de la CA de RDS y las migraciones.
-6. Terraform **1.16.2** y provider AWS **6.64.0**, con el *lock* del repositorio.
+6. Terraform **1.16.2** y provider AWS **6.70.0**, con el *lock* del repositorio.
 
 **Nunca:** `TF_LOG`, `set -x`, *endpoints* alternativos, perfiles ajenos, un segundo
 escritor del *state*, ni volcar la `DATABASE_URL` o una contraseña en la salida.

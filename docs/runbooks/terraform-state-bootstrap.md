@@ -23,7 +23,7 @@ Aprobación: **2026-09-29**.
 ## 1. Propiedad y alcance
 
 Root único: [bootstrap/terraform-state](../../bootstrap/terraform-state/main.tf).
-Terraform **1.16.2**, provider oficial **6.64.0**, lock de Windows/Linux igual al
+Terraform **1.16.2**, provider oficial **6.70.0**, lock de Windows/Linux igual al
 bootstrap OIDC. No se invoca el grafo de aplicación ni su lanzador `production`.
 D-06 sigue **Resuelta desde Task/025**: aquí se materializa, no se redefine.
 
@@ -205,7 +205,7 @@ se verificarán en H-030-2, sin ampliar IAM automáticamente.
 | Control global | `s3:GetAccountPublicAccessBlock`, `s3:PutAccountPublicAccessBlock` | `Resource="*"`; operación sobre la cuenta verificada; no es permiso sobre cualquier bucket |
 | Crear/configurar bucket | `s3:CreateBucket`, `s3:PutBucketTagging`, `s3:PutBucketVersioning`, `s3:PutBucketOwnershipControls`, `s3:PutBucketPublicAccessBlock`, `s3:PutEncryptionConfiguration`, `s3:PutBucketPolicy` | ARN exacto del bucket; creación en `us-east-2` |
 | Lecturas del provider y verificación | `s3:ListBucket`, `s3:GetBucketLocation`, `s3:GetBucketTagging`, `s3:GetBucketVersioning`, `s3:GetBucketOwnershipControls`, `s3:GetBucketPublicAccessBlock`, `s3:GetEncryptionConfiguration`, `s3:GetBucketPolicy`, `s3:GetBucketPolicyStatus`, `s3:GetBucketAcl` | Mismo ARN exacto |
-| Lecturas adicionales del recurso `aws_s3_bucket` 6.64.0 | `s3:GetAccelerateConfiguration`, `s3:GetLifecycleConfiguration`, `s3:GetBucketRequestPayment`, `s3:GetBucketWebsite`, `s3:GetBucketCORS`, `s3:GetBucketLogging`, `s3:GetBucketObjectLockConfiguration`, `s3:GetReplicationConfiguration` | Mismo ARN; el provider consulta controles aunque no se creen |
+| Lecturas adicionales del recurso `aws_s3_bucket` 6.64.0 (implementación idéntica en 6.70.0) | `s3:GetAccelerateConfiguration`, `s3:GetLifecycleConfiguration`, `s3:GetBucketRequestPayment`, `s3:GetBucketWebsite`, `s3:GetBucketCORS`, `s3:GetBucketLogging`, `s3:GetBucketObjectLockConfiguration`, `s3:GetReplicationConfiguration` | Mismo ARN; el provider consulta controles aunque no se creen |
 | State, por root | `s3:GetObject`, `s3:PutObject` | Solo su key exacta |
 | Lock, por root | `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` | Solo `<key>.tflock` |
 | Descubrimiento del backend | `s3:ListBucket` | Prefix de su estado y listado `env:/` que usa Terraform para descubrir workspaces; solo `default` operativo |
