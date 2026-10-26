@@ -81,22 +81,51 @@ class MinioDerivativeGovernanceTests(unittest.TestCase):
         # Task/028 (H-028-2): grpc v1.72.0 / v1.71.0 -> v1.83.2 en ambos binarios.
         self.assertNotIn("CVE-2026-84445", identificadores)
         self.assertNotIn("google.golang.org/grpc", paquetes)
+        # Task/031 (contrato v3): pcre2 en la capa de paquetes, stdlib con Go 1.27.3, x/net y klauspost/compress.
+        for corregida in ("CVE-2026-103111", "CVE-2026-86145", "CVE-2026-89161", "CVE-2026-111943",
+                          "CVE-2026-78667", "CVE-2026-78669", "CVE-2026-97031", "CVE-2026-63209"):
+            self.assertNotIn(corregida, identificadores)
+        for paquete in ("pcre2", "pcre2-syntax", "stdlib", "golang.org/x/net", "github.com/klauspost/compress"):
+            self.assertNotIn(paquete, paquetes)
 
-    def test_the_superseded_identity_is_preserved_not_overwritten(self):
-        """La identidad de Task/027.1 sigue documentada por digest."""
+    def test_the_superseded_identities_are_preserved_not_overwritten(self):
+        """La identidad de Task/028 queda como anterior inmediata, y la de Task/027.1 anidada, ambas por digest."""
         anterior = self.minio["superseded_identity"]
-        self.assertEqual(anterior["accepted_findings_count"], 99)
+        self.assertEqual(anterior["accepted_findings_count"], 10)
+        self.assertIn(
+            "sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702",
+            anterior["reference"],
+        )
+        historica = anterior["superseded_identity"]
+        self.assertEqual(historica["accepted_findings_count"], 99)
         self.assertIn(
             "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129",
-            anterior["reference"],
+            historica["reference"],
         )
         self.assertNotEqual(anterior["reference"], self.minio["reference"])
         supersedes = self.manifest["supersedes"]
-        self.assertEqual(supersedes["replaced_paths"], ["usr/bin/minio"])
+        self.assertEqual(supersedes["replaced_paths"], ["usr/bin/minio", "usr/bin/mc"])
+        self.assertEqual(supersedes["manifest_digest"],
+                         "sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702")
+        self.assertEqual(supersedes["supersedes"]["replaced_paths"], ["usr/bin/minio"])
+        self.assertEqual(supersedes["supersedes"]["manifest_digest"],
+                         "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129")
         self.assertNotEqual(supersedes["manifest_digest"],
                             self.manifest["output"]["manifest_digest"])
         self.assertNotEqual(supersedes["reference"],
                             self.manifest["output"]["reference"])
+
+    def test_the_package_layer_updates_only_pcre2(self):
+        """Task/031: la capa de paquetes corrige pcre2 y nada mas; libcap y libacl siguen aceptadas, sin tocar."""
+        paquetes = self.manifest["package_updates"]["packages"]
+        self.assertEqual(
+            [(item["name"], item["from"], item["to"]) for item in paquetes],
+            [("pcre2", "10.40-6.el9", "10.40-7.el9_8"), ("pcre2-syntax", "10.40-6.el9", "10.40-7.el9_8")],
+        )
+        rutas = [item["path"] for item in self.manifest["package_updates"]["layer"]["members"]]
+        self.assertFalse([ruta for ruta in rutas if "libcap" in ruta or "libacl" in ruta or "libattr" in ruta])
+        aceptados = {item["package"] for item in self.minio["accepted_findings"]}
+        self.assertTrue({"libcap", "libacl"} <= aceptados)
 
     def test_the_recipe_replaces_exactly_the_two_declared_binaries(self):
         rutas = [item["path"] for item in self.manifest["output"]["replacements"]]

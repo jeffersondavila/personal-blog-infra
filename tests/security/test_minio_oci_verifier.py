@@ -69,6 +69,61 @@ def layer_de_binario(ruta, contenido, modo=0o755, uid=0, gid=0):
     return tar_de(miembros)
 
 
+RPMDB = b"rpmdb-sqlite-simulado"
+LIBRERIA = b"libpcre2-simulada"
+
+
+def tar_de_paquetes(entradas):
+    """Capa de paquetes sintetica: cada entrada es un dict con path, type, mode, uid, gid y data o target."""
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w", format=tarfile.PAX_FORMAT) as archivo:
+        for entrada in entradas:
+            info = tarfile.TarInfo(entrada["path"])
+            info.mode, info.uid, info.gid = entrada["mode"], entrada["uid"], entrada["gid"]
+            info.uname = info.gname = ""
+            info.mtime = 0
+            datos = b""
+            if entrada["type"] == "dir":
+                info.type = tarfile.DIRTYPE
+            elif entrada["type"] == "symlink":
+                info.type = tarfile.SYMTYPE
+                info.linkname = entrada["target"]
+            else:
+                info.type = tarfile.REGTYPE
+                datos = entrada.get("data", b"")
+                info.size = len(datos)
+            archivo.addfile(info, io.BytesIO(datos) if datos else None)
+    return buffer.getvalue()
+
+
+def entradas_de_paquetes():
+    """Lo que deja una transaccion rpm -U: archivos, un enlace, un whiteout y sus antecesores."""
+    return [
+        {"path": "usr", "type": "dir", "mode": 0o755, "uid": 0, "gid": 0},
+        {"path": "usr/lib64", "type": "dir", "mode": 0o555, "uid": 0, "gid": 0},
+        {"path": "usr/lib64/.wh.libpcre2-viejo.so", "type": "whiteout", "mode": 0, "uid": 0, "gid": 0},
+        {"path": "usr/lib64/libpcre2-8.so", "type": "symlink", "mode": 0o777, "uid": 0, "gid": 0,
+         "target": "libpcre2-8.so.0.11.0"},
+        {"path": "usr/lib64/libpcre2-8.so.0.11.0", "type": "file", "mode": 0o755, "uid": 0, "gid": 0,
+         "data": LIBRERIA},
+        {"path": "var", "type": "dir", "mode": 0o755, "uid": 0, "gid": 0},
+        {"path": "var/lib", "type": "dir", "mode": 0o755, "uid": 0, "gid": 0},
+        {"path": "var/lib/rpm", "type": "dir", "mode": 0o755, "uid": 0, "gid": 0},
+        {"path": "var/lib/rpm/rpmdb.sqlite", "type": "file", "mode": 0o644, "uid": 0, "gid": 0, "data": RPMDB},
+    ]
+
+
+def declarados(entradas):
+    """Miembros como los declara `package_updates.layer.members`: el hash y el tamano en lugar del contenido."""
+    miembros = []
+    for entrada in entradas:
+        miembro = {clave: valor for clave, valor in entrada.items() if clave != "data"}
+        if entrada["type"] == "file":
+            miembro.update(size=len(entrada["data"]), sha256=hashlib.sha256(entrada["data"]).hexdigest())
+        miembros.append(miembro)
+    return miembros
+
+
 class ArtefactoSintetico:
     """Un OCI valido y su build manifest, cada uno mutable por separado."""
 
@@ -77,13 +132,18 @@ class ArtefactoSintetico:
         tar_de([("etc/base-b", tarfile.REGTYPE, b"base-b", 0o644, 0, 0)]),
     ]
 
-    def __init__(self, reemplazos):
+    def __init__(self, reemplazos, paquetes=None):
         self.reemplazos = list(reemplazos)
         self.layers_extra = [datos for _, datos in self.reemplazos]
+        # Contrato v3 (Task/031): (miembros declarados, bytes de la capa) de una capa de paquetes, o None.
+        self.paquetes = paquetes
 
-    def construir(self, directorio, layers_extra=None):
+    def construir(self, directorio, layers_extra=None, capa_de_paquetes=None, sin_capa_de_paquetes=False):
         extra = list(self.layers_extra if layers_extra is None else layers_extra)
-        layers = list(self.BASE) + extra
+        capa = None
+        if self.paquetes is not None and not sin_capa_de_paquetes:
+            capa = self.paquetes[1] if capa_de_paquetes is None else capa_de_paquetes
+        layers = list(self.BASE) + ([capa] if capa is not None else []) + extra
         digests = [dig(item) for item in layers]
         heredados = len(self.BASE)
 
@@ -150,8 +210,17 @@ class ArtefactoSintetico:
                 "replacements": [],
             },
         }
+        desplazamiento = 0
+        if self.paquetes is not None:
+            desplazamiento = 1
+            digest_de_paquetes = dig(capa if capa is not None else self.paquetes[1])
+            build["package_updates"] = {
+                "packages": [{"name": "pcre2", "to": "10.40-7.el9_8"}],
+                "layer": {"layer_digest": digest_de_paquetes, "diff_id": digest_de_paquetes,
+                          "members": self.paquetes[0]},
+            }
         for posicion, (declarado, data) in enumerate(self.reemplazos):
-            indice = heredados + posicion
+            indice = heredados + desplazamiento + posicion
             binario = declarado["contenido"]
             propio = digests[indice] if indice < len(digests) else dig(data)
             build["output"]["replacements"].append({
@@ -172,6 +241,16 @@ def artefacto_de_dos_binarios():
         ({"path": "usr/bin/minio", "contenido": MINIO}, layer_de_binario("usr/bin/minio", MINIO)),
         ({"path": "usr/bin/mc", "contenido": MC}, layer_de_binario("usr/bin/mc", MC)),
     ])
+
+
+def artefacto_con_paquetes():
+    """Contrato v3 (Task/031): base + UNA capa de paquetes declarada + los dos binarios."""
+    entradas = entradas_de_paquetes()
+    return ArtefactoSintetico(
+        [({"path": "usr/bin/minio", "contenido": MINIO}, layer_de_binario("usr/bin/minio", MINIO)),
+         ({"path": "usr/bin/mc", "contenido": MC}, layer_de_binario("usr/bin/mc", MC))],
+        paquetes=(declarados(entradas), tar_de_paquetes(entradas)),
+    )
 
 
 class VerificadorOciTests(unittest.TestCase):
@@ -279,6 +358,81 @@ class VerificadorOciTests(unittest.TestCase):
         self.rechaza(ruta, build, "entrypoint")
 
 
+class CapaDePaquetesTests(unittest.TestCase):
+    """Contrato v3 (Task/031): la capa de paquetes contiene EXACTAMENTE sus miembros declarados.
+
+    Cada prueba rompe UNA cosa de un artefacto coherente. Aceptar cualquiera de estos artefactos permitiria que la
+    actualizacion RPM transportara un archivo, un borrado o un permiso que nadie declaro.
+    """
+
+    setUp = VerificadorOciTests.setUp
+    rechaza = VerificadorOciTests.rechaza
+
+    def construir(self, entradas=None, **opciones):
+        artefacto = artefacto_con_paquetes()
+        capa = None if entradas is None else tar_de_paquetes(entradas)
+        return artefacto.construir(self.directorio.name, capa_de_paquetes=capa, **opciones)
+
+    def test_la_capa_coherente_se_acepta_y_se_resume(self):
+        ruta, build = self.construir()
+        resultado = artifact.inspect_oci(ruta, build)
+        self.assertEqual(resultado["layers"], 5)
+        self.assertEqual(resultado["replaced_paths"], ["usr/bin/minio", "usr/bin/mc"])
+        self.assertEqual(resultado["package_updates"]["members"], len(entradas_de_paquetes()))
+        self.assertEqual(resultado["package_updates"]["packages"], {"pcre2": "10.40-7.el9_8"})
+        self.assertTrue(resultado["only_declared_paths_replaced"])
+
+    def test_un_archivo_no_declarado_se_rechaza(self):
+        entradas = entradas_de_paquetes() + [
+            {"path": "var/lib/rpm/polizon", "type": "file", "mode": 0o644, "uid": 0, "gid": 0, "data": b"x"}]
+        ruta, build = self.construir(entradas)
+        self.rechaza(ruta, build, "no declarados")
+
+    def test_un_rpmdb_alterado_se_rechaza(self):
+        entradas = entradas_de_paquetes()
+        entradas[-1]["data"] = RPMDB + b"-alterado"
+        ruta, build = self.construir(entradas)
+        self.rechaza(ruta, build, "var/lib/rpm/rpmdb.sqlite")
+
+    def test_un_whiteout_de_mas_se_rechaza(self):
+        entradas = entradas_de_paquetes() + [
+            {"path": "var/lib/rpm/.wh.rpmdb.sqlite-shm", "type": "whiteout", "mode": 0, "uid": 0, "gid": 0}]
+        ruta, build = self.construir(entradas)
+        self.rechaza(ruta, build, "no declarados")
+
+    def test_un_whiteout_con_contenido_se_rechaza(self):
+        entradas = entradas_de_paquetes()
+        entradas[2]["data"] = b"no deberia tener contenido"
+        ruta, build = self.construir(entradas)
+        self.rechaza(ruta, build, "whiteout con contenido")
+
+    def test_un_enlace_con_otro_destino_se_rechaza(self):
+        entradas = entradas_de_paquetes()
+        entradas[3]["target"] = "/etc/shadow"
+        ruta, build = self.construir(entradas)
+        self.rechaza(ruta, build, "usr/lib64/libpcre2-8.so")
+
+    def test_un_permiso_distinto_se_rechaza(self):
+        entradas = entradas_de_paquetes()
+        entradas[1]["mode"] = 0o777
+        ruta, build = self.construir(entradas)
+        self.rechaza(ruta, build, "usr/lib64")
+
+    def test_si_falta_la_capa_declarada_se_rechaza(self):
+        ruta, build = self.construir(sin_capa_de_paquetes=True)
+        self.rechaza(ruta, build, "layers declarados")
+
+    def test_un_digest_de_capa_discrepante_se_rechaza(self):
+        ruta, build = self.construir()
+        build["package_updates"]["layer"]["layer_digest"] = "sha256:" + "2" * 64
+        self.rechaza(ruta, build, "layer de paquetes inesperado")
+
+    def test_una_capa_sin_miembros_declarados_se_rechaza(self):
+        ruta, build = self.construir()
+        build["package_updates"]["layer"]["members"] = []
+        self.rechaza(ruta, build, "ningun miembro")
+
+
 class RecetaTests(unittest.TestCase):
     """La receta real: cada parche declarado existe, se usa y nada sobra."""
 
@@ -295,12 +449,42 @@ class RecetaTests(unittest.TestCase):
         esperado = artifact.sha256(self.manifest_path.read_bytes())
         self.assertEqual(artifact.verify_recipe(ROOT, self.manifest_path, self.build), esperado)
 
-    def test_declara_las_dos_fuentes_y_los_tres_cambios(self):
+    def test_declara_las_dos_fuentes_y_los_cinco_cambios(self):
         self.assertEqual(sorted(self.build["sources"]), ["mc", "minio"])
         objetivos = sorted(item["target"] for item in self.build["changes"])
-        self.assertEqual(objetivos, ["mc", "minio", "minio"])
+        self.assertEqual(objetivos, ["mc", "mc", "minio", "minio", "minio"])
         rutas = {item["path"] for item in self.build["output"]["replacements"]}
         self.assertEqual(rutas, {"usr/bin/mc", "usr/bin/minio"})
+
+    def test_un_rpm_con_otro_hash_se_rechaza(self):
+        build = copy.deepcopy(self.build)
+        build["package_updates"]["packages"][0]["sha256"] = "0" * 64
+        self.rechaza(build, "no aplica el paquete declarado")
+
+    def test_un_rpm_con_otra_url_se_rechaza(self):
+        build = copy.deepcopy(self.build)
+        build["package_updates"]["packages"][1]["url"] += ".otro"
+        self.rechaza(build, "no aplica el paquete declarado")
+
+    def test_un_paquete_declarado_dos_veces_se_rechaza(self):
+        build = copy.deepcopy(self.build)
+        build["package_updates"]["packages"].append(copy.deepcopy(build["package_updates"]["packages"][0]))
+        self.rechaza(build, "dos veces")
+
+    def test_un_medidor_con_hash_incorrecto_se_rechaza(self):
+        build = copy.deepcopy(self.build)
+        build["package_updates"]["measurement_tool_sha256"] = "0" * 64
+        self.rechaza(build, "hash del medidor")
+
+    def test_una_delta_que_la_receta_no_fija_se_rechaza(self):
+        build = copy.deepcopy(self.build)
+        build["package_updates"]["delta_sha256"] = "0" * 64
+        self.rechaza(build, "hash de la delta")
+
+    def test_un_tipo_de_miembro_desconocido_se_rechaza(self):
+        build = copy.deepcopy(self.build)
+        build["package_updates"]["layer"]["members"][0]["type"] = "dispositivo"
+        self.rechaza(build, "tipo de miembro desconocido")
 
     def test_un_parche_con_hash_incorrecto_se_rechaza(self):
         build = copy.deepcopy(self.build)

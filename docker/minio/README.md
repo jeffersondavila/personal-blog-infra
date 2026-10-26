@@ -1,12 +1,19 @@
-# MinIO Community derivado (Task/027.1, ampliado por Task/028)
+# MinIO Community derivado (Task/027.1, ampliado por Task/028 y Task/031)
 
-Esta receta conserva el release `RELEASE.2025-09-07T16-13-09Z` y todo el runtime oficial
-salvo **dos** archivos, que se recompilan desde las fuentes fijadas de upstream:
+Esta receta conserva el release `RELEASE.2025-09-07T16-13-09Z` y todo el runtime oficial salvo **dos** binarios,
+que se recompilan desde las fuentes fijadas de upstream, y **una** capa de paquetes RPM declarada (contrato v3,
+Task/031):
 
 | Archivo sustituido | Fuente | Cambios de dependencia |
 | --- | --- | --- |
-| `/usr/bin/minio` | `minio/minio` `RELEASE.2025-09-07T16-13-09Z` | `amqp091-go` `v1.10.0` → `v1.13.0`; `grpc` `v1.72.0` → `v1.83.2` |
-| `/usr/bin/mc` | `minio/mc` `RELEASE.2025-08-13T08-35-41Z` | `grpc` `v1.71.0` → `v1.83.2` |
+| `/usr/bin/minio` | `minio/minio` `RELEASE.2025-09-07T16-13-09Z` | `amqp091-go` `v1.10.0` → `v1.13.0`; `grpc` `v1.72.0` → `v1.83.2`; `x/net` `v0.59.0` → `v0.60.0`; `klauspost/compress` `v1.18.0` → `v1.18.7`; Go 1.27.3 |
+| `/usr/bin/mc` | `minio/mc` `RELEASE.2025-08-13T08-35-41Z` | `grpc` `v1.71.0` → `v1.83.2`; `x/net` `v0.59.0` → `v0.60.0`; `klauspost/compress` `v1.18.0` → `v1.18.7`; Go 1.27.3 |
+| Capa de paquetes | `pcre2` y `pcre2-syntax` de UBI 9 BaseOS, firmados por Red Hat | `10.40-6.el9` → `10.40-7.el9_8`: dos bibliotecas, `rpmdb.sqlite` y sus enlaces `.build-id`, exactamente los 17 miembros declarados |
+
+**Task/031 (contrato v3).** Corrige dentro del derivado las 18 identidades accionables que aparecieron en S-09 —pcre2,
+la stdlib, `x/net` y `klauspost/compress`— sin aceptar ninguna y **sin cambiar la base**. La actualización RPM se
+mide antes y después en la etapa `paquetes` y su delta se fija por hash. `rpm` honra `SOURCE_DATE_EPOCH`, así que el
+resultado es reproducible sin congelar el reloj. `libcap` y `libacl` no se actualizan: siguen aceptadas.
 
 `amqp091-go` elimina `CVE-2026-79921` (Task/027.1). La subida de `grpc` elimina
 `CVE-2026-84445` / `GO-2026-6443`, que **govulncheck en modo binario demostró alcanzable en
@@ -40,27 +47,34 @@ construcción:
 
 | Entrada | Cómo queda fijada |
 | --- | --- |
-| Imagen constructora | `golang:1.27.1-bookworm` por digest de manifiesto de plataforma |
-| Toolchain efectiva | `GOTOOLCHAIN=local` más una aserción de que `go env GOVERSION` es `go1.27.1`: Go no puede descargar otra |
+| Imagen constructora | `golang:1.27.3-bookworm` por digest de manifiesto de plataforma |
+| Toolchain efectiva | `GOTOOLCHAIN=local` más una aserción de que `go env GOVERSION` es `go1.27.3`: Go no puede descargar otra |
+| Constructor de paquetes | `ubi9/ubi` por digest; su keyring verifica la firma de Red Hat |
+| Paquetes RPM | URL fija, `sha256` comprobado y `rpm -K` con firma y digests correctos, uno por paquete |
+| Transacción RPM | `rpm --root -Uvh --noscripts --excludedocs` con `SOURCE_DATE_EPOCH`; se mide antes y después y la delta debe tener el `sha256` fijado |
 | Frontend de BuildKit | `docker/dockerfile:1.19` por digest |
 | Tags de release | objetos de tag comprobados con `git rev-parse` en los dos repositorios |
 | Commits | `07c3a429bfed…` (minio) y `7394ce0dd2a8…` (mc), comprobados |
 | Árboles de fuentes | `git archive \| sha256sum` comparado con un valor fijo, uno por fuente |
-| Parches | tres `sha256` comprobados antes de aplicarlos |
+| Parches | cinco `sha256` comprobados antes de aplicarlos |
 | Resolución de dependencias | **ninguna**: los parches congelan `go.mod` y `go.sum`, y el build no ejecuta `go get` ni `go mod tidy` |
 | Módulos Go | `go mod download` seguido de `go mod verify` |
 | Metadatos de versión | los `ldflags` salen del mecanismo real de upstream (`buildscripts/gen-ldflags.go`), no de cadenas inventadas |
-| Resultado | `go version -m` exige `amqp091-go v1.13.0` presente, `v1.10.0` ausente y `grpc v1.83.2` presente; `mc --version` debe declarar su release y su commit corto |
+| Resultado | `go version -m` exige `amqp091-go v1.13.0` presente, `v1.10.0` ausente, `grpc v1.83.2`, `x/net v0.60.0`, `klauspost/compress v1.18.7` y `go1.27.3`; `mc --version` debe declarar su release y su commit corto |
 | Base del runtime | `ghcr.io/jeffersondavila/personal-blog-minio-base` por digest de manifiesto de plataforma (ver H-028-1) |
 | Marcas de tiempo | `SOURCE_DATE_EPOCH` fijo y `rewrite-timestamp` en el exportador OCI |
 
-El verificador (`scripts/minio/artifact.py`) comprueba además que la imagen resultante
-hereda **los 9 layers y diff IDs** de la base, que tiene **exactamente 11 layers**, que el
-entrypoint, `cmd`, variables y etiquetas son los mismos, y que **cada uno de los dos layers
-añadidos contiene solo su propio archivo declarado**, con modo `0755`, propietario `0:0` y el
-`sha256` y el tamaño exactos. Un tercer archivo, un archivo que falte, un hash distinto o un
-modo distinto hacen fallar la verificación; hay negativos para cada caso en
-`tests/security/test_minio_oci_verifier.py`.
+El verificador (`scripts/minio/artifact.py`) comprueba además:
+- que la imagen resultante hereda **los 9 layers y diff IDs** de la base y tiene **exactamente 12 layers**;
+- que el entrypoint, `cmd`, variables y etiquetas son los mismos;
+- que **la capa de paquetes contiene exactamente sus 17 miembros declarados**: cada archivo con su hash y tamaño,
+  cada enlace con su destino y cada *whiteout* y directorio antecesor, todos con su modo y su propietario;
+- que **cada uno de los dos layers de binario contiene solo su propio archivo declarado**, con modo `0755`,
+  propietario `0:0` y el `sha256` y el tamaño exactos;
+- que la receta aplica exactamente los RPM, el medidor y la delta declarados.
+
+Un miembro de más o de menos, un hash, un destino, un modo o un *whiteout* distintos hacen fallar la verificación.
+Hay negativos para cada caso en `tests/security/test_minio_oci_verifier.py`.
 
 ### Por qué la base viene de un espejo privado
 
@@ -73,18 +87,18 @@ en un espejo **privado**, que por eso conserva el mismo digest
 
 ## Identidad de publicación
 
-Hay **dos** identidades y conviene no confundirlas. **El digest es la autoridad, no la
+Hay **tres** identidades y conviene no confundirlas. **El digest es la autoridad, no la
 etiqueta.**
 
-| | Task/027.1 | Task/028 (D-1) |
-| --- | --- | --- |
-| Digest del manifiesto | `sha256:84c67632…059129` | `sha256:247a1cd3…f80702` |
-| Archivos sustituidos | `usr/bin/minio` | `usr/bin/minio`, `usr/bin/mc` |
-| Layers | 10 | 11 |
-| Constructor | `golang:1.24.6-bookworm` | `golang:1.27.1-bookworm` |
-| Residual accionable aceptado | 99 | **10** |
-| Estado en GHCR | **Publicado** el 2026-09-19 | **Publicado** el 2026-09-27 |
-| Consumido por `.env.example` y `.env` | ya no | **sí** |
+| | Task/027.1 | Task/028 (D-1) | Task/031 (contrato v3) |
+| --- | --- | --- | --- |
+| Digest del manifiesto | `sha256:84c67632…059129` | `sha256:247a1cd3…f80702` | `sha256:95b28f31…bedd344` |
+| Archivos sustituidos | `usr/bin/minio` | `usr/bin/minio`, `usr/bin/mc` | `usr/bin/minio`, `usr/bin/mc` y la capa de paquetes |
+| Layers | 10 | 11 | 12 |
+| Constructor | `golang:1.24.6-bookworm` | `golang:1.27.1-bookworm` | `golang:1.27.3-bookworm` y `ubi9/ubi` |
+| Residual accionable aceptado | 99 | **10** | **10**, el mismo conjunto exacto |
+| Estado en GHCR | **Publicado** el 2026-09-19 | **Publicado** el 2026-09-27 | **Publicado** el 2026-10-26 |
+| Consumido por `.env.example` | ya no | ya no | **sí**; el `.env` local se alinea con él |
 
 La identidad de Task/027.1 **se conserva tal cual**: no se mueve la etiqueta, no se
 sobrescribe el manifiesto y no se borra el paquete. Su verificación remota quedó registrada
@@ -116,6 +130,26 @@ repositorio; ninguna se movió ni se sobrescribió.
 es lo que manda, así que la referencia es inmutable aunque alguien moviera la etiqueta. Nunca
 una etiqueta móvil desnuda.
 
+**Publicación de Task/031 (contrato v3): hecha el 2026-10-26.** La autorización expresa la condicionaba a cinco
+comprobaciones, todas en verde antes de escribir:
+- dos construcciones reproducibles;
+- `verify` y `attest`;
+- la prueba funcional;
+- S-09.
+
+Se siguió el mismo procedimiento que en D-1: los bytes del OCI ya validado se subieron por la API de distribución, sin
+reconstruir.
+- **Blobs:** de los 13, **9 ya estaban**, que son las capas heredadas. Se subieron el `config`, la capa de paquetes y
+  las dos de binarios.
+- **Lectura de vuelta:** el manifiesto servido es byte a byte el publicado (2844 bytes, `sha256:95b28f31…`), la
+  etiqueta resuelve a ese digest y los 13 blobs se recalcularon.
+- **`docker pull`:** sin copia local, devuelve ese `RepoDigest`.
+- **Identidades anteriores:** las de Task/027.1 y Task/028 se comprobaron intactas antes y después. Ninguna
+  etiqueta se movió.
+- **Visibilidad:** el paquete sigue **privado**.
+
+`.env.example` apunta a la identidad nueva por etiqueta y digest. El `.env` local se alinea con él al usarlo.
+
 ## Visibilidad y distribución — leer antes de hacer público el paquete
 
 **El paquete es PRIVADO.** Su visibilidad **no se ha modificado** y cambiarla no está
@@ -125,7 +159,7 @@ Eso importa por la licencia: mientras el paquete sea privado no hay distribució
 la imagen.
 
 **El código correspondiente sí está disponible** desde el cierre aprobado del 2026-09-20 y se
-amplía con Task/028: este `Dockerfile`, los **tres** parches, `build-manifest.json`, este
+amplía con Task/028 y Task/031: este `Dockerfile`, los **cinco** parches, `medir_arbol.py`, `build-manifest.json`, este
 README y `scripts/minio/artifact.py` están **versionados** en
 `jeffersondavila/personal-blog-infra`, que es un repositorio **público**. Los commits upstream
 exactos de las **dos** fuentes y todos los digests quedan declarados en el manifiesto de
