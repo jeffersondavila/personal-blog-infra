@@ -1,6 +1,6 @@
 {
   "schema": "personal-blog-infra/minio-reproducible-build",
-  "version": 2,
+  "version": 3,
   "platform": "linux/amd64",
   "source_date_epoch": 1757261589,
   "sources": {
@@ -71,16 +71,227 @@
       ],
       "patch": "docker/minio/mc-deps-grpc-1.83.2.patch",
       "patch_sha256": "ff61358cc625873fad0ac0fceb0f6b17ec2d7aefad820fb27cc9d6bde1429d6e"
+    },
+    {
+      "target": "minio",
+      "reason": "Task/031 (mantenimiento de CI): CVE-2026-78669 en golang.org/x/net y CVE-2026-63209 en github.com/klauspost/compress, ambos HIGH con correccion publicada",
+      "module": "golang.org/x/net",
+      "from": "v0.59.0",
+      "to": "v0.60.0",
+      "also_bumped": {
+        "github.com/klauspost/compress": {
+          "from": "v1.18.0",
+          "to": "v1.18.7"
+        }
+      },
+      "only_changed_source_files": [
+        "go.mod",
+        "go.sum"
+      ],
+      "patch": "docker/minio/minio-deps-xnet-0.60.0-compress-1.18.7.patch",
+      "patch_sha256": "83851d30e0d85030d224df1fa584f2eb37d31c85571f8c2aa631dcc4861b0898"
+    },
+    {
+      "target": "mc",
+      "reason": "Task/031 (mantenimiento de CI): CVE-2026-78669 en golang.org/x/net y CVE-2026-63209 en github.com/klauspost/compress, ambos HIGH con correccion publicada",
+      "module": "golang.org/x/net",
+      "from": "v0.59.0",
+      "to": "v0.60.0",
+      "also_bumped": {
+        "github.com/klauspost/compress": {
+          "from": "v1.18.0",
+          "to": "v1.18.7"
+        }
+      },
+      "only_changed_source_files": [
+        "go.mod",
+        "go.sum"
+      ],
+      "patch": "docker/minio/mc-deps-xnet-0.60.0-compress-1.18.7.patch",
+      "patch_sha256": "3e6df144c70ed31a43a97d2304abd9e28721bb3aac904f4cd2f4d85ae4aaaf2a"
     }
   ],
+  "package_updates": {
+    "reason": "Task/031 (mantenimiento de CI): pcre2 de la base RHEL 9.6, CVE-2026-103111, CVE-2026-86145, CVE-2026-89161 (HIGH con correccion); se actualiza DENTRO del derivado, sin cambiar la base",
+    "builder_index": "registry.access.redhat.com/ubi9/ubi@sha256:217dd5692d369799d34d09ffb6f5f3404efebc7900834490fdf9ae92fd6721d4",
+    "builder_platform_manifest": "registry.access.redhat.com/ubi9/ubi@sha256:3bd1aa8b49948633375021c22ef5601ae644f5c08c869751ac2b542884622ea1",
+    "signature": "Red Hat release key 2 (fd431d51) del keyring del builder fijado; rpm -K exige 'digests signatures OK' en cada paquete",
+    "transaction": "rpm --root /target -Uvh --noscripts --excludedocs, con SOURCE_DATE_EPOCH en el entorno: INSTALLTID = epoch e INSTALLTIME = epoch + orden en la transaccion",
+    "measurement_tool": "docker/minio/medir_arbol.py",
+    "measurement_tool_sha256": "637b2d6701215d660dd6cda42a385966f6d7d0e95c81e2fef4907caa2c70afbd",
+    "delta_sha256": "269386761c1514a1a954c30a1b75e44b9e74055b1c0410995d408e2e290fbf37",
+    "packages": [
+      {
+        "name": "pcre2",
+        "arch": "x86_64",
+        "from": "10.40-6.el9",
+        "to": "10.40-7.el9_8",
+        "url": "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/pcre2-10.40-7.el9_8.x86_64.rpm",
+        "sha256": "ef2c65a463e1ef1bfbf3d9ee66986e14cca0fbae88343f099dd5b16619276f1f",
+        "install_time": 1757261590,
+        "fixes_actionable": [
+          "CVE-2026-103111",
+          "CVE-2026-86145",
+          "CVE-2026-89161"
+        ]
+      },
+      {
+        "name": "pcre2-syntax",
+        "arch": "noarch",
+        "from": "10.40-6.el9",
+        "to": "10.40-7.el9_8",
+        "url": "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi9/9/x86_64/baseos/os/Packages/p/pcre2-syntax-10.40-7.el9_8.noarch.rpm",
+        "sha256": "e7466a43ef2bfda2b1dc07e855b0db743d48b11c0bdc1402e1d2ea6fb23d33a3",
+        "install_time": 1757261589,
+        "fixes_actionable": [
+          "CVE-2026-103111",
+          "CVE-2026-86145",
+          "CVE-2026-89161"
+        ]
+      }
+    ],
+    "layer": {
+      "layer_digest": "sha256:55d143576cc02d6a22d7202681c9bc864685fdfa2465eda5088338316bd466cb",
+      "diff_id": "sha256:f1478764aaac8ff3e0741729498ec31fec93e1c9897ac19caa92f7ea4d1df873",
+      "members": [
+        {
+          "path": "usr",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib",
+          "mode": 365,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib/.build-id",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib/.build-id/2d",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib/.build-id/2d/f9bd33fb9d99bae3559e58a190a07a40c34503",
+          "mode": 511,
+          "uid": 0,
+          "gid": 0,
+          "type": "symlink",
+          "target": "../../../../usr/lib64/libpcre2-posix.so.3.0.2"
+        },
+        {
+          "path": "usr/lib/.build-id/48",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib/.build-id/48/.wh.1282542036ac05da5dbbe987bb1feae7f7eb4a",
+          "mode": 0,
+          "uid": 0,
+          "gid": 0,
+          "type": "whiteout"
+        },
+        {
+          "path": "usr/lib/.build-id/6a",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib/.build-id/6a/cd06611f3c1103d4342ab852f9d08cc7ae23a1",
+          "mode": 511,
+          "uid": 0,
+          "gid": 0,
+          "type": "symlink",
+          "target": "../../../../usr/lib64/libpcre2-8.so.0.11.0"
+        },
+        {
+          "path": "usr/lib/.build-id/.wh.76",
+          "mode": 0,
+          "uid": 0,
+          "gid": 0,
+          "type": "whiteout"
+        },
+        {
+          "path": "usr/lib64",
+          "mode": 365,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "usr/lib64/libpcre2-8.so.0.11.0",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "file",
+          "size": 636720,
+          "sha256": "9ce72b62a03b1cb9b3de54e73986ff525480f9818a7a88936ca5e723512cd943"
+        },
+        {
+          "path": "usr/lib64/libpcre2-posix.so.3.0.2",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "file",
+          "size": 15200,
+          "sha256": "52364a64c64f7f2f66c21e2e409c34a43376b80dfd051e54e641839f7862d6ff"
+        },
+        {
+          "path": "var",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "var/lib",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "var/lib/rpm",
+          "mode": 493,
+          "uid": 0,
+          "gid": 0,
+          "type": "dir"
+        },
+        {
+          "path": "var/lib/rpm/rpmdb.sqlite",
+          "mode": 420,
+          "uid": 0,
+          "gid": 0,
+          "type": "file",
+          "size": 7409664,
+          "sha256": "14281cc7f4fd3c70e70abc6b9aee196736536902a383092bc8cb565c2652e45b"
+        }
+      ]
+    }
+  },
   "recipe": {
     "dockerfile": "docker/minio/Dockerfile",
-    "dockerfile_sha256": "7ae5e4c241820fc588cd511ea4a56b10455dcdb36e964f7161cdd54fad670c04",
+    "dockerfile_sha256": "57eb22eca9ed8a4dd39c4f8824ac372663cebd0df9032270e54d473efa330338",
     "frontend": "docker/dockerfile:1.19@sha256:b6afd42430b15f2d2a4c5a02b919e98a525b785b1aaff16747d2f623364e39b6",
-    "builder_index": "docker.io/library/golang:1.27.1-bookworm@sha256:69a7b9788769bec032d238959b61854e9ae87f57be9029ec04e9885fabf99195",
-    "builder_platform_manifest": "docker.io/library/golang@sha256:966278043a40889499db9b0cd196fc789c37c385d41bd9a10cb1e7764af60cdc",
+    "builder_index": "docker.io/library/golang:1.27.3-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5",
+    "builder_platform_manifest": "docker.io/library/golang@sha256:fea12ba16096adec0f699ce1c4da2154d320450e56c1f63671f95d2a3551c77b",
     "gotoolchain": "local",
-    "go_version_asserted_in_build": "go1.27.1",
+    "go_version_asserted_in_build": "go1.27.3",
     "ldflags_source": {
       "minio": "MINIO_RELEASE=RELEASE go run buildscripts/gen-ldflags.go",
       "mc": "MC_RELEASE=RELEASE go run buildscripts/gen-ldflags.go"
@@ -115,41 +326,52 @@
     ]
   },
   "output": {
-    "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0-grpc1.83.2-mc-RELEASE.2025-08-13T08-35-41Z",
-    "manifest_digest": "sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702",
-    "config_digest": "sha256:9712173f8f150d2926c2a75d1a0a8e04836eca4390d106416e7b4b3b76a5ce64",
+    "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-task031-go1.27.3-xnet0.60.0-compress1.18.7-pcre2-10.40-7-mc-RELEASE.2025-08-13T08-35-41Z",
+    "manifest_digest": "sha256:95b28f31e9344dfbd295485b3ee0d67997db524a1bf8c465784ce8f7bdedd344",
+    "config_digest": "sha256:63dabcf087a0ac04988adf8ed331427a73a0c5bac7166405998af8faf2f5b3ce",
     "replacements": [
       {
         "path": "usr/bin/minio",
         "mode": 493,
         "uid": 0,
         "gid": 0,
-        "layer_digest": "sha256:150686205081a27201832a3b3059ed61cdbb9c25ff372bd22703905b0c000cea",
-        "diff_id": "sha256:1d570ac2b3473277e278dd5b360ae7b53f2e71e13efb50706419f7c2adff3aca",
-        "binary_sha256": "067d5d8015fe1f4fe3c40638967f479d9eee818cca08cadbb5646d0d9a42f028",
-        "binary_size": 110301344
+        "layer_digest": "sha256:6bad1dc0eefa2b6090b5d5bb15a0d389beed0b4977fbf8666dfe70f99661243e",
+        "diff_id": "sha256:e3796fdf59e58ab3bef873dd0b0ae44debe2b54038fe2fcfd3458a18d702f2e5",
+        "binary_sha256": "cdcbdcbda4db7362f3dfe4f1d581ffc56a57d9e9c885a9270b17ce538fd27720",
+        "binary_size": 110354592
       },
       {
         "path": "usr/bin/mc",
         "mode": 493,
         "uid": 0,
         "gid": 0,
-        "layer_digest": "sha256:ebd1c5bb68360a904916bc4f8c0799bd15b855d9286cf310f3511b2c48641a4c",
-        "diff_id": "sha256:801e8f53fba5af50f900c3052c958d091f5fcb795cbbe2f4b52946daa1b221e5",
-        "binary_sha256": "0878407cff302dcceaf4088201e6945bb0d12143823f9d407d7add4137af0921",
-        "binary_size": 31555744
+        "layer_digest": "sha256:b3600d53395d10cbf2821b05b6ae0a6fc605984ac731f2bc78f1f9730f9c979d",
+        "diff_id": "sha256:8595fb177562b04780886cca6c6eed6e010f3294cb71918bfb4e24c6968bf460",
+        "binary_sha256": "649cdac55c3c61c004d4207ed14a3e7ad078a34daed3aba69767b955be284c99",
+        "binary_size": 31588512
       }
     ]
   },
   "supersedes": {
-    "note": "Identidad historica de Task/027.1, conservada como evidencia. No se mueve, no se sobrescribe y no se borra. El digest es la autoridad.",
-    "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0",
-    "manifest_digest": "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129",
-    "config_digest": "sha256:25c832aa396d4de7eb2d202529ee8055280633f0ef270687e565bd376d1882a2",
-    "builder_index": "docker.io/library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
+    "note": "Identidad de Task/028 (H-028-2), conservada como evidencia. No se mueve, no se sobrescribe y no se borra. El digest es la autoridad. Anida, tal cual, la de Task/027.1.",
+    "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0-grpc1.83.2-mc-RELEASE.2025-08-13T08-35-41Z",
+    "manifest_digest": "sha256:247a1cd329f4d27053c8555a7f7ae83c8234839dee98ac7c4c1d6ffcd8f80702",
+    "config_digest": "sha256:9712173f8f150d2926c2a75d1a0a8e04836eca4390d106416e7b4b3b76a5ce64",
+    "builder_index": "docker.io/library/golang:1.27.1-bookworm@sha256:69a7b9788769bec032d238959b61854e9ae87f57be9029ec04e9885fabf99195",
     "replaced_paths": [
-      "usr/bin/minio"
-    ]
+      "usr/bin/minio",
+      "usr/bin/mc"
+    ],
+    "supersedes": {
+      "note": "Identidad historica de Task/027.1, conservada como evidencia. No se mueve, no se sobrescribe y no se borra. El digest es la autoridad.",
+      "reference": "ghcr.io/jeffersondavila/personal-blog-minio:RELEASE.2025-09-07T16-13-09Z-amqp091-go1.13.0",
+      "manifest_digest": "sha256:84c67632f7e85d4cd86ea5f7f6fbb6b5b8263ecd20f08153c4cd1a42e3059129",
+      "config_digest": "sha256:25c832aa396d4de7eb2d202529ee8055280633f0ef270687e565bd376d1882a2",
+      "builder_index": "docker.io/library/golang:1.24.6-bookworm@sha256:ab1d1823abb55a9504d2e3e003b75b36dbeb1cbcc4c92593d85a84ee46becc6c",
+      "replaced_paths": [
+        "usr/bin/minio"
+      ]
+    }
   },
   "license": {
     "upstream": "GNU AGPL-3.0",

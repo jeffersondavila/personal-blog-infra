@@ -1,5 +1,15 @@
 # STATUS — Estado del proyecto Blog Personal
 
+**2026-10-26 — Mantenimiento de CI de `Task/031`, en la misma rama y el mismo PR #57.** S-09 falló por CVE de Go y
+de paquetes de sistema publicadas después de la aprobación. Se corrigieron sin aceptar riesgo nuevo, salvo **una**
+aceptación temporal autorizada cuya caducidad hace cumplir la gate:
+- provider AWS 6.70.0, Terraform 1.16.7, Traefik v3.7.16 y Floci 2.3.0, con su adaptación del laboratorio;
+- derivado de MinIO con contrato v3: pcre2 dentro del derivado y Go 1.27.3;
+- Portainer 2.45.3, con CVE-2026-95837 aceptada solo hasta el 2026-11-30.
+
+Ningún cambio en AWS; el estado aprobado, el avance y las decisiones no cambian. La fusión del PR #57 sigue siendo
+del usuario. [Reporte §53](../task-reports/TASK-031-report.md#53-mantenimiento-de-ci-tras-la-aprobación-2026-10-22-a-2026-10-26).
+
 **2026-10-21 — `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` APROBADA** por el usuario mediante
 `approved: Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`, con la aceptación expresa de las excepciones 5, 6 y 8 —backups de 1 día por el
 plan FREE, `PersonalBlogAdministrator` como identidad operativa y alarmas sin alertamiento efectivo—, con sus

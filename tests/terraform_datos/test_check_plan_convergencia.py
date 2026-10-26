@@ -14,9 +14,11 @@ reproduce asi (antes heredaba `applyable = true` de los planes con cambios: erro
 """
 import copy
 from datetime import datetime, timezone
+from pathlib import Path
+import sys
 import unittest
 
-from scripts.terraform_datos.check_plan_convergencia import check
+from scripts.terraform_datos.check_plan_convergencia import VERSION_DE_TERRAFORM, check
 from scripts.terraform_datos.check_plan_recuperacion import GRUPO, INSTANCIA_RDS
 from tests.terraform_datos.test_check_plan_recuperacion import ACCOUNT, MEDIOS, previo
 from tests.terraform_datos.test_check_plan_refresh_instancia import fixture as fixture_refresh
@@ -28,6 +30,12 @@ def _previos(plan):
     for m in plan["prior_state"]["values"]["root_module"]["child_modules"]:
         for r in m["resources"]:
             yield r
+
+
+def operativa(plan):
+    """Los fixtures son de 1.16.2, la CLI de las fases historicas; la convergencia viva se valida con la operativa."""
+    plan["terraform_version"] = VERSION_DE_TERRAFORM
+    return plan
 
 
 def fixture():
@@ -61,11 +69,11 @@ def con_drift_movil(plan, antes="2026-10-05T19:16:49Z", despues="2026-10-05T20:0
 
 class Convergencia(unittest.TestCase):
     def pasa(self, plan):
-        return check(plan, ACCOUNT, MEDIOS, ahora=AHORA)
+        return check(operativa(plan), ACCOUNT, MEDIOS, ahora=AHORA)
 
     def rechaza(self, plan, codigo):
         with self.assertRaises(ValueError) as error:
-            check(plan, ACCOUNT, MEDIOS, ahora=AHORA)
+            check(operativa(plan), ACCOUNT, MEDIOS, ahora=AHORA)
         self.assertEqual(str(error.exception), codigo)
 
     def test_caso_a_sin_drift(self):
@@ -74,6 +82,19 @@ class Convergencia(unittest.TestCase):
         self.assertEqual((r["add"], r["change"], r["destroy"]), (0, 0, 0))
         self.assertEqual(r["resource_drift"], 0)
         self.assertEqual(r["drift_movil"], [])
+
+    def test_rechaza_un_plan_de_la_cli_anterior(self):
+        plan = fixture()
+        plan["terraform_version"] = "1.16.2"
+        with self.assertRaises(ValueError) as error:
+            check(plan, ACCOUNT, MEDIOS, ahora=AHORA, fase="h0313")
+        self.assertEqual(str(error.exception), "VERSION")
+
+    def test_la_cli_operativa_coincide_con_el_lanzador(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+        from laboratorio import herramientas
+
+        self.assertEqual(VERSION_DE_TERRAFORM, herramientas.VERSION_DE_TERRAFORM)
 
     def test_caso_b_solo_el_atributo_movil(self):
         r = self.pasa(con_drift_movil(fixture()))
@@ -151,11 +172,11 @@ class SemanticaDelPlanConvergente(unittest.TestCase):
     """§42: `applyable is False`, `complete is True` y `errored is False`, explicitos."""
 
     def pasa(self, plan):
-        return check(plan, ACCOUNT, MEDIOS, ahora=AHORA)
+        return check(operativa(plan), ACCOUNT, MEDIOS, ahora=AHORA)
 
     def rechaza(self, plan, codigo):
         with self.assertRaises(ValueError) as error:
-            check(plan, ACCOUNT, MEDIOS, ahora=AHORA)
+            check(operativa(plan), ACCOUNT, MEDIOS, ahora=AHORA)
         self.assertEqual(str(error.exception), codigo)
 
     # PASS

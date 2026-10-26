@@ -35,6 +35,17 @@ import drift_observado as obs  # noqa: E402
 DECLARADO = lanzador.DRIFT_DEL_DESTINO_LOCAL_DE_DATOS
 CAMBIOS_DECLARADOS = lanzador.DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS
 
+# Floci 2.3.0: el drift de RDS incluye un instante movil, y su contrato se evalua contra un `ahora` fijo.
+_RELOJ = patch.object(modulo, "_ahora", return_value=obs.AHORA)
+
+
+def setUpModule():
+    _RELOJ.start()
+
+
+def tearDownModule():
+    _RELOJ.stop()
+
 
 def revisar(plan):
     return modulo.revisar_drift(plan, drift_tolerado=DECLARADO)
@@ -48,7 +59,7 @@ class DriftObservadoTests(unittest.TestCase):
         self.assertEqual(
             informe,
             {
-                obs.INSTANCIA: ["domain_dns_ips", "enabled_cloudwatch_logs_exports"],
+                obs.INSTANCIA: ["domain_dns_ips", "latest_restorable_time"],
                 obs.GRUPO_DE_PARAMETROS: ["parameter"],
                 obs.GRUPO_ADMIN: ["egress"],
                 obs.GRUPO_LAMBDA: ["egress"],
@@ -158,8 +169,31 @@ class ControlesNegativosTests(unittest.TestCase):
     def test_menos_atributos_que_los_declarados(self):
         plan = obs.plan_de_datos_observado()
         cambio = obs.entrada(plan, obs.INSTANCIA)["change"]
-        cambio["after"]["enabled_cloudwatch_logs_exports"] = ["postgresql"]
+        cambio["after"]["latest_restorable_time"] = cambio["before"]["latest_restorable_time"]
+        self.rechaza(plan, "latest_restorable_time")
+
+    def test_vuelve_la_deriva_de_los_logs_exportados(self):
+        # Floci 2.1.0 no devolvia los logs exportados y 2.3.0 si: si la diferencia reaparece, ya no esta declarada.
+        plan = obs.plan_de_datos_observado()
+        obs.entrada(plan, obs.INSTANCIA)["change"]["after"]["enabled_cloudwatch_logs_exports"] = []
         self.rechaza(plan, "enabled_cloudwatch_logs_exports")
+
+    def test_el_instante_movil_fuera_de_su_contrato(self):
+        casos = {
+            "retrocede": ("2026-10-24T04:27:01Z", "2026-10-24T04:24:48Z"),
+            "en el futuro": ("2026-10-24T04:24:48Z", "2026-10-24T04:30:00Z"),
+            "rancio": ("2026-10-22T04:24:48Z", "2026-10-23T04:20:00Z"),
+            "sin zona": ("2026-10-24T04:24:48Z", "2026-10-24T04:27:01"),
+            "no es un instante": ("2026-10-24T04:24:48Z", "ayer"),
+            "nulo": ("2026-10-24T04:24:48Z", None),
+        }
+        for nombre, (antes, despues) in casos.items():
+            with self.subTest(caso=nombre):
+                plan = obs.plan_de_datos_observado()
+                cambio = obs.entrada(plan, obs.INSTANCIA)["change"]
+                cambio["before"]["latest_restorable_time"] = antes
+                cambio["after"]["latest_restorable_time"] = despues
+                self.rechaza(plan, "latest_restorable_time")
 
     def test_otro_valor_de_domain_dns_ips(self):
         casos = {
@@ -301,6 +335,52 @@ class DeclaracionTests(unittest.TestCase):
             formas[("aws_db_instance", "domain_dns_ips")], "nulo_a_lista_vacia"
         )
 
+    def test_el_instante_movil_solo_para_el_atributo_aprobado(self):
+        with self.assertRaises(ValueError):
+            modulo.DriftDelDestino(
+                direccion="x.y", tipo="aws_db_instance", acciones=("update",),
+                transiciones=(("port", "instante_movil"),), motivo="m" * 50,
+            )
+
+    def test_el_contrato_movil_es_el_de_la_convergencia_productiva(self):
+        # Al final del camino de busqueda: `laboratorio` debe seguir resolviendo a scripts/laboratorio.
+        sys.path.append(str(ROOT))
+        from scripts.terraform_datos.check_plan_refresh_instancia import instante_movil
+
+        casos = [
+            ("2026-10-24T04:24:48Z", "2026-10-24T04:27:01Z"),
+            ("2026-10-24T04:24:48Z", "2026-10-24T04:24:48Z"),
+            ("2026-10-24T04:27:01Z", "2026-10-24T04:24:48Z"),
+            ("2026-10-24T04:24:48Z", "2026-10-24T04:30:00Z"),
+            ("2026-10-22T04:24:48Z", "2026-10-23T04:20:00Z"),
+            ("2026-10-23T04:27:06Z", "2026-10-23T04:27:06Z"),
+            ("2026-10-24T04:24:48Z", "2026-10-24T04:27:01"),
+            ("2026-10-24T04:24:48Z", "ayer"),
+            ("2026-10-24T04:24:48Z", None),
+            (None, "2026-10-24T04:27:01Z"),
+        ]
+        for antes, despues in casos:
+            with self.subTest(antes=antes, despues=despues):
+                try:
+                    instante_movil(antes, despues, obs.AHORA)
+                    esperado = True
+                except ValueError:
+                    esperado = False
+                self.assertEqual(modulo.instante_movil_valido(antes, despues, obs.AHORA), esperado)
+
+    def test_las_diferencias_de_datos_son_las_observadas_con_floci_230(self):
+        self.assertEqual(
+            {(d.tipo, d.atributo) for d in CAMBIOS_DECLARADOS},
+            {
+                ("aws_db_instance", "ca_cert_identifier"),
+                ("aws_db_instance", "network_type"),
+                ("aws_db_instance", "port"),
+                ("aws_db_instance", "storage_type"),
+                ("aws_db_parameter_group", "parameter"),
+                ("aws_cloudwatch_metric_alarm", "extended_statistic"),
+            },
+        )
+
     def test_el_root_de_aplicacion_no_declara_drift(self):
         self.assertEqual(lanzador.DIFERENCIAS_DEL_DESTINO_LOCAL, ())
 
@@ -340,7 +420,7 @@ class CableadoDelRootDeDatosTests(unittest.TestCase):
         self.assertIn("aws_db_instance.port", resultado["cambios"])
         self.assertEqual(
             resultado["drift"][obs.INSTANCIA],
-            ["domain_dns_ips", "enabled_cloudwatch_logs_exports"],
+            ["domain_dns_ips", "latest_restorable_time"],
         )
 
     def test_exit_0_tambien_lee_el_plan_y_aborta_con_drift_no_declarado(self):

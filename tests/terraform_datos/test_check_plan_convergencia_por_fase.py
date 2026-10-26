@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from scripts.terraform_datos.check_plan_convergencia import FASES, check
 from tests.terraform_datos.test_check_plan_alarmas import fixture as fixture_alarmas
-from tests.terraform_datos.test_check_plan_convergencia import con_drift_movil, fixture as fixture_h0313
+from tests.terraform_datos.test_check_plan_convergencia import con_drift_movil, fixture as fixture_h0313, operativa
 from tests.terraform_datos.test_check_plan_ejecutor import fixture as fixture_ejecutor
 from tests.terraform_datos.test_check_plan_grafana import aplicado, fixture as fixture_grafana
 from tests.terraform_datos.test_check_plan_recuperacion import ACCOUNT, MEDIOS
@@ -42,8 +42,8 @@ class ConvergenciaPorFase(unittest.TestCase):
         self.assertTrue(FASES["h0313"] < FASES["h0318"] < FASES["h0319"] < FASES["h0315"])
 
     def test_cada_fase_converge_con_su_conjunto(self):
-        for fase, plan in (("h0313", fixture_h0313()), ("h0318", aplicado(fixture_alarmas())),
-                           ("h0319", aplicado(fixture_grafana())), ("h0315", ejecutora_aplicada())):
+        for fase, plan in (("h0313", operativa(fixture_h0313())), ("h0318", operativa(aplicado(fixture_alarmas()))),
+                           ("h0319", operativa(aplicado(fixture_grafana()))), ("h0315", operativa(ejecutora_aplicada()))):
             with self.subTest(fase=fase):
                 r = check(plan, ACCOUNT, MEDIOS, ahora=AHORA, fase=fase)
                 self.assertEqual((r["gate"], r["add"], r["change"], r["destroy"]),
@@ -52,14 +52,14 @@ class ConvergenciaPorFase(unittest.TestCase):
                 self.assertEqual(r["resource_drift"], 1)
 
     def test_por_omision_sigue_siendo_h0313(self):
-        self.assertEqual(check(fixture_h0313(), ACCOUNT, MEDIOS, ahora=AHORA)["gate"], "ACTIONABLE_CONVERGENCE_OK")
+        self.assertEqual(check(operativa(fixture_h0313()), ACCOUNT, MEDIOS, ahora=AHORA)["gate"], "ACTIONABLE_CONVERGENCE_OK")
 
     def test_un_conjunto_que_no_es_el_de_la_fase(self):
-        self.rechaza(aplicado(fixture_alarmas()), "h0313", "PRIOR_STATE")
-        self.rechaza(aplicado(fixture_alarmas()), "h0319", "PRIOR_STATE")
-        self.rechaza(fixture_h0313(), "h0318", "PRIOR_STATE")
-        self.rechaza(aplicado(fixture_grafana()), "h0315", "PRIOR_STATE")
-        self.rechaza(ejecutora_aplicada(), "h0319", "PRIOR_STATE")
+        self.rechaza(operativa(aplicado(fixture_alarmas())), "h0313", "PRIOR_STATE")
+        self.rechaza(operativa(aplicado(fixture_alarmas())), "h0319", "PRIOR_STATE")
+        self.rechaza(operativa(fixture_h0313()), "h0318", "PRIOR_STATE")
+        self.rechaza(operativa(aplicado(fixture_grafana())), "h0315", "PRIOR_STATE")
+        self.rechaza(operativa(ejecutora_aplicada()), "h0319", "PRIOR_STATE")
 
     def test_fase_desconocida(self):
         self.rechaza(fixture_h0313(), "h0399", "PHASE")

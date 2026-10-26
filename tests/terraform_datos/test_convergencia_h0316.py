@@ -6,6 +6,7 @@ from scripts.terraform_datos.check_plan_convergencia import check
 from tests.terraform_datos.test_check_plan_h0316 import fixture, ACCOUNT, MEDIOS, AHORA
 from tests.terraform_datos.test_check_plan_grafana import aplicado
 from scripts.terraform_datos.check_plan_recuperacion import _estado_previo
+from tests.terraform_datos.test_check_plan_convergencia import operativa
 
 
 def convergente():
@@ -25,7 +26,7 @@ def convergente():
 
 class ConvergenciaH0316(unittest.TestCase):
     def test_39_recursos_convergen(self):
-        r = check(convergente(), ACCOUNT, MEDIOS, ahora=AHORA, fase="h0316")
+        r = check(operativa(convergente()), ACCOUNT, MEDIOS, ahora=AHORA, fase="h0316")
         self.assertEqual((r["gate"], r["recursos"]), ("ACTIONABLE_CONVERGENCE_OK", 39))
 
     def test_no_admite_una_efimera_en_el_plan(self):
@@ -33,7 +34,7 @@ class ConvergenciaH0316(unittest.TestCase):
             plan = convergente()
             plan["variables"][nombre] = {"value": "canario"}
             with self.subTest(nombre=nombre), self.assertRaisesRegex(ValueError, "EPHEMERAL_LEAK"):
-                check(plan, ACCOUNT, MEDIOS, ahora=AHORA, fase="h0316")
+                check(operativa(plan), ACCOUNT, MEDIOS, ahora=AHORA, fase="h0316")
 
     def test_exige_el_pin_y_versiones(self):
         for nombre, valor, codigo in (
@@ -43,4 +44,4 @@ class ConvergenciaH0316(unittest.TestCase):
             plan = convergente()
             plan["variables"][nombre] = {"value": valor}
             with self.subTest(nombre=nombre), self.assertRaisesRegex(ValueError, codigo):
-                check(plan, ACCOUNT, MEDIOS, ahora=AHORA, fase="h0316")
+                check(operativa(plan), ACCOUNT, MEDIOS, ahora=AHORA, fase="h0316")

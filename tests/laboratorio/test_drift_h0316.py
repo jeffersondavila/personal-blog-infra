@@ -22,6 +22,7 @@ Nada de esto viaja a los modulos: ni `ignore_changes`, ni tolerancia productiva.
 from pathlib import Path
 import sys
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -33,6 +34,17 @@ import drift_observado_h0316 as obs  # noqa: E402
 
 DECLARADO = lanzador.DRIFT_DEL_DESTINO_LOCAL_DE_DATOS
 CAMBIOS_DECLARADOS = lanzador.DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS
+
+# Floci 2.3.0: el drift de RDS incluye un instante movil, y su contrato se evalua contra un `ahora` fijo.
+_RELOJ = patch.object(modulo, "_ahora", return_value=obs.base.AHORA)
+
+
+def setUpModule():
+    _RELOJ.start()
+
+
+def tearDownModule():
+    _RELOJ.stop()
 
 
 def revisar(plan):
@@ -59,9 +71,9 @@ class SegundoPlanObservadoH0316Tests(unittest.TestCase):
     def test_el_gate_completo_acepta_el_segundo_plan_observado(self):
         informe = modulo.exigir_sin_cambios(2, plan=obs.plan_de_datos_observado(),
                                             diferencias_toleradas=CAMBIOS_DECLARADOS, drift_tolerado=DECLARADO)
-        self.assertEqual(informe["aws_cloudwatch_metric_alarm.datapoints_to_alarm"], 8)
+        self.assertNotIn("aws_cloudwatch_metric_alarm.datapoints_to_alarm", informe)
         self.assertEqual(informe["aws_cloudwatch_metric_alarm.extended_statistic"], 2)
-        self.assertEqual(informe["aws_ssm_parameter.key_id"], 3)
+        self.assertNotIn("aws_ssm_parameter.key_id", informe)
 
 
 class ControlesNegativosH0316Tests(unittest.TestCase):
@@ -119,7 +131,7 @@ class ControlesNegativosH0316Tests(unittest.TestCase):
 
     def test_un_cambio_planificado_de_alarma_no_declarado(self):
         plan = obs.plan_de_datos_observado()
-        cambio = next(c for c in plan["resource_changes"] if c["address"] == obs.ALARMA.format("xid"))
+        cambio = next(c for c in plan["resource_changes"] if c["address"] == obs.ALARMA.format("escritura"))
         cambio["change"]["after"]["threshold"] = 7
         with self.assertRaises(modulo.ErrorDeInventario):
             modulo.exigir_sin_cambios(2, plan=plan, diferencias_toleradas=CAMBIOS_DECLARADOS,
@@ -143,9 +155,11 @@ class DeclaracionH0316Tests(unittest.TestCase):
                 self.assertIn(direccion, direcciones)
                 self.assertIn("AWS real", direcciones[direccion].motivo)
         motivos = {(d.tipo, d.atributo): d.motivo for d in CAMBIOS_DECLARADOS}
-        for atributo in ("datapoints_to_alarm", "extended_statistic"):
+        for atributo in ("extended_statistic",):
             with self.subTest(atributo=atributo):
                 self.assertIn("DescribeAlarms", motivos[("aws_cloudwatch_metric_alarm", atributo)])
+        # Floci 2.3.0 ya devuelve DatapointsToAlarm: su tolerancia se retiro.
+        self.assertNotIn(("aws_cloudwatch_metric_alarm", "datapoints_to_alarm"), motivos)
 
 
 if __name__ == "__main__":

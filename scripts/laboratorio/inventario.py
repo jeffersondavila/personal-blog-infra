@@ -27,6 +27,7 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 import json
 from typing import Any, Final
 
@@ -224,8 +225,36 @@ class ActualizacionDependienteDelDrift:
 #:   Es la misma idea que `agrega_reglas_separadas`, para IAM (H-031-6).
 FORMAS_DE_TRANSICION: Final = frozenset(
     {"nulo_a_lista_vacia", "lista_a_vacia", "agrega_reglas_separadas", "nulo_a_mapa_vacio",
-     "refleja_politicas_en_linea"}
+     "refleja_politicas_en_linea", "instante_movil"}
 )
+
+#: `instante_movil` (mantenimiento de CI de Task/031, Floci 2.3.0): el MISMO contrato temporal que la convergencia
+#: productiva aplica a `latest_restorable_time` (`scripts/terraform_datos/check_plan_refresh_instancia.py`,
+#: enmienda de §40 aprobada el 2026-10-19): instantes ISO-8601 con zona, `antes` <= `despues` <= ahora y una
+#: frescura de un dia como maximo. Se replica aqui porque el laboratorio no importa los paquetes `scripts.*`; una
+#: prueba exige que los dos decidan igual. Solo para los atributos que AWS mueve por si mismo.
+ATRIBUTOS_MOVILES: Final = frozenset({"latest_restorable_time"})
+VENTANA_MOVIL: Final = timedelta(days=1)
+
+
+def _ahora() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _instante(valor: Any) -> datetime | None:
+    if not isinstance(valor, str) or not valor:
+        return None
+    try:
+        instante = datetime.fromisoformat(valor.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return instante if instante.tzinfo is not None else None
+
+
+def instante_movil_valido(anterior: Any, posterior: Any, ahora: datetime) -> bool:
+    """`anterior` <= `posterior` <= `ahora` y `ahora - posterior` <= `VENTANA_MOVIL`, ambos instantes con zona."""
+    a, b = _instante(anterior), _instante(posterior)
+    return a is not None and b is not None and a <= b <= ahora and ahora - b <= VENTANA_MOVIL
 
 
 @dataclass(frozen=True)
@@ -259,6 +288,8 @@ class DriftDelDestino:
                 raise ValueError(f"{self.direccion}.{atributo}: no es una lista de reglas")
             if forma == "refleja_politicas_en_linea" and atributo != "inline_policy":
                 raise ValueError(f"{self.direccion}.{atributo}: no es el reflejo de politicas en linea")
+            if forma == "instante_movil" and atributo not in ATRIBUTOS_MOVILES:
+                raise ValueError(f"{self.direccion}.{atributo}: no es un atributo movil aprobado")
 
     @property
     def atributos(self) -> frozenset[str]:
@@ -350,8 +381,13 @@ def _cumple_la_transicion(
     antes: Mapping[str, Any],
     despues: Mapping[str, Any],
     plan: Mapping[str, Any],
+    ahora: datetime | None = None,
 ) -> bool:
     valor_antes, valor_despues = antes.get(atributo), despues.get(atributo)
+    if forma == "instante_movil":
+        return atributo in ATRIBUTOS_MOVILES and instante_movil_valido(
+            valor_antes, valor_despues, ahora or _ahora()
+        )
     if forma == "nulo_a_lista_vacia":
         return atributo in antes and valor_antes is None and valor_despues == []
     if forma == "nulo_a_mapa_vacio":
@@ -388,6 +424,7 @@ def revisar_drift(
     plan: Mapping[str, Any],
     *,
     drift_tolerado: Sequence[DriftDelDestino] = (),
+    ahora: datetime | None = None,
 ) -> dict[str, list[str]]:
     """Exige que `resource_drift` contenga solo entradas declaradas, exactas.
 
@@ -452,7 +489,7 @@ def revisar_drift(
             )
             continue
         for atributo, forma in declarada.transiciones:
-            if not _cumple_la_transicion(forma, atributo, antes, despues, plan):
+            if not _cumple_la_transicion(forma, atributo, antes, despues, plan, ahora):
                 sin_justificar.append(
                     f"{direccion}: {atributo} no sigue la transicion declarada '{forma}'"
                 )
@@ -471,6 +508,7 @@ def exigir_sin_cambios(
     plan: Mapping[str, Any] | None = None,
     diferencias_toleradas: Sequence[DiferenciaDelDestino] = (),
     drift_tolerado: Sequence[DriftDelDestino] = (),
+    ahora: datetime | None = None,
 ) -> dict[str, int]:
     """Gate de idempotencia sobre `terraform plan -detailed-exitcode`.
 
@@ -508,7 +546,7 @@ def exigir_sin_cambios(
             "idempotencia no pudo completarse"
         )
     if plan is not None:
-        revisar_drift(plan, drift_tolerado=drift_tolerado)
+        revisar_drift(plan, drift_tolerado=drift_tolerado, ahora=ahora)
     if codigo_de_salida == 0:
         if plan is not None:
             pendientes = sorted(

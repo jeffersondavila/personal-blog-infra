@@ -44,11 +44,17 @@ FASES = {
 FASES["h0316"] = FASES["h0315"] | frozenset(H0316)
 
 
-def check(plan, account, arn_de_medios, ahora=None, fase="h0313"):
+#: CLI operativa de los planes de convergencia (mantenimiento de CI de Task/031, 2026-10-23). Debe coincidir con
+#: `VERSION_DE_TERRAFORM` de `scripts/laboratorio/herramientas.py`; una prueba lo exige. Las guardas de fases ya
+#: cerradas que reutilizan esta funcion pasan `version="1.16.2"`: validan evidencia historica, no planes nuevos.
+VERSION_DE_TERRAFORM = "1.16.7"
+
+
+def check(plan, account, arn_de_medios, ahora=None, fase="h0313", version=VERSION_DE_TERRAFORM):
     ahora = ahora or datetime.now(timezone.utc)
     require(fase in FASES, "PHASE")
     esperados = FASES[fase]
-    require(plan.get("terraform_version") == "1.16.2", "VERSION")
+    require(plan.get("terraform_version") == version, "VERSION")
     # §42: un plan CONVERGENTE no tiene nada que aplicar y Terraform lo marca `applyable = false`. Exigir
     # `true` (heredado de las guardas de planes con cambios) rechazaba justo la convergencia.
     require(plan.get("applyable") is False, "APPLYABLE")

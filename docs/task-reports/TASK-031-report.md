@@ -5543,3 +5543,158 @@ PITR.
 
 La URL del PR y el estado final se entregan al usuario al terminar; GitHub es su fuente viva. `Task/032` **no se
 inicia**: como toda Task, nace de `main` actualizado y limpio tras la normalización `main → dev`.
+
+## 53. Mantenimiento de CI tras la aprobación (2026-10-22 a 2026-10-26)
+
+**Por qué existe esta sección.** El primer CI del PR #57 (`Task/031 → main`) falló en S-09: la base de
+vulnerabilidades de Trivy había publicado CVE nuevas de Go y de paquetes de sistema que afectaban al provider AWS
+6.64.0, a la CLI de Terraform 1.16.2, a Traefik, a Floci 2.1.0, al derivado de MinIO y a Portainer. Ningún recurso de
+AWS cambió: es mantenimiento de la cadena de suministro, en la **misma rama** y el **mismo PR**, sin tarea nueva. El
+usuario fue autorizando cada decisión; ninguna aceptación se añadió sin su aprobación expresa.
+
+**Lo que no cambia.** Ningún apply, refresh-only, destroy ni PITR en AWS. D-11 y D-19 siguen abiertas. Los commits
+`0d137c5` y `e5daf78` se conservan; `terraform-datos/backend.generado.tf` sigue intacto y fuera de Git. `Task/032` no
+se inicia.
+
+### 53.1 Correcciones, una por causa
+
+| Causa en S-09 | Corrección | Aceptaciones |
+| --- | --- | --- |
+| Provider AWS 6.64.0 (Go) | **6.70.0** en los seis roots, locks con los 16 `zh:` del `SHA256SUMS` firmado (`9ef4b34`) | ninguna |
+| CLI de Terraform 1.16.2 (Go) | **1.16.7**, firma GPG de HashiCorp verificada; pines, hashes, `required_version` y guardas operativas. Las guardas de fases cerradas validan evidencia histórica y conservan 1.16.2 | **retira 9** del baseline |
+| Traefik v3.7.13 | **v3.7.16** por digest; rutas y *healthchecks* idénticos | ninguna (tolerancia cero) |
+| Floci 2.1.0 | **2.3.0** por digest, con la adaptación del laboratorio de §53.2 | **retira 2** del baseline |
+| Derivado de MinIO: 18 identidades nuevas | **Contrato v3** (§53.3): pcre2 dentro del derivado, Go 1.27.3, `x/net` v0.60.0 y `klauspost/compress` v1.18.7 | ninguna; siguen las **10** de siempre |
+| Portainer 2.45.1: 6 identidades nuevas | **2.45.3** y aceptación **temporal** de CVE-2026-95837 (§53.4) | **1 temporal**, con caducidad que hace cumplir la gate |
+
+El baseline retira 11 identidades ya corregidas y añade exactamente una, temporal. Su diff de Terraform y Floci se
+revisó antes de aplicarlo y se regeneró byte a byte (`2532b387…`) para comprobar que era el aprobado.
+
+### 53.2 Floci 2.3.0: tres cambios de comportamiento, detectados fallando cerrado
+
+El ciclo completo con 2.3.0 se detuvo tres veces, siempre en un control y nunca por un resultado dudoso:
+1. **ID de zona:** `CreateSubnet` rechazó `us-east-1-az1`. 2.3.0 publica el formato de AWS (`use1-az1`, PR #5486).
+   Cambia solo el valor de `terraform-datos/entornos/local/local.tfvars`.
+2. **Runtime fijado:** no se observó ningún contenedor de Lambda. 2.3.0 los nombra `floci-aws-<función>-<id>`
+   (PR #4273). `PREFIJO_DEL_EMULADOR` pasa a `floci-aws-` con la misma estrechez, y una prueba nueva rechaza los
+   nombres de 2.1.0.
+3. **Idempotencia de datos:** la deriva de `aws_db_instance` cambió. Ya no difiere `enabled_cloudwatch_logs_exports`,
+   que 2.3.0 devuelve, y avanza `latest_restorable_time`, como en AWS. Además dejaron de ocurrir 6 de las 12 clases
+   de `resource_changes`. Dos controles negativos existentes, `test_menos_atributos_que_los_declarados` y
+   `test_otro_atributo_de_la_instancia_rds`, describían justo ese rechazo.
+
+Con la autorización del usuario y el diff revisado (`d955b19d…`, regenerado byte a byte antes de aplicarlo):
+- la entrada de `aws_db_instance` exige `latest_restorable_time` con la forma nueva `instante_movil`, que replica el
+  contrato temporal aprobado para AWS (§40): `antes ≤ después ≤ ahora` y frescura de un día. Una prueba exige que
+  las dos implementaciones decidan igual;
+- las 6 tolerancias que ya no ocurren se **retiran**;
+- 6 pruebas nuevas cubren los casos negativos del instante móvil y el atributo aprobado.
+
+El plan real del 2026-10-24 se acepta evaluado en su momento y se rechaza evaluado días después, porque deja de ser
+fresco.
+
+**Ciclo completo final (2026-10-26), en una copia aislada:** CICLO COMPLETO con exit 0.
+- Creación de los tres roots e idempotencia: aplicación con exit 0; datos con exit 2 y **solo** las 6 clases y las
+  16 entradas declaradas.
+- Deriva controlada.
+- Dos *destroy* con ausencia comprobada por API, reconstrucción y *smoke* HTTP 200.
+- El contenedor del runtime fijado se observó.
+
+Los states locales, que conservaban entradas de los ciclos interrumpidos, quedaron **reconciliados a 0 recursos por el
+propio ciclo**, sin borrar ningún archivo de state.
+
+### 53.3 MinIO: contrato v3 del derivado reproducible
+
+- **pcre2 dentro del derivado, sin cambiar la base.** Una etapa `paquetes` sobre `ubi9/ubi` fijada por digest
+  descarga `pcre2` y `pcre2-syntax` 10.40-7.el9_8 por URL fija y verifica el SHA-256 y la firma de Red Hat (release
+  key 2). Después aplica `rpm --root -Uvh --noscripts --excludedocs`.
+- **Determinismo sin `libfaketime`.** `rpm` 4.16 honra `SOURCE_DATE_EPOCH` de forma nativa: `INSTALLTID` = epoch e
+  `INSTALLTIME` = epoch + orden en la transacción. La primera versión del diseño congelaba el reloj con
+  `libfaketime`. La aserción de determinismo detectó un segundo de diferencia, que resultó ser ese comportamiento
+  nativo; el diseño final lo usa y retira `libfaketime`, su RPM de EPEL y su clave.
+- **Una capa declarada, exacta.** La transacción se mide antes y después. La delta (`269386…`, 10 entradas) se fija
+  por hash, y la etapa final aplica exactamente esa delta. El manifiesto declara los **17 miembros** de la capa:
+  archivos con hash y tamaño, enlaces con destino, dos *whiteouts* y sus antecesores, todos con modo y propietario.
+- **Go:** toolchain 1.27.3 y dos parches incrementales. La resolución de módulos cambió **solo** `x/net` y
+  `klauspost/compress`, sin arrastrar ninguna otra dependencia. `libcap` y `libacl` no se actualizan: siguen
+  aceptadas.
+- **Verificador v3** (`scripts/minio/artifact.py`). Exige:
+  - las 9 capas heredadas, la de paquetes con sus miembros exactos y una capa por binario;
+  - que la receta aplique los RPM, el medidor y la delta declarados.
+
+  El atestado incorpora el resumen de paquetes, y la gate S-09 lo compara contra constantes escritas en ella.
+  Hay 17 pruebas nuevas con controles negativos.
+- **Reproducibilidad.** Dos construcciones independientes del candidato, sin caché y con el BuildKit de CI, dieron el
+  mismo manifiesto `sha256:95b28f31…` y el mismo OCI byte a byte. La receta del repositorio, construida otras dos
+  veces como en CI, dio el mismo digest y el mismo OCI (`a3767049…`); `verify` y `compare` del contrato v3 en verde.
+- **Prueba funcional y S-09.** El contenedor desechable pasó versiones, `coreutils` con la `libpcre2` nueva,
+  *health* y el ciclo real de bucket y objeto. S-09 dio 0 identidades nuevas y las 10 aceptadas, idénticas.
+- **Publicación en GHCR**, autorizada y condicionada a lo anterior: hecha el 2026-10-26 por la API de distribución
+  con los bytes validados, sin reconstruir.
+  - 9 blobs ya estaban y se subieron 4.
+  - El manifiesto, de 2844 bytes, es idéntico al leerlo de vuelta.
+  - `docker pull` sin copia local devuelve `sha256:95b28f31…`.
+  - Las identidades de Task/027.1 y Task/028 siguen intactas, y el paquete sigue privado.
+
+  `.env.example` apunta a la identidad nueva por etiqueta y digest.
+
+La identidad de Task/028 pasa a `supersedes` con la de Task/027.1 anidada tal cual: ninguna se mueve ni se
+sobrescribe.
+
+### 53.4 Portainer 2.45.3 y caducidad técnica de las excepciones temporales
+
+**Verificación previa (2026-10-26):**
+- No hay versión posterior a 2.45.3: `sts`, `lts` y `latest` apuntan al índice
+  `sha256:3609c307943bca8e5c492f69ddd6965df177208b50678a4cff28391c8dd4e96e`.
+- `containerd/v2` sigue en v2.2.5, indirecta, en 2.45.3 y en `develop`.
+- El binario, extraído sin ejecutarlo, es el ya analizado (`14826671…`). Ninguno de sus 19 paquetes de
+  `containerd/v2` es CRI: `internal/cri`, `pkg/cri`, `plugins/cri`, `k8s.io/cri-api`, `RuntimeService` y `go-criu`
+  tienen 0 apariciones, con un control positivo que demuestra que el método las encontraría.
+- El despliegue escucha solo en `127.0.0.1:9444`, con `cap_drop: ALL`, `no-new-privileges` y raíz de solo lectura.
+- El host no tiene Kubernetes ni el modo experimental de Docker.
+
+**Aceptación temporal, opción (b) del usuario.** Se acepta **solo** la identidad exacta de CVE-2026-95837
+(`containerd/v2` v2.2.5, corregida en 2.2.7 y 2.3.4), con `temporary: true`, `review_on: 2026-11-06` y
+`expires_after: 2026-11-30`. Las 4 aceptaciones históricas de Portainer no cambian.
+
+**La caducidad la hace cumplir la gate**, no un proceso:
+- `scripts/security/vulnerability_gate.py` falla si una aceptación temporal venció, si falta una fecha, si una
+  fecha es inválida, si la revisión es posterior al vencimiento o si hay fechas sin `temporary: true`;
+- el día del vencimiento todavía vale, y desde el siguiente bloquea CI aunque el hallazgo ya no aparezca;
+- las aceptaciones históricas no se ven afectadas.
+
+Hay 13 pruebas positivas y negativas, y una más fija que la del baseline real es la única temporal.
+
+### 53.5 Validaciones del entregable
+
+| Validación | Resultado |
+| --- | --- |
+| 32 gates sin conexión: `fmt`, `init`, `validate` y `test` de los seis roots con la CLI 1.16.7 y el provider 6.70.0, las cinco suites de Python con la invocación de CI, el Compose del laboratorio y `git diff --check` | **ALL OFFLINE GATES PASSED**. `terraform test`: datos 54, medios 7, `github-oidc` 9, `terraform-state` 5 y `operador-datos` 7. Python: `terraform_datos` 725, laboratorio 335, seguridad 120, OIDC 62, con la omisión POSIX de siempre en Windows, y `terraform_state` 12 |
+| Laboratorio completo con Floci 2.3.0, en una copia aislada | **CICLO COMPLETO**, exit 0 (§53.2), y states reconciliados a 0 |
+| S-09 como CI, con la base de Trivy del 2026-10-25. Portainer y Floci se escanearon desde el registro, MinIO desde el OCI construido y atestado, y Postgres y Traefik reconstruidos como CI | **RESULTADO: CORRECTO**: 15 hallazgos comparados y 0 nuevos. La comprobación de coherencia también es correcta. El provider 6.70.0 tiene 0 accionables |
+| Derivado MinIO | Cuatro construcciones con el mismo digest, `verify`, `compare`, `attest`, prueba funcional y publicación verificada (§53.3) |
+| Gitleaks 8.30.1 sobre los 431 archivos del entregable | Sin hallazgos |
+| ID de cuenta real, cuenta de Grafana y `ExternalId` | 0 apariciones |
+| Enlaces Markdown de los siete documentos modificados | 444 enlaces, 0 rotos |
+| Finales de línea | Los 49 archivos cambiados o nuevos, en LF y sin BOM |
+
+El único valor privado del tfvars que aparece en el entregable es el ARN del bucket de medios, en el reporte de
+Task/030. Es preexistente en `main`, y este mantenimiento no lo toca.
+
+### 53.6 Publicación
+
+**Flujo Git**, en la misma rama y el mismo PR, según
+[PROJECT_INSTRUCTIONS §6 a §8](../claude/PROJECT_INSTRUCTIONS.md) y el permiso expreso del usuario:
+1. Cinco commits incrementales sobre `9ef4b34`:
+   - versiones y baseline de Terraform y Floci, con la adaptación del laboratorio;
+   - caducidad técnica de la gate;
+   - derivado MinIO v3;
+   - Portainer 2.45.3;
+   - este registro.
+2. Push normal de la rama, sin *force*, y revisión de todos los checks del PR #57, tanto `push` como
+   `pull_request`.
+3. Integración en `dev` con `merge --no-ff` y publicación de `dev`.
+4. El PR #57 sigue abierto: su fusión hacia `main` es exclusiva del usuario. Después viene la normalización
+   `main → dev`.
+
+GitHub es la fuente viva del estado de los checks.

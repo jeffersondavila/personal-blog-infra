@@ -4,6 +4,7 @@ import io
 import json
 import os
 from pathlib import Path
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -12,7 +13,7 @@ from scripts.oidc import bootstrap
 from scripts.oidc.guards import (
     ROLE, ROLE_ADDRESS, PROVIDER_ADDRESS, Stop, config_check, human_check,
     ownership, plan_check, private_path, provider_arn, provider_case,
-    provider_url_ok, role_check, state_resources, trust, utcnow,
+    provider_url_ok, role_check, state_resources, trust, utcnow, TERRAFORM_VERSION,
 )
 
 ACCOUNT = "123456789012"  # Synthetic only.
@@ -21,7 +22,7 @@ CONFIG = {"expected_account_id": ACCOUNT, "aws_region": "us-east-1",
 
 
 def plan():
-    return {"format_version": "1.2", "terraform_version": "1.16.2", "complete": True,
+    return {"format_version": "1.2", "terraform_version": TERRAFORM_VERSION, "complete": True,
             "variables": {key: {"value": value} for key, value in dict(CONFIG, provider_mode="existing").items()},
             "configuration": {"provider_config": {"aws": {"full_name": "registry.terraform.io/hashicorp/aws",
                                                          "expressions": {"region": {}, "allowed_account_ids": {}}}},
@@ -341,6 +342,22 @@ class GuardTests(unittest.TestCase):
             with patch.object(bootstrap, "inventory") as call, patch("sys.stderr", new_callable=io.StringIO):
                 self.assertEqual(bootstrap.main(["inventory", "--config", str(config), "--state", str(root / "state"), "--inventory", str(root / "inventory")]), 1)
                 call.assert_not_called()
+
+
+class TerraformVersionTests(unittest.TestCase):
+    """CI maintenance of Task/031 (2026-10-23): the live guard follows the pinned CLI, never an older one."""
+
+    def test_guard_version_matches_the_pinned_cli(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+        from laboratorio import herramientas
+
+        self.assertEqual(TERRAFORM_VERSION, herramientas.VERSION_DE_TERRAFORM)
+
+    def test_plan_from_the_previous_cli_is_rejected(self):
+        value = plan()
+        value["terraform_version"] = "1.16.2"
+        with self.assertRaisesRegex(Stop, "PLAN_FORMAT_OR_DRIFT"):
+            plan_check(value, CONFIG, "existing", {})
 
 
 if __name__ == "__main__":

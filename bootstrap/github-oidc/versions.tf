@@ -1,9 +1,9 @@
 terraform {
-  required_version = "= 1.16.2"
+  required_version = "= 1.16.7"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "= 6.64.0"
+      version = "= 6.70.0"
     }
   }
   # D-06: partial S3 configuration is supplied from the private operator directory.
