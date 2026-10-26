@@ -10,6 +10,8 @@ import sys
 ROLE = "PersonalBlogGitHubOidcValidation"
 HUMAN = "PersonalBlogAdministrator"
 HOST = "token.actions.githubusercontent.com"
+# Pinned CLI for live plans. Must match scripts/laboratorio/herramientas.py; a test enforces it.
+TERRAFORM_VERSION = "1.16.7"
 AUDIENCE = "sts.amazonaws.com"
 PREFIX = "repo:jeffersondavila@60154716/personal-blog-infra@1313255836"
 TASK = "Task/028-GitHub-OIDC-AWS"
@@ -216,7 +218,7 @@ def has_unknown(value):
 
 def plan_check(plan, config, mode, resources):
     config_check(config)
-    require(plan.get("format_version") == "1.2" and plan.get("terraform_version") == "1.16.2" and
+    require(plan.get("format_version") == "1.2" and plan.get("terraform_version") == TERRAFORM_VERSION and
             not plan.get("errored") and plan.get("complete", True) and
             not plan.get("deferred_changes") and not plan.get("resource_drift"), "PLAN_FORMAT_OR_DRIFT")
     require(mode in ("create", "existing"), "PLAN_MODE")

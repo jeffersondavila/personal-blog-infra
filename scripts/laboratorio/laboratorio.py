@@ -276,9 +276,14 @@ DIFERENCIAS_DEL_DESTINO_LOCAL: tuple[mod_inventario.DiferenciaDelDestino, ...] =
 #: Mismo criterio que arriba: tolerancia ESTRECHA por tipo y atributo, en el
 #: verificador y NUNCA como `ignore_changes`. Contra AWS real no se tolera
 #: ninguna: la convergencia exigida alli es 0/0/0.
+#:
+#: Reconfirmadas con Floci 2.3.0 en el ciclo del 2026-10-24 (mantenimiento de CI de Task/031): siguen las de la
+#: instancia (`ca_cert_identifier`, `network_type`, `port`, `storage_type`), la del grupo de parametros y
+#: `extended_statistic`. Las otras seis dejaron de ocurrir porque 2.3.0 ya devuelve esos atributos, y se
+#: retiraron: una tolerancia que ya no hace falta no se conserva.
 _MOTIVO_RDS_MOCK = (
-    "Floci 2.1.0 con RDS en modo mock no conserva ni devuelve este atributo de la "
-    "instancia (H-031-1); AWS real si lo representa"
+    "Floci con RDS en modo mock no conserva ni devuelve este atributo de la instancia "
+    "(H-031-1 con 2.1.0; sigue en 2.3.0, ciclo del 2026-10-24); AWS real si lo representa"
 )
 DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DiferenciaDelDestino, ...] = (
     *(
@@ -287,9 +292,6 @@ DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DiferenciaDelDestin
         )
         for atributo in (
             "ca_cert_identifier",
-            "enabled_cloudwatch_logs_exports",
-            "engine_lifecycle_support",
-            "max_allocated_storage",
             "network_type",
             "port",
             "storage_type",
@@ -300,28 +302,18 @@ DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DiferenciaDelDestin
         atributo="parameter",
         motivo="Floci 2.1.0 acepta ModifyDBParameterGroup pero DescribeDBParameters no devuelve los valores de usuario (H-031-1)",
     ),
-    mod_inventario.DiferenciaDelDestino(
-        tipo="aws_ssm_parameter",
-        atributo="key_id",
-        motivo="Floci 2.1.0 no devuelve el KeyId de un SecureString: no hay KMS que lo respalde (aws-local-parity.md 6.4)",
-    ),
-    mod_inventario.DiferenciaDelDestino(
-        tipo="aws_ssm_parameter",
-        atributo="tier",
-        motivo="Floci 2.1.0 no devuelve el Tier del parametro en DescribeParameters (H-031-1)",
-    ),
     # Ciclo del 2026-10-19 (H-031-6): primer ciclo completo con las alarmas de H-031-8.
     *(
         mod_inventario.DiferenciaDelDestino(
             tipo="aws_cloudwatch_metric_alarm",
             atributo=atributo,
             motivo=(
-                f"Floci 2.1.0 acepta {campo} en PutMetricAlarm pero DescribeAlarms no lo devuelve (llamada "
-                "directa al emulador, 2026-10-19); AWS real si: readback 8/8 de H-031-8"
+                f"Floci acepta {campo} en PutMetricAlarm pero DescribeAlarms no lo devuelve (llamada directa al "
+                "emulador 2.1.0, 2026-10-19; sigue en 2.3.0, ciclo del 2026-10-24); AWS real si: readback 8/8 de "
+                "H-031-8"
             ),
         )
-        for atributo, campo in (("datapoints_to_alarm", "DatapointsToAlarm"),
-                                ("extended_statistic", "ExtendedStatistic"))
+        for atributo, campo in (("extended_statistic", "ExtendedStatistic"),)
     ),
 )
 
@@ -336,11 +328,14 @@ DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DiferenciaDelDestin
 #: plan de convergencia de H-031-3 siguen rechazando (DN-2). Nada de esto viaja
 #: a los modulos: ni `ignore_changes`, ni tolerancia productiva.
 _MOTIVO_DOMAIN_DNS_IPS = (
-    "domain_dns_ips null -> []: representacion del SDKv2 2.40.1 que usa el provider "
-    "6.64.0, no del emulador. Read escribe la lista vacia en toda instancia sin dominio "
+    "domain_dns_ips null -> []: representacion del SDKv2 del provider (observada con 6.64.0 "
+    "y 6.70.0), no del emulador. Read escribe la lista vacia en toda instancia sin dominio "
     "AD; el apply conserva el null planificado (normalizeNullValues con apply=true) y "
     "el refresh no (apply=false); Terraform compara con RawEquals. "
-    "enabled_cloudwatch_logs_exports -> []: Floci 2.1.0 con RDS mock no lo devuelve (H-031-1)"
+    "latest_restorable_time avanza: desde Floci 2.3.0 el emulador calcula un instante "
+    "restaurable vivo, como AWS; se exige el contrato instante_movil de la convergencia "
+    "productiva (§40, aprobado el 2026-10-19). Floci 2.3.0 ya devuelve "
+    "enabled_cloudwatch_logs_exports"
 )
 _MOTIVO_REGLAS_SEPARADAS = (
     "Floci 2.1.0 devuelve en el grupo las reglas que gestionan aparte los recursos "
@@ -354,7 +349,7 @@ DRIFT_DEL_DESTINO_LOCAL_DE_DATOS: tuple[mod_inventario.DriftDelDestino, ...] = (
         acciones=("update",),
         transiciones=(
             ("domain_dns_ips", "nulo_a_lista_vacia"),
-            ("enabled_cloudwatch_logs_exports", "lista_a_vacia"),
+            ("latest_restorable_time", "instante_movil"),
         ),
         motivo=_MOTIVO_DOMAIN_DNS_IPS,
     ),

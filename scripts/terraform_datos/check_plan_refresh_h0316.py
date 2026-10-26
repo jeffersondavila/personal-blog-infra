@@ -47,7 +47,8 @@ def check(plan, account, arn_de_medios, ahora=None):
         "address": a, "mode": "managed", "type": r["type"], "provider_name": PROVIDER,
         "change": {"actions": ["no-op"], "before": r["values"], "after": r["values"]},
     } for a, r in previos.items()])
-    convergencia(copia, account, arn_de_medios, ahora=ahora, fase="h0316")
+    # Guarda historica de H-031-6: sus planes se emitieron con Terraform 1.16.2.
+    convergencia(copia, account, arn_de_medios, ahora=ahora, fase="h0316", version="1.16.2")
     vistos, normalizados, resto = set(), [], []
     for entrada in plan.get("resource_drift") or []:
         address, c = entrada.get("address"), entrada.get("change") or {}

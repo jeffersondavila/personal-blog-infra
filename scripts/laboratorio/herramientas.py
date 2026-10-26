@@ -35,7 +35,7 @@ from typing import Final
 
 #: Version exacta de la CLI. Debe coincidir con `required_version` de
 #: `terraform/versions.tf`; hay una prueba que lo exige.
-VERSION_DE_TERRAFORM: Final = "1.16.2"
+VERSION_DE_TERRAFORM: Final = "1.16.7"
 
 #: Version exacta del provider oficial de AWS.
 VERSION_DEL_PROVIDER: Final = "6.70.0"
@@ -44,13 +44,13 @@ VERSION_DEL_PROVIDER: Final = "6.70.0"
 #: autoriza, y `Task/024` ya fijo `linux/amd64` para el artefacto.
 PLATAFORMAS: Final = ("linux_amd64", "windows_amd64")
 
-#: `sha256` de los artefactos oficiales, verificados el 2026-09-13 contra
-#: `https://releases.hashicorp.com/terraform/1.16.2/terraform_1.16.2_SHA256SUMS`,
+#: `sha256` de los artefactos oficiales, verificados el 2026-10-23 contra
+#: `https://releases.hashicorp.com/terraform/1.16.7/terraform_1.16.7_SHA256SUMS`,
 #: cuyo archivo de sumas lleva firma GPG valida de HashiCorp Security
 #: (clave primaria C874011F0AB405110D02105534365D9472D7468F).
 CHECKSUMS_DE_TERRAFORM: Final = {
-    "linux_amd64": "0d17011f0c4664539b164b044903d04e296c86c13cb9f28040076c65cfb3985a",
-    "windows_amd64": "6ef140ce1d399dc43b8315194176ddc2dfb5c21d607968e82ef20a55cfff40d0",
+    "linux_amd64": "5454efcf7fc87f0c2113111b9a5c7182f0ca1c6f0f23a1e110a50770a8fe473b",
+    "windows_amd64": "b22dfa64a9530c9b7774f840d98e9bfadc1ae33b1bd2083ffa976828c46e542c",
 }
 
 #: `sha256` de los artefactos del provider, verificados el 2026-10-22 contra

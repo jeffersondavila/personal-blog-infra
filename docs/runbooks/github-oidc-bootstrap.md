@@ -19,7 +19,7 @@ JWT ni credenciales STS. GetCallerIdentity comprueba identidad, **no demuestra M
 el login humano es una evidencia separada.
 
 Antes de cualquier futura operación: autorización de su alcance, código revisado
-identificado por digest, Terraform **1.16.2** y provider **6.70.0** con lock del repo,
+identificado por digest, Terraform **1.16.7** y provider **6.70.0** con lock del repo,
 Python 3.12+, AWS CLI v2 y GnuPG disponibles. Verificar procedencia/checksums de
 herramientas. No habilitar debug, `set -x`, `TF_LOG`, endpoints alternativos, perfiles
 ajenos, plugins/CLI args Terraform inyectados ni segundo escritor.

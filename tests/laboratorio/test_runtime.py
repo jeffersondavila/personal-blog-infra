@@ -251,10 +251,11 @@ class IdentificacionDeContenedoresTests(unittest.TestCase):
     """Que contenedor es el de la funcion, y cual no.
 
     Observado en los logs del emulador durante una invocacion real: lanza DOS
-    contenedores distintos y solo uno ejecuta el codigo.
+    contenedores distintos y solo uno ejecuta el codigo. Desde Floci 2.3.0 los
+    nombres llevan el prefijo `floci-aws-` (PR #4273; ciclo del 2026-10-24):
 
-      floci-codevol-blog-lab-backend-c702b34d   <- puebla el volumen de codigo
-      floci-blog-lab-backend-85f90d15           <- ejecuta la funcion
+      floci-aws-codevol-blog-lab-backend-7b9144ce   <- puebla el volumen de codigo
+      floci-aws-blog-lab-backend-4ca304d1           <- ejecuta la funcion
 
     Confundirlos daria por evidencia un contenedor auxiliar que no corrio el
     handler. Ambos se retiran al terminar, asi que hay que observarlos mientras
@@ -264,14 +265,14 @@ class IdentificacionDeContenedoresTests(unittest.TestCase):
     def test_reconoce_el_contenedor_de_la_funcion(self):
         self.assertTrue(
             modulo.es_contenedor_de_la_funcion(
-                "floci-blog-lab-backend-85f90d15", "blog-lab-backend"
+                "floci-aws-blog-lab-backend-4ca304d1", "blog-lab-backend"
             )
         )
 
     def test_descarta_el_contenedor_del_volumen_de_codigo(self):
         self.assertFalse(
             modulo.es_contenedor_de_la_funcion(
-                "floci-codevol-blog-lab-backend-c702b34d", "blog-lab-backend"
+                "floci-aws-codevol-blog-lab-backend-7b9144ce", "blog-lab-backend"
             )
         )
 
@@ -295,7 +296,7 @@ class IdentificacionDeContenedoresTests(unittest.TestCase):
 
     def test_descarta_otra_funcion(self):
         self.assertFalse(
-            modulo.es_contenedor_de_la_funcion("floci-otra-funcion-abc", "blog-lab-backend")
+            modulo.es_contenedor_de_la_funcion("floci-aws-otra-funcion-abc", "blog-lab-backend")
         )
 
     def test_exige_el_prefijo_del_emulador(self):
@@ -303,6 +304,14 @@ class IdentificacionDeContenedoresTests(unittest.TestCase):
         self.assertFalse(
             modulo.es_contenedor_de_la_funcion("blog-lab-backend", "blog-lab-backend")
         )
+
+    def test_descarta_los_nombres_anteriores_a_floci_230(self):
+        """El emulador esta fijado en 2.3.0: los nombres de 2.1.0 ya no identifican a nadie."""
+        for nombre in ("floci-blog-lab-backend-85f90d15", "floci-codevol-blog-lab-backend-c702b34d"):
+            with self.subTest(nombre=nombre):
+                self.assertFalse(
+                    modulo.es_contenedor_de_la_funcion(nombre, "blog-lab-backend")
+                )
 
 
 class ContenedorTests(unittest.TestCase):

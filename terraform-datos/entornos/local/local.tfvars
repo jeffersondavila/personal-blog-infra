@@ -27,11 +27,12 @@ etiquetas = {
   Tarea      = "Task-031"
 }
 
-# El emulador publica los ID de zona con otro formato (`us-east-1-az1`) que AWS
-# (`use1-az1`). Es un valor del destino: el modulo y la validacion son los mismos.
+# Desde Floci 2.3.0 el emulador publica los ID de zona con el formato de AWS
+# (`use1-az1`) y CreateSubnet rechaza el que publicaba 2.1.0 (`us-east-1-az1`).
+# Es un valor del destino: el modulo y la validacion son los mismos.
 subredes = {
-  a = { cidr = "10.40.0.0/20", zona_id = "us-east-1-az1" }
-  b = { cidr = "10.40.16.0/20", zona_id = "us-east-1-az2" }
+  a = { cidr = "10.40.0.0/20", zona_id = "use1-az1" }
+  b = { cidr = "10.40.16.0/20", zona_id = "use1-az2" }
 }
 
 # El laboratorio se reconstruye en cada ciclo: sin esto el destroy no podria

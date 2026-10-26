@@ -7,6 +7,12 @@ las diferencias de `resource_changes` ya declaradas en H-031-1. Los ID son
 sinteticos; no hay Account ID, contrasena ni valor del emulador que dependa de
 una ejecucion concreta.
 
+Actualizado con el segundo plan del ciclo del 2026-10-24 contra Floci 2.3.0
+(Terraform 1.16.7, provider 6.70.0; mantenimiento de CI de Task/031): el
+emulador ya devuelve `enabled_cloudwatch_logs_exports`,
+`engine_lifecycle_support`, `max_allocated_storage` y el `KeyId`/`Tier` de SSM,
+y `latest_restorable_time` avanza como en AWS.
+
 No es un archivo de pruebas: `unittest discover -p 'test_*.py'` no lo recoge.
 Lo comparten las regresiones que necesitan el mismo plan.
 """
@@ -14,12 +20,18 @@ Lo comparten las regresiones que necesitan el mismo plan.
 from __future__ import annotations
 
 import copy
+from datetime import datetime, timezone
 from typing import Any
 
 SG_ADMIN = "sg-0a0a0a0a0a0a0a0a0"
 SG_LAMBDA = "sg-0b1b1b1b1b1b1b1b1"
 SG_RDS = "sg-0c2c2c2c2c2c2c2c2"
 LISTA_DE_PREFIJOS_S3 = "pl-0000aaaa"
+
+#: Instante en que el laboratorio evaluo el segundo plan (Floci 2.3.0, 2026-10-24).
+#: `latest_restorable_time` avanza, y su contrato (`instante_movil`) se mide
+#: contra este `ahora`, igual que la convergencia productiva.
+AHORA = datetime(2026, 10, 24, 4, 27, 5, tzinfo=timezone.utc)
 
 INSTANCIA = "module.base_de_datos.aws_db_instance.this"
 GRUPO_DE_PARAMETROS = "module.base_de_datos.aws_db_parameter_group.this"
@@ -178,9 +190,11 @@ def _drift_observado() -> list[dict[str, Any]]:
             INSTANCIA,
             "aws_db_instance",
             {**instancia_comun, "domain_dns_ips": None,
-             "enabled_cloudwatch_logs_exports": ["postgresql"]},
+             "enabled_cloudwatch_logs_exports": ["postgresql"],
+             "latest_restorable_time": "2026-10-24T04:24:48Z"},
             {**instancia_comun, "domain_dns_ips": [],
-             "enabled_cloudwatch_logs_exports": []},
+             "enabled_cloudwatch_logs_exports": ["postgresql"],
+             "latest_restorable_time": "2026-10-24T04:27:01Z"},
         ),
         _entrada(
             GRUPO_DE_PARAMETROS,
@@ -224,32 +238,21 @@ def _drift_observado() -> list[dict[str, Any]]:
 
 
 def _cambios_observados() -> list[dict[str, Any]]:
-    """Las diferencias de `resource_changes` declaradas en H-031-1."""
+    """Las diferencias de `resource_changes` declaradas en H-031-1 que siguen con Floci 2.3.0."""
     return [
         _entrada(
             INSTANCIA,
             "aws_db_instance",
-            {"ca_cert_identifier": "", "enabled_cloudwatch_logs_exports": [],
-             "engine_lifecycle_support": "", "max_allocated_storage": 0,
-             "network_type": "", "port": 7001, "storage_type": "gp2",
-             "domain_dns_ips": []},
-            {"ca_cert_identifier": "rds-ca-rsa2048-g1",
-             "enabled_cloudwatch_logs_exports": ["postgresql"],
-             "engine_lifecycle_support": "open-source-rds-extended-support-disabled",
-             "max_allocated_storage": 50, "network_type": "IPV4", "port": 5432,
-             "storage_type": "gp3", "domain_dns_ips": []},
+            {"ca_cert_identifier": "", "network_type": "", "port": 7001,
+             "storage_type": "gp2", "domain_dns_ips": []},
+            {"ca_cert_identifier": "rds-ca-rsa2048-g1", "network_type": "IPV4",
+             "port": 5432, "storage_type": "gp3", "domain_dns_ips": []},
         ),
         _entrada(
             GRUPO_DE_PARAMETROS,
             "aws_db_parameter_group",
             {"parameter": []},
             {"parameter": PARAMETROS},
-        ),
-        _entrada(
-            PARAMETRO_SSM,
-            "aws_ssm_parameter",
-            {"key_id": "", "tier": ""},
-            {"key_id": "alias/aws/ssm", "tier": "Standard"},
         ),
     ]
 
@@ -259,7 +262,7 @@ def plan_de_datos_observado() -> dict[str, Any]:
     return copy.deepcopy(
         {
             "format_version": "1.2",
-            "terraform_version": "1.16.2",
+            "terraform_version": "1.16.7",
             "applyable": True,
             "complete": True,
             "errored": False,

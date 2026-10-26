@@ -23,7 +23,7 @@ Aprobación: **2026-09-29**.
 ## 1. Propiedad y alcance
 
 Root único: [bootstrap/terraform-state](../../bootstrap/terraform-state/main.tf).
-Terraform **1.16.2**, provider oficial **6.70.0**, lock de Windows/Linux igual al
+Terraform **1.16.7**, provider oficial **6.70.0**, lock de Windows/Linux igual al
 bootstrap OIDC. No se invoca el grafo de aplicación ni su lanzador `production`.
 D-06 sigue **Resuelta desde Task/025**: aquí se materializa, no se redefine.
 

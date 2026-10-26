@@ -207,15 +207,17 @@ def preparar_runtime(fijado: RuntimeFijado, docker: Docker) -> dict[str, Any]:
     return informe
 
 
-#: Prefijo con el que el emulador nombra los contenedores que lanza.
-PREFIJO_DEL_EMULADOR: Final = "floci-"
+#: Prefijo con el que el emulador nombra los contenedores que lanza. Floci 2.3.0 lo cambio de `floci-` a
+#: `floci-aws-` (PR #4273, «own the floci-aws- container and volume prefix»): con el anterior, el ciclo del
+#: 2026-10-24 no reconocio ningun contenedor y la verificacion del runtime fijado se detuvo, como debia.
+PREFIJO_DEL_EMULADOR: Final = "floci-aws-"
 
 #: El emulador lanza DOS contenedores por invocacion en frio. Solo uno ejecuta el
-#: codigo; el otro puebla el volumen de codigo y se llama `floci-codevol-…`.
-#: Observado en sus logs durante una invocacion real:
+#: codigo; el otro puebla el volumen de codigo y se llama `floci-aws-codevol-…`.
+#: Observado en sus logs durante una invocacion real (Floci 2.3.0, 2026-10-24):
 #:
-#:   floci-codevol-blog-lab-backend-c702b34d   <- puebla el volumen
-#:   floci-blog-lab-backend-85f90d15           <- ejecuta la funcion
+#:   floci-aws-codevol-blog-lab-backend-7b9144ce   <- puebla el volumen
+#:   floci-aws-blog-lab-backend-4ca304d1           <- ejecuta la funcion
 #:
 #: Confundirlos daria por evidencia un contenedor auxiliar que nunca corrio el
 #: handler.

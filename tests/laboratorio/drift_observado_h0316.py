@@ -18,6 +18,9 @@ real:
     (demostrado con `DescribeAlarms` directo contra el emulador);
   - los dos SecureString nuevos, con las mismas diferencias `key_id` y `tier` que la master.
 
+Desde Floci 2.3.0 (ciclo del 2026-10-24) el emulador ya devuelve `DatapointsToAlarm` y el `KeyId`/`Tier` de SSM:
+en `resource_changes` solo queda `extended_statistic`, en las dos alarmas de percentil.
+
 Los ID son sinteticos; no hay Account ID, contrasena ni valor de una ejecucion concreta. No es un archivo de pruebas.
 """
 
@@ -105,16 +108,8 @@ def _drift_nuevo() -> list[dict[str, Any]]:
 
 
 def _cambios_nuevos() -> list[dict[str, Any]]:
-    cambios = []
-    for senal in SENALES:
-        antes, despues = {"datapoints_to_alarm": 0}, {"datapoints_to_alarm": PUNTOS[senal]}
-        if senal in PERCENTILES:
-            antes["extended_statistic"], despues["extended_statistic"] = None, "p90"
-        cambios.append(base._entrada(ALARMA.format(senal), "aws_cloudwatch_metric_alarm", antes, despues))
-    for direccion in SSM_NUEVOS:
-        cambios.append(base._entrada(direccion, "aws_ssm_parameter", {"key_id": "", "tier": ""},
-                                     {"key_id": "alias/aws/ssm", "tier": "Standard"}))
-    return cambios
+    return [base._entrada(ALARMA.format(senal), "aws_cloudwatch_metric_alarm", {"extended_statistic": None},
+                          {"extended_statistic": "p90"}) for senal in PERCENTILES]
 
 
 def plan_de_datos_observado() -> dict[str, Any]:

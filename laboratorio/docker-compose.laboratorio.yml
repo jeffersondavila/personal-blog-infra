@@ -49,7 +49,7 @@
 # VERSION FIJADA POR DIGEST (control S-10, ADR-006 seccion 5.4)
 #
 #   Nunca `latest` ni `nightly`. El digest es el del INDICE OCI multiarquitectura
-#   de la etiqueta 2.1.0; su manifiesto linux/amd64 se registra en el reporte.
+#   de la etiqueta 2.3.0; su manifiesto linux/amd64 se registra en el reporte.
 #   `platform` es explicito para que la resolucion no dependa de la maquina.
 # ---------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}
 
 services:
   emulador:
-    # floci/floci:2.1.0 — indice OCI, verificado el 2026-09-20.
+    # floci/floci:2.3.0 — indice OCI, verificado el 2026-10-23.
     image: floci/floci@${LAB_EMULADOR_DIGEST:?falta LAB_EMULADOR_DIGEST}
     platform: linux/amd64
     container_name: ${LAB_COMPOSE_PROJECT_NAME:-personal-blog-lab}-emulador

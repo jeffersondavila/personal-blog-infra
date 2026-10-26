@@ -9,7 +9,7 @@ El control positivo —la copia sin fuga valida— demuestra que el rechazo se d
 la fuga y no a la preparacion. La ausencia EMPIRICA en el plan, el state y las
 salidas reales se demuestra en el laboratorio (canario de `laboratorio.py`).
 
-Necesita el binario de Terraform 1.16.2. Si no esta disponible, la prueba se
+Necesita el binario de Terraform fijado en `herramientas.py`. Si no esta disponible, la prueba se
 OMITE y lo dice: nunca se da por buena sin ejecutarse. En CI corre despues de
 instalar Terraform. Para trabajar sin red, `PERSONAL_BLOG_PLUGIN_DIR` apunta a
 un directorio de providers ya verificado.
@@ -18,6 +18,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -54,7 +55,11 @@ def binario_de_terraform():
     candidatos = [os.environ.get("PERSONAL_BLOG_TERRAFORM"), shutil.which("terraform")]
     cache = os.environ.get("LOCALAPPDATA")
     if cache:
-        candidatos.append(str(Path(cache) / "personal-blog-infra/herramientas/terraform-1.16.2/windows_amd64/terraform.exe"))
+        sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
+        from laboratorio import herramientas
+
+        version = herramientas.VERSION_DE_TERRAFORM
+        candidatos.append(str(Path(cache) / f"personal-blog-infra/herramientas/terraform-{version}/windows_amd64/terraform.exe"))
     for candidato in candidatos:
         if candidato and Path(candidato).is_file():
             return candidato
@@ -66,7 +71,7 @@ class LaContrasenaNoSalePorNingunCaminoTests(unittest.TestCase):
     def setUpClass(cls):
         cls.terraform = binario_de_terraform()
         if not cls.terraform:
-            raise unittest.SkipTest("Terraform 1.16.2 no disponible: control negativo OMITIDO, no aprobado")
+            raise unittest.SkipTest("Terraform fijado no disponible: control negativo OMITIDO, no aprobado")
         cls.temporal = tempfile.TemporaryDirectory()
         base = Path(cls.temporal.name)
         shutil.copytree(
