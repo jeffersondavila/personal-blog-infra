@@ -5698,3 +5698,12 @@ Task/030. Es preexistente en `main`, y este mantenimiento no lo toca.
    `main → dev`.
 
 GitHub es la fuente viva del estado de los checks.
+
+> **Complemento del 2026-10-27 (`Task/031.1`).** El punto 4 describía el estado que se observó al escribir este
+> registro, el 2026-10-26. Según [WORKFLOW §6.1](../project-management/WORKFLOW.md#61-estado-duradero-frente-a-estado-transitorio),
+> el estado vivo de un PR no se versiona como vigente, así que se conserva aquí solo como esa observación. Las fechas
+> son UTC, como el resto del cierre ([§52](#52-aprobación-y-cierre-2026-10-21)).
+>
+> *Observado el 2026-10-27:* el PR #57 se fusionó en `main` con el merge `1fdc843`, la normalización
+> `main → dev` es `f833014` y la rama Task031 se eliminó en local y en remoto. El CI de `main` y el de `dev`
+> terminaron en `success`.

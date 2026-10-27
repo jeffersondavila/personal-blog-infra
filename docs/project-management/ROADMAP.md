@@ -1,5 +1,14 @@
 # ROADMAP — Blog Personal
 
+**2026-10-27 — `Task/031.1-Corregir-Discrepancias-Documentales-Pre-Task032` Lista para validación.** Mantenimiento
+documental **fuera de las 41**. La auditoría previa a `Task/032` encontró **nueve discrepancias verificadas** (H1–H9)
+entre la documentación vigente y el estado aprobado, todas documentales. Se corrigen sin cambiar decisiones, código
+funcional, infraestructura ni políticas de seguridad, y la historia se conserva con complementos fechados. Avance sin
+cambios: **31/41 ≈ 76 %**, ETAPA 10 **2/7 ≈ 29 %**; **`Task/032` Pendiente, no iniciada**. *(Fecha UTC, como el
+cierre de `Task/031`; en America/Guatemala, la noche del 2026-10-26.)*
+[Ficha](../tasks/TASK-031.1-correct-pre-task032-documentation-discrepancies.md) ·
+[Reporte](../task-reports/TASK-031.1-report.md).
+
 **2026-10-21 — `Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch` APROBADA** mediante
 `approved: Task/031-Desplegar-Red-RDS-SSM-y-CloudWatch`, con la aceptación expresa de las excepciones 5, 6 y 8. Segunda tarea aprobada de la
 **ETAPA 10: 2/7 ≈ 29 %**; avance global **31/41 ≈ 76 %**. Red privada, RDS privada, SSM, alarmas de D-11, rol de

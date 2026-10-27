@@ -665,10 +665,13 @@ presupuesto preliminar, `Task/032` lo mide y lo aplica, `Task/040` prueba satura
 recuperación. **RDS Proxy** solo entra con evidencia de carga, *session pinning*,
 autenticación y precio. **No se instala PgBouncer por inercia.**
 
-**Sigue abierto** y pertenece a `Task/029`: región, versión, clase, almacenamiento y
-disponibilidad (**D-22**); TLS, KMS y credenciales (**D-23**); canal privado de
-administración y migraciones (**D-24**); backups y recuperación (**D-10**); presupuesto
-preliminar de conexiones (**D-12**).
+**Decidido.** `Task/029`, aprobada el 2026-09-27, resolvió ese día **D-22** (región,
+versión, clase, almacenamiento y disponibilidad), **D-23** (TLS, KMS y credenciales),
+**D-24** (canal privado de administración y migraciones) y **D-10** (backups y
+recuperación), y aprobó el presupuesto preliminar de conexiones. **D-12** no se cerró con
+ella: la cierra `Task/032` con medición. Estado vivo de cada decisión: el
+[registro](open-decisions.md). *(Hasta `Task/031.1` este párrafo decía que todo ello «sigue
+abierto y pertenece a `Task/029`», cierto antes de su aprobación.)*
 
 Documento canónico: [production-postgresql-rds.md](production-postgresql-rds.md) ·
 [ADR-010](../adr/ADR-010-production-postgresql-on-rds.md) — **Aceptada** ✔ (2026-09-27).

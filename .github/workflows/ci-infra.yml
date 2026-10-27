@@ -489,7 +489,8 @@ jobs:
 
           # MinIO es un derivado reproducible de upstream, no una imagen propia
           # sujeta a tolerancia cero. Se construye sin cache, como OCI local y
-          # sin publicar; el verificador exige que solo cambie /usr/bin/minio.
+          # sin publicar; el verificador exige que solo cambie lo declarado en el
+          # build manifest: los dos binarios y la capa de paquetes (contrato v3).
           #
           # El exportador OCI NO existe en el driver `docker`, que es el del
           # builder `default` del runner: contra el, este mismo comando sale con
@@ -528,7 +529,7 @@ jobs:
           mkdir -p /tmp/trivy-reports
           portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
           # El emulador del laboratorio se escanea por su DIGEST exacto, que es
-          # tambien la identidad a la que esta ligada su aceptacion temporal.
+          # tambien la identidad que fija su entrada del baseline.
           floci="floci/floci:2.3.0@$(grep -m1 '^LAB_EMULADOR_DIGEST=' laboratorio/.env.laboratorio.example | cut -d= -f2-)"
           escanear() {
             echo "::group::Trivy $2"
