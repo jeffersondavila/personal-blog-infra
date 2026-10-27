@@ -123,10 +123,11 @@ variable "subredes" {
   }
 
   validation {
-    # Dos formatos de ID: el de AWS (`use2-az1`) y el que publica el emulador
-    # (`us-east-1-az1`), que es un VALOR del destino local, no un diseno
-    # distinto (hallazgo de H-031-1, matriz de paridad). Un nombre de AZ como
-    # `us-east-2a` sigue rechazado: depende de la cuenta.
+    # Dos formatos de ID: el de AWS (`use2-az1`) y el que publicaba el emulador
+    # hasta Floci 2.1.0 (`us-east-1-az1`), un VALOR del destino local y no un
+    # diseno distinto (hallazgo de H-031-1, matriz de paridad); desde 2.3.0 el
+    # emulador publica el de AWS. Un nombre de AZ como `us-east-2a` sigue
+    # rechazado: depende de la cuenta.
     condition     = alltrue([for s in values(var.subredes) : can(cidrhost(s.cidr, 0)) && can(regex("^([a-z]{3,5}[0-9]|[a-z]{2}-[a-z]+-[0-9])-az[0-9]+$", s.zona_id))])
     error_message = "Cada subred necesita un CIDR valido y un ID de AZ (p. ej. use2-az1), no un nombre."
   }

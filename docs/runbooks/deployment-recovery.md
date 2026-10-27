@@ -93,8 +93,9 @@ controlado → reconciliación → DESTROY → ausencia → RECONSTRUCCIÓN → 
 DESTROY → ausencia. El drift permitido es exactamente
 `/blog-lab/local/storage_region`; el plan debe recrear su dirección Terraform y, fuera
 de ella, aplicación debe converger (H-025-1 quedó resuelta con Floci 2.1.0). El segundo
-plan de datos solo tolera las diez diferencias estrechas del emulador declaradas en la
-[matriz de paridad](../architecture/aws-local-parity.md), nunca drift nuevo ni `ignore_changes`.
+plan de datos solo tolera las diferencias estrechas del emulador declaradas en la
+[matriz de paridad](../architecture/aws-local-parity.md) y en `DIFERENCIAS_DEL_DESTINO_LOCAL_DE_DATOS` de
+`scripts/laboratorio/laboratorio.py` —seis clases con Floci 2.3.0—, nunca drift nuevo ni `ignore_changes`.
 
 > **Ampliado el 2026-10-03 por `Task/031` (H-031-1A), aprobada el 2026-10-21.**
 > El segundo plan de datos es **un único** plan guardado con `-detailed-exitcode` cuyo JSON se
@@ -105,6 +106,17 @@ plan de datos solo tolera las diez diferencias estrechas del emulador declaradas
 > valor fuera de lista **detiene** el ciclo. `domain_dns_ips: null → []` figura en la lista
 > como representación del SDKv2 del provider, **no** del emulador: contra AWS el gate
 > productivo lo rechaza y se aplica DN-2 ([reporte de Task/031 §15](../task-reports/TASK-031-report.md#15-h-031-1a--resolución-del-bloqueo-de-domain_dns_ips-2026-10-03)).
+
+> **Actualizado el 2026-10-27 (`Task/031.1`).** Las cifras de la nota anterior son las de H-031-1A y se conservan
+> como historia. Su evolución:
+> - **Desde H-031-6** (ciclo del 2026-10-20, [reporte de Task/031 §50.3](../task-reports/TASK-031-report.md#503-laboratorio-causa-y-corrección-del-fallo-del-ciclo-completo)):
+>   la lista cerrada de `resource_drift` tiene **16** entradas y `resource_changes` toleraba **12** clases.
+> - **Con Floci 2.3.0** (mantenimiento de CI de `Task/031`, 2026-10-26): `resource_changes` tolera **6** clases. La
+>   entrada de `aws_db_instance` exige `latest_restorable_time` con el contrato `instante_movil` de la convergencia
+>   productiva.
+>
+> La fuente es `scripts/laboratorio/laboratorio.py`. El resumen del ciclo imprime lo observado en las dos secciones,
+> ya juzgado contra esas listas.
 
 ## 5. Estado perdido o incoherente
 

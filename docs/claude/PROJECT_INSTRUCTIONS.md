@@ -527,7 +527,8 @@ Fuente completa y única: [PostgreSQL RDS](../architecture/production-postgresql
 9. Aplicación neutral mediante DATABASE_URL; PostgreSQL local permanece. Floci no
    prueba RDS real. No alterar Task/028 ni ampliar su rol de validación.
 10. Esta regla no crea recursos ni secretos: cada recurso exige su tarea propietaria
-    y la autorización explícita del usuario. Task/029 sigue Pendiente.
+    y la autorización explícita del usuario. Task/029 —aprobada el 2026-09-27— no
+    provisionó nada; la red y el RDS los provisionó Task/031, aprobada el 2026-10-21.
 
 Las doce reglas del modelo VPS (vigentes desde `Task/005.3`) se conservan como historia
 en ADR-007 y en `production-postgresql-vps.md`; siguen vigentes en su fondo las que no
