@@ -1,0 +1,61 @@
+# ---------------------------------------------------------------------------
+# Destino: AWS REAL — root de datos. PLANTILLA, sin valores reales.
+#
+# El archivo operativo se crea fuera de Git, en el directorio privado del
+# operador, porque lleva el Account ID verificado y el nombre del bucket de
+# medios. La contrasena master NUNCA va en un tfvars: es una variable efimera
+# que se aporta por entorno en el plan y otra vez en el apply (DH-2).
+#
+# Compara con entornos/local/local.tfvars: el mismo root, los mismos modulos y
+# el mismo conjunto de variables. Cambian los valores, no el grafo.
+#
+# Los valores de D-22/D-10 —clase, version, almacenamiento, retenciones y
+# ventanas— son los defaults del root, validados alli. No se repiten aqui para
+# que no puedan divergir sin pasar por la validacion.
+# ---------------------------------------------------------------------------
+
+# EXCEPCION TEMPORAL de D-10/D-22 (Task/031 §34): la cuenta esta en plan FREE y AWS
+# rechazo la retencion de 7 dias con FreeTierRestrictionError. Mientras siga en FREE,
+# 1 dia: conserva backups automaticos y PITR de las ultimas 24 horas. Al pasar al plan
+# PAID se BORRA esta linea y vuelve el default, 7. No es el maximo del plan FREE, que
+# AWS no publica. Antes de una migracion o un cambio destructivo de la base, snapshot
+# manual segun el runbook (deployment-recovery.md).
+dias_de_retencion_de_backups = 1
+
+# Region decidida en Task/029 (H-1).
+region = "us-east-2"
+
+# Sin banderas de emulador y sin endpoints: el provider resuelve los de AWS.
+laboratorio = false
+
+# Guarda fail-closed: exactamente la cuenta verificada.
+cuentas_permitidas = ["REPLACE_WITH_VERIFIED_ACCOUNT"]
+
+# Identidad que opera este root: UNA exacta, por decision operacional del usuario
+# (Task/031 §24). Con cualquier otra sesion, el plan se detiene en la
+# postcondicion de identidad.
+rol_operativo = "PersonalBlogAdministrator"
+
+prefijo = "blog-prod"
+
+etiquetas = {
+  Proyecto   = "personal-blog"
+  Entorno    = "produccion"
+  Gestion    = "terraform"
+  Componente = "datos"
+  Tarea      = "Task/031"
+}
+
+# D-22 y DH-4: zonas fijadas por ID. H-031-2 confirma antes del plan que
+# PostgreSQL 17.11 + db.t4g.micro + gp3 son ordenables en ambas.
+subredes = {
+  a = { cidr = "10.40.0.0/20", zona_id = "use2-az1" }
+  b = { cidr = "10.40.16.0/20", zona_id = "use2-az2" }
+}
+
+# Contrato de `terraform-medios`: ARN de su bucket, que este root NO administra.
+arn_del_bucket_de_medios = "arn:aws:s3:::REPLACE-with-reviewed-media-bucket"
+
+# D-10: produccion nunca omite estas protecciones. El root rechaza otro valor.
+proteccion_contra_borrado = true
+omitir_snapshot_final     = false

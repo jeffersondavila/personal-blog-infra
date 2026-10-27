@@ -1,0 +1,11 @@
+# Plantilla del backend del bootstrap de la identidad operativa. SIN CREDENCIALES.
+#
+# Key dedicada, distinta de las tres existentes y de la del root de datos.
+# Inicializarla NO esta autorizado por H-031-1: es de H-031-IAM, y SOLO con
+# `PersonalBlogAdministrator` como identidad de bootstrap.
+bucket               = "REPLACE_WITH_REVIEWED_STATE_BUCKET"
+key                  = "bootstrap/operador-datos/terraform.tfstate"
+region               = "us-east-2"
+encrypt              = true
+use_lockfile         = true
+allowed_account_ids  = ["REPLACE_WITH_VERIFIED_ACCOUNT"]

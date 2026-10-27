@@ -47,8 +47,8 @@ env:
   # verificados contra releases.hashicorp.com. El mismo par vive en
   # scripts/laboratorio/herramientas.py y en terraform/versions.tf, y hay una
   # prueba unitaria que exige que no discrepen.
-  VERSION_DE_TERRAFORM: '1.16.2'
-  SHA256_DE_TERRAFORM: '0d17011f0c4664539b164b044903d04e296c86c13cb9f28040076c65cfb3985a'
+  VERSION_DE_TERRAFORM: '1.16.7'
+  SHA256_DE_TERRAFORM: '5454efcf7fc87f0c2113111b9a5c7182f0ca1c6f0f23a1e110a50770a8fe473b'
   # BuildKit del builder dedicado que exporta el OCI de MinIO. Se fija por
   # DIGEST del indice multi-arquitectura, no por la etiqueta `buildx-stable-1`,
   # que es movil: el indice resuelve linux/amd64 en el runner y corresponde a
@@ -207,6 +207,40 @@ jobs:
           git diff --exit-code -- terraform-medios/.terraform.lock.hcl
           terraform -chdir=terraform-medios validate
           terraform -chdir=terraform-medios test
+
+      # Root de DATOS (`Task/031`, DH-1): red privada y RDS, con su propio state.
+      # Offline: proveedor simulado, sin credenciales. La guarda del plan se
+      # prueba con fixtures; el control negativo de DH-2 exige que Terraform
+      # RECHACE cualquier fuga de la contrasena efimera.
+      - name: Data root static validation, mocked plans and secret controls
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch terraform-datos/.terraform.lock.hcl >/dev/null
+          terraform -chdir=terraform-datos fmt -check -recursive
+          terraform fmt -check -recursive terraform/modulos/red terraform/modulos/base_de_datos
+          terraform -chdir=terraform-datos init -backend=false -input=false -lockfile=readonly
+          git diff --exit-code -- terraform-datos/.terraform.lock.hcl
+          terraform -chdir=terraform-datos validate
+          terraform -chdir=terraform-datos test
+          python3 -B -m unittest discover -s tests/terraform_datos -v
+
+      # Bootstrap de la identidad operativa minima (`Task/031`, DH-3). DISENO:
+      # nada se aplica en CI ni en H-031-1. Valida trust, limites y denegaciones.
+      - name: Operator identity bootstrap static validation and mocked plans
+        env:
+          TF_IN_AUTOMATION: '1'
+          CHECKPOINT_DISABLE: '1'
+        run: |
+          set -euo pipefail
+          git ls-files --error-unmatch bootstrap/operador-datos/.terraform.lock.hcl >/dev/null
+          terraform -chdir=bootstrap/operador-datos fmt -check -recursive
+          terraform -chdir=bootstrap/operador-datos init -backend=false -input=false -lockfile=readonly
+          git diff --exit-code -- bootstrap/operador-datos/.terraform.lock.hcl
+          terraform -chdir=bootstrap/operador-datos validate
+          terraform -chdir=bootstrap/operador-datos test
 
       # Las guardas fail-closed usan entradas sinteticas. La sonda HTTP se prueba
       # contra un servidor efimero de loopback, sin AWS ni emulador en CI.
@@ -495,7 +529,7 @@ jobs:
           portainer="portainer/portainer-ce:$(grep -m1 '^PORTAINER_VERSION=' .env.example | cut -d= -f2-)"
           # El emulador del laboratorio se escanea por su DIGEST exacto, que es
           # tambien la identidad a la que esta ligada su aceptacion temporal.
-          floci="floci/floci:2.1.0@$(grep -m1 '^LAB_EMULADOR_DIGEST=' laboratorio/.env.laboratorio.example | cut -d= -f2-)"
+          floci="floci/floci:2.3.0@$(grep -m1 '^LAB_EMULADOR_DIGEST=' laboratorio/.env.laboratorio.example | cut -d= -f2-)"
           escanear() {
             echo "::group::Trivy $2"
             trivy image --scanners vuln --severity LOW,MEDIUM,HIGH,CRITICAL \

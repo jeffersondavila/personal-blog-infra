@@ -1,0 +1,29 @@
+# Operador de la ejecutora de D-24 (Task/031 H-031-6): dependencias de scripts/terraform_datos/operar_ejecutora.py.
+#
+# El mismo cliente AWS fijado que el artefacto de la ejecutora y que personal-blog-backend/requirements.lock: mismas
+# versiones y hashes de rueda. Todas son ruedas py3-none-any salvo `awscrt` (al final). Entorno virtual fuera de Git,
+# por ejemplo:
+#   python -m venv tmp/operador-venv
+#   tmp/operador-venv/Scripts/python -m pip install --no-deps --only-binary=:all: --require-hashes
+#     -r scripts/terraform_datos/requirements-operador.txt
+boto3==1.43.82 \
+    --hash=sha256:65319e8bba6e30f74a6e2727a5688725222da2ab71c6069bc484ce5bfd101c73
+botocore==1.43.91 \
+    --hash=sha256:f96363d4caf50bce45fe2fdc2d4d86b3bea7f5cd805169d53c1371c2dd4772b6
+jmespath==1.1.0 \
+    --hash=sha256:a5663118de4908c91729bea0acadca56526eb2698e83de10cd116ae0f4e97c64
+python-dateutil==2.9.0.post0 \
+    --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
+s3transfer==0.19.2 \
+    --hash=sha256:d8168eccca828cbb2cd573675333f3bddd254313a9c42494b84c76b539e8ba25
+six==1.17.0 \
+    --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274
+urllib3==2.8.0 \
+    --hash=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3
+# Proveedor de credenciales de `aws login`: botocore 1.43.91 lo implementa con su extra `crt`, que fija
+# awscrt==0.36.0 (sin el, `MissingDependencyException`; comprobado el 2026-10-19). Rueda BINARIA abi3 (CPython
+# 3.11+), no py3-none-any: la de Windows x86_64 y la de Linux x86_64, con el SHA-256 publicado en PyPI; el de
+# Windows, ademas, recalculado de la descarga. Licencia Apache-2.0. Solo el operador la usa: no va en el artefacto.
+awscrt==0.36.0 \
+    --hash=sha256:d4b391736d15f44d452bef0372997c418af44c83d0a11953d0e18a5fd937ba0f \
+    --hash=sha256:bf8bafef584f9d5fead3a88f3b86e0aea957c85ecab5243d0c47858ea3d9b39a

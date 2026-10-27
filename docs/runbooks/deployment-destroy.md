@@ -1,9 +1,10 @@
 # Runbook — Destruir un despliegue
 
 > **Alcance futuro RDS — Task/028.2, aprobada el 2026-09-27.** Este runbook conserva
-> el alcance probado de Task/026; su inventario actual no cubre red/RDS nuevos.
-> Task/031 debe ampliar guardas/inventario, permisos, creación/borrado protegido,
-> snapshots/restore/PITR, KMS, SG, endpoint y rollback antes de operar esos recursos.
+> el alcance probado de Task/026. Task/031 H-031-1/H-031-1A amplía el laboratorio con
+> tres roots, **21 recursos de datos**, guardas e inventario de red/RDS en modo mock.
+> La operación productiva, permisos efectivos, snapshots/restore/PITR, KMS y seguridad
+> siguen pendientes de sus checkpoints autorizados en AWS.
 > Task/036/038 añade migraciones privadas y Task/040 verifica DR/restore integral.
 > [Contrato RDS](../architecture/production-postgresql-rds.md). No autoriza AWS ni
 > extiende EX-028-C7; D-06 en Task/030 precede al primer apply de aplicación.
@@ -41,6 +42,13 @@ python scripts/laboratorio/laboratorio.py --modo local destruir --lambda-zip $Ta
 Pop-Location
 ```
 
+> **Ampliado el 2026-10-03 por `Task/031` (H-031-1 y H-031-1A), aprobada el 2026-10-21.** Hay **tres** roots y el
+> orden inverso es **aplicación → datos → medios**. Datos tiene su propio plan, su SHA-256 y
+> su confirmación —21 bajas en el laboratorio, ninguna de S3 ni de aplicación—, y su apply
+> del plan guardado vuelve a aportar el archivo de variables **efímeras** (la contraseña
+> canario). Tras cada root se exige ausencia de lo ya destruido; los roots aún vivos se
+> toleran por **nombres exactos**, no por servicio.
+>
 > **Actualizado el 2026-09-29 por `Task/030` (DEF-030-2), aprobada ese mismo día.** Desde la enmienda `H-030-4-root-medios` hay **dos roots**, y `destruir` los
 > recorre en orden **inverso** al de creación: primero **aplicación**, que consume el
 > bucket, y después **medios**, que lo administra. Cada root tiene su propio plan, su
@@ -111,7 +119,8 @@ docker volume ls --filter 'label=floci=true' --format '{{.Name}}'
 Resultado esperado: el comando `bajar` declara cero residuos y las cinco consultas no
 imprimen nada.
 
-El laboratorio deja `terraform-medios` inicializado contra su backend **local**. Antes de
+El laboratorio deja `terraform-medios` —y desde `Task/031` también `terraform-datos`—
+inicializado contra su backend **local**. Antes de
 cualquier operación productiva sobre ese root, devolverlo a S3 con el procedimiento del
 [runbook del bucket de estado](terraform-state-bootstrap.md), §3: `init -reconfigure` con el
 `TF_DATA_DIR` privado, **sin migrar** ningún state.

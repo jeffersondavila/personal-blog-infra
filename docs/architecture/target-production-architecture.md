@@ -793,7 +793,8 @@ Reglas heredadas y vigentes:
 - Credenciales, rotación, *scopes* y guardas de destino **para los tres providers** son de
   `Task/039`. **`Task/028` solo resuelve GitHub Actions → AWS.** *(Con la enmienda
   los providers son **dos**, AWS y Cloudflare. `Task/031` se aplica con una
-  identidad operativa humana, mínima y autorizada explícitamente; no espera al rol de CI
+  identidad humana autorizada explícitamente —por decisión del usuario del 2026-10-04,
+  `PersonalBlogAdministrator` mediante el perfil `personal-blog` (reporte de Task/031 §24)—; no espera al rol de CI
   de `Task/039` ni amplía el rol de validación de `Task/028`.)*
 
 ---

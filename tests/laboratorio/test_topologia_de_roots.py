@@ -1,4 +1,4 @@
-"""La topologia de dos roots debe gobernar TODOS los comandos (DEF-030-2).
+"""La topologia de roots debe gobernar TODOS los comandos (DEF-030-2, Task/031).
 
 Por que este archivo existe
 ---------------------------
@@ -14,6 +14,11 @@ otro root, abortaba con `ErrorDeInventario` dejando el bucket en pie.
 
 Estas pruebas fijan el requisito: **una sola autoridad** sobre el orden, la
 cobertura y el contrato entre roots, y ningun comando que asuma un root unico.
+
+`Task/031` (H-031-1, DH-1) anade el tercer root, `terraform-datos` —red privada y
+RDS—, entre medios y aplicacion. Las pruebas cubren ahora los tres, y las del
+root de datos incluyen el canario de DH-2: la contrasena master no puede
+aparecer en el plan, el state ni las salidas.
 """
 
 from dataclasses import replace
@@ -36,7 +41,7 @@ BUCKET = "blog-lab-medios"
 ARN = f"arn:aws:s3:::{BUCKET}"
 
 #: Los comandos que crean, reconcilian, leen o destruyen infraestructura. Todos
-#: deben conocer los dos roots; `inspeccionar-sdk` no toca Terraform.
+#: deben conocer los tres roots; `inspeccionar-sdk` no toca Terraform.
 COMANDOS_DE_INFRAESTRUCTURA = ("ciclo", "crear", "validar", "rollback", "recuperar", "destruir")
 
 
@@ -87,6 +92,9 @@ def herramental_de_mentira(corredor, *, vaciados=None):
     def escribir_aplicacion(destino, zip_de_lambda, medios=None):
         variables.append(f"aplicacion:{(medios or {}).get('nombre_del_bucket')}")
 
+    def escribir_datos(destino, medios=None):
+        variables.append(f"datos:{(medios or {}).get('arn_del_bucket')}")
+
     def vaciar(destino, *, bucket, **resto):
         registro_de_vaciados.append(bucket)
         return len(registro_de_vaciados)
@@ -97,6 +105,7 @@ def herramental_de_mentira(corredor, *, vaciados=None):
         escribir_variables_de_medios=escribir_medios,
         escribir_variables_de_aplicacion=escribir_aplicacion,
         vaciar_bucket=vaciar,
+        escribir_variables_de_datos=escribir_datos,
     )
     return herramental, inicializados, variables, registro_de_vaciados
 
@@ -109,13 +118,45 @@ def salida_de_outputs(bucket=BUCKET, arn=ARN):
     )
 
 
+#: Contrato que publica el root de datos en el laboratorio.
+CONTRATO_DE_DATOS = {
+    "id_de_vpc": "vpc-lab",
+    "ids_de_subredes": ["subnet-a", "subnet-b"],
+    "id_sg_lambda": "sg-lambda",
+    "id_sg_admin": "sg-admin",
+    "id_sg_rds": "sg-rds",
+    "id_endpoint_s3": "vpce-s3",
+    "identificador_rds": "blog-lab-postgres",
+    "nombre_del_parametro_master": "/blog-lab/datos/blogadmin",
+}
+
+
+def salida_de_datos(**cambios):
+    import json
+
+    valores = {**CONTRATO_DE_DATOS, **cambios}
+    return json.dumps({clave: {"value": valor} for clave, valor in valores.items() if valor is not None})
+
+
+def salidas_base(extra=None):
+    """Salidas de medios y datos sanos; el root de datos no propone cambios."""
+    import json
+
+    return {
+        ("terraform-medios", "output"): salida_de_outputs(),
+        ("terraform-datos", "output"): salida_de_datos(),
+        ("terraform-datos", "show"): json.dumps({"resource_changes": []}),
+        **(extra or {}),
+    }
+
+
 class OrdenCanonicoDeLosRootsTests(unittest.TestCase):
     """Una sola autoridad sobre el orden y la cobertura."""
 
-    def test_al_crear_medios_va_primero(self):
+    def test_al_crear_medios_va_primero_y_datos_antes_que_aplicacion(self):
         secuencia = lanzador.secuencia_de_roots("crear")
         self.assertEqual(
-            [root.nombre for root in secuencia], ["medios", "aplicacion"]
+            [root.nombre for root in secuencia], ["medios", "datos", "aplicacion"]
         )
 
     def test_al_destruir_el_orden_es_exactamente_el_inverso(self):
@@ -123,11 +164,11 @@ class OrdenCanonicoDeLosRootsTests(unittest.TestCase):
         destruccion = lanzador.secuencia_de_roots("destruir")
         self.assertEqual(list(destruccion), list(reversed(creacion)))
 
-    def test_todas_las_operaciones_de_infraestructura_cubren_los_dos_roots(self):
+    def test_todas_las_operaciones_de_infraestructura_cubren_los_tres_roots(self):
         for operacion in COMANDOS_DE_INFRAESTRUCTURA:
             with self.subTest(operacion=operacion):
                 nombres = {root.nombre for root in lanzador.secuencia_de_roots(operacion)}
-                self.assertEqual(nombres, {"medios", "aplicacion"})
+                self.assertEqual(nombres, {"medios", "datos", "aplicacion"})
 
     def test_validar_no_se_limita_al_root_de_aplicacion(self):
         nombres = [root.nombre for root in lanzador.secuencia_de_roots("validar")]
@@ -138,26 +179,64 @@ class OrdenCanonicoDeLosRootsTests(unittest.TestCase):
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
             lanzador.secuencia_de_roots("inventar")
 
-    def test_los_dos_roots_no_comparten_subdirectorio_de_estado(self):
+    def test_los_roots_no_comparten_subdirectorio_de_estado(self):
         nombres = {root.nombre for root in lanzador.ROOTS_EN_ORDEN_DE_CREACION}
         self.assertEqual(len(nombres), len(lanzador.ROOTS_EN_ORDEN_DE_CREACION))
 
-    def test_los_dos_roots_no_comparten_directorio_de_terraform(self):
+    def test_los_roots_no_comparten_directorio_de_terraform(self):
         directorios = {root.directorio for root in lanzador.ROOTS_EN_ORDEN_DE_CREACION}
-        self.assertEqual(len(directorios), 2)
+        self.assertEqual(len(directorios), 3)
 
 
 class InventarioConscienteDeLosRootsTests(unittest.TestCase):
     """El bucket de medios es legitimo mientras su root no haya sido destruido."""
 
-    def inventario(self, *, buckets=(), lambdas=()):
-        return {
+    def inventario(self, *, buckets=(), lambdas=(), **datos):
+        base = {
             "s3": list(buckets),
             "lambda": list(lambdas),
             "apigatewayv2": [],
             "logs": [],
             "ssm": [],
+            "ec2_vpc": [],
+            "ec2_grupos": [],
+            "rds_instancias": [],
+            "rds_subredes": [],
+            "rds_parametros": [],
+            "logs_rds": [],
+            "ssm_datos": [],
         }
+        base.update({clave: list(valor) for clave, valor in datos.items()})
+        return base
+
+    def test_la_red_y_la_base_vivas_no_son_residuo_mientras_datos_viva(self):
+        lanzador.exigir_ausencia_en_el_destino(
+            self.inventario(buckets=[BUCKET], **lanzador.recursos_del_root_de_datos()),
+            bucket_de_medios_vivo=BUCKET,
+            datos_vivos=True,
+        )
+
+    def test_otra_instancia_rds_sigue_siendo_residuo_aunque_datos_viva(self):
+        with self.assertRaises(Exception):
+            lanzador.exigir_ausencia_en_el_destino(
+                self.inventario(rds_instancias=["blog-lab-postgres", "blog-lab-restore-1"]),
+                bucket_de_medios_vivo=None,
+                datos_vivos=True,
+            )
+
+    def test_destruido_datos_su_vpc_si_es_residuo(self):
+        with self.assertRaises(Exception):
+            lanzador.exigir_ausencia_en_el_destino(
+                self.inventario(ec2_vpc=["blog-lab-vpc"]),
+                bucket_de_medios_vivo=BUCKET,
+                datos_vivos=False,
+            )
+
+    def test_el_parametro_master_no_se_confunde_con_los_de_aplicacion(self):
+        """Cada categoria tiene un solo root duenno, tambien en SSM."""
+        legitimos = lanzador.recursos_del_root_de_datos()
+        self.assertEqual(legitimos["ssm_datos"], [f"/blog-lab/datos/{r}" for r in ("blogadmin", "blog_migrate", "blog_app")])
+        self.assertEqual(legitimos["logs_rds"], ["/aws/rds/instance/blog-lab-postgres/postgresql"])
 
     def test_el_bucket_de_medios_vivo_no_es_residuo(self):
         lanzador.exigir_ausencia_en_el_destino(
@@ -240,24 +319,26 @@ class ContratoEntreRootsTests(unittest.TestCase):
         self.assertEqual({root for root, _ in corredor.invocaciones}, {"terraform-medios"})
 
 
-class TeardownDeLosDosRootsTests(unittest.TestCase):
+class TeardownDeLosRootsTests(unittest.TestCase):
     """Orden inverso, vaciado previo y ownership preservado ante un fallo."""
 
-    def test_el_destroy_va_aplicacion_y_despues_medios(self):
+    def test_el_destroy_va_aplicacion_datos_y_despues_medios(self):
         corredor = CorredorDeMentira()
         herramental, _, _, vaciados = herramental_de_mentira(corredor)
-        lanzador.destruir_los_dos_roots(
+        lanzador.destruir_los_roots(
             Path("terraform.exe"),
             object(),
             contrato={"nombre_del_bucket": BUCKET, "arn_del_bucket": ARN},
             herramental=herramental,
         )
-        self.assertEqual(corredor.roots("destroy"), ["terraform", "terraform-medios"])
+        self.assertEqual(
+            corredor.roots("destroy"), ["terraform", "terraform-datos", "terraform-medios"]
+        )
 
     def test_el_bucket_se_vacia_antes_de_destruir_su_root(self):
         corredor = CorredorDeMentira()
         herramental, _, _, vaciados = herramental_de_mentira(corredor)
-        lanzador.destruir_los_dos_roots(
+        lanzador.destruir_los_roots(
             Path("terraform.exe"),
             object(),
             contrato={"nombre_del_bucket": BUCKET, "arn_del_bucket": ARN},
@@ -265,32 +346,48 @@ class TeardownDeLosDosRootsTests(unittest.TestCase):
         )
         self.assertEqual(vaciados, [BUCKET])
 
-    def test_un_fallo_en_aplicacion_no_destruye_medios(self):
-        """Ownership preservado: el state de medios no se toca si aplicacion falla."""
+    def test_un_fallo_en_aplicacion_no_destruye_datos_ni_medios(self):
+        """Ownership preservado: los states siguientes no se tocan si uno falla."""
         corredor = CorredorDeMentira(fallar_en=[("terraform", "destroy")])
         herramental, _, _, _ = herramental_de_mentira(corredor)
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
-            lanzador.destruir_los_dos_roots(
+            lanzador.destruir_los_roots(
+                Path("terraform.exe"),
+                object(),
+                contrato={"nombre_del_bucket": BUCKET, "arn_del_bucket": ARN},
+                herramental=herramental,
+            )
+        self.assertNotIn("terraform-datos", corredor.roots("destroy"))
+        self.assertNotIn("terraform-medios", corredor.roots("destroy"))
+
+    def test_un_fallo_en_datos_no_destruye_medios(self):
+        corredor = CorredorDeMentira(fallar_en=[("terraform-datos", "destroy")])
+        herramental, _, _, vaciados = herramental_de_mentira(corredor)
+        with self.assertRaises(lanzador.ErrorDelLaboratorio):
+            lanzador.destruir_los_roots(
                 Path("terraform.exe"),
                 object(),
                 contrato={"nombre_del_bucket": BUCKET, "arn_del_bucket": ARN},
                 herramental=herramental,
             )
         self.assertNotIn("terraform-medios", corredor.roots("destroy"))
+        self.assertEqual(vaciados, [])
 
 
 class SemanticaDeOperacionesTests(unittest.TestCase):
-    def test_rollback_lee_medios_sanos_sin_aplicarlos(self):
-        corredor = CorredorDeMentira(salidas={('terraform-medios', 'output'): salida_de_outputs()})
+    def test_rollback_lee_medios_y_datos_sanos_sin_aplicarlos(self):
+        corredor = CorredorDeMentira(salidas=salidas_base())
         herramental, inicializados, variables, _ = herramental_de_mentira(corredor)
-        lanzador.preparar_los_roots_para(
+        contrato = lanzador.preparar_los_roots_para(
             'rollback', Path('terraform.exe'), object(), Path('anterior.zip'),
             herramental=herramental,
         )
-        self.assertEqual(inicializados, ['medios', 'aplicacion'])
-        self.assertEqual(variables, ['medios', f'aplicacion:{BUCKET}'])
+        self.assertEqual(inicializados, ['medios', 'datos', 'aplicacion'])
+        self.assertEqual(variables, ['medios', f'datos:{ARN}', f'aplicacion:{BUCKET}'])
         self.assertNotIn('apply', [op for _, op in corredor.invocaciones])
         self.assertIn(('terraform-medios', 'validate'), corredor.invocaciones)
+        self.assertIn(('terraform-datos', 'validate'), corredor.invocaciones)
+        self.assertEqual(contrato['datos']['identificador_rds'], 'blog-lab-postgres')
 
     def test_contrato_nombre_arn_incoherente_aborta(self):
         corredor = CorredorDeMentira(salidas={('terraform-medios', 'output'): salida_de_outputs(arn='arn:aws:s3:::otro')})
@@ -304,7 +401,7 @@ class SemanticaDeOperacionesTests(unittest.TestCase):
         corredor = CorredorDeMentira(fallar_en=[('terraform', 'destroy')])
         herramental, _, _, vaciados = herramental_de_mentira(corredor)
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
-            lanzador.destruir_los_dos_roots(
+            lanzador.destruir_los_roots(
                 Path('terraform.exe'), object(), contrato={'nombre_del_bucket': BUCKET},
                 herramental=herramental,
             )
@@ -312,17 +409,16 @@ class SemanticaDeOperacionesTests(unittest.TestCase):
 
     def test_recuperar_medios_noop_no_aplica_ni_pide_confirmacion(self):
         import json
-        corredor = CorredorDeMentira(salidas={
-            ('terraform-medios', 'output'): salida_de_outputs(),
+        corredor = CorredorDeMentira(salidas=salidas_base({
             ('terraform-medios', 'show'): json.dumps({'resource_changes': []}),
-        })
+        }))
         herramental, inicializados, _, _ = herramental_de_mentira(corredor)
         with patch.object(lanzador, 'exigir_confirmacion_del_plan') as confirmar:
             lanzador.preparar_los_roots_para(
                 'recuperar', Path('terraform.exe'), object(), Path('actual.zip'),
                 herramental=herramental,
             )
-        self.assertEqual(inicializados, ['medios', 'aplicacion'])
+        self.assertEqual(inicializados, ['medios', 'datos', 'aplicacion'])
         self.assertNotIn('apply', [op for _, op in corredor.invocaciones])
         confirmar.assert_not_called()
 
@@ -363,6 +459,9 @@ class VersionDesdeRunbookTests(unittest.TestCase):
         self.eventos = []
         self.corredor = CorredorDeMentira(salidas={
             ('terraform-medios', 'output'): salida_de_outputs(),
+            ('terraform-datos', 'output'): salida_de_datos(),
+            ('terraform-datos', 'show'): json.dumps({'resource_changes': []}),
+            ('terraform-datos', 'state'): 'module.red.aws_vpc.this\nmodule.base_de_datos.aws_db_instance.this\n',
             ('terraform', 'output'): json.dumps({'bucket_de_medios': {'value': BUCKET}}),
             ('terraform-medios', 'show'): json.dumps({'resource_changes': [{
                 'address': 'module.almacenamiento.aws_s3_bucket.medios', 'type': 'aws_s3_bucket',
@@ -400,7 +499,7 @@ class VersionDesdeRunbookTests(unittest.TestCase):
 
     def test_rollback_solo_aplica_lambda_con_medios_leidos_e_inyectados(self):
         self.assertEqual(self.ejecutar('rollback'), 0)
-        self.assertEqual(self.inicializados, ['medios', 'aplicacion'])
+        self.assertEqual(self.inicializados, ['medios', 'datos', 'aplicacion'])
         self.assertEqual(self.variables[-1], f'aplicacion:{BUCKET}')
         self.assertEqual(self.corredor.roots('apply'), ['terraform'])
         self.assertIn(('acciones', ('update',)), self.eventos)
@@ -414,7 +513,7 @@ class VersionDesdeRunbookTests(unittest.TestCase):
     def test_recuperar_sin_medios_los_crea_antes_de_aplicacion(self):
         self.assertEqual(self.ejecutar('recuperar', ('create',)), 0)
         self.assertEqual(self.corredor.roots('apply'), ['terraform-medios', 'terraform'])
-        self.assertEqual(self.inicializados, ['medios', 'aplicacion'])
+        self.assertEqual(self.inicializados, ['medios', 'datos', 'aplicacion'])
         self.assertEqual([v for k, v in self.eventos if k == 'confirmar'], ['aplicar medios', 'recuperar'])
         self.assertIn(('acciones', ('create', 'update')), self.eventos)
 
@@ -484,8 +583,10 @@ class DestruirDesdeRunbookTests(unittest.TestCase):
             stack.enter_context(patch.object(lanzador.mod_verificacion, 'vaciar_bucket', vaciar))
             return lanzador.comando_destruir(SimpleNamespace())
 
-    def test_destruye_aplicacion_antes_de_vaciar_y_planificar_medios(self):
+    def test_destruye_aplicacion_y_datos_antes_de_vaciar_y_planificar_medios(self):
         self.assertEqual(self.ejecutar(), 0)
+        self.assertLess(self.eventos.index(('terraform', 'apply')), self.eventos.index(('terraform-datos', 'plan')))
+        self.assertLess(self.eventos.index(('terraform-datos', 'apply')), self.eventos.index(('vaciar', BUCKET)))
         self.assertLess(self.eventos.index(('terraform', 'apply')), self.eventos.index(('vaciar', BUCKET)))
         self.assertLess(self.eventos.index(('vaciar', BUCKET)), self.eventos.index(('terraform-medios', 'plan')))
         self.assertLess(self.eventos.index(('revisar', 'medios')), self.eventos.index(('terraform-medios', 'apply')))
@@ -499,7 +600,15 @@ class DestruirDesdeRunbookTests(unittest.TestCase):
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
             self.ejecutar(rechazar='medios')
         self.assertIn(('terraform', 'apply'), self.eventos)
+        self.assertIn(('terraform-datos', 'apply'), self.eventos)
         self.assertNotIn(('terraform-medios', 'apply'), self.eventos)
+
+    def test_rechazar_datos_conserva_datos_y_medios(self):
+        with self.assertRaises(lanzador.ErrorDelLaboratorio):
+            self.ejecutar(rechazar='datos')
+        self.assertIn(('terraform', 'apply'), self.eventos)
+        self.assertNotIn(('terraform-datos', 'apply'), self.eventos)
+        self.assertFalse(any(e[0] == 'vaciar' for e in self.eventos))
 
     def test_outputs_residuales_impiden_declarar_teardown(self):
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
@@ -513,34 +622,251 @@ class OwnershipDisjuntoTests(unittest.TestCase):
         "module.almacenamiento.aws_s3_bucket.medios",
         "module.almacenamiento.aws_s3_bucket_versioning.medios",
     ]
+    DATOS = [
+        "module.red.aws_vpc.this",
+        'module.red.aws_subnet.privada["a"]',
+        "module.red.aws_security_group.rds",
+        "module.base_de_datos.aws_db_instance.this",
+        "module.base_de_datos.aws_ssm_parameter.contrasena_master",
+    ]
     APLICACION = [
         "module.computo.aws_lambda_function.backend",
         "module.identidad.aws_iam_role.ejecucion",
+        'module.parametros.aws_ssm_parameter.configuracion["local/storage_region"]',
     ]
 
-    def test_states_disjuntos_pasan(self):
-        lanzador.exigir_ownership_disjunto(self.MEDIOS, self.APLICACION)
+    def estados(self, **cambios):
+        return {"medios": self.MEDIOS, "datos": self.DATOS, "aplicacion": self.APLICACION, **cambios}
 
-    def test_un_recurso_en_los_dos_states_aborta(self):
+    def test_states_disjuntos_pasan(self):
+        lanzador.exigir_ownership_disjunto(self.estados())
+
+    def test_un_recurso_en_dos_states_aborta(self):
         compartido = "module.almacenamiento.aws_s3_bucket.medios"
         with self.assertRaises(lanzador.ErrorDelLaboratorio) as capturado:
-            lanzador.exigir_ownership_disjunto(self.MEDIOS, self.APLICACION + [compartido])
+            lanzador.exigir_ownership_disjunto(
+                self.estados(aplicacion=self.APLICACION + [compartido])
+            )
         self.assertIn(compartido, str(capturado.exception))
 
     def test_el_root_de_aplicacion_no_puede_administrar_s3(self):
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
             lanzador.exigir_ownership_disjunto(
-                self.MEDIOS,
-                self.APLICACION + ["module.otro.aws_s3_bucket_policy.copia"],
+                self.estados(aplicacion=self.APLICACION + ["module.otro.aws_s3_bucket_policy.copia"])
             )
+
+    def test_ni_aplicacion_ni_medios_pueden_administrar_red_o_rds(self):
+        for root, intruso in (
+            ("aplicacion", "module.computo.aws_security_group.propio"),
+            ("aplicacion", "module.otro.aws_db_instance.copia"),
+            ("medios", "module.otro.aws_vpc.copia"),
+        ):
+            with self.subTest(root=root, intruso=intruso):
+                base = self.estados()
+                base[root] = base[root] + [intruso]
+                with self.assertRaises(lanzador.ErrorDelLaboratorio):
+                    lanzador.exigir_ownership_disjunto(base)
+
+    def test_un_ssm_propio_en_cada_root_no_es_intrusion(self):
+        """El master de datos y la configuracion de aplicacion son parametros DISTINTOS."""
+        lanzador.exigir_ownership_disjunto(self.estados())
 
     def test_el_root_de_medios_debe_administrar_el_bucket(self):
         with self.assertRaises(lanzador.ErrorDelLaboratorio):
-            lanzador.exigir_ownership_disjunto([], self.APLICACION)
+            lanzador.exigir_ownership_disjunto(self.estados(medios=[]))
 
-    def test_sin_exigir_bucket_un_medios_vacio_se_admite(self):
-        """Tras el teardown los dos states quedan vacios y eso es correcto."""
-        lanzador.exigir_ownership_disjunto([], [], exigir_bucket=False)
+    def test_el_root_de_datos_debe_administrar_vpc_y_rds(self):
+        for sin in ("module.red.aws_vpc.this", "module.base_de_datos.aws_db_instance.this"):
+            with self.subTest(falta=sin):
+                with self.assertRaises(lanzador.ErrorDelLaboratorio):
+                    lanzador.exigir_ownership_disjunto(
+                        self.estados(datos=[d for d in self.DATOS if d != sin])
+                    )
+
+    def test_sin_exigir_duennos_los_states_vacios_se_admiten(self):
+        """Tras el teardown los tres states quedan vacios y eso es correcto."""
+        lanzador.exigir_ownership_disjunto(
+            {"medios": [], "datos": [], "aplicacion": []}, exigir_duennos=False
+        )
+
+    def test_el_tipo_se_extrae_de_la_direccion(self):
+        self.assertEqual(lanzador.tipo_de_direccion('module.red.aws_subnet.privada["a"]'), "aws_subnet")
+        self.assertEqual(lanzador.tipo_de_direccion("aws_vpc.raiz"), "aws_vpc")
+
+
+class ContratoDelRootDeDatosTests(unittest.TestCase):
+    """El root de datos recibe el ARN de medios y publica un contrato completo (DH-1)."""
+
+    def test_aplica_solo_su_root_y_devuelve_el_contrato(self):
+        corredor = CorredorDeMentira(salidas={("terraform-datos", "output"): salida_de_datos()})
+        herramental, inicializados, variables, _ = herramental_de_mentira(corredor)
+        contrato = lanzador.contrato_del_root_de_datos(
+            Path("terraform.exe"), object(),
+            contrato_de_medios={"arn_del_bucket": ARN}, aplicar=True, herramental=herramental,
+        )
+        self.assertEqual(contrato["identificador_rds"], "blog-lab-postgres")
+        self.assertEqual(inicializados, ["datos"])
+        self.assertEqual(variables, [f"datos:{ARN}"])
+        self.assertEqual({root for root, _ in corredor.invocaciones}, {"terraform-datos"})
+        self.assertIn("apply", [op for _, op in corredor.invocaciones])
+
+    def test_el_camino_de_lectura_no_aplica_nada(self):
+        corredor = CorredorDeMentira(salidas={("terraform-datos", "output"): salida_de_datos()})
+        herramental, _, _, _ = herramental_de_mentira(corredor)
+        lanzador.contrato_del_root_de_datos(
+            Path("terraform.exe"), object(),
+            contrato_de_medios={"arn_del_bucket": ARN}, aplicar=False, herramental=herramental,
+        )
+        self.assertNotIn("apply", [op for _, op in corredor.invocaciones])
+
+    def test_un_contrato_incompleto_aborta(self):
+        corredor = CorredorDeMentira(
+            salidas={("terraform-datos", "output"): salida_de_datos(id_sg_admin=None)}
+        )
+        herramental, _, _, _ = herramental_de_mentira(corredor)
+        with self.assertRaises(lanzador.ErrorDelLaboratorio):
+            lanzador.contrato_del_root_de_datos(
+                Path("terraform.exe"), object(),
+                contrato_de_medios={"arn_del_bucket": ARN}, aplicar=False, herramental=herramental,
+            )
+
+    def test_la_contrasena_en_el_plan_aborta_antes_de_aplicar(self):
+        """DH-2: si el canario aparece en el plan, no se aplica nada."""
+        import json
+
+        plan = json.dumps({"resource_changes": [], "fuga": lanzador.CONTRASENA_DEL_LABORATORIO})
+        corredor = CorredorDeMentira(salidas={
+            ("terraform-datos", "show"): plan,
+            ("terraform-datos", "output"): salida_de_datos(),
+        })
+        herramental, _, _, _ = herramental_de_mentira(corredor)
+        with self.assertRaises(lanzador.ErrorDelLaboratorio) as capturado:
+            lanzador.contrato_del_root_de_datos(
+                Path("terraform.exe"), object(),
+                contrato_de_medios={"arn_del_bucket": ARN}, aplicar=True, herramental=herramental,
+            )
+        self.assertNotIn("apply", [op for _, op in corredor.invocaciones])
+        self.assertNotIn(lanzador.CONTRASENA_DEL_LABORATORIO, str(capturado.exception))
+
+    def test_la_contrasena_en_las_salidas_aborta(self):
+        corredor = CorredorDeMentira(salidas={
+            ("terraform-datos", "output"): salida_de_datos(
+                nombre_del_parametro_master=lanzador.CONTRASENA_DEL_LABORATORIO
+            ),
+        })
+        herramental, _, _, _ = herramental_de_mentira(corredor)
+        with self.assertRaises(lanzador.ErrorDelLaboratorio):
+            lanzador.contrato_del_root_de_datos(
+                Path("terraform.exe"), object(),
+                contrato_de_medios={"arn_del_bucket": ARN}, aplicar=False, herramental=herramental,
+            )
+
+    def test_sin_canario_no_hay_comprobacion(self):
+        with self.assertRaises(lanzador.ErrorDelLaboratorio):
+            lanzador.exigir_secreto_ausente({"plan": "{}"}, "")
+
+    def test_un_fallo_en_datos_impide_continuar_a_aplicacion(self):
+        corredor = CorredorDeMentira(
+            salidas=salidas_base(), fallar_en=[("terraform-datos", "validate")]
+        )
+        herramental, inicializados, _, _ = herramental_de_mentira(corredor)
+        with self.assertRaises(lanzador.ErrorDelLaboratorio):
+            lanzador.preparar_los_roots_para(
+                "rollback", Path("terraform.exe"), object(), Path("anterior.zip"),
+                herramental=herramental,
+            )
+        self.assertNotIn("aplicacion", inicializados)
+
+
+class VariablesDeCadaRootTests(unittest.TestCase):
+    """Cada root recibe SOLO los endpoints que declara (Task/031 anade EC2 y RDS)."""
+
+    def destino(self):
+        endpoints = {servicio: "http://127.0.0.1:4566" for servicio in lanzador.mod_destino.SERVICIOS}
+        return SimpleNamespace(endpoints=endpoints, region="us-east-1")
+
+    def test_aplicacion_no_recibe_ec2_ni_rds(self):
+        import json
+
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio) / "destino.tfvars.json"
+            with patch.object(lanzador, "DIRECTORIO_GENERADO", Path(directorio)), patch.object(
+                lanzador, "VARIABLES_GENERADAS", ruta
+            ):
+                lanzador.escribir_variables_del_destino(
+                    self.destino(), Path("a.zip"), {"nombre_del_bucket": BUCKET, "arn_del_bucket": ARN}
+                )
+            endpoints = json.loads(ruta.read_text(encoding="utf-8"))["endpoints_aws"]
+        self.assertEqual(set(endpoints), set(lanzador.ENDPOINTS_DEL_ROOT_DE_APLICACION))
+        self.assertNotIn("ec2", endpoints)
+        self.assertNotIn("rds", endpoints)
+
+    def test_datos_recibe_sus_endpoints_el_arn_y_la_contrasena_ficticia(self):
+        import json
+
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio) / "destino.tfvars.json"
+            with patch.object(lanzador, "DIRECTORIO_GENERADO_DE_DATOS", Path(directorio)), patch.object(
+                lanzador, "VARIABLES_GENERADAS_DE_DATOS", ruta
+            ):
+                with patch.object(lanzador, "preparar_ejecutor_h0316", return_value="a" * 64):
+                    lanzador.escribir_variables_de_datos(self.destino(), {"arn_del_bucket": ARN})
+                efimeras = json.loads(
+                    lanzador.ruta_de_las_efimeras_de_datos().read_text(encoding="utf-8")
+                )
+            valores = json.loads(ruta.read_text(encoding="utf-8"))
+        self.assertEqual(set(valores["endpoints_aws"]), set(lanzador.ENDPOINTS_DEL_ROOT_DE_DATOS))
+        self.assertEqual(valores["arn_del_bucket_de_medios"], ARN)
+        # La efimera NO va con las demas: al aplicar un plan guardado solo ella se repite.
+        self.assertNotIn("contrasena_master", valores)
+        self.assertEqual(efimeras, lanzador.EFIMERAS_DEL_LABORATORIO)
+
+    def test_solo_el_root_de_datos_tiene_variables_efimeras(self):
+        self.assertEqual(lanzador.variables_efimeras(lanzador.ROOT_DE_MEDIOS), [])
+        self.assertEqual(lanzador.variables_efimeras(lanzador.ROOT_DE_APLICACION), [])
+        (argumento,) = lanzador.variables_efimeras(lanzador.ROOT_DE_DATOS)
+        self.assertTrue(argumento.startswith("-var-file=") and argumento.endswith("efimeras.tfvars.json"))
+
+    def test_el_apply_del_plan_guardado_de_datos_aporta_las_efimeras(self):
+        """Sin ellas Terraform rechaza el apply: hallazgo real del laboratorio (H-031-1)."""
+        aplicados = []
+
+        def corredor(binario, destino, argumentos, *, raiz=None, **resto):
+            if argumentos[0] == "apply":
+                aplicados.append(list(argumentos))
+            if argumentos[:2] == ["output", "-json"]:
+                return subprocess.CompletedProcess([], 0, salida_de_datos(), "")
+            if argumentos[0] == "show":
+                import json
+                return subprocess.CompletedProcess([], 0, json.dumps({"resource_changes": [{
+                    "address": "module.red.aws_vpc.this", "type": "aws_vpc",
+                    "change": {"actions": ["create"]},
+                }]}), "")
+            return subprocess.CompletedProcess([], 0, "", "")
+
+        herramental, _, _, _ = herramental_de_mentira(corredor)
+        lanzador.contrato_del_root_de_datos(
+            Path("terraform.exe"), object(),
+            contrato_de_medios={"arn_del_bucket": ARN}, aplicar=True, herramental=herramental,
+        )
+        (apply,) = aplicados
+        self.assertIn(lanzador.variables_efimeras(lanzador.ROOT_DE_DATOS)[0], apply)
+        self.assertEqual(apply[-1], str(lanzador.ROOT_DE_DATOS.plan_guardado))
+
+    def test_datos_sin_arn_de_medios_aborta(self):
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio) / "destino.tfvars.json"
+            with patch.object(lanzador, "DIRECTORIO_GENERADO_DE_DATOS", Path(directorio)), patch.object(
+                lanzador, "VARIABLES_GENERADAS_DE_DATOS", ruta
+            ):
+                with self.assertRaises(lanzador.ErrorDelLaboratorio):
+                    lanzador.escribir_variables_de_datos(self.destino(), {"arn_del_bucket": None})
+
+    def test_la_contrasena_ficticia_cumple_la_validacion_del_root(self):
+        """Debe pasar la misma validacion que una real: 32-64 alfanumericos."""
+        import re
+
+        self.assertRegex(lanzador.CONTRASENA_DEL_LABORATORIO, re.compile(r"^[A-Za-z0-9]{32,64}$"))
 
 
 class NingunComandoAsumeUnSoloRootTests(unittest.TestCase):
@@ -557,7 +883,8 @@ class NingunComandoAsumeUnSoloRootTests(unittest.TestCase):
         {
             "secuencia_de_roots",
             "contrato_del_root_de_medios",
-            "destruir_los_dos_roots",
+            "contrato_del_root_de_datos",
+            "destruir_los_roots",
             "exigir_ausencia_en_el_destino",
             "ROOTS_EN_ORDEN_DE_CREACION",
         }

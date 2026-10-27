@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Verifica, atesta y compara el derivado reproducible de MinIO (Task/027.1, ampliado por Task/028)."""
+"""Verifica, atesta y compara el derivado reproducible de MinIO (Task/027.1, ampliado por Task/028 y Task/031).
+
+Contrato v3 (Task/031): ademas de los binarios, el derivado puede llevar UNA capa de paquetes RPM declarada en
+`package_updates`. Esa capa debe contener EXACTAMENTE los miembros declarados —cada archivo con su hash y tamano, cada
+enlace con su destino, cada whiteout y cada directorio antecesor, todos con modo y propietario— y la receta debe
+aplicar exactamente los paquetes, el medidor y la delta declarados.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +20,8 @@ from typing import Any
 
 ATTESTATION_SCHEMA = "personal-blog-infra/minio-derivative-attestation"
 BUILD_SCHEMA = "personal-blog-infra/minio-reproducible-build"
-BUILD_VERSION = 2
+BUILD_VERSION = 3
+TIPOS_DE_MIEMBRO = ("dir", "file", "symlink", "whiteout")
 
 
 class VerificationError(Exception):
@@ -38,6 +45,45 @@ def blob_name(digest: str) -> str:
     if algorithm != "sha256" or len(value) != 64:
         raise VerificationError("digest OCI no soportado")
     return f"blobs/sha256/{value}"
+
+
+def miembro_observado(layer: tarfile.TarFile, member: tarfile.TarInfo) -> dict[str, Any]:
+    """Describe un miembro de capa con los mismos campos que declara `package_updates.layer.members`."""
+    observado: dict[str, Any] = {
+        "path": member.name.rstrip("/"), "mode": member.mode, "uid": member.uid, "gid": member.gid,
+    }
+    if member.isdir():
+        observado["type"] = "dir"
+    elif member.issym():
+        observado["type"] = "symlink"
+        observado["target"] = member.linkname
+    elif member.isfile() and PurePosixPath(member.name).name.startswith(".wh."):
+        if member.size != 0:
+            raise VerificationError(f"whiteout con contenido: {member.name}")
+        observado["type"] = "whiteout"
+    elif member.isfile():
+        data = layer.extractfile(member).read()
+        observado.update(type="file", size=len(data), sha256=sha256(data))
+    else:
+        raise VerificationError(f"tipo de miembro no admitido en la capa de paquetes: {member.name}")
+    return observado
+
+
+def inspect_package_layer(layer_bytes: bytes, declarado: dict[str, Any]) -> int:
+    """Exige que la capa de paquetes contenga EXACTAMENTE los miembros declarados, en el mismo orden."""
+    esperados = declarado["members"]
+    if not isinstance(esperados, list) or not esperados:
+        raise VerificationError("la capa de paquetes no declara ningun miembro")
+    with tarfile.open(fileobj=io.BytesIO(layer_bytes), mode="r:*") as layer:
+        observados = [miembro_observado(layer, member) for member in layer.getmembers()]
+    if len(observados) != len(esperados):
+        raise VerificationError("la capa de paquetes contiene miembros no declarados o le faltan declarados")
+    for observado, esperado in zip(observados, esperados):
+        if observado != esperado:
+            raise VerificationError(
+                f"miembro de la capa de paquetes distinto del declarado: {observado['path']}"
+            )
+    return len(observados)
 
 
 def inspect_oci(oci: Path, build: dict[str, Any]) -> dict[str, Any]:
@@ -80,7 +126,10 @@ def inspect_oci(oci: Path, build: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(replacements, list) or not replacements:
             raise VerificationError("la receta no declara ningun reemplazo")
         heredados = len(build["runtime_base"]["layer_digests"])
-        total = heredados + len(replacements)
+        # Task/031 (contrato v3): una capa de paquetes declarada va JUSTO despues de las heredadas.
+        paquetes = build.get("package_updates")
+        capas_de_paquetes = 1 if paquetes is not None else 0
+        total = heredados + capas_de_paquetes + len(replacements)
 
         layers = [item["digest"] for item in manifest.get("layers") or []]
         diff_ids = config.get("rootfs", {}).get("diff_ids") or []
@@ -91,13 +140,29 @@ def inspect_oci(oci: Path, build: dict[str, Any]) -> dict[str, Any]:
         if diff_ids[:heredados] != build["runtime_base"]["diff_ids"]:
             raise VerificationError("los diff IDs heredados no son los de la base fijada")
 
+        resumen_de_paquetes = None
+        if paquetes is not None:
+            capa = paquetes["layer"]
+            if layers[heredados] != capa["layer_digest"]:
+                raise VerificationError("layer de paquetes inesperado")
+            if diff_ids[heredados] != capa["diff_id"]:
+                raise VerificationError("diff ID de la capa de paquetes inesperado")
+            miembros = inspect_package_layer(
+                archive.extractfile(blob_name(layers[heredados])).read(), capa
+            )
+            resumen_de_paquetes = {
+                "layer_digest": capa["layer_digest"],
+                "members": miembros,
+                "packages": {item["name"]: item["to"] for item in paquetes["packages"]},
+            }
+
         declarados = [item["path"] for item in replacements]
         if len(set(declarados)) != len(declarados):
             raise VerificationError("la receta declara un path de reemplazo duplicado")
 
         vistos = []
         for posicion, item in enumerate(replacements):
-            indice = heredados + posicion
+            indice = heredados + capas_de_paquetes + posicion
             if layers[indice] != item["layer_digest"]:
                 raise VerificationError(f"layer de reemplazo inesperado para {item['path']}")
             if diff_ids[indice] != item["diff_id"]:
@@ -125,7 +190,7 @@ def inspect_oci(oci: Path, build: dict[str, Any]) -> dict[str, Any]:
         if vistos != declarados:
             raise VerificationError("los reemplazos observados no son los declarados")
 
-    return {
+    resultado = {
         "manifest_digest": checks["manifest_digest"],
         "config_digest": checks["config_digest"],
         "replaced_paths": vistos,
@@ -137,6 +202,9 @@ def inspect_oci(oci: Path, build: dict[str, Any]) -> dict[str, Any]:
         "inherited_layers": heredados,
         "only_declared_paths_replaced": True,
     }
+    if resumen_de_paquetes is not None:
+        resultado["package_updates"] = resumen_de_paquetes
+    return resultado
 
 
 def verify_recipe(root: Path, manifest_path: Path, build: dict[str, Any]) -> str:
@@ -174,7 +242,41 @@ def verify_recipe(root: Path, manifest_path: Path, build: dict[str, Any]) -> str
     if presentes != sorted(declarados):
         raise VerificationError("los parches presentes no son los declarados")
 
+    paquetes = build.get("package_updates")
+    if paquetes is not None:
+        verify_package_recipe(root, dockerfile, paquetes)
+
     return sha256(manifest_path.read_bytes())
+
+
+def verify_package_recipe(root: Path, dockerfile: bytes, paquetes: dict[str, Any]) -> None:
+    """La receta debe aplicar EXACTAMENTE los paquetes, el medidor y la delta que declara el manifiesto."""
+    medidor = (root / paquetes["measurement_tool"]).read_bytes()
+    if sha256(medidor) != paquetes["measurement_tool_sha256"]:
+        raise VerificationError("hash del medidor de la capa de paquetes no coincide")
+    for valor, que in ((paquetes["measurement_tool_sha256"], "el hash del medidor"),
+                       (paquetes["delta_sha256"], "el hash de la delta")):
+        if valor.encode() not in dockerfile:
+            raise VerificationError(f"la receta no fija {que} declarado")
+    lista = paquetes.get("packages")
+    if not isinstance(lista, list) or not lista:
+        raise VerificationError("package_updates no declara ningun paquete")
+    nombres = [item["name"] for item in lista]
+    if len(set(nombres)) != len(nombres):
+        raise VerificationError("package_updates declara un paquete dos veces")
+    for item in lista:
+        for campo in ("url", "sha256"):
+            if not item.get(campo) or item[campo].encode() not in dockerfile:
+                raise VerificationError(f"la receta no aplica el paquete declarado: {item['name']} ({campo})")
+    miembros = paquetes["layer"].get("members")
+    if not isinstance(miembros, list) or not miembros:
+        raise VerificationError("la capa de paquetes no declara ningun miembro")
+    rutas = [item["path"] for item in miembros]
+    if len(set(rutas)) != len(rutas):
+        raise VerificationError("la capa de paquetes declara un miembro dos veces")
+    for item in miembros:
+        if item.get("type") not in TIPOS_DE_MIEMBRO:
+            raise VerificationError(f"tipo de miembro desconocido: {item.get('path')}")
 
 
 def normalize_sbom(document: Any, build: dict[str, Any]) -> Any:
@@ -268,6 +370,11 @@ def main() -> int:
                 "replacements": result["replacements"],
                 "only_declared_paths_replaced": True,
             }
+            if "package_updates" in result:
+                metadata["PersonalBlogDerivative"]["package_updates"] = {
+                    "layer_digest": result["package_updates"]["layer_digest"],
+                    "packages": result["package_updates"]["packages"],
+                }
             args.report.write_bytes(canonical(report) + b"\n")
             print("attestation_ok=true")
         elif args.command == "canonicalize-sbom":
@@ -285,7 +392,7 @@ def main() -> int:
                 }],
                 "predicate": {
                     "buildDefinition": {
-                        "buildType": "personal-blog-infra/minio-route-a-v1",
+                        "buildType": "personal-blog-infra/minio-route-a-v2",
                         "externalParameters": {
                             "platform": build["platform"],
                             "source_date_epoch": build["source_date_epoch"],
@@ -300,7 +407,12 @@ def main() -> int:
                         ] + [
                             {"uri": build["recipe"]["builder_platform_manifest"]},
                             {"uri": build["runtime_base"]["platform_manifest"]},
-                        ],
+                        ] + ([
+                            {"uri": build["package_updates"]["builder_platform_manifest"]},
+                        ] + [
+                            {"name": item["name"], "uri": item["url"], "digest": {"sha256": item["sha256"]}}
+                            for item in build["package_updates"]["packages"]
+                        ] if "package_updates" in build else []),
                     },
                     "runDetails": {
                         "builder": {"id": "personal-blog-infra/docker-minio-route-a"},

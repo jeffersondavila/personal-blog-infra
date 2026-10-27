@@ -23,7 +23,7 @@ Aprobación: **2026-09-29**.
 ## 1. Propiedad y alcance
 
 Root único: [bootstrap/terraform-state](../../bootstrap/terraform-state/main.tf).
-Terraform **1.16.2**, provider oficial **6.64.0**, lock de Windows/Linux igual al
+Terraform **1.16.7**, provider oficial **6.70.0**, lock de Windows/Linux igual al
 bootstrap OIDC. No se invoca el grafo de aplicación ni su lanzador `production`.
 D-06 sigue **Resuelta desde Task/025**: aquí se materializa, no se redefine.
 
@@ -76,7 +76,9 @@ workspace `default`. `PersonalBlogGitHubOidcValidation` nunca opera este root.
 | `bootstrap/terraform-state` | S3 efectivo y validado; convergencia 0/0/0, drift 0, serial 2 | `bootstrap/terraform-state/terraform.tfstate`, nueva versión tras refresh-only autorizado |
 | `bootstrap/github-oidc` | S3 efectivo y validado; convergencia 0/0/0, drift 0, serial 1 | `bootstrap/github-oidc/terraform.tfstate`, primera y única versión |
 | `terraform-medios` | S3 efectivo; plan normal 0/0/0, drift 0 (2026-09-29) | `application/media/terraform.tfstate`; nunca una de las dos keys de bootstrap |
-| Aplicación | Sin inicializar contra AWS en esta fase | Se fijará en su checkpoint; nunca una de las dos keys de bootstrap |
+| `terraform-datos` *(`Task/031`, aprobada el 2026-10-21)* | S3 con lock nativo: inicializado en H-031-2 (2026-10-04), con state desde H-031-3. Al cierre de Task/031: serial 18, 39 recursos y convergencia 0/0/0 (H-031-6, 2026-10-20). Se opera con `personal-blog` / `PersonalBlogAdministrator`, la identidad que el root exige (reporte de Task/031 §24, §25 y §51) | `application/data/terraform.tfstate`; nunca una de las keys existentes |
+| `bootstrap/operador-datos` *(`Task/031`, aprobada el 2026-10-21)* | S3 con lock nativo: aplicado en H-031-IAM (2026-10-03 y 2026-10-04) con `PersonalBlogAdministrator` como bootstrap; 8 recursos y plan normal 0/0/0 sin drift (reporte de Task/031 §24.2). La identidad se conserva sin uso operativo | `bootstrap/operador-datos/terraform.tfstate`; nunca una de las keys existentes |
+| Aplicación | Sin inicializar contra AWS en esta fase | Se fijará en su checkpoint; nunca una de las keys anteriores |
 
 **Root de medios: volver del laboratorio sin tocar su state.** El laboratorio reutiliza
 el directorio `terraform-medios/` y le genera `backend.generado.tf` con `backend "local"`.
@@ -203,7 +205,7 @@ se verificarán en H-030-2, sin ampliar IAM automáticamente.
 | Control global | `s3:GetAccountPublicAccessBlock`, `s3:PutAccountPublicAccessBlock` | `Resource="*"`; operación sobre la cuenta verificada; no es permiso sobre cualquier bucket |
 | Crear/configurar bucket | `s3:CreateBucket`, `s3:PutBucketTagging`, `s3:PutBucketVersioning`, `s3:PutBucketOwnershipControls`, `s3:PutBucketPublicAccessBlock`, `s3:PutEncryptionConfiguration`, `s3:PutBucketPolicy` | ARN exacto del bucket; creación en `us-east-2` |
 | Lecturas del provider y verificación | `s3:ListBucket`, `s3:GetBucketLocation`, `s3:GetBucketTagging`, `s3:GetBucketVersioning`, `s3:GetBucketOwnershipControls`, `s3:GetBucketPublicAccessBlock`, `s3:GetEncryptionConfiguration`, `s3:GetBucketPolicy`, `s3:GetBucketPolicyStatus`, `s3:GetBucketAcl` | Mismo ARN exacto |
-| Lecturas adicionales del recurso `aws_s3_bucket` 6.64.0 | `s3:GetAccelerateConfiguration`, `s3:GetLifecycleConfiguration`, `s3:GetBucketRequestPayment`, `s3:GetBucketWebsite`, `s3:GetBucketCORS`, `s3:GetBucketLogging`, `s3:GetBucketObjectLockConfiguration`, `s3:GetReplicationConfiguration` | Mismo ARN; el provider consulta controles aunque no se creen |
+| Lecturas adicionales del recurso `aws_s3_bucket` 6.64.0 (implementación idéntica en 6.70.0) | `s3:GetAccelerateConfiguration`, `s3:GetLifecycleConfiguration`, `s3:GetBucketRequestPayment`, `s3:GetBucketWebsite`, `s3:GetBucketCORS`, `s3:GetBucketLogging`, `s3:GetBucketObjectLockConfiguration`, `s3:GetReplicationConfiguration` | Mismo ARN; el provider consulta controles aunque no se creen |
 | State, por root | `s3:GetObject`, `s3:PutObject` | Solo su key exacta |
 | Lock, por root | `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject` | Solo `<key>.tflock` |
 | Descubrimiento del backend | `s3:ListBucket` | Prefix de su estado y listado `env:/` que usa Terraform para descubrir workspaces; solo `default` operativo |

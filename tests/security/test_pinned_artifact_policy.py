@@ -387,8 +387,14 @@ class CoexistenciaTests(unittest.TestCase):
         por_clave = {i["key"]: i for i in datos["images"]}
         self.assertEqual(len(por_clave["minio"]["accepted_findings"]), 10)
         self.assertNotIn("CVE-2026-84445", {f["id"] for f in por_clave["minio"]["accepted_findings"]})
-        self.assertEqual(len(por_clave["portainer"]["accepted_findings"]), 4)
-        aceptadas = {(f["id"], f["package"]) for f in por_clave["portainer"]["accepted_findings"]}
+        # Task/031 (2026-10-25): Portainer 2.45.3 suma UNA aceptacion TEMPORAL autorizada, cuya caducidad hace cumplir
+        # la gate; su identidad exacta y sus fechas las fija RealBaselineTemporaryAcceptanceTests. Las historicas,
+        # las no temporales, siguen siendo exactamente las 4.
+        temporales = [f for f in por_clave["portainer"]["accepted_findings"] if "temporary" in f]
+        self.assertEqual([f["id"] for f in temporales], ["CVE-2026-95837"])
+        historicas_de_portainer = [f for f in por_clave["portainer"]["accepted_findings"] if "temporary" not in f]
+        self.assertEqual(len(historicas_de_portainer), 4)
+        aceptadas = {(f["id"], f["package"]) for f in historicas_de_portainer}
         # Ninguna de las 4 puede ser una identidad nueva respecto de las historicas.
         historicas = {
             ("CVE-2025-15558", "github.com/docker/cli"),

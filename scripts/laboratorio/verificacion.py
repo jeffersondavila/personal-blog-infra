@@ -247,6 +247,43 @@ def describir_rol(destino, *, nombre: str, clave_aws: str, secreto: str) -> tupl
     return estado, datos.decode("utf-8", "replace")
 
 
+def roles_presentes(destino, *, nombres, clave_aws: str, secreto: str) -> list[str]:
+    """Roles de la lista que existen. Un estado distinto de 200 o 404 no demuestra ausencia."""
+    presentes = []
+    for nombre in nombres:
+        estado, _ = describir_rol(destino, nombre=nombre, clave_aws=clave_aws, secreto=secreto)
+        if estado == 200:
+            presentes.append(nombre)
+        elif estado != 404:
+            raise ErrorDeVerificacion(f"GetRole {nombre!r} devolvio {estado}")
+    return presentes
+
+
+# --- CloudWatch (alarmas del root de datos) -----------------------------------
+
+
+def extraer_nombres_de_alarmas(xml: str, *, prefijo: str) -> list[str]:
+    """`DescribeAlarms` por el protocolo query devuelve XML. Sin `DescribeAlarmsResult` no demuestra ausencia."""
+    if "DescribeAlarmsResult" not in xml:
+        raise ErrorDeVerificacion("DescribeAlarms no devolvio DescribeAlarmsResult")
+    return [n for n in re.findall(r"<AlarmName>([^<]+)</AlarmName>", xml) if n.startswith(prefijo)]
+
+
+def alarmas_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
+    cw = cliente(destino, "cloudwatch", clave=clave_aws, secreto=secreto)
+    estado, datos = cw.llamar(
+        servicio="monitoring",
+        metodo="POST",
+        ruta="/",
+        cuerpo=("Action=DescribeAlarms&Version=2010-08-01&AlarmNamePrefix="
+                + urllib.parse.quote(prefijo, safe="")).encode("ascii"),
+        cabeceras={"content-type": "application/x-www-form-urlencoded"},
+    )
+    if estado != 200:
+        raise ErrorDeVerificacion(f"DescribeAlarms devolvio {estado}")
+    return extraer_nombres_de_alarmas(datos.decode("utf-8", "replace"), prefijo=prefijo)
+
+
 # --- Lambda -----------------------------------------------------------------
 
 
@@ -329,6 +366,110 @@ def apis_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> li
     except ValueError as error:
         raise ErrorDeVerificacion("GetApis no devolvio JSON valido") from error
     return extraer_nombres_de_apis(cuerpo, prefijo=prefijo)
+
+
+# --- EC2 y RDS (root de datos, Task/031) -------------------------------------
+#
+# Las dos APIs usan el protocolo `query`: formulario en el cuerpo y XML en la
+# respuesta, igual que STS. Aqui un estado distinto de 200 ABORTA: una respuesta
+# que no se entiende no demuestra ausencia, y tratarla como lista vacia ocultaria
+# justo el residuo que la comprobacion existe para encontrar (Task/027.1).
+
+#: Versiones del API que fija la documentacion de cada servicio.
+VERSION_DE_EC2 = "2016-11-15"
+VERSION_DE_RDS = "2014-10-31"
+
+
+def _sin_espacio_de_nombres(etiqueta: str) -> str:
+    return etiqueta.rsplit("}", 1)[-1]
+
+
+def _consulta_xml(destino, *, servicio: str, accion: str, version: str, clave_aws: str, secreto: str):
+    """Ejecuta una accion `query` y devuelve la raiz XML, o aborta."""
+    import xml.etree.ElementTree as ET
+
+    api = cliente(destino, servicio, clave=clave_aws, secreto=secreto)
+    estado, datos = api.llamar(
+        servicio=servicio,
+        metodo="POST",
+        ruta="/",
+        cuerpo=urllib.parse.urlencode({"Action": accion, "Version": version}).encode("ascii"),
+        cabeceras={"content-type": "application/x-www-form-urlencoded"},
+    )
+    if estado != 200:
+        raise ErrorDeVerificacion(f"{servicio}:{accion} devolvio {estado}; no demuestra ausencia")
+    try:
+        return ET.fromstring(datos)
+    except ET.ParseError as error:
+        raise ErrorDeVerificacion(f"{servicio}:{accion} no devolvio XML valido") from error
+
+
+def _textos(raiz, nombre: str) -> list[str]:
+    return [
+        (nodo.text or "").strip()
+        for nodo in raiz.iter()
+        if _sin_espacio_de_nombres(nodo.tag) == nombre
+    ]
+
+
+def nombres_de_vpcs(raiz, *, prefijo: str) -> list[str]:
+    """Etiqueta `Name` de cada VPC del XML de DescribeVpcs que empiece por `prefijo`.
+
+    Se filtra en el cliente, no con `Filter.N`, para no depender de que el
+    destino implemente los filtros: la VPC por omision, sin `Name`, no cuenta.
+    """
+    nombres: list[str] = []
+    for item in raiz.iter():
+        if _sin_espacio_de_nombres(item.tag) != "item":
+            continue
+        hijos = {_sin_espacio_de_nombres(h.tag): h for h in item}
+        if "vpcId" not in hijos or "tagSet" not in hijos:
+            continue
+        for etiqueta in hijos["tagSet"]:
+            campos = {_sin_espacio_de_nombres(c.tag): (c.text or "") for c in etiqueta}
+            if campos.get("key") == "Name" and campos.get("value", "").startswith(prefijo):
+                nombres.append(campos["value"])
+    return nombres
+
+
+def vpcs_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
+    raiz = _consulta_xml(
+        destino, servicio="ec2", accion="DescribeVpcs", version=VERSION_DE_EC2,
+        clave_aws=clave_aws, secreto=secreto,
+    )
+    return nombres_de_vpcs(raiz, prefijo=prefijo)
+
+
+def grupos_de_seguridad_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
+    raiz = _consulta_xml(
+        destino, servicio="ec2", accion="DescribeSecurityGroups", version=VERSION_DE_EC2,
+        clave_aws=clave_aws, secreto=secreto,
+    )
+    return [nombre for nombre in _textos(raiz, "groupName") if nombre.startswith(prefijo)]
+
+
+def instancias_rds_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
+    raiz = _consulta_xml(
+        destino, servicio="rds", accion="DescribeDBInstances", version=VERSION_DE_RDS,
+        clave_aws=clave_aws, secreto=secreto,
+    )
+    return [n for n in _textos(raiz, "DBInstanceIdentifier") if n.startswith(prefijo)]
+
+
+def grupos_de_subredes_rds_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
+    raiz = _consulta_xml(
+        destino, servicio="rds", accion="DescribeDBSubnetGroups", version=VERSION_DE_RDS,
+        clave_aws=clave_aws, secreto=secreto,
+    )
+    return [n for n in _textos(raiz, "DBSubnetGroupName") if n.startswith(prefijo)]
+
+
+def grupos_de_parametros_rds_presentes(destino, *, prefijo: str, clave_aws: str, secreto: str) -> list[str]:
+    raiz = _consulta_xml(
+        destino, servicio="rds", accion="DescribeDBParameterGroups", version=VERSION_DE_RDS,
+        clave_aws=clave_aws, secreto=secreto,
+    )
+    return [n for n in _textos(raiz, "DBParameterGroupName") if n.startswith(prefijo)]
 
 
 # --- CloudWatch Logs --------------------------------------------------------

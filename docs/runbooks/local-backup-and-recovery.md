@@ -115,6 +115,29 @@ Reglas:
   reconstruye desde `.env.example`, y meterlo en la copia sería duplicar secretos sin
   necesidad.
 
+### 3.2 Custodia y estado de R-12
+
+**Decisión del usuario del 2026-10-16:** R-12 sigue **ABIERTO**, documentado y con seguimiento en
+`Task/040`. Revisión hecha en `Task/031`; detalle en el
+[reporte §48](../task-reports/TASK-031-report.md).
+
+| Control | Estado | Evidencia o lo que falta |
+| --- | --- | --- |
+| `local-backups/` ignorado por Git | **Demostrado** | `git check-ignore -v local-backups/` → `.gitignore:107` |
+| Ausente del historial versionado | **Demostrado** | `git log --all -- local-backups` → 0 commits; Gitleaks del historial, 0 hallazgos |
+| Fuera de OneDrive | **Demostrado** | `Downloads` no está redirigido: OneDrive solo sincroniza `Documentos` |
+| Cifrado del volumen (BitLocker) | **Pendiente de verificación elevada** | El indicador sin elevación (`System.Volume.BitLockerProtection = 1`) no está documentado oficialmente, y `Get-BitLockerVolume` exige administrador. Hace falta la salida de `manage-bde -status C:` en una sesión **elevada**, compartiendo solo el estado de protección, el porcentaje cifrado y los tipos de protector, **nunca** la clave de recuperación |
+| Custodia de otras copias (USB, nube, herramientas de copia del sistema) | **No demostrada** | Hace falta que el usuario confirme que no existen o que están cifradas con una clave propia |
+| Comprobar el cifrado antes de generar o trasladar un respaldo | **Regla vigente, no automatizada** | Ningún script la ejecuta. Se hace a mano: `manage-bde -status C:` elevado, antes de `New-LocalBackup.ps1` o de cualquier traslado |
+
+**Reglas mientras R-12 siga abierto:**
+
+- Antes de **generar** un respaldo o de **trasladar** uno, comprobar el cifrado del volumen con
+  el comando elevado de la tabla. Si no está protegido al 100 %, no se genera ni se traslada.
+- Ninguna copia sale de este volumen sin un cifrado propio.
+- Los respaldos existentes **no se borran, mueven, cifran ni recrean** sin autorización explícita
+  del usuario.
+
 ---
 
 ## 4. Crear un backup
